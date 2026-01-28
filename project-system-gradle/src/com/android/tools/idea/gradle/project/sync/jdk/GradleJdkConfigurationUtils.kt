@@ -102,11 +102,20 @@ object GradleJdkConfigurationUtils {
    * @param project The current opened project
    * @param gradleRootPath Gradle project root absolute path
    * @param version A major Java version
+   * @param onSucceeded Callback to be executed if the change configuration was successful
    */
-  suspend fun tryConfigureGradleJdkWithVersion(project: Project, gradleRootPath: @SystemIndependent String, version: Int) {
+  suspend fun tryConfigureGradleJdkWithVersion(
+    project: Project,
+    gradleRootPath: @SystemIndependent String,
+    version: Int,
+    onSucceeded: () -> Unit,
+  ) {
     val resolvedSdk =
       ProjectJdkTableUtils.findProjectTableJdkWithVersion(version) ?: JdkDownloadUtils.downloadJdkWithVersion(project, version)
 
-    resolvedSdk?.homePath?.let { setProjectGradleJdk(project, gradleRootPath, it) }
+    resolvedSdk?.homePath?.let {
+      setProjectGradleJdk(project, gradleRootPath, it)
+      onSucceeded.invoke()
+    }
   }
 }

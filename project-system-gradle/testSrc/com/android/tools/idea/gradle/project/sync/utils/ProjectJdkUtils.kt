@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.utils
 
+import com.android.tools.idea.gradle.dsl.utils.FN_SETTINGS_GRADLE
 import com.android.tools.idea.gradle.project.sync.extensions.getOptionElement
 import com.android.tools.idea.gradle.project.sync.extensions.getOptionElementName
 import com.android.tools.idea.gradle.project.sync.model.GradleDaemonToolchain
@@ -65,6 +66,10 @@ object ProjectJdkUtils {
       "org.gradle.java.installations.paths" to gradleDaemonToolchain.customToolchainInstallationsPath.joinToString(","),
       "org.gradle.java.installations.fromEnv" to gradleDaemonToolchain.customToolchainInstallationsEnv?.joinToString(","),
     )
+
+    if (gradleDaemonToolchain.applyToolchainResolverPlugin) {
+      applySimpleToolchainResolverPlugin(projectRoot)
+    }
   }
 
   fun setProjectGradlePropertiesJavaHome(projectRoot: File, javaHome: String) {
@@ -144,5 +149,38 @@ object ProjectJdkUtils {
       newProperties.forEach { (key, value) -> value?.let { properties.setProperty(key, it) } }
       save()
     }
+  }
+
+  private fun applySimpleToolchainResolverPlugin(projectRoot: File) {
+    FileUtil.appendToFile(
+      File(projectRoot, FN_SETTINGS_GRADLE),
+      """
+      |import java.util.Optional
+      |
+      |abstract class JavaToolchainPlugin implements Plugin<Settings> {
+      |
+      |    @Inject
+      |    protected abstract JavaToolchainResolverRegistry getJavaToolchainResolverRegistry()
+      |
+      |    void apply(Settings settings) {
+      |        javaToolchainResolverRegistry.register(Resolver)
+      |        settings.plugins.apply('jvm-toolchain-management')
+      |        settings.toolchainManagement.jvm.javaRepositories.repository('custom') {
+      |            resolverClass = Resolver
+      |        }
+      |    }
+      |
+      |    abstract static class Resolver implements JavaToolchainResolver {
+      |        @Override
+      |        Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+      |            return Optional.of(JavaToolchainDownload.fromUri(URI.create('https://server.com')))
+      |        }
+      |    }
+      |}
+      |
+      |apply plugin: JavaToolchainPlugin
+      """
+        .trimMargin(),
+    )
   }
 }

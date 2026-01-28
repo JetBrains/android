@@ -48,6 +48,8 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
@@ -68,6 +70,7 @@ import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.settings.DistributionType
 import org.jetbrains.plugins.gradle.settings.GradleSettings
+import org.jetbrains.plugins.gradle.util.GradleConstants
 
 class CreateGradleWrapperQuickFix : BuildIssueQuickFix {
   override val id = "migrate.gradle.wrapper"
@@ -345,13 +348,17 @@ class UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix(
   private val gradleVersion: GradleVersion,
   private val externalProjectPath: String,
 ) : DescribedBuildIssueQuickFix {
-  override val description: String = "Apply compatible Daemon JVM criteria"
+  override val description: String = "Apply compatible Daemon JVM criteria and sync"
   override val id: String = "apply.compatible.daemon.jvm.criteria"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val targetJavaVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(gradleVersion, true)
     val daemonJvmCriteria = GradleDaemonJvmCriteria(targetJavaVersion.feature.toString(), null)
-    return GradleDaemonJvmHelper.updateProjectDaemonJvmCriteria(project, externalProjectPath, daemonJvmCriteria)
+    return GradleDaemonJvmHelper.updateProjectDaemonJvmCriteria(project, externalProjectPath, daemonJvmCriteria).thenAccept {
+      if (it) {
+        ExternalSystemUtil.refreshProject(externalProjectPath, ImportSpecBuilder(project, GradleConstants.SYSTEM_ID))
+      }
+    }
   }
 }
 
@@ -359,14 +366,16 @@ class UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix(
   private val gradleVersion: GradleVersion,
   private val externalProjectPath: String,
 ) : DescribedBuildIssueQuickFix {
-  override val description: String = "Apply compatible Gradle JDK configuration"
+  override val description: String = "Apply compatible Gradle JDK configuration and sync"
   override val id: String = "apply.compatible.gradle.jdk.configuration"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     return project.coroutineScope
       .launch {
         val targetJavaVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(gradleVersion, true)
-        GradleJdkConfigurationUtils.tryConfigureGradleJdkWithVersion(project, externalProjectPath, targetJavaVersion.feature)
+        GradleJdkConfigurationUtils.tryConfigureGradleJdkWithVersion(project, externalProjectPath, targetJavaVersion.feature) {
+          ExternalSystemUtil.refreshProject(externalProjectPath, ImportSpecBuilder(project, GradleConstants.SYSTEM_ID))
+        }
       }
       .asCompletableFuture()
   }

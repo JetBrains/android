@@ -33,6 +33,7 @@ import org.jetbrains.annotations.SystemIndependent
  * @param autoProvisioningEnabled Enables toolchain auto-provisioning to download toolchain given provided download URLs
  * @param customToolchainInstallationsPath A comma-separated list of paths to specific installations being the default all the embedded JDKs
  * @param customToolchainInstallationsEnv A comma-separated list of environment variables of toolchain installations paths
+ * @param applyToolchainResolverPlugin Adds a simple resolver plugin to gradle.settings to make updateDaemonJvm task to succeed
  */
 data class GradleDaemonToolchain(
   val version: String,
@@ -42,4 +43,5 @@ data class GradleDaemonToolchain(
   val customToolchainInstallationsPath: List<@SystemIndependent String> =
     listOf(JDK_EMBEDDED_PATH, JDK_21_PATH, JDK_17_PATH, JDK_11_PATH, JDK_1_8_PATH),
   val customToolchainInstallationsEnv: List<String>? = null,
+  val applyToolchainResolverPlugin: Boolean = false,
 )

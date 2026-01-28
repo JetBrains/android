@@ -43,7 +43,7 @@ import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandle
  *
  * Gradle JVM version incompatible. This project is configured to use an older Gradle JVM that supports up to version X but the current AGP
  * requires a Gradle JVM that supports version Y.
- * - [UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix] apply compatible Gradle JDK configuration
+ * - [UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix] apply compatible Gradle JDK configuration and sync
  * - [SelectJdkFromFileSystemQuickFix] that will open the settings tab to configure Gradle JVM
  * - [OpenLinkQuickFix] with message "See AGP Release Notes..."
  */

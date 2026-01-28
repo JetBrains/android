@@ -672,7 +672,7 @@ iml_module(
 )
 
 generate_old_agp_tests_from_list(
-    name = "MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest",
+    name = "GradleSyncWithOldAgpIntegrationTest",
     iml_module = ":intellij.android.projectSystem.gradle.tests",
     tests_list = [
         dict(
