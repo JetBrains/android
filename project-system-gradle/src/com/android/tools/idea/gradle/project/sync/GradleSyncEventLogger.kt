@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.SdkConstants
 import com.android.ide.common.gradle.Version
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.flags.StudioFlags
@@ -182,7 +181,14 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     }
 
     val gradleVersion = when(kind) {
-      AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED -> GradleVersions.getInstance().getGradleVersion(project)?.version ?: ""
+      AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED,
+      AndroidStudioEvent.EventKind.GRADLE_SYNC_CANCELLED,
+      AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE,
+      AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS,
+          // "lastSynced" in this case is a misnomer: we are part-way through syncing but
+          // have updated the `lastSyncedGradleVersion` of the state after configuring
+          // the sync operation.
+        -> GradleSyncState.getInstance(project).lastSyncedGradleVersion?.version
       else -> null
     }
     runReadAction {
