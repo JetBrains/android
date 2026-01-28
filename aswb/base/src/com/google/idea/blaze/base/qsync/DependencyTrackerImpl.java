@@ -37,6 +37,7 @@ import com.google.idea.blaze.qsync.project.RequestedTargets;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Set;
 
 /**
  * A file that tracks what files in the project can be analyzed and what is the status of their
@@ -170,5 +171,12 @@ public class DependencyTrackerImpl implements DependencyTracker {
   @Override
   public DependencyBuilder getBuilder() {
     return builder;
+  }
+
+  @Override
+  public void updateDependenciesFromOutputInfo(
+      BlazeContext context, OutputInfo outputInfo, Set<Label> targets)
+      throws BuildException {
+    artifactTracker.update(targets, outputInfo, context);
   }
 }

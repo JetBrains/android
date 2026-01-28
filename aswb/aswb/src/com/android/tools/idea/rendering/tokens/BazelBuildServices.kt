@@ -145,6 +145,8 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
           context.push(scope)
           val output = executeBuild(project, context, label)
           cacheRuntimeArtifacts(project, label, output, context)
+          // Update the artifact tracker to resolve IDE symbols and make Android resources available (generated).
+          updateArtifactTracker(project, output, label, context)
         }
 
         val succeeded = qSyncManager.runOperationWithToolWindow(
@@ -159,7 +161,7 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
         buildOutcomeCache.invalidate(label, ProjectSystemBuildManager.BuildStatus.CANCELLED)
         buildResultSettableFuture.cancel(true)
         throw e
-      } catch (e: Exception) {
+      } catch (e: Throwable) {
         buildResultSettableFuture.setException(e)
         throw e
       }
@@ -204,6 +206,28 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
       }
       buildOutcomeCache.invalidate(label, status)
       throw exception
+    }
+  }
+
+  /**
+   * Executed by the Blaze executor
+   */
+  @Throws(BuildException::class)
+  private fun updateArtifactTracker(
+    project: Project,
+    output: com.google.idea.blaze.qsync.deps.OutputInfo,
+    label: Label,
+    context: BlazeContext
+  ) {
+    val toolingLabel = BazelComposeToolingProjectLabelProvider.getComposeToolingLabel(project)
+    val targets = setOfNotNull(label, toolingLabel)
+    try {
+      QuerySyncManager.getInstance(project)
+      val tracker: DependencyTracker =
+        QuerySyncManager.getInstance(project).getDependencyTracker() ?: error("Dependency track not available")
+      tracker.updateDependenciesFromOutputInfo(context, output, targets)
+    } catch (e: Exception) {
+      throw BuildException("Failed to update artifact tracker", e)
     }
   }
 

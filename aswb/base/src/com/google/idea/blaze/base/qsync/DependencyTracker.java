@@ -20,11 +20,13 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.deps.OutputGroup;
+import com.google.idea.blaze.qsync.deps.OutputInfo;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.common.experiments.BoolExperiment;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -118,4 +120,12 @@ public interface DependencyTracker {
   }
 
   DependencyBuilder getBuilder();
+
+  /**
+   * Updates the artifact tracker with the given build output, enabling code analysis for the given
+   * targets.
+   */
+  void updateDependenciesFromOutputInfo(
+      BlazeContext context, OutputInfo outputInfo, Set<Label> targets)
+      throws BuildException;
 }
