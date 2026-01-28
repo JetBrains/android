@@ -285,7 +285,7 @@ void DisplayStreamer::Run() {
     MediaFormat sync_frame_request = AMediaFormat_new();
     AMediaFormat_setInt32(sync_frame_request, AMEDIACODEC_KEY_REQUEST_SYNC_FRAME, 0);
     stop_reason = ProcessFramesUntilCodecStopped(&packet_header, sync_frame_request);
-    Log::D("ProcessFramesUntilCodecStopped returned %d", stop_reason);
+    Log::D("Display %d: ProcessFramesUntilCodecStopped returned %d", display_id_, stop_reason);
     StopCodec();
     DeleteCodec();
     if (virtual_display_.IsNotNull()) {
