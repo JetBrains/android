@@ -28,6 +28,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats.GradleSyncPhaseData
 import com.google.wireless.android.sdk.stats.GradleSyncStats.GradleSyncPhaseData.SyncPhase.GRADLE_RUN_MAIN_TASKS
 import com.google.wireless.android.sdk.stats.GradleSyncStats.GradleSyncPhaseData.SyncPhase.GRADLE_RUN_WORK
 import com.google.wireless.android.sdk.stats.GradleSyncStats.GradleSyncPhaseData.SyncPhase.SYNC_TOTAL
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.Test
 
@@ -47,11 +48,13 @@ class GradleSyncEventLoggerTest {
 
   @Test
   fun whenStarted() {
+    GradleSyncStateHolder.getInstance(projectRule.project).recordGradleVersion(GradleVersion.version("9.2.1"))
     eventLogger.syncStarted(GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT, GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)
 
     val event = eventLogger.generateSyncEvent(projectRule.project, "/", AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED)
 
     expect.that(event.kind).named("kind").isEqualTo(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED)
+    expect.that(event.hasGradleVersion()).named("gradleVersion").isFalse()
     expect.that(event.gradleSyncStats.syncType).named("syncType").isEqualTo(GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT)
     expect.that(event.gradleSyncStats.trigger).named("trigger").isEqualTo(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)
     expect.that(event.gradleSyncStats.gradleTimeMs).named("gradleTimeMs").isEqualTo(-1)
@@ -78,8 +81,9 @@ class GradleSyncEventLoggerTest {
   }
 
   @Test
-  fun whensEnded() {
+  fun whenEnded() {
     eventLogger.syncStarted(GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT, GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)
+    GradleSyncStateHolder.getInstance(projectRule.project).recordGradleVersion(GradleVersion.version("9.2.1"))
 
     // Phases Events from Gradle
     eventLogger.syncPhaseStarted(GRADLE_CONFIGURE_ROOT_BUILD)
@@ -101,6 +105,7 @@ class GradleSyncEventLoggerTest {
     val event = eventLogger.generateSyncEvent(projectRule.project, "/", AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED)
 
     expect.that(event.kind).named("kind").isEqualTo(AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED)
+    expect.that(event.gradleVersion).named("gradleVersion").isEqualTo("9.2.1")
     expect.that(event.gradleSyncStats.syncType).named("syncType").isEqualTo(GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT)
     expect.that(event.gradleSyncStats.trigger).named("trigger").isEqualTo(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)
     expect.that(event.gradleSyncStats.gradleTimeMs).named("gradleTimeMs").isEqualTo(4)
@@ -118,8 +123,9 @@ class GradleSyncEventLoggerTest {
   }
 
   @Test
-  fun whensFailed() {
+  fun whenFailed() {
     eventLogger.syncStarted(GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT, GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)
+    GradleSyncStateHolder.getInstance(projectRule.project).recordGradleVersion(GradleVersion.version("9.2.1"))
 
     // Phases Events from Gradle
     eventLogger.syncPhaseStarted(GRADLE_CONFIGURE_ROOT_BUILD)
@@ -135,6 +141,7 @@ class GradleSyncEventLoggerTest {
     val event = eventLogger.generateSyncEvent(projectRule.project, "/", AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
 
     expect.that(event.kind).named("kind").isEqualTo(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+    expect.that(event.gradleVersion).named("gradleVersion").isEqualTo("9.2.1")
     expect.that(event.gradleSyncStats.syncType).named("syncType").isEqualTo(GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT)
     expect.that(event.gradleSyncStats.trigger).named("trigger").isEqualTo(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)
     expect.that(event.gradleSyncStats.gradleTimeMs).named("gradleTimeMs").isEqualTo(-1)
