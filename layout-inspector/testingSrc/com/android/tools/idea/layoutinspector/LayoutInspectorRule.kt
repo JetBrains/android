@@ -70,20 +70,26 @@ val MODERN_DEVICE =
     override val codename: String? = null
   }
 
-val LEGACY_DEVICE =
-  object : DeviceDescriptor by MODERN_DEVICE {
-    override val model = "Legacy Model"
-    override val serial = "123"
-    override val apiLevel = AndroidApiLevel(AndroidVersion.VersionCodes.M)
-    override val version = "M"
+val DEVICE_2 =
+  object : DeviceDescriptor {
+    override val manufacturer = "Google"
+    override val model = "Modern Model"
+    override val serial = "1234567"
+    override val isEmulator = false
+    override val apiLevel = AndroidApiLevel(AndroidVersion.VersionCodes.R)
+    override val version = "R"
+    override val codename: String? = null
   }
 
-val OLDER_LEGACY_DEVICE =
-  object : DeviceDescriptor by MODERN_DEVICE {
-    override val model = "Older Legacy Model"
-    override val serial = "12"
-    override val apiLevel = AndroidApiLevel(AndroidVersion.VersionCodes.LOLLIPOP)
-    override val version = "L"
+val UNSUPPORTED_DEVICE =
+  object : DeviceDescriptor {
+    override val manufacturer = "Google"
+    override val model = "Modern Model"
+    override val serial = "12345678"
+    override val isEmulator = false
+    override val apiLevel = AndroidApiLevel(AndroidVersion.VersionCodes.P)
+    override val version = "P"
+    override val codename: String? = null
   }
 
 fun DeviceDescriptor.createProcess(

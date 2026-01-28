@@ -22,8 +22,8 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.layoutinspector.DEVICE_2
 import com.android.tools.idea.layoutinspector.DeviceProvisionerServiceCleanUpRule
-import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
@@ -63,7 +63,7 @@ class InspectorClientLauncherTest {
 
   @Before
   fun before() {
-    for (device in setOf(MODERN_DEVICE, LEGACY_DEVICE)) {
+    for (device in setOf(MODERN_DEVICE, DEVICE_2)) {
       adbRule.connectDevice(
         device.serial,
         device.manufacturer,
@@ -149,7 +149,7 @@ class InspectorClientLauncherTest {
     processes.selectedProcess = MODERN_DEVICE.createProcess()
     assertThat(launcher.activeClient).isInstanceOf(FakeInspectorClient::class.java)
 
-    processes.selectedProcess = LEGACY_DEVICE.createProcess()
+    processes.selectedProcess = DEVICE_2.createProcess()
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
     assertThat(processes.selectedProcess).isNull()
   }
@@ -225,7 +225,7 @@ class InspectorClientLauncherTest {
           },
           ClientFactory { params ->
             creatorCount2++
-            if (params.process.device.apiLevel == LEGACY_DEVICE.apiLevel)
+            if (params.process.device.apiLevel == DEVICE_2.apiLevel)
               FakeInspectorClient(
                 "Legacy client",
                 projectRule.project,
@@ -266,7 +266,7 @@ class InspectorClientLauncherTest {
     assertThat(creatorCount2).isEqualTo(0)
     assertThat(creatorCount3).isEqualTo(0)
 
-    processes.selectedProcess = LEGACY_DEVICE.createProcess()
+    processes.selectedProcess = DEVICE_2.createProcess()
     (launcher.activeClient as FakeInspectorClient).let { activeClient ->
       assertThat(activeClient.name).isEqualTo("Legacy client")
     }
@@ -361,7 +361,7 @@ class InspectorClientLauncherTest {
             }
           },
           ClientFactory { params ->
-            if (params.process.device.apiLevel >= MODERN_DEVICE.apiLevel) {
+            if (params.process.device.apiLevel == MODERN_DEVICE.apiLevel) {
               FakeInspectorClient(
                 "Modern client",
                 projectRule.project,
@@ -388,7 +388,7 @@ class InspectorClientLauncherTest {
       assertThat(activeClient.name).isEqualTo("Modern client")
     }
 
-    processes.selectedProcess = LEGACY_DEVICE.createProcess()
+    processes.selectedProcess = DEVICE_2.createProcess()
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
     assertThat(processes.selectedProcess).isNull()
   }
