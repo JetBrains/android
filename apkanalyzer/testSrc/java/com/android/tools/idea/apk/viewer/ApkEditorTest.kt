@@ -33,6 +33,8 @@ import com.google.common.truth.Truth.assertThat
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk
 import com.google.devrel.gmscore.tools.apk.arsc.ChunkWithChunks
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceFile
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
 import com.intellij.diff.util.FileEditorBase
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
@@ -57,10 +59,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.LoadingNode
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.treeStructure.Tree
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 import java.awt.Component
 import java.awt.Container
 import java.io.File
@@ -78,6 +76,10 @@ import kotlin.io.path.createParentDirectories
 import kotlin.io.path.pathString
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
 
 // Timeout to use when waiting for isLoaded condition
@@ -510,6 +512,45 @@ class ApkEditorTest(
     assertThat(fileEditor.fileContents).isEqualTo("""
       {
         "foo": "foo"
+      }
+    """.trimIndent())
+  }
+
+  @Test
+  fun selectR8Json_invalidStats() {
+    val gson = GsonBuilder().setPrettyPrinting().create()
+    val apkEditor = apkEditor("/invalid-r8-json.aab")
+
+    val editor = apkEditor.getEditor<FileEditorComponent>(apkEditor.getNode("/BUNDLE-METADATA/com.android.tools/r8.json"))
+
+    val fileEditor = editor.editor as TestFileEditor
+    val jsonObject = gson.fromJson(fileEditor.fileContents, JsonObject::class.java)
+    val stats = gson.toJson(jsonObject["stats"])
+    assertThat(stats).isEqualTo("""
+      {
+        "WARNING": "The following values are invalid and should be ignored. See http://issuetracker.google.com/issues/480125108",
+        "noObfuscationPercentage": -0.97,
+        "noOptimizationPercentage": -12.52,
+        "noShrinkingPercentage": -12.52
+      }
+    """.trimIndent())
+  }
+
+  @Test
+  fun selectR8Json_validStats() {
+    val gson = GsonBuilder().setPrettyPrinting().create()
+    val apkEditor = apkEditor("/valid-r8-json.aab")
+
+    val editor = apkEditor.getEditor<FileEditorComponent>(apkEditor.getNode("/BUNDLE-METADATA/com.android.tools/r8.json"))
+
+    val fileEditor = editor.editor as TestFileEditor
+    val jsonObject = gson.fromJson(fileEditor.fileContents, JsonObject::class.java)
+    val stats = gson.toJson(jsonObject["stats"])
+    assertThat(stats).isEqualTo("""
+      {
+        "noObfuscationPercentage": 2.14,
+        "noOptimizationPercentage": 3.88,
+        "noShrinkingPercentage": 2.93
       }
     """.trimIndent())
   }

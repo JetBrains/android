@@ -33,9 +33,11 @@ import com.android.tools.idea.apk.viewer.pagealign.getAlignmentFinding
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerUtil
 import com.android.tools.proguard.ProguardMap
+import com.android.tools.r8.metadata.R8BuildMetadata
 import com.android.utils.FileUtils
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
+import com.google.gson.JsonPrimitive
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileChooser.FileChooser
@@ -74,6 +76,7 @@ import javax.swing.JComponent
 import javax.swing.LayoutFocusTraversalPolicy
 import kotlin.io.path.extension
 import kotlin.io.path.name
+import kotlin.io.path.pathString
 import kotlin.math.max
 import com.intellij.util.io.URLUtil
 import org.jetbrains.annotations.VisibleForTesting
@@ -382,7 +385,26 @@ internal class ApkEditor(
     }
     if (p.extension == "json") {
       val gson = GsonBuilder().setPrettyPrinting().create()
-      val jsonObject = gson.fromJson(String(content), JsonObject::class.java)
+      val json = String(content)
+      val jsonObject = gson.fromJson(json, JsonObject::class.java)
+      if (p.pathString == "/BUNDLE-METADATA/com.android.tools/r8.json") {
+        val metadata = R8BuildMetadata.fromJson(json)
+        if (metadata.statsMetadata == null) {
+          val metadata = R8BuildMetadata.fromJson(json)
+          if (metadata.statsMetadata == null) {
+            val stats = jsonObject["stats"].asJsonObject
+            val elements = stats.entrySet().toList()
+            stats.add(
+              "WARNING",
+              JsonPrimitive("The following values are invalid and should be ignored. See http://issuetracker.google.com/issues/480125108"),
+            )
+            elements.forEach {
+              stats.remove(it.key)
+              stats.add(it.key, it.value)
+            }
+          }
+        }
+      }
       return ApkVirtualFile.createText(p, gson.toJson(jsonObject))
     }
 
