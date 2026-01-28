@@ -31,7 +31,7 @@ import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -364,7 +364,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
       try {
         PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
       }
-      catch (AccessDeniedException e) {
+      catch (FileSystemException e) {
         // TODO(b/240166122): on Windows, there seems to be a race condition preventing deletions, so
         // we try again after waiting for a bit.
         if (SystemInfo.isWindows) {
