@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.testutils.ImageDiffUtil
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.SYSTEM_PKG
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -93,7 +93,7 @@ class AppInspectionTreeLoaderTest {
     <resources xmlns:tools="http://schemas.android.com/tools">
         <style name="Theme.BasicViews" parent="android:Theme.Dark" />
     </resources>
-"""
+    """
       .trimIndent()
 
   @Before
@@ -384,7 +384,7 @@ class AppInspectionTreeLoaderTest {
     val data = createFakeData(pendingRecompositionCountReset = pendingRecompositionCountReset)
     val lookup = ResourceLookup(projectRule.project)
     val (window, generation) =
-      treeLoader.loadComponentTree(data, lookup, MODERN_DEVICE.createProcess())!!
+      treeLoader.loadComponentTree(data, lookup, DEVICE_1.createProcess())!!
     assertThat(data.generation).isEqualTo(generation)
 
     runBlocking { window!!.refreshImages(1.0) }
@@ -554,7 +554,7 @@ class AppInspectionTreeLoaderTest {
       treeLoader.loadComponentTree(
         createFakeData(),
         ResourceLookup(projectRule.project),
-        MODERN_DEVICE.createProcess(),
+        DEVICE_1.createProcess(),
       )!!
     runBlocking { window!!.refreshImages(1.0) }
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
@@ -616,7 +616,7 @@ class AppInspectionTreeLoaderTest {
       treeLoader.loadComponentTree(
         data,
         ResourceLookup(projectRule.project),
-        MODERN_DEVICE.createProcess(),
+        DEVICE_1.createProcess(),
       )!!
     assertThat(data.generation).isEqualTo(generation)
     window!!.refreshImages(1.0)
@@ -629,7 +629,7 @@ class AppInspectionTreeLoaderTest {
       treeLoader.loadComponentTree(
         data2,
         ResourceLookup(projectRule.project),
-        MODERN_DEVICE.createProcess(),
+        DEVICE_1.createProcess(),
       )!!
     window2!!.refreshImages(1.0)
 
@@ -656,7 +656,7 @@ class AppInspectionTreeLoaderTest {
       treeLoader.loadComponentTree(
         data,
         ResourceLookup(projectRule.project),
-        MODERN_DEVICE.createProcess(),
+        DEVICE_1.createProcess(),
       )!!
     assertThat(data.generation).isEqualTo(generation)
     runBlocking { window!!.refreshImages(1.0) }

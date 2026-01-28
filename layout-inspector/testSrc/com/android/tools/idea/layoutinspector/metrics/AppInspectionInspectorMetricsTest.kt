@@ -18,8 +18,8 @@ package com.android.tools.idea.layoutinspector.metrics
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionTreeLoader
@@ -55,7 +55,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 private val MODERN_PROCESS =
-  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class AppInspectionInspectorMetricsTest {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
@@ -72,7 +72,7 @@ class AppInspectionInspectorMetricsTest {
 
   @Before
   fun before() {
-    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.attachDevice(DEVICE_1)
   }
 
   @Test
@@ -88,9 +88,9 @@ class AppInspectionInspectorMetricsTest {
     usages[0].studioEvent.let { studioEvent ->
       val deviceInfo = studioEvent.deviceInfo
       assertThat(deviceInfo.anonymizedSerialNumber)
-        .isEqualTo(AnonymizerUtil.anonymizeUtf8(MODERN_DEVICE.serial))
-      assertThat(deviceInfo.model).isEqualTo(MODERN_DEVICE.model)
-      assertThat(deviceInfo.manufacturer).isEqualTo(MODERN_DEVICE.manufacturer)
+        .isEqualTo(AnonymizerUtil.anonymizeUtf8(DEVICE_1.serial))
+      assertThat(deviceInfo.model).isEqualTo(DEVICE_1.model)
+      assertThat(deviceInfo.manufacturer).isEqualTo(DEVICE_1.manufacturer)
       assertThat(deviceInfo.deviceType).isEqualTo(DeviceInfo.DeviceType.LOCAL_PHYSICAL)
 
       val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
@@ -137,9 +137,9 @@ class AppInspectionInspectorMetricsTest {
     usages[0].studioEvent.let { studioEvent ->
       val deviceInfo = studioEvent.deviceInfo
       assertThat(deviceInfo.anonymizedSerialNumber)
-        .isEqualTo(AnonymizerUtil.anonymizeUtf8(MODERN_DEVICE.serial))
-      assertThat(deviceInfo.model).isEqualTo(MODERN_DEVICE.model)
-      assertThat(deviceInfo.manufacturer).isEqualTo(MODERN_DEVICE.manufacturer)
+        .isEqualTo(AnonymizerUtil.anonymizeUtf8(DEVICE_1.serial))
+      assertThat(deviceInfo.model).isEqualTo(DEVICE_1.model)
+      assertThat(deviceInfo.manufacturer).isEqualTo(DEVICE_1.manufacturer)
       assertThat(deviceInfo.deviceType).isEqualTo(DeviceInfo.DeviceType.LOCAL_PHYSICAL)
 
       val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
@@ -151,9 +151,9 @@ class AppInspectionInspectorMetricsTest {
     usages[1].studioEvent.let { studioEvent ->
       val deviceInfo = studioEvent.deviceInfo
       assertThat(deviceInfo.anonymizedSerialNumber)
-        .isEqualTo(AnonymizerUtil.anonymizeUtf8(MODERN_DEVICE.serial))
-      assertThat(deviceInfo.model).isEqualTo(MODERN_DEVICE.model)
-      assertThat(deviceInfo.manufacturer).isEqualTo(MODERN_DEVICE.manufacturer)
+        .isEqualTo(AnonymizerUtil.anonymizeUtf8(DEVICE_1.serial))
+      assertThat(deviceInfo.model).isEqualTo(DEVICE_1.model)
+      assertThat(deviceInfo.manufacturer).isEqualTo(DEVICE_1.manufacturer)
       assertThat(deviceInfo.deviceType).isEqualTo(DeviceInfo.DeviceType.LOCAL_PHYSICAL)
 
       val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent

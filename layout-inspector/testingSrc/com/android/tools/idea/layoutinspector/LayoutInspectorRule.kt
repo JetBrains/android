@@ -59,7 +59,7 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-val MODERN_DEVICE =
+val DEVICE_1 =
   object : DeviceDescriptor {
     override val manufacturer = "Google"
     override val model = "Modern Model"

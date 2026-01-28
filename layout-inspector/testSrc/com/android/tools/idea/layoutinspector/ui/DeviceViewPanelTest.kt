@@ -46,11 +46,11 @@ import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.UNSUPPORTED_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
@@ -144,7 +144,7 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 
 private val MODERN_PROCESS =
-  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 @RunsInEdt
 class DeviceViewPanelWithFullInspectorTest {
@@ -196,7 +196,7 @@ class DeviceViewPanelWithFullInspectorTest {
     whenever(deviceProvisionerService.deviceProvisioner)
       .thenReturn(deviceProvisionerRule.deviceProvisioner)
 
-    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.attachDevice(DEVICE_1)
     projectRule.fixture.testDataPath =
       TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
 
@@ -376,7 +376,7 @@ class DeviceViewPanelWithFullInspectorTest {
     connect(process)
     inspectorRule.processNotifier.addDevice(UNSUPPORTED_DEVICE)
     createFakeProvisionerDevices(
-      listOf(MODERN_DEVICE.serial to ICON_PHONE, UNSUPPORTED_DEVICE.serial to ICON_LEGACY_PHONE)
+      listOf(DEVICE_1.serial to ICON_PHONE, UNSUPPORTED_DEVICE.serial to ICON_LEGACY_PHONE)
     )
     if (dropDownAction is SelectProcessAction) {
       dropDownAction.updateActions(DataContext.EMPTY_CONTEXT)
@@ -1304,7 +1304,7 @@ class DeviceViewPanelWithNoClientsTest {
     assertThat(deviceViewContentPanel.showNavigateToDebuggableProcess).isFalse()
 
     // connect device
-    inspectorRule.inspector.deviceModel?.setSelectedDevice(MODERN_DEVICE)
+    inspectorRule.inspector.deviceModel?.setSelectedDevice(DEVICE_1)
 
     // remains false, because the device is connected but no foreground process showed up yet
     assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isFalse()

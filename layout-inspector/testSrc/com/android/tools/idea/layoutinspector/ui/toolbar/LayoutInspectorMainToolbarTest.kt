@@ -22,8 +22,8 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.VIEW1
@@ -66,7 +66,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 private val MODERN_PROCESS =
-  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 @RunsInEdt
 class LayoutInspectorMainToolbarTest {
@@ -89,7 +89,7 @@ class LayoutInspectorMainToolbarTest {
 
   @Before
   fun setUp() {
-    layoutInspectorRule.attachDevice(MODERN_DEVICE)
+    layoutInspectorRule.attachDevice(DEVICE_1)
   }
 
   @After

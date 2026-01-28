@@ -19,8 +19,8 @@ import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -68,8 +68,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-private val PROCESS =
-  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val PROCESS = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class AppInspectionSnapshotSupportTest {
   private val projectRule = AndroidProjectRule.withSdk()
@@ -93,7 +92,7 @@ class AppInspectionSnapshotSupportTest {
   @Before
   fun setUp() {
     inspectorClientSettings = InspectorClientSettings(projectRule.project)
-    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.attachDevice(DEVICE_1)
   }
 
   private val savePath = createInMemoryFileSystemAndFolder("snapshot").resolve("snapshot.li")

@@ -17,8 +17,8 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
@@ -29,14 +29,14 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.concurrent.TimeUnit
 
 private val MODERN_PROCESS =
-  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 @RunsInEdt
 class LayoutInspectorLoadingObserverTest {
@@ -60,7 +60,7 @@ class LayoutInspectorLoadingObserverTest {
 
   @Before
   fun before() {
-    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.attachDevice(DEVICE_1)
   }
 
   @Test

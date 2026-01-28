@@ -37,9 +37,9 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -95,12 +95,9 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 private val MODERN_PROCESS =
-  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 private val OTHER_MODERN_PROCESS =
-  MODERN_DEVICE.createProcess(
-    name = "com.other",
-    streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId,
-  )
+  DEVICE_1.createProcess(name = "com.other", streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 /** Timeout used in this test. While debugging, you may want to extend the timeout */
 private const val TIMEOUT = 10L
@@ -144,11 +141,8 @@ class AppInspectionInspectorClientTest {
   fun before() {
     shouldFailDuringAttach = false
     inspectorClientSettings = InspectorClientSettings(projectRule.project)
-    inspectorRule.attachDevice(MODERN_DEVICE)
-    setUpAdbForDebugViewAttributes(
-      MODERN_DEVICE.serial,
-      debugViewAttributesPreviouslyEnabled = true,
-    )
+    inspectorRule.attachDevice(DEVICE_1)
+    setUpAdbForDebugViewAttributes(DEVICE_1.serial, debugViewAttributesPreviouslyEnabled = true)
   }
 
   @Test
@@ -1165,7 +1159,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
   fun setUp() {
     inspectorClientSettings = InspectorClientSettings(projectRule.project)
     notificationModel = NotificationModel(projectRule.project)
-    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.attachDevice(DEVICE_1)
   }
 
   @Test

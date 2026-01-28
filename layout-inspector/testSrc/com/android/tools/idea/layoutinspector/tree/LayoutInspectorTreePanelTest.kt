@@ -34,9 +34,9 @@ import com.android.tools.componenttree.treetable.TreeTableModelImplAdapter
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.SYSTEM_PKG
 import com.android.tools.idea.layoutinspector.compose
 import com.android.tools.idea.layoutinspector.createProcess
@@ -116,8 +116,7 @@ private const val USER_PKG = 123
 private const val TIMEOUT = 20L
 private val TIMEOUT_UNIT = TimeUnit.SECONDS
 
-private val PROCESS =
-  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val PROCESS = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class LayoutInspectorTreePanelTest {
   private val projectRule = AndroidProjectRule.withSdk()
@@ -283,7 +282,7 @@ class LayoutInspectorTreePanelTest {
     }
 
     updateSettingsLatch = ReportingCountDownLatch(1)
-    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.attachDevice(DEVICE_1)
     inspectorRule.processNotifier.fireConnected(PROCESS)
     inspectorRule.processes.selectedProcess = PROCESS
     waitForCondition(TIMEOUT, TIMEOUT_UNIT) { inspectorRule.inspectorModel.windows.isNotEmpty() }
@@ -1077,7 +1076,7 @@ class LayoutInspectorTreePanelTest {
     inspectorRule.launchSynchronously = false
     inspectorRule.startLaunch(2)
     inspectorRule.processes.selectedProcess =
-      MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+      DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
     inspectorRule.awaitLaunch()
 
     waitForCondition(1, TimeUnit.SECONDS) { component.uiState == RootPanel.UiState.SHOW_TREE }

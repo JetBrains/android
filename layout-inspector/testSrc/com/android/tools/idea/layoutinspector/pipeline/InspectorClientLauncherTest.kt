@@ -22,9 +22,9 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.DEVICE_2
 import com.android.tools.idea.layoutinspector.DeviceProvisionerServiceCleanUpRule
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -63,7 +63,7 @@ class InspectorClientLauncherTest {
 
   @Before
   fun before() {
-    for (device in setOf(MODERN_DEVICE, DEVICE_2)) {
+    for (device in setOf(DEVICE_1, DEVICE_2)) {
       adbRule.connectDevice(
         device.serial,
         device.manufacturer,
@@ -111,7 +111,7 @@ class InspectorClientLauncherTest {
     var clientChangedCount = 0
     launcher.addClientChangedListener { clientChangedCount++ }
 
-    processes.selectedProcess = MODERN_DEVICE.createProcess()
+    processes.selectedProcess = DEVICE_1.createProcess()
 
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
     assertThat(clientChangedCount).isEqualTo(0)
@@ -125,7 +125,7 @@ class InspectorClientLauncherTest {
         processes,
         listOf(
           ClientFactory { params ->
-            if (params.process.device.apiLevel == MODERN_DEVICE.apiLevel)
+            if (params.process.device.apiLevel == DEVICE_1.apiLevel)
               FakeInspectorClient(
                 "Modern client",
                 projectRule.project,
@@ -146,7 +146,7 @@ class InspectorClientLauncherTest {
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
     assertThat(processes.selectedProcess).isNull()
 
-    processes.selectedProcess = MODERN_DEVICE.createProcess()
+    processes.selectedProcess = DEVICE_1.createProcess()
     assertThat(launcher.activeClient).isInstanceOf(FakeInspectorClient::class.java)
 
     processes.selectedProcess = DEVICE_2.createProcess()
@@ -190,7 +190,7 @@ class InspectorClientLauncherTest {
         executor = MoreExecutors.directExecutor(),
       )
 
-    processes.selectedProcess = MODERN_DEVICE.createProcess()
+    processes.selectedProcess = DEVICE_1.createProcess()
     assertThat(launcher.activeClient.isConnected).isTrue()
 
     assertThat(clientWasDisconnected).isFalse()
@@ -214,7 +214,7 @@ class InspectorClientLauncherTest {
         listOf(
           ClientFactory { params ->
             creatorCount1++
-            if (params.process.device.apiLevel == MODERN_DEVICE.apiLevel)
+            if (params.process.device.apiLevel == DEVICE_1.apiLevel)
               FakeInspectorClient(
                 "Modern client",
                 projectRule.project,
@@ -257,7 +257,7 @@ class InspectorClientLauncherTest {
 
     assertThat(launcher.activeClient.isConnected).isFalse()
 
-    processes.selectedProcess = MODERN_DEVICE.createProcess()
+    processes.selectedProcess = DEVICE_1.createProcess()
     (launcher.activeClient as FakeInspectorClient).let { activeClient ->
       assertThat(activeClient.name).isEqualTo("Modern client")
     }
@@ -324,7 +324,7 @@ class InspectorClientLauncherTest {
         executor = MoreExecutors.directExecutor(),
       )
 
-    processes.selectedProcess = MODERN_DEVICE.createProcess()
+    processes.selectedProcess = DEVICE_1.createProcess()
     (launcher.activeClient as FakeInspectorClient).let { activeClient ->
       assertThat(activeClient.name).isEqualTo("Fallback client")
     }
@@ -361,7 +361,7 @@ class InspectorClientLauncherTest {
             }
           },
           ClientFactory { params ->
-            if (params.process.device.apiLevel == MODERN_DEVICE.apiLevel) {
+            if (params.process.device.apiLevel == DEVICE_1.apiLevel) {
               FakeInspectorClient(
                 "Modern client",
                 projectRule.project,
@@ -383,7 +383,7 @@ class InspectorClientLauncherTest {
 
     // Set to a valid client first, so we know we actually changed correctly to a disconnected
     // client later.
-    processes.selectedProcess = MODERN_DEVICE.createProcess()
+    processes.selectedProcess = DEVICE_1.createProcess()
     (launcher.activeClient as FakeInspectorClient).let { activeClient ->
       assertThat(activeClient.name).isEqualTo("Modern client")
     }
@@ -395,9 +395,9 @@ class InspectorClientLauncherTest {
 
   @Test
   fun inspectorLauncherCanBeDisabledAndReenabled() {
-    val process1 = MODERN_DEVICE.createProcess(pid = 1)
-    val process2 = MODERN_DEVICE.createProcess(pid = 2)
-    val deadProcess3 = MODERN_DEVICE.createProcess(pid = 3, isRunning = false)
+    val process1 = DEVICE_1.createProcess(pid = 1)
+    val process2 = DEVICE_1.createProcess(pid = 2)
+    val deadProcess3 = DEVICE_1.createProcess(pid = 3, isRunning = false)
 
     val notifier = TestProcessDiscovery()
     val processes =
@@ -470,8 +470,8 @@ class InspectorClientLauncherTest {
   @Test
   fun launcherStopsAfterNewRequest() {
     val processes = ProcessesModel(TestProcessDiscovery())
-    val process1 = MODERN_DEVICE.createProcess(pid = 1)
-    val process2 = MODERN_DEVICE.createProcess(pid = 2)
+    val process1 = DEVICE_1.createProcess(pid = 1)
+    val process2 = DEVICE_1.createProcess(pid = 2)
 
     val firstClientStarted = ReportingCountDownLatch(1)
     val secondClientStarted = ReportingCountDownLatch(1)
@@ -545,8 +545,8 @@ class InspectorClientLauncherTest {
   @Test
   fun launchJobIsCancelled() {
     val processes = ProcessesModel(TestProcessDiscovery())
-    val process1 = MODERN_DEVICE.createProcess(pid = 1)
-    val process2 = MODERN_DEVICE.createProcess(pid = 2)
+    val process1 = DEVICE_1.createProcess(pid = 1)
+    val process2 = DEVICE_1.createProcess(pid = 2)
 
     val firstProcessLatch = ReportingCountDownLatch(1)
     val secondProcessLatch = ReportingCountDownLatch(1)
@@ -614,7 +614,7 @@ class InspectorClientLauncherMetricsTest {
 
   @Before
   fun before() {
-    val device = MODERN_DEVICE
+    val device = DEVICE_1
     adbRule.connectDevice(
       device.serial,
       device.manufacturer,
@@ -696,7 +696,7 @@ class InspectorClientLauncherMetricsTest {
         MoreExecutors.directExecutor(),
       )
 
-    processes.selectedProcess = MODERN_DEVICE.createProcess()
+    processes.selectedProcess = DEVICE_1.createProcess()
     waitForCondition(1, TimeUnit.SECONDS) { launcher.activeClient.isConnected }
     val usages =
       usageTrackerRule.testTracker.usages.filter {
@@ -713,8 +713,8 @@ class InspectorClientLauncherMetricsTest {
 
   @Test
   fun attachCancelLogged() {
-    val process1 = MODERN_DEVICE.createProcess()
-    val process2 = MODERN_DEVICE.createProcess(pid = 2)
+    val process1 = DEVICE_1.createProcess()
+    val process2 = DEVICE_1.createProcess(pid = 2)
     val processes = ProcessesModel(TestProcessDiscovery())
     val metrics = LayoutInspectorSessionMetrics(projectRule.project)
     val changedProcessLatch = ReportingCountDownLatch(1)

@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbSession
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.createProcess
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
@@ -27,7 +27,7 @@ import org.junit.Test
 
 class DebugViewAttributesTest {
   @get:Rule val projectRule = ProjectRule()
-  private val process = MODERN_DEVICE.createProcess()
+  private val process = DEVICE_1.createProcess()
   private val deviceSelector = DeviceSelector.fromSerialNumber(process.device.serial)
   private val device = process.device
 

@@ -46,7 +46,7 @@ class AbstractInspectorClientTest {
   @get:Rule val projectRule = ProjectRule()
 
   private val adbSession = FakeAdbSession()
-  private val process = MODERN_DEVICE.createProcess()
+  private val process = DEVICE_1.createProcess()
 
   @Test
   fun clientWithAdbResponseConnects() {
