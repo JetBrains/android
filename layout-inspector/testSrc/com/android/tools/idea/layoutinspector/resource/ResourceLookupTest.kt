@@ -22,7 +22,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
@@ -53,7 +53,7 @@ class ResourceLookupTest {
     AndroidFacet.getInstance(projectRule.module)!!.setApplicationIdForTest("com.example.test")
     val resourceLookup = ResourceLookup(projectRule.project)
     val theme = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Theme.Hole.Light")
-    val process = MODERN_DEVICE.createProcess("com.example.test")
+    val process = DEVICE_1.createProcess("com.example.test")
     resourceLookup.updateConfiguration(
       FolderConfiguration(),
       theme,
@@ -71,7 +71,7 @@ class ResourceLookupTest {
     AndroidFacet.getInstance(projectRule.module)!!.setApplicationIdForTest("com.example.test.debug")
     val resourceLookup = ResourceLookup(projectRule.project)
     val theme = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Theme.Hole.Light")
-    val process = MODERN_DEVICE.createProcess("com.example.test.debug")
+    val process = DEVICE_1.createProcess("com.example.test.debug")
     resourceLookup.updateConfiguration(
       FolderConfiguration(),
       theme,

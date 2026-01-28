@@ -22,10 +22,10 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.FakeForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -418,7 +418,7 @@ class LayoutInspectorManagerTest {
       waitForCondition(2.seconds) { renderer.interceptClicks }
     }
 
-    layoutInspector.processModel?.selectedProcess = MODERN_DEVICE.createProcess()
+    layoutInspector.processModel?.selectedProcess = DEVICE_1.createProcess()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction)))
@@ -442,7 +442,7 @@ class LayoutInspectorManagerTest {
 
     assertThat(layoutInspector.inspectorClientSettings.inLiveMode).isFalse()
 
-    layoutInspector.processModel?.selectedProcess = MODERN_DEVICE.createProcess()
+    layoutInspector.processModel?.selectedProcess = DEVICE_1.createProcess()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertThat(layoutInspector.inspectorClientSettings.inLiveMode).isTrue()

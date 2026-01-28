@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.runningdevices.actions
 import com.android.tools.adtui.actions.createTestActionEvent
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
@@ -79,11 +79,7 @@ class ToggleDeepInspectActionTest {
   @Test
   fun testDeepInspectActionIsDisabledWhenClientIsNotConnected() {
     val inspectorClient =
-      FakeInspectorClient(
-        projectRule.project,
-        MODERN_DEVICE.createProcess(),
-        disposableRule.disposable,
-      )
+      FakeInspectorClient(projectRule.project, DEVICE_1.createProcess(), disposableRule.disposable)
     val toggleDeepInspectAction =
       ToggleDeepInspectAction(
         isSelected = { false },
@@ -106,11 +102,7 @@ class ToggleDeepInspectActionTest {
   @Test
   fun testDeepInspectActionIsDisabledWhenNotRendering() {
     val inspectorClient =
-      FakeInspectorClient(
-        projectRule.project,
-        MODERN_DEVICE.createProcess(),
-        disposableRule.disposable,
-      )
+      FakeInspectorClient(projectRule.project, DEVICE_1.createProcess(), disposableRule.disposable)
     var isRendering = true
     val toggleDeepInspectAction =
       ToggleDeepInspectAction(

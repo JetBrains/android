@@ -24,7 +24,7 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
@@ -744,7 +744,7 @@ class InspectorModelTest {
 
     assertThat(observedNewWindows).containsExactly(newWindow)
 
-    processModel.selectedProcess = MODERN_DEVICE.createProcess()
+    processModel.selectedProcess = DEVICE_1.createProcess()
     latch.await(2, TimeUnit.SECONDS)
 
     assertThat(observedNewWindows).containsExactly(newWindow, newWindow, null)

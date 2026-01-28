@@ -84,7 +84,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 private val MODERN_PROCESS =
-  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class LayoutInspectorToolWindowFactoryTest {
 
@@ -142,7 +142,7 @@ class LayoutInspectorToolWindowFactoryTest {
 
   @Before
   fun setUp() {
-    layoutInspectorRule.attachDevice(MODERN_DEVICE)
+    layoutInspectorRule.attachDevice(DEVICE_1)
   }
 
   @Test
@@ -443,7 +443,7 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
 
   @Test
   fun testResetSelectedProcessAfterProjectIsClosed() = runBlocking {
-    val device = MODERN_DEVICE
+    val device = DEVICE_1
     adbRule
       .connectDevice(
         device.serial,

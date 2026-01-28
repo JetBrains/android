@@ -18,8 +18,8 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
@@ -55,7 +55,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 private val MODERN_PROCESS =
-  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class OnDeviceRendererModelTest {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
@@ -235,7 +235,7 @@ class OnDeviceRendererModelTest {
   }
 
   private fun connectAppInspectionClient() {
-    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.attachDevice(DEVICE_1)
     inspectorRule.startLaunch(2)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
   }

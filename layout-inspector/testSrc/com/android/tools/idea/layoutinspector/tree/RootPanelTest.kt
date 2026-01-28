@@ -19,8 +19,8 @@ import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
@@ -30,12 +30,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.ui.components.JBLoadingPanel
+import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.concurrent.TimeUnit
-import javax.swing.JPanel
 
 class RootPanelTest {
 
@@ -68,7 +68,7 @@ class RootPanelTest {
 
   @Before
   fun setUp() {
-    layoutInspectorRule.attachDevice(MODERN_DEVICE)
+    layoutInspectorRule.attachDevice(DEVICE_1)
   }
 
   @Test
@@ -128,7 +128,7 @@ class RootPanelTest {
     layoutInspectorRule.launchSynchronously = false
     layoutInspectorRule.startLaunch(2)
     layoutInspectorRule.processes.selectedProcess =
-      MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+      DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
     waitForCondition(1, TimeUnit.SECONDS) {
       rootPanel.uiState == RootPanel.UiState.START_LOADING &&
@@ -170,7 +170,7 @@ class RootPanelTest {
     layoutInspectorRule.launchSynchronously = false
     layoutInspectorRule.startLaunch(2)
     layoutInspectorRule.processes.selectedProcess =
-      MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+      DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
     waitForCondition(1, TimeUnit.SECONDS) {
       rootPanel.uiState == RootPanel.UiState.START_LOADING &&
@@ -219,7 +219,7 @@ class RootPanelTest {
     layoutInspectorRule.launchSynchronously = false
     layoutInspectorRule.startLaunch(2)
     layoutInspectorRule.processes.selectedProcess =
-      MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+      DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
     layoutInspectorRule.awaitLaunch()
 
     waitForCondition(1, TimeUnit.SECONDS) { rootPanel.uiState == RootPanel.UiState.SHOW_TREE }

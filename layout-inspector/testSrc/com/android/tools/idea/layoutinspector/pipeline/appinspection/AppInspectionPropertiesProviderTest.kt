@@ -24,8 +24,8 @@ import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.COMPOSE4
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -88,7 +88,7 @@ import org.mockito.kotlin.whenever
 private const val TIMEOUT = 10L
 private val TIMEOUT_UNIT = TimeUnit.SECONDS
 private val MODERN_PROCESS =
-  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 private val PARAM_NS = parameterNamespaceOf(PropertySection.PARAMETERS)
 private const val APP_NAMESPACE = "${URI_PREFIX}com.example"
 
@@ -130,7 +130,7 @@ class AppInspectionPropertiesProviderTest {
     inspectorState =
       FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
     inspectorState.createAllResponses()
-    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.attachDevice(DEVICE_1)
 
     val fixture = projectRule.fixture
     fixture.testDataPath =
@@ -721,8 +721,8 @@ class AppInspectionPropertiesProviderTest {
     projectRule.fixture.addFileToProject(
       "src/java/com/google/android/material/textview/MaterialTextView.java",
       """
-        package com.google.android.material.textview;
-        public class MaterialTextView extends android.widget.TextView {}
+      package com.google.android.material.textview;
+      public class MaterialTextView extends android.widget.TextView {}
       """
         .trimIndent(),
     )
@@ -786,8 +786,8 @@ class AppInspectionPropertiesProviderTest {
     projectRule.fixture.addFileToProject(
       "src/java/com/google/android/material/textview/MaterialTextView.java",
       """
-        package com.google.android.material.textview;
-        public class MaterialTextView extends android.widget.TextView {}
+      package com.google.android.material.textview;
+      public class MaterialTextView extends android.widget.TextView {}
       """
         .trimIndent(),
     )

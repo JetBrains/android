@@ -17,8 +17,8 @@ package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.FakeSessionStats
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -142,7 +142,7 @@ private class FakeInspectorClient : InspectorClient {
   override val stats = FakeSessionStats()
   override val process =
     object : ProcessDescriptor {
-      override val device = MODERN_DEVICE
+      override val device = DEVICE_1
       override val abiCpuArch = "cpu"
       override val name = "name"
       override val packageName = "package_name"

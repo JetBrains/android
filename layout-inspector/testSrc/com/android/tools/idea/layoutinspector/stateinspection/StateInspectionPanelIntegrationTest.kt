@@ -23,8 +23,8 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.layoutinspector.DEVICE_1
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
@@ -55,7 +55,7 @@ import org.junit.Rule
 import org.junit.Test
 
 private val MODERN_PROCESS =
-  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/stateinspection"
 private const val LINK_OFFSET_X = 50
 private const val LINK_OFFSET_Y = 6
@@ -79,9 +79,9 @@ class StateInspectionPanelIntegrationTest {
 
   @Before
   fun before() {
-    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.attachDevice(DEVICE_1)
     inspectionRule.adbSession.deviceServices.configureShellCommand(
-      DeviceSelector.fromSerialNumber(MODERN_DEVICE.serial),
+      DeviceSelector.fromSerialNumber(DEVICE_1.serial),
       "settings get global debug_view_attributes",
       stdout = "1",
     )
