@@ -243,7 +243,7 @@ class WifiAvailableDevicesDialogTest {
       MdnsServices(emptyList(), listOf(service1, service2, service3), emptyList())
     composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
 
-    composeTestRule.onNodeWithText("Device").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Unknown").assertIsDisplayed()
     composeTestRule.onNodeWithText("192.168.1.101:5555").assertIsDisplayed()
 
     composeTestRule.onNodeWithText("Device A").assertIsDisplayed()
