@@ -216,7 +216,13 @@ class InsightsTextInlayPresentation(
     get() = colorsScheme.editorFontName
 
   private fun getOrCreateMetrics(): InlayTextMetrics {
-    if (normalTextMetrics == null || !normalTextMetrics!!.isActual(normalTextSize, familyName)) {
+    val metrics = normalTextMetrics
+    if (metrics == null ||
+        metrics.font.size2D != normalTextSize ||
+        metrics.font.family != familyName ||
+        metrics.ideScale != UISettings.getInstance().ideScale ||
+        getCurrentContext(editor.contentComponent) != metrics.fontMetrics.fontRenderContext) {
+
       normalTextMetrics = createMetrics(editor, normalTextSize)
     }
 
