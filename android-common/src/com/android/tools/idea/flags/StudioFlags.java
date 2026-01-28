@@ -2899,6 +2899,10 @@ public final class StudioFlags {
     JOURNEYS_WITH_GEMINI, "enable.new.wizard", "Enable Journeys New Wizard",
     "Enable the new wizard for creating Journeys with Gemini."
   );
+  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_RUN_WITH_AGENT = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.agent.support", "Enable the Journeys agent",
+    "Enable running Journey tests using an AI agent"
+  );
   // endregion JOURNEYS_WITH_GEMINI
 
   public static Boolean isBuildOutputShowsDownloadInfo() {
