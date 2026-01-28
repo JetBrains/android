@@ -88,14 +88,18 @@ internal const val POPULATE_COMMAND =
   "echo $FOREGROUND_APPLICATION_DIVIDER; " +
   "dumpsys activity activities | grep mFocusedApp=ActivityRecord; "
 
+internal const val GET_ACCESSIBILITY_SERVICES_COMMAND =
+  "settings get secure $ENABLED_ACCESSIBILITY_SERVICES"
+
+internal const val GET_ACCESSIBILITY_BUTTON_TARGETS_COMMAND =
+  "settings get secure $ACCESSIBILITY_BUTTON_TARGETS"
+
 internal const val POPULATE_LANGUAGE_COMMAND =
   "echo $APP_LANGUAGE_DIVIDER; " +
   "cmd locale get-app-locales %s; "  // Parameter: applicationId
 
 internal const val FACTORY_RESET_COMMAND_FOR_WEAR =
   "cmd locale set-app-locales %s --locales; " +
-  "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
-  "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
   "settings put system font_scale 1; " +
   "setprop debug.layout false; " +
   "service call activity $SYSPROPS_TRANSACTION; "  // Parameters: applicationId
@@ -103,8 +107,6 @@ internal const val FACTORY_RESET_COMMAND_FOR_WEAR =
 internal const val FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO =
   "cmd uimode night no; " +
   "cmd locale set-app-locales %s --locales; " +
-  "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
-  "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
   "settings put system font_scale 1; " +
   "setprop debug.layout false; " +
   "service call activity $SYSPROPS_TRANSACTION; " // Parameters: applicationId
@@ -112,8 +114,6 @@ internal const val FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO =
 internal const val FACTORY_RESET_COMMAND_FOR_XR =
   "cmd uimode night yes; " +
   "cmd locale set-app-locales %s --locales; " +
-  "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
-  "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
   "settings put system font_scale 1; " +
   "wm density %d; " +
   "setprop debug.layout false; " +
@@ -122,8 +122,6 @@ internal const val FACTORY_RESET_COMMAND_FOR_XR =
 internal const val FACTORY_RESET_COMMAND =
   "cmd uimode night no; " +
   "cmd locale set-app-locales %s --locales; " +
-  "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
-  "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
   "settings put system font_scale 1; " +
   "wm density %d; " +
   "setprop debug.layout false; " +
@@ -393,8 +391,25 @@ internal class EmulatorUiSettingsController(
         else -> FACTORY_RESET_COMMAND.format(readApplicationId, readPhysicalDensity)
       }
       executeShellCommand(command)
+      resetTalkBackAndSelectToSpeak()
       populateModel()
     }
+  }
+
+  private suspend fun resetTalkBackAndSelectToSpeak() {
+    val services = AccessibilityData()
+    val servicesLine = executeShellCommand(GET_ACCESSIBILITY_SERVICES_COMMAND)
+    services.servicesLine = servicesLine.singleOrNull() ?: "null"
+    services.services.remove(TALK_BACK_SERVICE_NAME)
+    services.services.remove(SELECT_TO_SPEAK_SERVICE_NAME)
+
+    val buttons = AccessibilityData()
+    val buttonsLine = executeShellCommand(GET_ACCESSIBILITY_BUTTON_TARGETS_COMMAND)
+    buttons.servicesLine = buttonsLine.singleOrNull() ?: "null"
+    buttons.services.remove(SELECT_TO_SPEAK_SERVICE_NAME)
+
+    setSecureSettings(ENABLED_ACCESSIBILITY_SERVICES, services)
+    setSecureSettings(ACCESSIBILITY_BUTTON_TARGETS, buttons)
   }
 
   private fun updateResetButton() {
@@ -422,6 +437,10 @@ internal class EmulatorUiSettingsController(
     settings.servicesLine = lines.singleOrNull() ?: "null"
 
     if (on) settings.services.add(serviceName) else settings.services.remove(serviceName)
+    setSecureSettings(settingsName, settings)
+  }
+
+  private suspend fun setSecureSettings(settingsName: String, settings: AccessibilityData) {
     if (settings.services.isEmpty()) {
       executeShellCommand("settings delete secure $settingsName")
     }
