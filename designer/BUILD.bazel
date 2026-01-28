@@ -255,6 +255,13 @@ jps_test(
 ### auto-generated section `test intellij.android.designer.integration` end
 
 ### auto-generated section `build intellij.android.designer.tests` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+
+create_kotlinc_options(
+  name = "custom_designer-tests",
+  opt_in = ["org.jetbrains.kotlin.K1Deprecation"]
+)
+
 resourcegroup(
   name = "designer-tests_test_resources",
   srcs = glob(["testResources/**/*"]),
@@ -277,6 +284,7 @@ jvm_library(
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   resources = [":designer-tests_test_resources"],
+  kotlinc_opts = ":custom_designer-tests",
   associates = [
     "//android/designer",
     "//android/designer:designer_test_lib",

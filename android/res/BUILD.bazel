@@ -1,5 +1,14 @@
 ### auto-generated section `build intellij.android.core.res` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+create_kotlinc_options(
+  name = "custom_res",
+  opt_in = [
+    "com.intellij.openapi.util.IntellijInternalApi",
+    "org.jetbrains.kotlin.K1Deprecation",
+  ]
+)
 
 jvm_library(
   name = "res",
@@ -16,6 +25,7 @@ jvm_library(
   module_name = "intellij.android.core.res",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  kotlinc_opts = ":custom_res",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

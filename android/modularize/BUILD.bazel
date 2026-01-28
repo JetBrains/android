@@ -1,5 +1,14 @@
 ### auto-generated section `build intellij.android.core.modularize` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+create_kotlinc_options(
+  name = "custom_modularize",
+  opt_in = [
+    "com.intellij.openapi.util.IntellijInternalApi",
+    "org.jetbrains.kotlin.K1Deprecation",
+  ]
+)
 
 jvm_library(
   name = "modularize",
@@ -13,6 +22,7 @@ jvm_library(
   module_name = "intellij.android.core.modularize",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  kotlinc_opts = ":custom_modularize",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

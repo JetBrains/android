@@ -1,5 +1,11 @@
 ### auto-generated section `build intellij.android.testFramework` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "kt_javac_options")
+
+create_kotlinc_options(
+  name = "custom_testFramework",
+  opt_in = ["org.jetbrains.kotlin.K1Deprecation"]
+)
 
 kt_javac_options(
   name = "custom-javac-options",
@@ -25,6 +31,7 @@ jvm_library(
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   javac_opts = ":custom-javac-options",
+  kotlinc_opts = ":custom_testFramework",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

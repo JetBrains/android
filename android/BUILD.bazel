@@ -8,6 +8,7 @@ create_kotlinc_options(
     "org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction",
     "org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction",
     "org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt",
+    "org.jetbrains.kotlin.K1Deprecation",
   ]
 )
 
@@ -362,6 +363,11 @@ jps_test(
 ### auto-generated section `test intellij.android.core.agp-integration-tests` end
 
 ### auto-generated section `build intellij.android.core.tests` start
+create_kotlinc_options(
+  name = "custom_core-tests",
+  opt_in = ["org.jetbrains.kotlin.K1Deprecation"]
+)
+
 resourcegroup(
   name = "core-tests_test_resources",
   srcs = glob(["testResources/**/*"]),
@@ -390,6 +396,7 @@ jvm_library(
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   resources = [":core-tests_test_resources"],
+  kotlinc_opts = ":custom_core-tests",
   associates = ["//android/android:core"],
   deps = [
     "@lib//:studio-platform-provided",

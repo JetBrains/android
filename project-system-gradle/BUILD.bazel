@@ -7,6 +7,7 @@ create_kotlinc_options(
   opt_in = [
     "com.intellij.openapi.util.IntellijInternalApi",
     "org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction",
+    "org.jetbrains.kotlin.K1Deprecation",
   ]
 )
 
@@ -182,6 +183,14 @@ jvm_library(
 ### auto-generated section `build intellij.android.projectSystem.gradle` end
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.tests` start
+create_kotlinc_options(
+  name = "custom_projectSystem-gradle-tests",
+  opt_in = [
+    "com.intellij.openapi.util.IntellijInternalApi",
+    "org.jetbrains.kotlin.K1Deprecation",
+  ]
+)
+
 resourcegroup(
   name = "projectSystem-gradle-tests_test_resources",
   srcs = glob(["testResources/**/*"]),
@@ -210,6 +219,7 @@ jvm_library(
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   resources = [":projectSystem-gradle-tests_test_resources"],
+  kotlinc_opts = ":custom_projectSystem-gradle-tests",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

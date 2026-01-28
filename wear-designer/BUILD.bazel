@@ -1,5 +1,14 @@
 ### auto-generated section `build intellij.android.wear-designer` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+create_kotlinc_options(
+  name = "custom_wear-designer",
+  opt_in = [
+    "com.intellij.openapi.util.IntellijInternalApi",
+    "org.jetbrains.kotlin.K1Deprecation",
+  ]
+)
 
 resourcegroup(
   name = "wear-designer_resources",
@@ -13,6 +22,7 @@ jvm_library(
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   resources = [":wear-designer_resources"],
+  kotlinc_opts = ":custom_wear-designer",
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
@@ -63,6 +73,14 @@ jvm_library(
 ### auto-generated section `build intellij.android.wear-designer` end
 
 ### auto-generated section `build intellij.android.wear-designer.tests` start
+create_kotlinc_options(
+  name = "custom_wear-designer-tests",
+  opt_in = [
+    "com.intellij.openapi.util.IntellijInternalApi",
+    "org.jetbrains.kotlin.K1Deprecation",
+  ]
+)
+
 jvm_library(
   name = "wear-designer-tests",
   visibility = ["//visibility:public"],
@@ -74,6 +92,7 @@ jvm_library(
   name = "wear-designer-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  kotlinc_opts = ":custom_wear-designer-tests",
   associates = ["//android/wear-designer"],
   deps = [
     "@lib//:studio-platform-provided",

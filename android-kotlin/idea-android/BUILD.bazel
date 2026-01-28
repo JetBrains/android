@@ -7,6 +7,7 @@ create_kotlinc_options(
   opt_in = [
     "com.intellij.openapi.util.IntellijInternalApi",
     "org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction",
+    "org.jetbrains.kotlin.K1Deprecation",
   ]
 )
 
@@ -53,6 +54,11 @@ jvm_library(
 ### auto-generated section `build intellij.android.kotlin.idea` end
 
 ### auto-generated section `build intellij.android.kotlin.tests` start
+create_kotlinc_options(
+  name = "custom_android-kotlin-tests",
+  opt_in = ["org.jetbrains.kotlin.K1Deprecation"]
+)
+
 jvm_library(
   name = "android-kotlin-tests",
   visibility = ["//visibility:public"],
@@ -65,6 +71,7 @@ jvm_library(
   module_name = "intellij.android.kotlin.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["tests/**/*.kt", "tests/**/*.java", "tests/**/*.form"], allow_empty = True),
+  kotlinc_opts = ":custom_android-kotlin-tests",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
