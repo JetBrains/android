@@ -31,6 +31,7 @@ import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope
 import com.google.idea.blaze.base.projectview.ProjectViewManager
 import com.google.idea.blaze.base.qsync.ProjectStatsLogger.logSyncStats
 import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore
+import com.google.idea.blaze.base.qsync.rendering.BazelComposeToolingProjectLabelProvider
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.scope.scopes.ProgressIndicatorScope
 import com.google.idea.blaze.base.scope.scopes.ToolWindowScopeRunner.runTaskWithToolWindow
@@ -272,8 +273,21 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
           applySyncResult(assertProjectLoaded().analyzePostQuerySyncData(context, existingPostQuerySyncData))
         }
       }
-      autoEnableCodeAnalysis(context, startup = true)
+      val buildTriggered = autoEnableCodeAnalysis(context, startup = true)
+      if (!buildTriggered && userPreferences.autoSyncComposeTooling) {
+        autoEnableComposeBasicDependenciesIfNeeded(context)
+      }
     }
+
+  private fun autoEnableComposeBasicDependenciesIfNeeded(context: BlazeContext) {
+    val snapshot = currentSnapshot.getOrNull()
+    if (snapshot != null && BazelComposeToolingProjectLabelProvider.isComposeProject(project, snapshot.graph)) {
+      val label = BazelComposeToolingProjectLabelProvider.getComposeToolingLabel(project)
+      if (label != null) {
+        assertProjectLoaded().buildDependencies(context, DependencyTracker.DependencyBuildRequest.specialTarget(setOf(label)))
+      }
+    }
+  }
 
   @CanIgnoreReturnValue
   fun reapplyProjectStructure(
@@ -526,13 +540,15 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     lastQueryInstant = queryInstant
   }
 
-  private fun autoEnableCodeAnalysis(context: BlazeContext, startup: Boolean = false) {
-    val project = loadedProject ?: return
+  private fun autoEnableCodeAnalysis(context: BlazeContext, startup: Boolean = false): Boolean {
+    val project = loadedProject ?: return false
     // Checking the state of the tracker directly as the snapshot has not been yet updated.
     val codeAnalysisHasBeenEnabled = this.loadedProject?.artifactTracker?.stateSnapshot?.targets()?.isNotEmpty() ?: false
     if (userPreferences.enableCodeAnalysisOnSync && !(codeAnalysisHasBeenEnabled && startup)) {
       project.buildDependencies(context, DependencyTracker.DependencyBuildRequest.wholeProject())
+      return true
     }
+    return false
   }
 
   @Throws(BuildException::class)
