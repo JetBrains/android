@@ -100,6 +100,7 @@ import com.intellij.psi.xml.XmlTag;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -128,22 +129,22 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
   private static final String APP_COMPAT_REQUIRED_MSG = "You need to use a Theme.AppCompat";
 
   private final Set<RenderErrorModel.Issue> myIssues = new LinkedHashSet<>();
-  private final HtmlLinkManager myLinkManager;
+  private final WeakReference<HtmlLinkManager> myLinkManagerRef;
   private final LinkHandler myLinkHandler;
-  @NotNull private final Module myModule;
-  @NotNull protected final PsiFile mySourceFile;
-  @NotNull private final RenderLogger myLogger;
-  @Nullable private final RenderContext myRenderContext;
+  @NotNull private final WeakReference<Module> myModuleRef;
+  @NotNull protected final WeakReference<PsiFile> mySourceFileRef;
+  @NotNull private final WeakReference<RenderLogger> myLoggerRef;
+  @NotNull private final WeakReference<RenderContext> myRenderContextRef;
   private final boolean myHasRequestedCustomViews;
 
   protected RenderErrorContributorImpl(@Nullable EditorDesignSurface surface, @NotNull RenderResult result) {
     // To get rid of memory leak, get needed RenderResult attributes to avoid referencing RenderResult.
-    myModule = result.getModule();
-    mySourceFile = result.getSourceFile();
-    myLogger = result.getLogger();
-    myRenderContext = result.getRenderContext();
+    myModuleRef = new WeakReference<>(result.getModule());
+    mySourceFileRef = new WeakReference<>(result.getSourceFile());
+    myLoggerRef = new WeakReference<>(result.getLogger());
+    myRenderContextRef = new WeakReference<>(result.getRenderContext());
     myHasRequestedCustomViews = result.hasRequestedCustomViews();
-    myLinkManager = result.getLogger().getLinkManager();
+    myLinkManagerRef = new WeakReference<>(result.getLogger().getLinkManager());
     myLinkHandler = new LinkHandler(
       result.getLogger().getLinkManager(),
       surface,
@@ -153,27 +154,44 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
 
   @Override
   public Collection<RenderErrorModel.Issue> reportIssues() {
-    RenderLogger logger = myLogger;
-    RenderContext renderContext = myRenderContext;
+    RenderLogger logger = myLoggerRef.get();
+    if (logger == null) {
+      return Collections.emptyList();
+    }
 
     reportMissingStyles(logger);
     reportAppCompatRequired(logger);
-    if (renderContext != null) {
-      reportRelevantCompilationErrors(logger);
-      reportMissingSizeAttributes(logger,
-                                  renderContext,
-                                  (mySourceFile instanceof XmlFile) ? (XmlFile)mySourceFile : null);
-      reportMissingClasses(logger);
-    }
-    reportBrokenClasses(logger);
-    reportOtherProblems(logger);
-    reportUnknownFragments(logger);
-    reportRenderingFidelityProblems(logger);
 
-    if (!myModule.isDisposed()) {
-      myIssues.addAll(ComposeRenderErrorContributor.reportComposeErrors(logger, myLinkManager, myLinkHandler));
+    RenderContext renderContext = myRenderContextRef.get();
+    Module module = myModuleRef.get();
+    PsiFile sourceFile = mySourceFileRef.get();
+    HtmlLinkManager linkManager = myLinkManagerRef.get();
+
+    if (linkManager == null) {
+      return Collections.emptyList();
     }
-    myIssues.addAll(WearTileRenderErrorContributor.reportWearTileErrors(logger, myLinkManager, myLinkHandler, mySourceFile));
+    reportOtherProblems(linkManager, logger);
+    reportRenderingFidelityProblems(linkManager, logger);
+
+    if (module == null || sourceFile == null) {
+      return Collections.emptyList();
+    }
+    if (renderContext != null) {
+      reportRelevantCompilationErrors(module, logger);
+      reportMissingSizeAttributes(module,
+                                  linkManager,
+                                  logger,
+                                  renderContext,
+                                  (sourceFile instanceof XmlFile) ? (XmlFile)sourceFile : null);
+      reportMissingClasses(module, linkManager, logger, sourceFile);
+    }
+    reportBrokenClasses(module, linkManager, logger);
+    reportUnknownFragments(module, linkManager, logger, sourceFile);
+
+    if (!module.isDisposed()) {
+      myIssues.addAll(ComposeRenderErrorContributor.reportComposeErrors(logger, linkManager, myLinkHandler));
+    }
+    myIssues.addAll(WearTileRenderErrorContributor.reportWearTileErrors(logger, linkManager, myLinkHandler, sourceFile));
 
     return getIssues();
   }
@@ -219,16 +237,16 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
         .build());
   }
 
-  private void reportRelevantCompilationErrors(@NotNull RenderLogger logger) {
-    if (myModule.isDisposed()) {
+  private void reportRelevantCompilationErrors(@NotNull Module module, @NotNull RenderLogger logger) {
+    if (module.isDisposed()) {
       return;
     }
 
-    Project project = myModule.getProject();
+    Project project = module.getProject();
     WolfTheProblemSolver wolfgang = WolfTheProblemSolver.getInstance(project);
 
     boolean hasProblemsInModule =
-      ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> wolfgang.hasProblemFilesBeneath(myModule));
+      ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> wolfgang.hasProblemFilesBeneath(module));
     if (!hasProblemsInModule) {
       return;
     }
@@ -268,7 +286,9 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       .build();
   }
 
-  private void reportMissingSizeAttributes(@NotNull final RenderLogger logger,
+  private void reportMissingSizeAttributes(@NotNull Module module,
+                                           @NotNull HtmlLinkManager linkManager,
+                                           @NotNull final RenderLogger logger,
                                            @NotNull RenderContext renderTaskContext,
                                            @Nullable XmlFile psiFile) {
     if (!logger.isMissingSize()) {
@@ -286,18 +306,18 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     }
 
     // See whether we should offer match_parent instead of fill_parent
-    AndroidModuleInfo moduleInfo = StudioAndroidModuleInfo.getInstance(myModule);
+    AndroidModuleInfo moduleInfo = StudioAndroidModuleInfo.getInstance(module);
     final String fill = moduleInfo == null
                         || moduleInfo.getBuildSdkVersion() == null
                         || moduleInfo.getBuildSdkVersion().getApiLevel() >= 8
                         ? VALUE_MATCH_PARENT : VALUE_FILL_PARENT;
 
-    addMissingSizeAttributeLinks(psiFile, resourceResolver, builder, fill);
+    addMissingSizeAttributeLinks(psiFile, resourceResolver, builder, fill, module, linkManager);
 
     builder.newline()
       .add("Or: ")
       .addLink("Automatically add all missing attributes",
-               myLinkManager.createCommandLink(new AddMissingAttributesFix(psiFile, resourceResolver))).newline()
+               linkManager.createCommandLink(new AddMissingAttributesFix(psiFile, resourceResolver))).newline()
       .newline().newline();
 
     addIssue()
@@ -307,7 +327,10 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       .build();
   }
 
-  private void reportMissingClasses(@NotNull RenderLogger logger) {
+  private void reportMissingClasses(@NotNull Module module,
+                                    @NotNull HtmlLinkManager linkManager,
+                                    @NotNull RenderLogger logger,
+                                    @NotNull PsiFile sourceFile) {
     Set<String> missingClasses = logger.getMissingClasses();
     if (missingClasses.isEmpty()) {
       return;
@@ -323,7 +346,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     builder.add("The following classes could not be found:");
     builder.beginList();
 
-    ViewClasses views = getAvailableViews();
+    ViewClasses views = getAvailableViews(module);
 
     if (missingResourceClass) {
       builder.listItem();
@@ -335,7 +358,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       builder.listItem();
       builder.add(className);
       builder.add(" (");
-      foundCustomView |= addMissingClassLinks(builder, className, views.customViews, views.androidViewClassNames);
+      foundCustomView |= addMissingClassLinks(module, linkManager, sourceFile, builder, className, views.customViews, views.androidViewClassNames);
       builder.add(")");
     }
     builder.endList();
@@ -349,24 +372,24 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       .setSeverity(HighlightSeverity.ERROR)
       .setSummary("Missing classes")
       .setHtmlContent(builder)
-      .addMessageTip(createBuildTheModuleMessage(myLinkManager))
-      .addMessageTip(createBuildTheProjectMessage(myLinkManager, null))
-      .addMessageTip(createBuildAndRefreshPreviewMessage(myLinkManager))
+      .addMessageTip(createBuildTheModuleMessage(linkManager))
+      .addMessageTip(createBuildTheProjectMessage(linkManager, null))
+      .addMessageTip(createBuildAndRefreshPreviewMessage(linkManager))
       .build();
   }
 
-  private void reportBrokenClasses(@NotNull RenderLogger logger) {
+  private void reportBrokenClasses(@NotNull Module module, @NotNull HtmlLinkManager linkManager, @NotNull RenderLogger logger) {
     Map<String, Throwable> brokenClasses = logger.getBrokenClasses();
     if (brokenClasses.isEmpty()) {
       return;
     }
 
     HtmlBuilder builder = new HtmlBuilder();
-    final Project project = myModule.getProject();
+    final Project project = module.getProject();
 
     for (Throwable throwable : brokenClasses.values()) {
       if (RenderLogger.isIssue164378(throwable)) {
-        addHtmlForIssue164378(throwable, project, myLinkManager, builder, false);
+        addHtmlForIssue164378(throwable, project, linkManager, builder, false);
         break;
       }
       else if (DataBindingErrorUtils.handleDataBindingMapperError(throwable, builder)) break;
@@ -395,14 +418,14 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       builder.listItem()
         .add(className)
         .add(" (")
-        .addLink("Open Class", myLinkManager.createOpenClassUrl(className));
+        .addLink("Open Class", linkManager.createOpenClassUrl(className));
       if (throwable != null) {
         builder.add(", ");
         ShowExceptionFix detailsFix = new ShowExceptionFix(throwable);
-        builder.addLink("Show Exception", myLinkManager.createActionLink(detailsFix));
+        builder.addLink("Show Exception", linkManager.createActionLink(detailsFix));
       }
       builder.add(", ")
-        .addLink("Clear Cache", myLinkManager.createClearCacheUrl())
+        .addLink("Clear Cache", linkManager.createClearCacheUrl())
         .add(")");
 
       if (firstThrowable == null && throwable != null) {
@@ -417,8 +440,8 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     if (firstThrowable != null) {
       builder.newline().newline()
         .addHeading("Exception Details", HtmlBuilderHelper.getHeaderFontColor()).newline();
-      reportThrowable(builder, firstThrowable, false);
-      reportSandboxError(firstThrowable, true, false);
+      reportThrowable(linkManager, builder, firstThrowable, false);
+      reportSandboxError(linkManager, firstThrowable, true, false);
     }
     builder.newline().newline();
 
@@ -435,13 +458,13 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
                    "http://developer.android.com/reference/android/view/View.html#isInEditMode()")
           .newline()
           .add("If this is an unexpected error you can also try to ")
-          .addLink("", "build the project", ", then ", myLinkManager.createBuildProjectUrl())
-          .addLink("manually ", "refresh the layout", ".", myLinkManager.createRefreshRenderUrl())
+          .addLink("", "build the project", ", then ", linkManager.createBuildProjectUrl())
+          .addLink("manually ", "refresh the layout", ".", linkManager.createRefreshRenderUrl())
       )
       .build();
   }
 
-  private void reportOtherProblems(@NotNull RenderLogger logger) {
+  private void reportOtherProblems(@NotNull HtmlLinkManager linkManager, @NotNull RenderLogger logger) {
     List<RenderProblem> messages = logger.getMessages();
 
     if (messages.isEmpty()) {
@@ -459,12 +482,12 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       if (tag != null) {
         switch (tag) {
           case ILayoutLog.TAG_RESOURCES_FORMAT:
-            if (reportTagResourceFormat(message)) {
+            if (reportTagResourceFormat(linkManager, message)) {
               continue;
             }
             break;
           case ILayoutLog.TAG_RTL_NOT_ENABLED:
-            if (reportRtlNotEnabled(logger)) {
+            if (reportRtlNotEnabled(linkManager, logger)) {
               continue;
             }
             break;
@@ -478,7 +501,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
           case ILayoutLog.TAG_THREAD_CREATION: {
             Throwable throwable = message.getThrowable();
             HtmlBuilder builder = new HtmlBuilder();
-            reportThrowable(builder, throwable, false);
+            reportThrowable(linkManager, builder, throwable, false);
             addIssue()
               .setSeverity(HighlightSeverity.WARNING)
               .setSummary(message.getHtml())
@@ -496,9 +519,9 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
 
       String summary = "Render problem";
       if (throwable != null) {
-        if (!reportSandboxError(throwable, false, true)) {
+        if (!reportSandboxError(linkManager, throwable, false, true)) {
           if (ComposeRenderErrorContributor.isHandledByComposeContributor(throwable)) continue; // This is handled as a warning above.
-          if (reportThrowable(builder, throwable, !html.isEmpty() || !message.isDefaultHtml())) {
+          if (reportThrowable(linkManager, builder, throwable, !html.isEmpty() || !message.isDefaultHtml())) {
             // The error was hidden.
             if (!html.isEmpty()) {
               builder.getStringBuilder().append(html);
@@ -527,20 +550,23 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       addIssue()
         .setSeverity(ProblemSeverities.toHighlightSeverity(message.getSeverity()))
         .setSummary(summary)
-        .addMessageTip(createBuildAndRefreshPreviewMessage(myLinkManager))
+        .addMessageTip(createBuildAndRefreshPreviewMessage(linkManager))
         .setHtmlContent(builder)
         .build();
     }
   }
 
-  private void reportUnknownFragments(@NotNull final RenderLogger logger) {
+  private void reportUnknownFragments(@NotNull Module module,
+                                      @NotNull HtmlLinkManager linkManager,
+                                      @NotNull final RenderLogger logger,
+                                      @NotNull PsiFile sourceFile) {
     List<String> fragmentNames = logger.getMissingFragments();
     if (fragmentNames == null || fragmentNames.isEmpty()) {
       return;
     }
 
     final String fragmentTagName;
-    if (MigrateToAndroidxUtil.isAndroidx(myModule.getProject())) {
+    if (MigrateToAndroidxUtil.isAndroidx(module.getProject())) {
       fragmentTagName = FRAGMENT_CONTAINER_VIEW;
     }
     else {
@@ -570,16 +596,16 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       builder.add(" (");
 
       if (isActivityKnown) {
-        addFragmentLayoutSuggestions(builder, className);
+        addFragmentLayoutSuggestions(module, linkManager, sourceFile, builder, className);
       }
       else {
-        builder.addLink("Choose Fragment Class...", myLinkManager.createAssignFragmentUrl(className));
+        builder.addLink("Choose Fragment Class...", linkManager.createAssignFragmentUrl(className));
       }
       builder.add(")");
     }
     builder.endList()
       .newline()
-      .addLink("Do not warn about " + fragmentTagDisplayName + " tags in this session", myLinkManager.createIgnoreFragmentsUrl())
+      .addLink("Do not warn about " + fragmentTagDisplayName + " tags in this session", linkManager.createIgnoreFragmentsUrl())
       .newline();
 
     addIssue()
@@ -589,7 +615,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       .build();
   }
 
-  private void reportRenderingFidelityProblems(@NotNull RenderLogger logger) {
+  private void reportRenderingFidelityProblems(@NotNull HtmlLinkManager linkManager, @NotNull RenderLogger logger) {
     List<RenderProblem> fidelityWarnings = logger.getFidelityWarnings();
     if (fidelityWarnings.isEmpty()) {
       return;
@@ -599,14 +625,15 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     builder.add("The graphics preview in the layout editor may not be accurate:").newline();
     builder.beginList();
     int count = 0;
+    LinkHandler linkHandler = myLinkHandler;
     for (final RenderProblem warning : fidelityWarnings) {
       builder.listItem();
       warning.appendHtml(builder.getStringBuilder());
       final Object clientData = warning.getClientData();
       if (clientData != null) {
-        builder.addLink(" (Ignore for this session)", myLinkManager.createActionLink((module) -> {
+        builder.addLink(" (Ignore for this session)", linkManager.createActionLink((module) -> {
           RenderLogger.ignoreFidelityWarning(clientData);
-          myLinkHandler.forceUserRequestedRefresh();
+          linkHandler.forceUserRequestedRefresh();
         }));
       }
       builder.newline();
@@ -622,9 +649,9 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       }
     }
     builder.endList();
-    builder.addLink("Ignore all fidelity warnings for this session", myLinkManager.createActionLink((module) -> {
+    builder.addLink("Ignore all fidelity warnings for this session", linkManager.createActionLink((module) -> {
       RenderLogger.ignoreAllFidelityWarnings();
-      myLinkHandler.forceUserRequestedRefresh();
+      linkHandler.forceUserRequestedRefresh();
     }));
     builder.newline();
 
@@ -654,16 +681,18 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     }.setLinkHandler(myLinkHandler);
   }
 
-  private void reportMissingSize(@NotNull HtmlBuilder builder,
+  private void reportMissingSize(@NotNull Module module,
+                                 @NotNull HtmlLinkManager linkManager,
+                                 @NotNull HtmlBuilder builder,
                                  @NotNull String fill,
                                  @NotNull XmlTag tag,
                                  @NotNull String id,
                                  @NotNull String attribute) {
-    if (myModule.isDisposed()) {
+    if (module.isDisposed()) {
       return;
     }
-    String wrapUrl = myLinkManager.createCommandLink(new SetAttributeFix(tag, attribute, ANDROID_URI, VALUE_WRAP_CONTENT));
-    String fillUrl = myLinkManager.createCommandLink(new SetAttributeFix(tag, attribute, ANDROID_URI, fill));
+    String wrapUrl = linkManager.createCommandLink(new SetAttributeFix(tag, attribute, ANDROID_URI, VALUE_WRAP_CONTENT));
+    String fillUrl = linkManager.createCommandLink(new SetAttributeFix(tag, attribute, ANDROID_URI, fill));
 
     builder.add(String.format("%1$s does not set the required %2$s attribute: ", id, attribute))
       .newline()
@@ -677,7 +706,9 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
   private void addMissingSizeAttributeLinks(@NotNull XmlFile psiFile,
                                             @NotNull ResourceResolver resourceResolver,
                                             @NotNull HtmlBuilder builder,
-                                            @NotNull String fill) {
+                                            @NotNull String fill,
+                                            @NotNull Module module,
+                                            @NotNull HtmlLinkManager linkManager) {
     ApplicationManager.getApplication()
       .runReadAction(() -> AddMissingAttributesFix.findViewsMissingSizes(psiFile, resourceResolver).stream()
         .map(SmartPsiElementPointer::getElement)
@@ -699,11 +730,11 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
           }
 
           if (missingWidth) {
-            reportMissingSize(builder, fill, tag, id,
+            reportMissingSize(module, linkManager, builder, fill, tag, id,
                               ATTR_LAYOUT_WIDTH);
           }
           if (missingHeight) {
-            reportMissingSize(builder, fill, tag, id,
+            reportMissingSize(module, linkManager, builder, fill, tag, id,
                               ATTR_LAYOUT_HEIGHT);
           }
         }));
@@ -734,7 +765,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       (Computable<Boolean>)() -> wolfgang.hasProblemFilesBeneath(virtualFile -> virtualFile.getFileType() == type));
   }
 
-  private boolean reportSandboxError(@NotNull Throwable throwable, boolean newlineBefore, boolean newlineAfter) {
+  private boolean reportSandboxError(@NotNull HtmlLinkManager linkManager, @NotNull Throwable throwable, boolean newlineBefore, boolean newlineAfter) {
     if (!(throwable instanceof SecurityException)) {
       return false;
     }
@@ -760,11 +791,11 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     builder.add(" for a more detailed description.");
     builder.newline();
     builder.newline();
-    builder.addLink("Turn off custom view rendering sandbox", myLinkManager.createDisableSandboxUrl());
+    builder.addLink("Turn off custom view rendering sandbox", linkManager.createDisableSandboxUrl());
 
     ShowExceptionFix showExceptionFix = new ShowExceptionFix(throwable);
     builder.newline().newline();
-    builder.addLink("Show Exception", myLinkManager.createActionLink(showExceptionFix));
+    builder.addLink("Show Exception", linkManager.createActionLink(showExceptionFix));
     builder.newline().newline();
 
     String lastFailedPath = RenderSecurityManager.getLastFailedPath();
@@ -807,7 +838,8 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
    *
    * @return if the throwable was hidden.
    */
-  private boolean reportThrowable(@NotNull HtmlBuilder builder,
+  private boolean reportThrowable(@NotNull HtmlLinkManager linkManager,
+                                  @NotNull HtmlBuilder builder,
                                   @NotNull final Throwable throwable,
                                   boolean hideIfIrrelevant) {
     StackTraceElement[] frames = throwable.getStackTrace();
@@ -843,13 +875,13 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
 
     builder.addHtml(StringUtil.replace(throwable.toString(), "\n", "<BR/>")).newline();
 
-    addStackTrace(builder, frames, end);
+    addStackTrace(linkManager, builder, frames, end);
 
-    builder.addLink("Copy stack to clipboard", myLinkManager.createActionLink((module) -> {
+    builder.addLink("Copy stack to clipboard", linkManager.createActionLink((module) -> {
       String text = Throwables.getStackTraceAsString(throwable);
       try {
         CopyPasteManager.getInstance().setContents(new StringSelection(text));
-        myLinkManager.showNotification("Stack trace copied to clipboard");
+        linkManager.showNotification("Stack trace copied to clipboard");
       }
       catch (Exception ignore) {
       }
@@ -875,11 +907,12 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     return haveInterestingFrame ? end : -1;
   }
 
-  private void addStackTrace(@NotNull HtmlBuilder builder, @NotNull StackTraceElement[] frames, int end) {
+  private void addStackTrace(@NotNull HtmlLinkManager linkManager, @NotNull HtmlBuilder builder, @NotNull StackTraceElement[] frames, int end) {
     boolean wasHidden = false;
     int indent = 2;
     File platformSource = null;
     boolean platformSourceExists = true;
+    RenderContext renderContext = myRenderContextRef.get();
     for (int i = 0; i < end; i++) {
       StackTraceElement frame = frames[i];
       if (isHiddenFrame(frame)) {
@@ -900,7 +933,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
             builder.addNbsps(indent).add("    ...").newline();
             wasHidden = false;
           }
-          String url = myLinkManager.createOpenStackUrl(className, methodName, fileName, lineNumber);
+          String url = linkManager.createOpenStackUrl(className, methodName, fileName, lineNumber);
           builder.add("(").addLink(location, url).add(")");
         }
         else {
@@ -908,8 +941,8 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
           String url = null;
           if (isFramework(frame) && platformSourceExists) { // try to link to documentation, if available
             if (platformSource == null) {
-              IAndroidTarget target = myRenderContext != null ?
-                                      myRenderContext.getConfiguration().getRealTarget() :
+              IAndroidTarget target = renderContext != null ?
+                                      renderContext.getConfiguration().getRealTarget() :
                                       null;
               platformSource = target != null ? AndroidSdks.getInstance().findPlatformSources(target) : null;
               platformSourceExists = platformSource != null;
@@ -952,17 +985,18 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
   /**
    * Tries to report an "RTL not enabled" error and returns whether this was successful.
    */
-  private boolean reportRtlNotEnabled(@NotNull RenderLogger logger) {
+  private boolean reportRtlNotEnabled(@NotNull HtmlLinkManager linkManager, @NotNull RenderLogger logger) {
     return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
-      if (myModule.isDisposed()) {
+      Module module = myModuleRef.get();
+      if (module == null || module.isDisposed()) {
         return false;
       }
-      Project project = myModule.getProject();
+      Project project = module.getProject();
       if (project.isDisposed()) {
         return false;
       }
 
-      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      AndroidFacet facet = AndroidFacet.getInstance(module);
       Manifest manifest = facet != null ? Manifest.getMainManifest(facet) : null;
       Application application = manifest != null ? manifest.getApplication() : null;
       if (application == null) {
@@ -975,10 +1009,11 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       }
 
       HtmlBuilder builder = new HtmlBuilder();
+      LinkHandler linkHandler = myLinkHandler;
       builder.add("(")
-        .addLink("Add android:supportsRtl=\"true\" to the manifest", logger.getLinkManager().createActionLink((module) -> {
+        .addLink("Add android:supportsRtl=\"true\" to the manifest", linkManager.createActionLink((mod) -> {
           new SetAttributeFix(applicationTag, AndroidManifest.ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI, VALUE_TRUE).executeCommand();
-          myLinkHandler.forceUserRequestedRefresh();
+          linkHandler.forceUserRequestedRefresh();
         })).add(")");
 
       addIssue()
@@ -993,7 +1028,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
   /**
    * Tries to report a resources format error and returns whether this was successful.
    */
-  private boolean reportTagResourceFormat(@NotNull RenderProblem message) {
+  private boolean reportTagResourceFormat(@NotNull HtmlLinkManager linkManager, @NotNull RenderProblem message) {
     Object clientData = message.getClientData();
     if (!(clientData instanceof String[])) {
       return false;
@@ -1003,7 +1038,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       return false;
     }
 
-    RenderContext renderContext = myRenderContext;
+    RenderContext renderContext = myRenderContextRef.get();
     if (renderContext == null) {
       return false;
     }
@@ -1037,13 +1072,13 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
           else {
             builder.add(", ");
           }
-          builder.addLink(value, myLinkManager.createReplaceAttributeValueUrl(attributeName, currentValue, value));
+          builder.addLink(value, linkManager.createReplaceAttributeValueUrl(attributeName, currentValue, value));
         }
 
         addIssue()
           .setSummary("Incorrect resource value format")
           .setHtmlContent(builder)
-          .addMessageTip(createBuildAndRefreshPreviewMessage(myLinkManager))
+          .addMessageTip(createBuildAndRefreshPreviewMessage(linkManager))
           .build();
         return true;
       }
@@ -1051,7 +1086,8 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     return false;
   }
 
-  private boolean addTypoSuggestions(@NotNull HtmlBuilder builder,
+  private boolean addTypoSuggestions(@NotNull HtmlLinkManager linkManager,
+                                     @NotNull HtmlBuilder builder,
                                      @NotNull String actual,
                                      @Nullable Collection<String> views,
                                      boolean compareWithPackage) {
@@ -1089,7 +1125,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
         else if (actualBase.equals(actual) && !actualBase.equals(suggested) && isViewPackageNeeded(suggested, -1)) {
           // Custom view needs to be specified with a fully qualified path
           builder.addLink(String.format("Change to %1$s", suggested),
-                          myLinkManager.createReplaceTagsUrl(actual, suggested));
+                          linkManager.createReplaceTagsUrl(actual, suggested));
           builder.add(", ");
           continue;
         }
@@ -1109,7 +1145,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
         // Suggest this class as a typo for the given class
         String labelClass = (suggestedBase.equals(actual) || actual.indexOf('.') != -1) ? suggested : suggestedBase;
         builder.addLink(String.format("Change to %1$s", labelClass),
-                        myLinkManager.createReplaceTagsUrl(actual,
+                        linkManager.createReplaceTagsUrl(actual,
                                                            // Only show full package name if class name
                                                            // is the same
                                                            (isViewPackageNeeded(suggested, -1) ? suggested : suggestedBase)));
@@ -1149,10 +1185,10 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
   }
 
   @NotNull
-  private ViewClasses getAvailableViews() {
+  private ViewClasses getAvailableViews(@NotNull Module module) {
     Ref<Collection<String>> viewsRef = new Ref<>(Collections.emptyList());
     // We yield to write actions here because UI responsiveness takes priority over typo suggestions.
-    ProgressIndicatorUtils.runWithWriteActionPriority(() -> viewsRef.set(getAllViews(myModule)), new EmptyProgressIndicator());
+    ProgressIndicatorUtils.runWithWriteActionPriority(() -> viewsRef.set(getAllViews(module)), new EmptyProgressIndicator());
     Collection<String> views = viewsRef.get();
     if (views.isEmpty()) {
       return ViewClasses.EMPTY;
@@ -1171,41 +1207,44 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     return new ViewClasses(customViews, androidViewClassNames);
   }
 
-  private boolean addMissingClassLinks(@NotNull HtmlBuilder builder,
+  private boolean addMissingClassLinks(@NotNull Module module,
+                                       @NotNull HtmlLinkManager linkManager,
+                                       @NotNull PsiFile sourceFile,
+                                       @NotNull HtmlBuilder builder,
                                        @NotNull String className,
                                        @NotNull Collection<String> customViews,
                                        @NotNull Collection<String> androidViewClassNames) {
-    boolean foundCustomView = addTypoSuggestions(builder, className, customViews, false);
-    addTypoSuggestions(builder, className, customViews, true);
-    addTypoSuggestions(builder, className, androidViewClassNames, false);
+    boolean foundCustomView = addTypoSuggestions(linkManager, builder, className, customViews, false);
+    addTypoSuggestions(linkManager, builder, className, customViews, true);
+    addTypoSuggestions(linkManager, builder, className, androidViewClassNames, false);
 
-    if (myLinkManager == null) {
+    if (linkManager == null) {
       return foundCustomView;
     }
 
     if (CLASS_CONSTRAINT_LAYOUT.isEquals(className)) {
-      Project project = myModule.getProject();
+      Project project = module.getProject();
       boolean useAndroidX = MigrateToAndroidxUtil.isAndroidx(project);
       GoogleMavenArtifactId artifact = useAndroidX ?
                                        GoogleMavenArtifactId.ANDROIDX_CONSTRAINTLAYOUT :
                                        GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
       builder.addLink("Add constraint-layout library dependency to the project",
-                      myLinkManager.createAddDependencyUrl(artifact));
+                      linkManager.createAddDependencyUrl(artifact));
       builder.add(", ");
     }
     else if (CLASS_FLEXBOX_LAYOUT.equals(className)) {
       builder.addLink("Add flexbox layout library dependency to the project",
-                      myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.FLEXBOX_LAYOUT));
+                      linkManager.createAddDependencyUrl(GoogleMavenArtifactId.FLEXBOX_LAYOUT));
       builder.add(", ");
     }
     else if (CLASS_COMPOSE_VIEW_ADAPTER.equals(className)) {
       builder.add(
         "This is likely due to a missing ui-tooling dependency in your project configuration. If your active variant is debug: ");
       builder.addLink("Add the ui-tooling library to your project's dependencies",
-                      myLinkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.COMPOSE_TOOLING));
+                      linkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.COMPOSE_TOOLING));
       builder.add(". If you are using a release variant and require previews: ");
       builder.addLink("Add the ui-tooling dependency as an implementation dependency",
-                      myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.COMPOSE_TOOLING));
+                      linkManager.createAddDependencyUrl(GoogleMavenArtifactId.COMPOSE_TOOLING));
       builder.add(
         ". Note that including ui-tooling in a release build will increase your APK size and potentially build time. ");
       builder.add(
@@ -1214,30 +1253,30 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     }
     else if (CLASS_TILE_SERVICE_VIEW_ADAPTER.equals(className)) {
       builder.addLink("Add tiles-tooling library dependency to the project",
-                      myLinkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.WEAR_TILES_TOOLING));
+                      linkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.WEAR_TILES_TOOLING));
       builder.add(", ");
     }
 
-    builder.addLink("Fix Build Path", myLinkManager.createEditClassPathUrl());
+    builder.addLink("Fix Build Path", linkManager.createEditClassPathUrl());
 
-    String fileType = mySourceFile.getFileType() == XmlFileType.INSTANCE
+    String fileType = sourceFile.getFileType() == XmlFileType.INSTANCE
                       ? "XML"
                       : "File";
     builder.add(", ");
-    builder.addLink("Edit " + fileType, myLinkManager.createShowTagUrl(className));
+    builder.addLink("Edit " + fileType, linkManager.createShowTagUrl(className));
 
     // Offer to create the class, but only if it looks like a custom view
     // TODO: Check to see if it looks like it's the name of a custom view and the
     // user didn't realize a FQN is required here
     if (className.indexOf('.') != -1) {
       builder.add(", ");
-      builder.addLink("Create Class", myLinkManager.createNewClassUrl(className));
+      builder.addLink("Create Class", linkManager.createNewClassUrl(className));
     }
     return foundCustomView;
   }
 
-  private void addFragmentLayoutSuggestions(@NotNull HtmlBuilder builder, @NotNull String className) {
-    final Project project = myModule.getProject();
+  private void addFragmentLayoutSuggestions(@NotNull Module module, @NotNull HtmlLinkManager linkManager, @NotNull PsiFile sourceFile, @NotNull HtmlBuilder builder, @NotNull String className) {
+    final Project project = module.getProject();
     ApplicationManager.getApplication().runReadAction(() -> {
       // TODO: Look up layout references in the given layout, if possible
       // Find activity class
@@ -1246,7 +1285,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       PsiClass clz = DumbService.getInstance(project).isDumb() ?
                      null :
                      JavaPsiFacade.getInstance(project).findClass(className, scope);
-      String layoutName = mySourceFile.getName();
+      String layoutName = sourceFile.getName();
       boolean separate = false;
       if (clz != null) {
         // TODO: Should instead find all R.layout elements
@@ -1272,7 +1311,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
           if (separate) {
             builder.add(", ");
           }
-          builder.addLink("Use @layout/" + layout, myLinkManager.createAssignLayoutUrl(className, layout));
+          builder.addLink("Use @layout/" + layout, linkManager.createAssignLayoutUrl(className, layout));
           separate = true;
         }
       }
@@ -1280,7 +1319,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       if (separate) {
         builder.add(", ");
       }
-      builder.addLink("Pick Layout...", myLinkManager.createPickLayoutUrl(className));
+      builder.addLink("Pick Layout...", linkManager.createPickLayoutUrl(className));
     });
   }
 
