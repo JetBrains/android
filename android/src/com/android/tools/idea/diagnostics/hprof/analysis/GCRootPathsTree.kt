@@ -366,9 +366,10 @@ class GCRootPathsTree(
                 currentNodeEdges
                   .entries
                   .sortedWith { a, b ->
-                    if (a.value.pathsSize != b.value.pathsSize)
+                    if (a.value.pathsSize != b.value.pathsSize) {
                       // Descending
                       b.value.pathsSize.compareTo(a.value.pathsSize)
+                    }
                     else
                       // To have a deterministic report, sort by field# if the size is the same
                       a.key.refIndex.compareTo(b.key.refIndex)

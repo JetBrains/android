@@ -83,11 +83,11 @@ internal class ContentProviderDeviceManager(
           (dataValue is WhsDataValue.IntValue && dataValue.value == 0) ||
             (dataValue is WhsDataValue.FloatValue && dataValue.value == 0.0f)
         val newState: CapabilityState =
-          if (!isEnabled && isZero)
-          // If data type is disabled and override has not been set content provider returns
-          // override as 0, so ignore this value
-          CapabilityState.disabled(dataType)
-          else CapabilityState(isEnabled, dataValue)
+          if (!isEnabled && isZero) {
+            // If data type is disabled and override has not been set content provider returns
+            // override as 0, so ignore this value
+            CapabilityState.disabled(dataType)
+          } else CapabilityState(isEnabled, dataValue)
         capabilities[dataType] = newState
       }
 
