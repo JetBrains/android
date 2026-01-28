@@ -564,8 +564,8 @@ class GradleSyncStateHolder constructor(private val project: Project) {
     override fun configureOperation(operation: LongRunningOperation, context: GradleExecutionContext) {
       if (context.taskId.type == ExternalSystemTaskType.RESOLVE_PROJECT) {
         prepareForSync(operation, context.project)
+        getInstance(context.project).recordGradleVersion(context.gradleVersion)
       }
-      getInstance(context.project).recordGradleVersion(context.gradleVersion)
     }
 
     private fun prepareForSync(operation: LongRunningOperation, project: Project) {
