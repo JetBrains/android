@@ -28,12 +28,14 @@ interface QuerySyncUserPreferences {
   val refreshQueryDataOnStartup: Boolean
   val experimentalBuildNativeTargetsFromAndroidTransitionPoint: Boolean
   val liveEditEnabled: Boolean
+  val autoSyncComposeTooling: Boolean
 }
 
 private val skipRefreshQueryDataOnStartup = BoolExperiment("aswb.query.sync.skip.query.on.startup", true)
 private val buildNativeTargetsFromAndroidTransitionPoint =
     BoolExperiment("aswb.query.sync.build.native.targets.from.android.transition.point", true)
 private val liveEditSupportEnabled: BoolExperiment = BoolExperiment("aswb.live.edit.enabled", false)
+private val autoSyncComposeToolingExperiment = BoolExperiment("aswb.query.sync.auto.sync.compose.tooling", true)
 
 
 @Service(Service.Level.PROJECT)
@@ -52,6 +54,9 @@ class QuerySyncUserPreferencesProvider(private val project: Project) {
 
     override val liveEditEnabled: Boolean
       get() = liveEditSupportEnabled.value
+
+    override val autoSyncComposeTooling: Boolean
+      get() = autoSyncComposeToolingExperiment.value
   }
 
   companion object {
