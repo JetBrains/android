@@ -27,7 +27,7 @@ namespace screensharing {
 
 class CodecOutputBuffer {
 public:
-  CodecOutputBuffer(AMediaCodec* codec, std::string&& log_prefix);
+  CodecOutputBuffer(AMediaCodec* codec, std::string log_prefix);
   ~CodecOutputBuffer();
 
   // Returns true if successful. If not, the error_code method can be used to get the error code
