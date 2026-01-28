@@ -284,7 +284,10 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     if (snapshot != null && BazelComposeToolingProjectLabelProvider.isComposeProject(project, snapshot.graph)) {
       val label = BazelComposeToolingProjectLabelProvider.getComposeToolingLabel(project)
       if (label != null) {
-        assertProjectLoaded().buildDependencies(context, DependencyTracker.DependencyBuildRequest.specialTarget(setOf(label)))
+        // TODO: solodkyy - This is a little bit inefficient
+        if (!assertProjectLoaded().artifactTracker.stateSnapshot.deprecatedSyncedTargetKeys().contains(label)) {
+          assertProjectLoaded().buildDependencies(context, DependencyTracker.DependencyBuildRequest.specialTarget(setOf(label)))
+        }
       }
     }
   }
