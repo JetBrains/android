@@ -385,7 +385,7 @@ class WifiAvailableDevicesDialog(
 
     override fun apply(row: MdnsTlsService): Boolean {
       return searchText.isBlank() ||
-        buildDeviceName(row.service).contains(searchText.trim(), ignoreCase = true)
+        buildDeviceNameOrPlaceholder(row.service).contains(searchText.trim(), ignoreCase = true)
     }
   }
 
@@ -407,7 +407,7 @@ class WifiAvailableDevicesDialog(
       TableTextColumn<MdnsTlsService>(
         "Name",
         TableColumnWidth.Weighted(2f),
-        attribute = { buildDeviceName(it.service) },
+        attribute = { buildDeviceNameOrPlaceholder(it.service) },
         maxLines = 2,
       ),
       TableTextColumn(
@@ -458,10 +458,12 @@ class WifiAvailableDevicesDialog(
   override fun dispose() {}
 }
 
-private fun buildDeviceName(mdnsService: MdnsTrackServiceInfo): String =
+private fun buildDeviceName(mdnsService: MdnsTrackServiceInfo): String? =
   mdnsService.givenName.takeUnless { it.isNullOrBlank() }
     ?: mdnsService.deviceModel.takeUnless { it.isNullOrBlank() }
-    ?: "Device"
+
+private fun buildDeviceNameOrPlaceholder(mdnsService: MdnsTrackServiceInfo): String =
+  buildDeviceName(mdnsService) ?: "Unknown"
 
 object WifiPairingLinkHandler {
 
