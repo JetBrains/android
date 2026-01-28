@@ -44,6 +44,7 @@ const val DEFAULT_DENSITY = 480
 const val CUSTOM_DENSITY = 560
 const val APPLICATION_ID1 = "com.example.test.app1"
 const val APPLICATION_ID2 = "com.example.test.app2"
+const val MAGNIFICATION_SERVICE_NAME = "com.android.server.accessibility.MagnificationController"
 
 private val API_REGEX = "(.+)Api(\\d+)$".toRegex()
 
@@ -97,6 +98,7 @@ class UiSettingsRule : ExternalResource() {
     talkBackInstalled: Boolean = false,
     talkBackOn: Boolean = false,
     selectToSpeakOn: Boolean = false,
+    magnificationOn: Boolean = false,
     fontScale: Int = DEFAULT_FONT_SCALE,
     physicalDensity: Int = DEFAULT_DENSITY,
     overrideDensity: Int = DEFAULT_DENSITY,
@@ -113,9 +115,9 @@ class UiSettingsRule : ExternalResource() {
       -- List Packages --
       ${if (talkBackInstalled) "package:com.google.android.marvin.talkback" else ""}
       -- Accessibility Services --
-      ${formatAccessibilityServices(talkBackOn, selectToSpeakOn)}
+      ${formatAccessibilityServices(talkBackOn, selectToSpeakOn, magnificationOn = false)}
       -- Accessibility Button Targets --
-      ${formatAccessibilityServices(talkBackOn = false, selectToSpeakOn)}
+      ${formatAccessibilityServices(talkBackOn = false, selectToSpeakOn, magnificationOn)}
       -- Font Scale --
       ${(fontScale.toFloat() / 100f)}
       -- Density --
@@ -133,9 +135,9 @@ class UiSettingsRule : ExternalResource() {
     """.trimIndent())
 
     adb.configureShellCommand(deviceSelector, "settings get secure $ENABLED_ACCESSIBILITY_SERVICES",
-                              formatAccessibilityServices(talkBackOn, selectToSpeakOn))
+                              formatAccessibilityServices(talkBackOn, selectToSpeakOn, magnificationOn = false))
     adb.configureShellCommand(deviceSelector, "settings get secure $ACCESSIBILITY_BUTTON_TARGETS",
-                              formatAccessibilityServices(talkBackOn = false, selectToSpeakOn))
+                              formatAccessibilityServices(talkBackOn = false, selectToSpeakOn, magnificationOn))
   }
 
   private fun createAndStartEmulator(): FakeEmulator {
@@ -165,11 +167,25 @@ class UiSettingsRule : ExternalResource() {
     return emulatorController
   }
 
-  private fun formatAccessibilityServices(talkBackOn: Boolean, selectToSpeakOn: Boolean): String = when {
-    talkBackOn && selectToSpeakOn -> "$TALK_BACK_SERVICE_NAME:$SELECT_TO_SPEAK_SERVICE_NAME"
-    talkBackOn && !selectToSpeakOn -> TALK_BACK_SERVICE_NAME
-    !talkBackOn && selectToSpeakOn -> SELECT_TO_SPEAK_SERVICE_NAME
-    else -> "null"
+  private fun formatAccessibilityServices(
+    talkBackOn: Boolean,
+    selectToSpeakOn: Boolean,
+    magnificationOn: Boolean
+  ): String {
+    val value = StringBuilder()
+    value.addAccessibilityService(TALK_BACK_SERVICE_NAME, talkBackOn)
+    value.addAccessibilityService(SELECT_TO_SPEAK_SERVICE_NAME, selectToSpeakOn)
+    value.addAccessibilityService(MAGNIFICATION_SERVICE_NAME, magnificationOn)
+    return value.toString()
+  }
+
+  private fun StringBuilder.addAccessibilityService(serviceName: String, on: Boolean) {
+    if (on) {
+      if (!isEmpty()) {
+        append(':')
+      }
+      append(serviceName)
+    }
   }
 
   /**
