@@ -24,9 +24,9 @@ namespace screensharing {
 
 using namespace std;
 
-CodecOutputBuffer::CodecOutputBuffer(AMediaCodec* codec, std::string&& log_prefix)
+CodecOutputBuffer::CodecOutputBuffer(AMediaCodec* codec, std::string log_prefix)
     : codec_(codec),
-      log_prefix_(log_prefix) {
+      log_prefix_(std::move(log_prefix)) {
 }
 
 CodecOutputBuffer::~CodecOutputBuffer() {
