@@ -50,7 +50,6 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui",
-        "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
         "//tools/adt/idea/android-adb:intellij.android.adb",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
