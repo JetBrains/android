@@ -349,7 +349,7 @@ class VideoDecoder internal constructor(
         av_frame_free(decodingFrame)
         renderingFrame?.let { av_frame_free(it) }
         swsContext?.let { sws_freeContext(it) }
-        av_packet_free(pendingPacket)
+        pendingPacket?.let { av_packet_free(it) }
       }
       initialized = null
     }
