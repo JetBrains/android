@@ -56,6 +56,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Service(Service.Level.PROJECT)
@@ -142,11 +143,12 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
         val qSyncManager = QuerySyncManager.getInstance(project)
         val operation = QuerySyncManager.createOperation("Build & Refresh", "Building and refreshing", QuerySyncManager.OperationType.BUILD_DEPS) { context ->
           context.push(scope)
-          buildAndRefresh(project, context, label)
+          val output = executeBuild(project, context, label)
+          cacheRuntimeArtifacts(project, label, output, context)
         }
 
         val succeeded = qSyncManager.runOperationWithToolWindow(
-          this@async,
+          this,
           scope,
           QuerySyncManager.TaskOrigin.USER_ACTION,
           operation
@@ -168,11 +170,11 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
    * Executed by the Blaze executor
    */
   @Throws(BuildException::class)
-  private fun buildAndRefresh(
+  private fun executeBuild(
     project: Project,
     context: BlazeContext,
     label: Label
-  ) {
+  ): com.google.idea.blaze.qsync.deps.OutputInfo {
     val tracker: DependencyTracker =
       QuerySyncManager.getInstance(project).getDependencyTracker()!!
     val builder = tracker.getBuilder()
@@ -181,8 +183,19 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
     val toolingLabel = BazelComposeToolingProjectLabelProvider.getComposeToolingLabel(project)
     val targets = setOfNotNull(label, toolingLabel)
 
+    return builder.build(context, targets, groups)
+  }
+
+  /**
+   * Executed by the Blaze executor
+   */
+  private fun cacheRuntimeArtifacts(
+    project: Project,
+    label: Label,
+    output: com.google.idea.blaze.qsync.deps.OutputInfo,
+    context: BlazeContext
+  ) {
     try {
-      val output = builder.build(context, targets, groups)
       buildOutcomeCache.cacheOutput(project, label, output, context)
     } catch (exception: Exception) {
       val status = when (exception) {
