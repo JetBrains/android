@@ -81,15 +81,6 @@ fun getHighPriorityRenderingTopicForTest(): RenderingTopic {
   return RenderingTopic.entries.maxByOrNull { it.priority }!!
 }
 
-fun getMidPriorityRenderingTopicForTest(): RenderingTopic {
-  return RenderingTopic.entries
-    .filter {
-      getLowPriorityRenderingTopicForTest().priority < it.priority &&
-        it.priority < getHighPriorityRenderingTopicForTest().priority
-    }
-    .randomOrNull()!!
-}
-
 // The topic should only affect cancellations, so by default use random topics to
 // verify that the tests that are not related with cancellations are not affected by them.
 private fun RenderExecutor.runAsyncActionWithTestDefault(
@@ -197,19 +188,27 @@ class RenderExecutorTest {
 
   @Test
   fun testQueueLimits() {
-    // In all comments below X = actions per priority band.
-    // X = 20 < softLimit / 2, none should be evicted.
-    doTestQueueLimits(20, 20, 20, 20)
-    // softLimit / 2 < X = 40 < softLimit, some low priority tasks should be evicted.
-    doTestQueueLimits(40, 40, 40, 10)
-    // softLimit < X = 270 < hardLimit, all low and some mid priority tasks should be evicted.
-    // Disabled because of b/477553367
-    // doTestQueueLimits(270, 270, 30, 0)
-    // hardLimit < X = 320, all low, all mid, and some high priority tasks should be evicted.
-    doTestQueueLimits(320, 300, 0, 0)
+    val midPriorityTopics =
+      RenderingTopic.entries.filter {
+        getLowPriorityRenderingTopicForTest().priority < it.priority &&
+          it.priority < getHighPriorityRenderingTopicForTest().priority
+      }
+
+    midPriorityTopics.forEach { midPriorityTopic ->
+      // In all comments below X = actions per priority band.
+      // X = 20 < softLimit / 2, none should be evicted.
+      doTestQueueLimits(midPriorityTopic, 20, 20, 20, 20)
+      // softLimit / 2 < X = 40 < softLimit, some low priority tasks should be evicted.
+      doTestQueueLimits(midPriorityTopic, 40, 40, 40, 10)
+      // softLimit < X = 270 < hardLimit, all low and some mid-priority tasks should be evicted.
+      doTestQueueLimits(midPriorityTopic, 270, 270, 30, 0)
+      // hardLimit < X = 320, all low, all mid, and some high priority tasks should be evicted.
+      doTestQueueLimits(midPriorityTopic, 320, 300, 0, 0)
+    }
   }
 
   private fun doTestQueueLimits(
+    midPriorityTopic: RenderingTopic,
     actionsPerPriorityBand: Int,
     expectedHighPriorityExecuted: Int,
     expectedMidPriorityExecuted: Int,
@@ -232,7 +231,7 @@ class RenderExecutorTest {
         counterHighPriority.incrementAndGet()
         lastToExecute.set(3 * it + 1)
       }
-      executor.runAsyncActionWithTestDefault(topic = getMidPriorityRenderingTopicForTest()) {
+      executor.runAsyncActionWithTestDefault(topic = midPriorityTopic) {
         counterMidPriority.incrementAndGet()
         lastToExecute.set(3 * it + 2)
       }
