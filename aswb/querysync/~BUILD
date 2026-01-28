@@ -7,14 +7,11 @@ package(default_visibility = [
     "//tools/adt/idea/aswb/cpp:__subpackages__",
     "//tools/adt/idea/aswb/java:__subpackages__",
     "//tools/adt/idea/aswb/querysync/javatests:__subpackages__",
-    "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin/aswb:__subpackages__",
-    "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin/base:__subpackages__",
-    "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin/cpp:__subpackages__",
-    "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin/querysync:__subpackages__",
+    "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin:__subpackages__",
     "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/g3plugins/citc:__subpackages__",
     "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/g3plugins/services:__subpackages__",
     "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/protobuf:__subpackages__",
-    "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/protobuf:__subpackages__",
+    "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij:__subpackages__",
 ])
 
 # A build rule to expose individual targets under java/ to users

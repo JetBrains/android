@@ -19,6 +19,7 @@ import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager
 import com.google.idea.blaze.base.settings.BuildSystemName
 import com.google.idea.blaze.common.Label
+import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.intellij.openapi.project.Project
 import kotlin.jvm.optionals.getOrNull
 
@@ -26,28 +27,30 @@ import kotlin.jvm.optionals.getOrNull
  * Default implementation for logic that provides the Compose Tooling Target label.
  */
 class DefaultBazelComposeToolingProjectLabelProvider : BazelComposeToolingProjectLabelProvider {
+  override fun isApplicable(project: Project): Boolean {
+    return BlazeImportSettingsManager.getInstance(project).importSettings?.buildSystem == BuildSystemName.Bazel
+  }
+
   override fun getComposeToolingLabel(project: Project): Label? {
     if (BlazeImportSettingsManager.getInstance(project).importSettings?.buildSystem != BuildSystemName.Bazel) {
       return null
     }
+    val graph = QuerySyncManager.getInstance(project).currentSnapshot.getOrNull()?.graph ?: return null
+    return composeDeps(graph).firstOrNull()?.siblingWithName("androidx_compose_ui_ui_tooling")
+  }
 
-    val snapshot = QuerySyncManager.getInstance(project).currentSnapshot.getOrNull()
-    if (snapshot != null) {
-      // 1. Probe for @maven label
-      val probeLabel = Label.of("@maven//:androidx_compose_ui_ui")
-      if (snapshot.artifactIndex.builtDepsMap().contains(probeLabel)) {
-        return probeLabel.siblingWithName("androidx_compose_ui_ui_tooling")
-      }
+  override fun isComposeProject(graph: BuildGraphData): Boolean {
+    return composeDeps(graph).any()
+  }
 
-      // 2. Scan for any matching target
-      val target = snapshot.artifactIndex.builtDepsMap().keys.firstOrNull {
-        it.name == "androidx_compose_ui_ui"
-      }
-      if (target != null) {
-        return target.siblingWithName("androidx_compose_ui_ui_tooling")
-      }
-    }
+  private fun isComposeUiLabel(label: Label): Boolean {
+    return label.name.startsWith("androidx_compose_")
+  }
 
-    return null
+  private fun composeDeps(graph: BuildGraphData): Sequence<Label> {
+    return graph.allLoadedTargets().asSequence()
+      .mapNotNull { graph.getProjectTarget(it) }
+      .flatMap { it.deps() }
+      .filter { isComposeUiLabel(it) }
   }
 }

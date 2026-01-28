@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.rendering.tokens
 
-import com.google.idea.blaze.base.settings.BlazeImportSettingsManager
-import com.google.idea.blaze.base.settings.BuildSystemName
 import com.google.idea.blaze.common.Label
+import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
@@ -25,14 +24,22 @@ import com.intellij.openapi.project.Project
  * Extension point to provide the Compose Tooling Target label.
  */
 interface BazelComposeToolingProjectLabelProvider {
+  fun isApplicable(project: Project): Boolean
+
   fun getComposeToolingLabel(project: Project): Label?
+
+  fun isComposeProject(graph: BuildGraphData): Boolean
 
   companion object {
     val EP_NAME: ExtensionPointName<BazelComposeToolingProjectLabelProvider> =
       ExtensionPointName.create("com.android.tools.idea.rendering.tokens.bazelComposeToolingProjectLabelProvider")
 
     fun getComposeToolingLabel(project: Project): Label? {
-      return EP_NAME.extensionList.firstNotNullOfOrNull { it.getComposeToolingLabel(project) }
+      return EP_NAME.extensionList.filter { it.isApplicable(project) }.firstNotNullOfOrNull { it.getComposeToolingLabel(project) }
+    }
+
+    fun isComposeProject(project: Project, graph: BuildGraphData): Boolean {
+      return EP_NAME.extensionList.filter { it.isApplicable(project) }.any { it.isComposeProject(graph) }
     }
   }
 }
