@@ -21,6 +21,7 @@ import com.android.testutils.junit4.SeparateOldAgpTestsRule
 import com.android.tools.idea.gradle.extensions.getRecommendedJavaVersion
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.model.GradleDaemonToolchain
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleDaemonJvmSettingsQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SelectJdkFromFileSystemQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix
@@ -38,7 +39,6 @@ import java.io.File
 import kotlinx.coroutines.runBlocking
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.tools.projectWizard.core.asPath
-import org.jetbrains.plugins.gradle.issue.quickfix.GradleOpenDaemonJvmSettingsQuickFix
 import org.jetbrains.plugins.gradle.jvmcompat.GradleJvmSupportMatrix
 import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
 import org.junit.Rule
@@ -157,7 +157,7 @@ class IncompatibleGradleJvmAndGradleIssueCheckerTest : AbstractIssueCheckerInteg
         expect
           .that(buildIssue.quickFixes.map { it::class.java })
           .isEqualTo(
-            listOf(UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix::class.java, GradleOpenDaemonJvmSettingsQuickFix::class.java)
+            listOf(UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix::class.java, OpenGradleDaemonJvmSettingsQuickFix::class.java)
           )
 
         // Execute quick-fix to apply compatible Gradle JVM criteria configuration and sync

@@ -65,6 +65,7 @@ import java.util.concurrent.CompletableFuture
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import org.gradle.util.GradleVersion
+import org.jetbrains.plugins.gradle.issue.quickfix.GradleOpenDaemonJvmSettingsQuickFix
 import org.jetbrains.plugins.gradle.jvmcompat.GradleJvmSupportMatrix
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
@@ -341,6 +342,15 @@ class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
       service.chooseJdkLocation(project.basePath)
     }
     return CompletableFuture.completedFuture(null)
+  }
+}
+
+object OpenGradleDaemonJvmSettingsQuickFix : DescribedBuildIssueQuickFix {
+  override val description: String = "Modify Daemon JVM criteria"
+  override val id: String = "open.gradle.daemon.jvm.settings"
+
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
+    return GradleOpenDaemonJvmSettingsQuickFix.runQuickFix(project, dataContext)
   }
 }
 

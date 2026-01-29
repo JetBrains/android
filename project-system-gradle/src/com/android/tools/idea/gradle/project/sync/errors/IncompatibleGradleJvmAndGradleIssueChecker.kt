@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.tools.idea.gradle.project.sync.extensions.getGradleVersion
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleDaemonJvmSettingsQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SelectJdkFromFileSystemQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix
@@ -34,7 +35,6 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.issue.quickfix.GradleOpenDaemonJvmSettingsQuickFix
 import org.jetbrains.plugins.gradle.jvmcompat.GradleJvmSupportMatrix
 import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
@@ -108,7 +108,7 @@ class IncompatibleGradleJvmAndGradleIssueChecker : GradleIssueChecker {
         startNewParagraph()
         if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(projectPath, gradleVersion)) {
           addQuickFix(UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix(gradleVersion, projectPath.toString()))
-          addQuickFix("Modify Daemon JVM criteria", GradleOpenDaemonJvmSettingsQuickFix)
+          addQuickFix(OpenGradleDaemonJvmSettingsQuickFix)
         } else {
           addQuickFix(UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix(gradleVersion, projectPath.toString()))
           addQuickFix(SelectJdkFromFileSystemQuickFix())

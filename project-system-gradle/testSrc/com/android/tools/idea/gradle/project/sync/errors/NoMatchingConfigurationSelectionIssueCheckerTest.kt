@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.fixtures.createDaemonJvmPropertiesFile
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleDaemonJvmSettingsQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SelectJdkFromFileSystemQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix
@@ -27,7 +28,6 @@ import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.build.GradleEnvironment
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.issue.quickfix.GradleOpenDaemonJvmSettingsQuickFix
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -144,7 +144,7 @@ class NoMatchingConfigurationSelectionIssueCheckerTest {
     assertThat(quickFixes).hasSize(3)
     if (useDaemonJvmCriteria) {
       assertThat(quickFixes[0]).isInstanceOf(UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix::class.java)
-      assertThat(quickFixes[1]).isInstanceOf(GradleOpenDaemonJvmSettingsQuickFix::class.java)
+      assertThat(quickFixes[1]).isInstanceOf(OpenGradleDaemonJvmSettingsQuickFix::class.java)
     } else {
       assertThat(quickFixes[0]).isInstanceOf(UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix::class.java)
       assertThat(quickFixes[1]).isInstanceOf(SelectJdkFromFileSystemQuickFix::class.java)
