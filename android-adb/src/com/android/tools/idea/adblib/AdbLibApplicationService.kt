@@ -76,9 +76,6 @@ class AdbLibApplicationService : Disposable {
   val session: AdbSession
     get() = configuration.session
 
-  val adbServerController: AdbServerController?
-    get() = configuration.adbServerController
-
   val channelProvider: AdbServerChannelProvider
     get() = configuration.channelProvider
 
@@ -104,7 +101,7 @@ class AdbLibApplicationService : Disposable {
     host.close()
   }
 
-  /** The [StartupActivity] that registers [Project] instance to the [AndroidAdbServerChannelProvider]. */
+  /** The [StartupActivity] that registers [Project] instance to the [AdbFileLocationTracker]. */
   class MyStartupActivity : StartupActivity.DumbAware {
     override fun runActivity(project: Project) {
       // Startup activities run quite late when opening a project
@@ -112,28 +109,17 @@ class AdbLibApplicationService : Disposable {
     }
   }
 
-  private class Configuration(host: AndroidAdbSessionHost, private val adbFileLocationTracker: AdbFileLocationTracker) : Disposable {
-    private val logger = thisLogger()
+  private class Configuration(host: AndroidAdbSessionHost, adbFileLocationTracker: AdbFileLocationTracker) : Disposable {
 
     val adbServerConfiguration =
       MutableStateFlow(
         AdbServerConfiguration(adbPath = null, serverPort = null, isUserManaged = false, isUnitTest = false, envVars = emptyMap())
       )
 
-    val adbLibMigrationFlagValue = StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE.get()
-
-    val adbServerController =
-      if (adbLibMigrationFlagValue) {
-        logger.info("'adblib.migration.ddmlib.androiddebugbridgedelegate' flag is set to true")
-        AdbServerController.createServerController(host, adbServerConfiguration)
-      } else {
-        null
-      }
+    val adbServerController = AdbServerController.createServerController(host, adbServerConfiguration)
 
     /** The custom [AdbServerChannelProvider] that ensures `adb` is started before opening [AdbChannel]. */
-    val channelProvider =
-      adbServerController?.let { controller -> AdbLibAdbServerChannelProvider(host, controller, adbFileLocationTracker) }
-        ?: AndroidAdbServerChannelProvider(host, adbFileLocationTracker)
+    val channelProvider = AdbLibAdbServerChannelProvider(host, adbServerController, adbFileLocationTracker)
 
     /** A [AdbSession] customized to work in the Android plugin. */
     val session =
@@ -166,28 +152,22 @@ class AdbLibApplicationService : Disposable {
         }
 
     init {
-      if (adbServerController != null) {
-        val androidDebugBridge = AdbLibAndroidDebugBridge(session, adbServerController, adbServerConfiguration)
-        AndroidDebugBridge.preInit(androidDebugBridge)
-      }
+      val androidDebugBridge = AdbLibAndroidDebugBridge(session, adbServerController, adbServerConfiguration)
+      AndroidDebugBridge.preInit(androidDebugBridge)
     }
 
     override fun dispose() {
       session.close()
-      adbServerController?.close()
+      adbServerController.close()
     }
 
     suspend fun closeAndJoin() {
-      adbServerController?.stop()
+      adbServerController.stop()
       dispose()
       session.scope.coroutineContext[Job]?.join()
     }
 
-    /**
-     * An [AdbServerChannelProvider] that ensures the ADB server is running before creating an [AdbChannel].
-     *
-     * This provider is active when the `StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE` flag is enabled.
-     */
+    /** An [AdbServerChannelProvider] that ensures the ADB server is running before creating an [AdbChannel]. */
     private inner class AdbLibAdbServerChannelProvider(
       private val host: AdbSessionHost,
       private val controller: AdbServerController,

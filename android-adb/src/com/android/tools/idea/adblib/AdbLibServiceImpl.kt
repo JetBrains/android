@@ -15,46 +15,34 @@
  */
 package com.android.tools.idea.adblib
 
-import com.android.adblib.AdbServerChannelProvider
 import com.android.adblib.AdbSession
-import com.android.adblib.AdbSessionHost
 import com.android.adblib.tools.debugging.impl.JdwpProcessSessionFinder
 import com.android.adblib.tools.debugging.impl.addJdwpProcessSessionFinder
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.DdmPreferences
-import com.android.tools.idea.adb.AdbFileProvider
-import com.android.tools.idea.adb.AdbService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
-import java.net.InetSocketAddress
 import java.time.Duration
-import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.withContext
 
 /** The production implementation of [AdbLibService] */
-internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposable {
+internal class AdbLibServiceImpl(project: Project) : AdbLibService, Disposable {
 
   init {
     AdbLibApplicationService.instance.registerProject(project)
   }
 
-  override val session by lazy { createProjectSession(project) }
+  override val session by lazy { createProjectSession() }
 
   override fun dispose() {
     session.close()
   }
 
   companion object {
-    private fun createProjectSession(project: Project): AdbSession {
+    private fun createProjectSession(): AdbSession {
       // re-use host from application service
       val host = AdbLibApplicationService.instance.session.host
 
-      // Configure a channel provider to look for ADB from project settings
-      val channelProvider =
-        AdbLibApplicationService.instance.adbServerController?.let {
-          // TODO: use this project's adb file location in the channel provider
-          AdbLibApplicationService.instance.channelProvider
-        } ?: AdbServerChannelProvider.createConnectAddresses(host) { listOf(getAdbSocketAddress(project, host)) }
+      // TODO: Configure a channel provider to look for ADB from project settings
+      val channelProvider = AdbLibApplicationService.instance.channelProvider
 
       return AdbSession.createChildSession(
           parentSession = AdbLibApplicationService.instance.session,
@@ -69,19 +57,6 @@ internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposab
           // Ensure all JDWP connections are delegated to the application session
           projectSession.addJdwpProcessSessionFinder(ProjectSessionFinder(projectSession))
         }
-    }
-
-    private suspend fun getAdbSocketAddress(project: Project, host: AdbSessionHost): InetSocketAddress {
-      return withContext(host.ioDispatcher) {
-        val needToConnect = AndroidDebugBridge.getBridge()?.let { !it.isConnected } ?: true
-        if (needToConnect) {
-          // Ensure ddmlib is initialized with ADB server path from project context
-          val adbFile =
-            AdbFileProvider.fromProject(project).get() ?: throw IllegalStateException("ADB has not been initialized for this project")
-          AdbService.getInstance().getDebugBridge(adbFile).await()
-        }
-        AndroidDebugBridge.getSocketAddress()
-      }
     }
 
     class ProjectSessionFinder(private val projectSession: AdbSession) : JdwpProcessSessionFinder {
