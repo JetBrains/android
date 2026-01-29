@@ -174,14 +174,12 @@ class AdbLibApplicationService : Disposable {
 
     override fun dispose() {
       session.close()
+      adbServerController?.close()
     }
 
     suspend fun closeAndJoin() {
+      adbServerController?.stop()
       dispose()
-      adbServerController?.let {
-        it.stop()
-        it.close()
-      }
       session.scope.coroutineContext[Job]?.join()
     }
 
