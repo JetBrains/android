@@ -41,9 +41,8 @@ class GlassesBlendDropdownActionTest {
 
   @Test
   fun `action is not visible when device is not glasses`() {
-    // TODO merge
-    //val event = setUpDeviceAndActionVisibility(XR_HEADSET_TAG.id)
-    //assertThat(event.presentation.isEnabledAndVisible).isFalse()
+    val event = setUpDeviceAndActionVisibility(XR_HEADSET_TAG.id)
+    assertThat(event.presentation.isEnabledAndVisible).isFalse()
   }
 
   @Test

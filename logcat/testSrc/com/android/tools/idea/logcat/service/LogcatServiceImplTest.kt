@@ -401,16 +401,14 @@ class LogcatServiceImplTest {
     deviceState.addLogcatMessage(logcat)
 
     val messages = mutableListOf<LogcatMessage>()
-    // TODO merge
-    //val job = launch { service.readLogcat(device30).collect { messages.addAll(it) } }
+    val job = launch { service.readLogcat(device30).collect { messages.addAll(it) } }
     yieldUntil(Duration.ofSeconds(10)) { messages.isNotEmpty() }
 
     // job.cancel() doesn't work here. We have to let the Fake server terminate so all the messages
     // come through
     // There still seems to be a very small flakiness (<1%).
     fakeAdb.stop()
-    // TODO merge
-    //job.join()
+    job.join()
 
     assertThat(messages)
       .containsExactly(

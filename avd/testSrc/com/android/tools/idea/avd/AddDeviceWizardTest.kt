@@ -140,8 +140,7 @@ class AddDeviceWizardTest {
             null,
           )
         )
-      // TODO merge
-      //assertThat(properties[ConfigKey.CAMERA_FRONT]).isEqualTo("none")
+      assertThat(properties[ConfigKey.CAMERA_FRONT]).isEqualTo("none")
     }
   }
 
