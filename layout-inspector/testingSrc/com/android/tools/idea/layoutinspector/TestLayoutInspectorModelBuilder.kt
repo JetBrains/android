@@ -92,15 +92,7 @@ fun viewWindow(
 
   val layoutEvent = LayoutInspectorViewProtocol.LayoutEvent.newBuilder().apply { this.isXr = isXr }.build()
 
-  return ViewAndroidWindow(
-    notificationModel = mock(),
-    skiaParser = mock(),
-    root = root,
-    event = layoutEvent,
-    folderConfiguration = mock(),
-    isInterrupted = { false },
-    logEvent = {},
-  )
+  return ViewAndroidWindow(notificationModel = mock(), root = root, event = layoutEvent, folderConfiguration = mock(), logEvent = {})
 }
 
 fun window(

@@ -28,7 +28,6 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.Discon
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.convert
 import com.android.tools.idea.layoutinspector.protobuf.parseDelimitedFrom
-import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.diagnostic.Logger
@@ -88,7 +87,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
             val composeResult = composeInfo?.let { GetComposablesResult(it.composables, false) }
             val data = ViewLayoutInspectorClient.Data(0, rootIds, windowInfo.layout, composeResult)
 
-            val treeLoader = AppInspectionTreeLoader(notificationModel, ::logEvent, SkiaParserImpl({}))
+            val treeLoader = AppInspectionTreeLoader(notificationModel, ::logEvent)
             val treeData = treeLoader.loadComponentTree(data, model.resourceLookup, processDescriptor) ?: throw Exception()
             capabilities.addAll(treeData.dynamicCapabilities)
 

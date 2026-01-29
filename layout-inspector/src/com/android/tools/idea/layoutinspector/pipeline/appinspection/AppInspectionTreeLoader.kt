@@ -23,9 +23,7 @@ import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewInspectorTreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * A [TreeLoader] that uses data from the [AppInspectionInspectorClient] to fetch a view tree from an API 29+ device, and parses it into
@@ -34,12 +32,10 @@ import org.jetbrains.annotations.VisibleForTesting
 class AppInspectionTreeLoader(
   private val notificationModel: NotificationModel,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
-  @VisibleForTesting var skiaParser: SkiaParser,
 ) : TreeLoader {
   override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, process: ProcessDescriptor): ComponentTreeData? {
     if (data is ViewLayoutInspectorClient.Data) {
-      val treeLoader =
-        ViewInspectorTreeLoader(notificationModel, skiaParser, data.viewEvent, resourceLookup, process, data.composeEvent, logEvent)
+      val treeLoader = ViewInspectorTreeLoader(notificationModel, data.viewEvent, resourceLookup, process, data.composeEvent, logEvent)
       val window = treeLoader.loadComponentTree()
       return ComponentTreeData(window, data.generation, treeLoader.dynamicCapabilities)
     }

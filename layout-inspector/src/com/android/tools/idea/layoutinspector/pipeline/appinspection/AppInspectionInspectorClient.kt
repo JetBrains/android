@@ -38,7 +38,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
-import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
@@ -100,14 +99,7 @@ class AppInspectionInspectorClient(
 
   override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_SYSTEM_NODES, Capability.SUPPORTS_SKP)!!
 
-  private val skiaParser =
-    SkiaParserImpl({
-      viewInspector?.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.BITMAP)
-      capabilities.remove(Capability.SUPPORTS_SKP)
-    })
-
-  override val treeLoader =
-    AppInspectionTreeLoader(notificationModel = notificationModel, logEvent = ::logEventToMetrics, skiaParser = skiaParser)
+  override val treeLoader = AppInspectionTreeLoader(notificationModel = notificationModel, logEvent = ::logEventToMetrics)
   override val provider: PropertiesProvider
     get() = propertiesProvider
 
@@ -309,8 +301,6 @@ class AppInspectionInspectorClient(
       try {
         viewInspector?.disconnect()
         composeInspector?.disconnect()
-        // TODO: skiaParser#shutdown is a blocking function. Should be ported to coroutines
-        skiaParser.shutdown()
         logEventToMetrics(DynamicLayoutInspectorEventType.SESSION_DATA)
       } catch (t: Throwable) {
         val error = getOriginalError(t)
