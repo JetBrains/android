@@ -101,6 +101,7 @@
     <ComposeStatusProvider implementation="com.google.idea.blaze.android.compose.ExperimentComposeStatusProvider"/>
     <BlazeBuildListener implementation="com.google.idea.blaze.android.projectsystem.BlazeProjectSystemBuildManager$BuildCallbackPublisher"/>
     <android.ApkBuildStepProvider implementation="com.google.idea.blaze.android.run.BazelApkBuildStepProvider" />
+    <DesugaringLibraryConfigFilesLocator implementation="com.google.idea.blaze.android.projectsystem.BazelDesugaringLibraryConfigFilesLocator"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.google.idea.blaze.cpp">
