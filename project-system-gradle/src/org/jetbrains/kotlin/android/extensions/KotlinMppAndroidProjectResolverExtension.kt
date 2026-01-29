@@ -15,6 +15,8 @@
  */
 package org.jetbrains.kotlin.android.extensions
 
+import com.android.builder.model.AndroidGradlePluginProjectFlags
+import com.android.builder.model.proto.ide.AndroidGradlePluginProjectFlags.BooleanFlag
 import com.android.kotlin.multiplatform.ide.models.serialization.androidCompilationKey
 import com.android.kotlin.multiplatform.ide.models.serialization.androidDependencyKey
 import com.android.kotlin.multiplatform.ide.models.serialization.androidSourceSetKey
@@ -26,6 +28,7 @@ import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
+import com.android.tools.idea.gradle.project.sync.idea.setupAndroidContentEntriesPerSourceSet
 import com.android.tools.idea.io.FilePaths
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -58,6 +61,8 @@ import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
+import org.jetbrains.kotlin.android.models.KotlinModelConverter.Companion.getAssetsSourceDirectories
+import org.jetbrains.kotlin.android.models.KotlinModelConverter.Companion.getResSourceDirectories
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinResolvedBinaryDependency
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.addDependency
 
@@ -218,6 +223,25 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
     )
 
     val androidTarget = context.mppModel.targets.mapNotNull { it.extras[androidTargetKey] }.singleOrNull() ?: return
+
+    val androidResourcesEnabled = androidTarget.flags.booleanFlagValuesList.firstOrNull {
+      it.flag == BooleanFlag.BUILD_FEATURE_ANDROID_RESOURCES
+    }?.value
+
+    if (androidResourcesEnabled == true) {
+      val allResources = sourceSet.getResSourceDirectories() + sourceSet.getAssetsSourceDirectories()
+
+      allResources.distinctBy { it.absolutePath }.forEach { sourceDir ->
+        val contentRootData = ContentRootData(GradleConstants.SYSTEM_ID, sourceDir.absolutePath)
+        val sourceType = if (sourceSet.isTestComponent) {
+          ExternalSystemSourceType.TEST_RESOURCE
+        } else {
+          ExternalSystemSourceType.RESOURCE
+        }
+        contentRootData.storePath(sourceType, sourceDir.absolutePath, null)
+        sourceSetDataNode.createChild(ProjectKeys.CONTENT_ROOT, contentRootData)
+      }
+    }
 
     if (androidTarget.withJava) {
       sourceSet.getJavaSourceDirectories().forEach { sourceDir ->
