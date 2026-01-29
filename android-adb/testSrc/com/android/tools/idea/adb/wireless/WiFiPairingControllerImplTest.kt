@@ -30,8 +30,6 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.analytics.UsageTrackerRule
-import com.android.tools.idea.adb.AdbOptionsService
-import com.android.tools.idea.adb.AdbServerMdnsBackend
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.flags.StudioFlags
@@ -66,7 +64,6 @@ import javax.swing.text.html.HTMLDocument
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -99,24 +96,14 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     }
   }
 
-  class MockableAdbOptionMdns {
-    fun getMdnsBackend(): AdbServerMdnsBackend {
-      return AdbOptionsService().adbServerMdnsBackend
-    }
-  }
-
   private val systemRetriever = mockOrActual<MockableSystem> { MockableSystem() }
-  private val adbOptionRetriever = mockOrActual { MockableAdbOptionMdns() }
   private val adbVersionBrokenOnMac = "35.0.1"
   private val adbVersionWorkingOnMac = "35.0.2"
-  private val mdnsBackendBrokenOnMac = AdbServerMdnsBackend.BONJOUR
-  private val mdnsBackendWorkingOnMac = AdbServerMdnsBackend.OPENSCREEN
 
   private val devicePairingService: WiFiPairingService by lazy {
     WiFiPairingServiceImpl(
       randomProvider,
       adbService.instance,
-      { adbOptionRetriever.instance.getMdnsBackend() },
       { systemRetriever.instance.isMac() },
     )
   }
@@ -169,119 +156,6 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       pumpAndWait(view.showDialogTracker.consume())
       pumpAndWait(view.startMdnsCheckTracker.consume())
       pumpAndWait(view.showMdnsCheckErrorTracker.consume())
-    }
-  }
-
-  @Test
-  fun mDNSSupportedOnNonMac() {
-    adbService.useMock = true
-    mDNSConfigurationRetriever.useMock = true
-    adbOptionRetriever.useMock = true
-    systemRetriever.useMock = true
-    runBlocking {
-      whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
-        .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
-
-      whenever(systemRetriever.instance.isMac()).thenReturn(false)
-      whenever(adbService.instance.getServerStatus()).thenReturn(ServerStatus(version = adbVersionBrokenOnMac))
-      whenever(adbOptionRetriever.instance.getMdnsBackend()).thenReturn(mdnsBackendBrokenOnMac)
-
-      val support = devicePairingService.checkMdnsSupport()
-      Assert.assertEquals(MdnsSupportState.Supported, support)
-    }
-  }
-
-  @Test
-  fun mDNSBrokenOnMacDueToSDK() {
-    adbService.useMock = true
-    mDNSConfigurationRetriever.useMock = true
-    adbOptionRetriever.useMock = true
-    systemRetriever.useMock = true
-    runBlocking {
-      whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
-        .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
-
-      whenever(systemRetriever.instance.isMac()).thenReturn(true)
-      whenever(adbService.instance.getServerStatus()).thenReturn(ServerStatus(version = adbVersionBrokenOnMac))
-      whenever(adbOptionRetriever.instance.getMdnsBackend()).thenReturn(mdnsBackendBrokenOnMac)
-
-      val support = devicePairingService.checkMdnsSupport()
-      Assert.assertEquals(MdnsSupportState.AdbMacEnvironmentBroken, support)
-    }
-  }
-
-  @Test
-  fun mDNSBrokenOnMacDueTomDNSSelection() {
-    adbService.useMock = true
-    mDNSConfigurationRetriever.useMock = true
-    adbOptionRetriever.useMock = true
-    systemRetriever.useMock = true
-    runBlocking {
-      whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
-        .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
-
-      whenever(systemRetriever.instance.isMac()).thenReturn(true)
-      whenever(adbService.instance.getServerStatus()).thenReturn(ServerStatus(version = adbVersionWorkingOnMac))
-      whenever(adbOptionRetriever.instance.getMdnsBackend()).thenReturn(mdnsBackendBrokenOnMac)
-
-      val support = devicePairingService.checkMdnsSupport()
-      Assert.assertEquals(MdnsSupportState.AdbMacEnvironmentBroken, support)
-    }
-  }
-
-  @Test
-  fun mDNSWorkingOnMac() {
-    adbService.useMock = true
-    mDNSConfigurationRetriever.useMock = true
-    adbOptionRetriever.useMock = true
-    systemRetriever.useMock = true
-    runBlocking {
-      whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
-        .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
-
-      whenever(systemRetriever.instance.isMac()).thenReturn(true)
-      whenever(adbService.instance.getServerStatus()).thenReturn(ServerStatus(version = adbVersionWorkingOnMac))
-      whenever(adbOptionRetriever.instance.getMdnsBackend()).thenReturn(mdnsBackendWorkingOnMac)
-
-      val support = devicePairingService.checkMdnsSupport()
-      Assert.assertEquals(MdnsSupportState.Supported, support)
-    }
-  }
-
-  @Test
-  fun mDNSShowWhenDisabled() {
-    adbService.useMock = true
-    mDNSConfigurationRetriever.useMock = true
-    adbOptionRetriever.useMock = true
-    systemRetriever.useMock = true
-    runBlocking {
-      whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
-        .thenReturn(AdbCommandResult(0, listOf("ERROR: mdns discovery disabled"), listOf()))
-
-      whenever(systemRetriever.instance.isMac()).thenReturn(true)
-      whenever(adbService.instance.getServerStatus()).thenReturn(ServerStatus(version = adbVersionWorkingOnMac))
-      whenever(adbOptionRetriever.instance.getMdnsBackend()).thenReturn(AdbServerMdnsBackend.DISABLED)
-
-      val support = devicePairingService.checkMdnsSupport()
-      Assert.assertEquals(MdnsSupportState.AdbDisabled, support)
-    }
-  }
-
-  @Test
-  fun viewShouldShowErrorIfMdnsCheckIsNotSupported() {
-    // Prepare
-    adbService.useMock = true
-    runBlocking {
-      whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
-        .thenReturn(AdbCommandResult(1, listOf(), listOf("unknown command")))
-
-      // Act
-      createModalDialogAndInteractWithIt({ controller.showDialog() }) {
-        // Assert
-        pumpAndWait(view.showDialogTracker.consume())
-        pumpAndWait(view.startMdnsCheckTracker.consume())
-        pumpAndWait(view.showMdnsNotSupportedByAdbErrorTracker.consume())
-      }
     }
   }
 

@@ -46,7 +46,6 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   private JRadioButton myAutomaticallyStartAndManageServerRadioButton;
   private JRadioButton myUseExistingManuallyManagedServerRadioButton;
   private JComboBox<String> myAdbServerUsbBackend;
-  private JComboBox myAdbServerMdnsBackend;
   private JComboBox myAdbServerBurstMode;
   private JComboBox myAdbServerLogLevel;
   private JCheckBox myEnableADBServerLogs;
@@ -58,7 +57,6 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   @Override
   public boolean isModified(@NotNull AdbOptionsService settings) {
     return getAdbServerUsbBackend() != settings.getAdbServerUsbBackend()
-           || getAdbServerMdnsBackend() != settings.getAdbServerMdnsBackend()
            || myUseExistingManuallyManagedServerRadioButton.isSelected() != settings.shouldUseUserManagedAdb()
            || getUserManagedAdbPortNumber() != settings.getUserManagedAdbPort()
            || getAdbServerBurstMode() != settings.getAdbServerBurstMode()
@@ -75,7 +73,6 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     else {
       myAutomaticallyStartAndManageServerRadioButton.setSelected(true);
     }
-    setAdbServerMdnsBackend(settings.getAdbServerMdnsBackend());
     myExistingAdbServerPortSpinner.setValue(settings.getUserManagedAdbPort());
     setPortNumberUiEnabled(settings.shouldUseUserManagedAdb());
     setAdbServerBurstMode(settings.getAdbServerBurstMode());
@@ -88,7 +85,6 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     settings.getOptionsUpdater()
       .setAdbServerUsbBackend(getAdbServerUsbBackend())
       .setUseUserManagedAdb(myUseExistingManuallyManagedServerRadioButton.isSelected())
-      .setAdbServerMdnsBackend(getAdbServerMdnsBackend())
       .setUserManagedAdbPort(getUserManagedAdbPortNumber())
       .setBurstMode(getAdbServerBurstMode())
       .setAdbServerLogsEnabled(getAdbServerLogsEnabled())
@@ -116,7 +112,6 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     buttonGroup.add(myAutomaticallyStartAndManageServerRadioButton);
     buttonGroup.add(myUseExistingManuallyManagedServerRadioButton);
     myAdbServerUsbBackend = new com.intellij.openapi.ui.ComboBox<>();
-    myAdbServerMdnsBackend = new com.intellij.openapi.ui.ComboBox<>();
     myAdbServerBurstMode = new com.intellij.openapi.ui.ComboBox<>();
     myEnableADBServerLogs = new JCheckBox();
     myAdbServerLogLevel = new com.intellij.openapi.ui.ComboBox<>();
@@ -132,14 +127,6 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     return myExistingAdbServerPortSpinner.getNumber();
   }
 
-
-  void setAdbServerMdnsBackend(AdbServerMdnsBackend backend) {
-    myAdbServerMdnsBackend.setSelectedItem(backend);
-  }
-
-  AdbServerMdnsBackend getAdbServerMdnsBackend() {
-    return AdbServerMdnsBackend.fromDisplayText(myAdbServerMdnsBackend.getSelectedItem().toString());
-  }
 
   void setAdbServerUsbBackend(AdbServerUsbBackend backend) {
     myAdbServerUsbBackend.setSelectedItem(backend);
@@ -187,21 +174,6 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     myPanel.add(myAdbServerUsbBackend, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
                                                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
                                                            null, 0, false));
-
-
-    HyperlinkLabel adbServerMdnsBackendLabel = new HyperlinkLabel();
-    adbServerMdnsBackendLabel.setHyperlinkText("ADB server mDNS backend (", "Support list", ")");
-    adbServerMdnsBackendLabel.setHyperlinkTarget("https://developer.android.com/tools/adb#mdnsBackends");
-    adbServerMdnsBackendLabel.setIcon(null);
-    myPanel.add(adbServerMdnsBackendLabel,
-                new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
-                                    GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(4, 38), null, 0, false));
-
-    myAdbServerMdnsBackend.setModel(new DefaultComboBoxModel(AdbServerMdnsBackend.values()));
-    myPanel.add(myAdbServerMdnsBackend, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                                                            GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                            new Dimension(83, 38), null, 0, false));
-
 
     HyperlinkLabel adbServerBurstModeLabel = new HyperlinkLabel();
     adbServerBurstModeLabel.setHyperlinkText("ADB server Burst Mode (", "Support list", ")");
