@@ -275,4 +275,19 @@ class ImageWithToolbarPanelTest {
     assertTrue(panel.currentScale <= 2.5)
     assertTrue(panel.currentScale > 1.0)
   }
+
+  @Test
+  fun testAccessibilityProperties() {
+    val panel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = true)
+
+    // Traverse to find the image label
+    // Structure: panel -> scrollPane -> viewport -> imageContainer -> imageLabel
+    val scrollPane = panel.scrollPane
+    val viewport = scrollPane.viewport
+    val imageContainer = viewport.view as javax.swing.JPanel
+    val imageLabel = imageContainer.components.find { it is JBLabel } as JBLabel
+
+    assertEquals(ScreenshotViewType.NEW.displayText, imageLabel.accessibleContext.accessibleName)
+    assertEquals("Image preview for ${ScreenshotViewType.NEW.displayText}", imageLabel.accessibleContext.accessibleDescription)
+  }
 }

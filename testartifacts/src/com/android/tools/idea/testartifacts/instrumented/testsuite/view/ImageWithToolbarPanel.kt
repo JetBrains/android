@@ -128,6 +128,9 @@ class ImageWithToolbarPanel(val title: ScreenshotViewType, showToolbar: Boolean,
       .apply {
         // The border is now drawn in paintComponent to match the image's exact bounds.
         horizontalAlignment = SwingConstants.CENTER
+        // Set up accessibility
+        accessibleContext.accessibleName = title.displayText // e.g. "New", "Diff", "Reference"
+        accessibleContext.accessibleDescription = "Image preview for ${title.displayText}"
       }
   private val placeholderLabel =
     JBLabel().apply {
@@ -256,6 +259,7 @@ class ImageWithToolbarPanel(val title: ScreenshotViewType, showToolbar: Boolean,
 
     imageContainer.isOpaque = false
     imageContainer.add(imageLabel, BorderLayout.CENTER)
+    scrollPane.setViewportView(imageContainer)
     add(scrollPane, BorderLayout.CENTER)
 
     scrollPane.addComponentListener(

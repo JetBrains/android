@@ -15,7 +15,6 @@
  */
 package com.android.screenshottest.ui
 
-import androidx.compose.ui.awt.ComposePanel
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ImageWithToolbarPanel
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotAttributesView
@@ -189,7 +188,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
    * @param viewType The current view type (e.g., New, Diff, All) to show.
    * @param previewToolbar The shared toolbar component, visible in single-preview mode.
    */
-  fun displayPreviews(previewsToShow: List<PreviewDetails>, viewType: ScreenshotViewType, previewToolbar: ComposePanel?) {
+  fun displayPreviews(previewsToShow: List<PreviewDetails>, viewType: ScreenshotViewType, previewToolbar: JComponent?) {
     val cardLayout = layout as CardLayout
     if (previewsToShow.size == 1 && previewToolbar != null) {
       displaySinglePreviewDetails(previewsToShow.first(), viewType, previewToolbar)
@@ -204,7 +203,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
    * Configures and displays the detailed view for a single screenshot preview. This view includes the image(s), metadata attributes, and a
    * toolbar.
    */
-  private fun displaySinglePreviewDetails(previewData: PreviewDetails, viewType: ScreenshotViewType, previewToolbar: ComposePanel) {
+  private fun displaySinglePreviewDetails(previewData: PreviewDetails, viewType: ScreenshotViewType, previewToolbar: JComponent) {
     singlePreviewPanel.removeAll()
 
     val topContent =
@@ -431,11 +430,27 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     // Pool of panels to reuse across different rows, accommodating varying preview counts.
     private val previewPanelPool = mutableListOf<PreviewItemPanel>()
 
+    private var currentAccessibleName: String? = null
+    private var currentAccessibleDescription: String? = null
+
     init {
       layout = BoxLayout(this, BoxLayout.Y_AXIS)
       isOpaque = true
       add(functionNameLabel)
       add(horizontalPreviewsPanel)
+    }
+
+    override fun getAccessibleContext(): javax.accessibility.AccessibleContext {
+      if (accessibleContext == null) {
+        accessibleContext = AccessibleMethodGroupRenderer()
+      }
+      return accessibleContext
+    }
+
+    private inner class AccessibleMethodGroupRenderer : JPanel.AccessibleJPanel() {
+      override fun getAccessibleName(): String? = currentAccessibleName
+
+      override fun getAccessibleDescription(): String? = currentAccessibleDescription
     }
 
     override fun getListCellRendererComponent(
@@ -450,6 +465,10 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
 
       functionNameLabel.text = value.labelText
       functionNameLabel.foreground = foreground
+
+      // Update accessible info state without firing property change events during paint
+      currentAccessibleName = "${value.labelText}, ${value.previews.size} previews"
+      currentAccessibleDescription = "Test group for ${value.className}.${value.methodName}"
 
       val previews = value.previews
       // Manage the pool of PreviewItemPanels to match the current row's preview count.

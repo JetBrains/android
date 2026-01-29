@@ -96,12 +96,13 @@ class ScreenshotResultViewTest {
 
     val newImagePanel = view.newImagePanelSingle
     val scrollPane = findComponent<JScrollPane>(newImagePanel)!!
-    PlatformTestUtil.waitWithEventsDispatching("Viewport view was not set with placeholder", { scrollPane.viewport.view != null }, 5)
+    PlatformTestUtil.waitWithEventsDispatching("Viewport view was not set with placeholder", { scrollPane.viewport.view is JLabel }, 5)
 
     val viewportView = scrollPane.viewport.view as JLabel
+    val label = findComponent<JLabel>(viewportView)!!
 
-    assertThat(viewportView.text).isEqualTo("No Preview Image")
-    assertThat(viewportView.icon).isNull()
+    assertThat(label.text).isEqualTo("No Preview Image")
+    assertThat(label.icon).isNull()
   }
 
   @Test fun initialTabIsSelected() = runInEdtAndWait { assertThat(view.selectedTab).isEqualTo(ScreenshotViewType.ALL.displayText) }
@@ -127,7 +128,7 @@ class ScreenshotResultViewTest {
 
     val diffPanelFailed = view.diffImagePanelSingle
     val scrollPaneFailed = findComponent<JScrollPane>(diffPanelFailed)!!
-    PlatformTestUtil.waitWithEventsDispatching("Viewport view was not set", { scrollPaneFailed.viewport.view != null }, 5)
+    PlatformTestUtil.waitWithEventsDispatching("Viewport view was not set", { scrollPaneFailed.viewport.view is JLabel }, 5)
     val placeholderFailed = scrollPaneFailed.viewport.view as JLabel
     assertThat(placeholderFailed.text).isEqualTo("No Diff Image")
 
@@ -137,7 +138,7 @@ class ScreenshotResultViewTest {
 
     val diffPanelPassed = view.diffImagePanelSingle
     val scrollPanePassed = findComponent<JScrollPane>(diffPanelPassed)!!
-    PlatformTestUtil.waitWithEventsDispatching("Viewport view was not set", { scrollPanePassed.viewport.view != null }, 5)
+    PlatformTestUtil.waitWithEventsDispatching("Viewport view was not set", { scrollPanePassed.viewport.view is JLabel }, 5)
     val placeholderPassed = scrollPanePassed.viewport.view as JLabel
     assertThat(placeholderPassed.text).isEqualTo("No Difference")
   }

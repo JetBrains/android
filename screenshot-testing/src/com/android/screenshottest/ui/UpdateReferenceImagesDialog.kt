@@ -87,7 +87,7 @@ class UpdateReferenceImagesDialog(
   private val placeholderLabel = JBLabel("Select a node from the left to see its previews.", JBLabel.CENTER)
   private val classNodeMap = mutableMapOf<String, CheckedTreeNode>()
   private val methodNodeMap = mutableMapOf<String, MutableMap<String, CheckedTreeNode>>()
-  private lateinit var previewToolbar: ComposePanel
+  private lateinit var previewToolbar: JComponent
   private var selectedViewType by mutableStateOf(ScreenshotViewType.NEW)
   private lateinit var previewDetailsPanel: PreviewDetailsPanel
   private lateinit var rightPaneContent: JPanel
@@ -293,7 +293,7 @@ class UpdateReferenceImagesDialog(
     }
   }
 
-  private fun createPreviewToolbar(): ComposePanel {
+  private fun createPreviewToolbar(): JComponent {
     return ComposePanel().apply {
       setContent {
         SwingBridgeTheme {
@@ -308,7 +308,7 @@ class UpdateReferenceImagesDialog(
               availableViews.map { viewId ->
                 SegmentedControlButtonData(
                   selected = viewId == selectedViewType,
-                  content = { _ -> Text(viewId.displayText) },
+                  content = { _ -> Text(text = viewId.displayText) },
                   onSelect = {
                     selectedViewType = viewId
                     updateRightPane(tree)
