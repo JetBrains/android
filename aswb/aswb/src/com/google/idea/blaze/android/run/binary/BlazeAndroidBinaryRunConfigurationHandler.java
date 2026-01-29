@@ -126,6 +126,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
     ImmutableList<String> exeFlags =
         ImmutableList.copyOf(
             configState.getCommonState().getExeFlagsState().getFlagsForExternalProcesses());
+    Label binaryTargetLabel = configuration.getSingleTargetPattern() != null ? Label.of(configuration.getSingleTargetPattern()): Label.of("//");
     BlazeApkBuildStep buildStep =
         BazelApkBuildStepProvider
             .getBinaryBuildStep(
@@ -133,7 +134,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
               AndroidBinaryLaunchMethodsUtils.useMobileInstall(configState.getLaunchMethod()),
               configState.getCommonState().isNativeDebuggingEnabled(),
               QuerySyncUserPreferencesProvider.getInstance(project).getUserPreferences().getLiveEditEnabled(),
-              configuration.getSingleTargetPattern() != null ? Label.of(configuration.getSingleTargetPattern()): Label.of("//"),
+              binaryTargetLabel,
               blazeFlags,
               exeFlags,
               launchId);

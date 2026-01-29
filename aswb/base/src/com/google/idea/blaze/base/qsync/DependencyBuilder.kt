@@ -38,10 +38,13 @@ interface DependencyBuilder {
     ): OutputInfo
   }
 
+  /**
+   * Note, [maybeBuildTargets] are not required to be provided as they may already be present in the command.
+   */
   @Throws(IOException::class, BuildException::class)
   fun prepareInvocation(
     context: BlazeContext,
-    buildTargets: Set<Label>,
+    maybeBuildTargets: Set<Label>,
     outputGroups: Collection<OutputGroup>,
     replaceOutputGroups: Boolean,
     invoker: BuildSystem.BuildInvoker,

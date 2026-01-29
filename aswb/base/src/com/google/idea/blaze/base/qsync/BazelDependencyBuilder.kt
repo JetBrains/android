@@ -106,14 +106,14 @@ open class BazelDependencyBuilder(
   @Throws(IOException::class, BuildException::class)
   override fun prepareInvocation(
     context: BlazeContext,
-    buildTargets: Set<Label>,
+    maybeBuildTargets: Set<Label>,
     outputGroups: Collection<OutputGroup>,
     replaceOutputGroups: Boolean,
     invoker: BuildInvoker,
   ): DependencyBuilder.PreparedInvocation {
     val buildDependenciesBazelInvocationInfo = getInvocationInfo(
       context,
-      buildTargets,
+      maybeBuildTargets,
       invoker.capabilities,
       outputGroups,
       replaceOutputGroups

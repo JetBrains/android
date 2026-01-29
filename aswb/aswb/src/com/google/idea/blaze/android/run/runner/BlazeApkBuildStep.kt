@@ -89,7 +89,7 @@ class BlazeApkBuildStep(
         dependencyBuilder
           .prepareInvocation(
             context = context,
-            buildTargets = emptySet(), // This is supported by the dependency builder.
+            maybeBuildTargets = emptySet(), // This is supported by the dependency builder.
             outputGroups = outputGroups,
             replaceOutputGroups = false,
             invoker = buildInvoker
