@@ -23,6 +23,7 @@ import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ConsoleProvider
 import com.android.tools.idea.run.editor.ProfilerState
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo
+import com.google.idea.blaze.android.run.runner.LiveEditDataExtractor
 import com.intellij.execution.Executor
 import com.intellij.openapi.project.Project
 import java.io.File
@@ -69,4 +70,8 @@ class BazelApkProvider(
  * **Note:** The Bazel project system assumes all instances of the [ApplicationProjectContext] associated with its projects to be backed by
  * this specific class.
  */
-class BazelApplicationProjectContext(val project: Project, override val applicationId: String) : ApplicationProjectContext
+class BazelApplicationProjectContext(
+  val project: Project,
+  override val applicationId: String,
+  val liveEditDataExtractor: LiveEditDataExtractor?,
+) : ApplicationProjectContext

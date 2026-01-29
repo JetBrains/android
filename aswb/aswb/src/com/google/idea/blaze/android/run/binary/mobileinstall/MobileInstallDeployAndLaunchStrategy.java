@@ -38,6 +38,7 @@ import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeployAndLaunchStrategy;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector;
 import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
+import com.google.idea.blaze.android.run.runner.LiveEditDataExtractor;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -97,11 +98,12 @@ public class MobileInstallDeployAndLaunchStrategy implements BlazeAndroidDeployA
   public BazelAndroidRunContext createBlazeAndroidRunContext(
       ExecutionEnvironment env,
       BlazeAndroidDeployInfo deployInfo,
+      @Nullable LiveEditDataExtractor liveEditDataExtractor,
       BlazeCommandRunConfiguration configuration) {
     var applicationIds = deployInfo.toAndroidBinaryApplicationIdProvider();
     var apkProvider = deployInfo.toApkProvider();
     var applicationId = applicationIds.getPackageName();
-    var applicationProjectContext = new BazelApplicationProjectContext(project, applicationId);
+    var applicationProjectContext = new BazelApplicationProjectContext(project, applicationId, liveEditDataExtractor);
 
     var consoleProvider = new BlazeAndroidBinaryConsoleProvider(project);
 

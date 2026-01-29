@@ -83,6 +83,7 @@ class BlazeAndroidRunConfigurationRunner(
   private val runConfig: BlazeCommandRunConfiguration,
   private val apkBuildStep: ApkBuildStep,
   private val deployInfoExtractor: DeployInfoExtractor,
+  private val liveEditDataExtractor: LiveEditDataExtractor?,
 ) : BlazeCommandRunConfigurationRunner {
   @Throws(ExecutionException::class)
   override fun getRunProfileState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? {
@@ -124,7 +125,7 @@ class BlazeAndroidRunConfigurationRunner(
             val buildOutputs = apkBuildStep.build(context)
             val deployInfo = extractDeployInfo(context, environment.project, buildOutputs)
 
-            launchStrategy.createBlazeAndroidRunContext(environment, deployInfo, runConfig)
+            launchStrategy.createBlazeAndroidRunContext(environment, deployInfo, liveEditDataExtractor, runConfig)
           }
           ?: throw ExecutionException("APK build failed")
 

@@ -124,11 +124,11 @@ public class BlazeAndroidTestRunConfigurationHandler
         blazeFlags,
         testResultsHolder
     );
-    
+
     LaunchMetrics.logTestLaunch(
         launchId, configState.getLaunchMethod().name(), env.getExecutor().getId());
 
-    return new BlazeAndroidRunConfigurationRunner(launchStrategy, configuration, buildStep, buildStep.getDeployInfoExtractor());
+    return new BlazeAndroidRunConfigurationRunner(launchStrategy, configuration, buildStep, buildStep.getDeployInfoExtractor(), null);
   }
 
   @Override

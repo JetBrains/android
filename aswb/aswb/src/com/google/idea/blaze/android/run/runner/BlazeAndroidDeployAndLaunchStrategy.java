@@ -74,5 +74,6 @@ public interface BlazeAndroidDeployAndLaunchStrategy {
   BazelAndroidRunContext createBlazeAndroidRunContext(
       ExecutionEnvironment env,
       BlazeAndroidDeployInfo deployInfo,
+      @Nullable LiveEditDataExtractor liveEditDataExtractor,
       BlazeCommandRunConfiguration configuration);
 }

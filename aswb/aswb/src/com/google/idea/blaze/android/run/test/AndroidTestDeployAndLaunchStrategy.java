@@ -35,6 +35,7 @@ import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeployAndLaunchStrategy;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector;
 import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
+import com.google.idea.blaze.android.run.runner.LiveEditDataExtractor;
 import com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProvider.AndroidTestLaunchMethod;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFetcher;
@@ -122,11 +123,12 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
   public BazelAndroidRunContext createBlazeAndroidRunContext(
       ExecutionEnvironment env,
       BlazeAndroidDeployInfo deployInfo,
+      @Nullable LiveEditDataExtractor liveEditDataExtractor,
       BlazeCommandRunConfiguration configuration) {
     var applicationIds = deployInfo.toInstrumentationTestApplicationIdProvider();
     var apkProvider = deployInfo.toApkProvider();
     var applicationId = applicationIds.getPackageName();
-    var applicationProjectContext = new BazelApplicationProjectContext(project, applicationId);
+    var applicationProjectContext = new BazelApplicationProjectContext(project, applicationId, liveEditDataExtractor);
 
     var consoleProvider =
         switch (configState.getLaunchMethod()) {

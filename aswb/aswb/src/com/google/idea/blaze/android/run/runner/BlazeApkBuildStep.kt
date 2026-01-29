@@ -46,7 +46,7 @@ class BlazeApkBuildStep(
   private val exeFlags: List<String>,
   val useMobileInstall: Boolean,
   val nativeDebuggingEnabled: Boolean,
-  val liveEditEnabled: Boolean,
+  val liveEditDataExtractor: LiveEditDataExtractor?,
   private val launchId: String,
   private val buildInvoker: BuildInvoker,
   val deployInfoExtractor: DeployInfoExtractor,
@@ -81,21 +81,7 @@ class BlazeApkBuildStep(
       )
     }
 
-    if (liveEditEnabled) {
-      val dependencyBuilder = QuerySyncManager.getInstance(project).assertProjectLoaded().dependencyBuilder
-      val outputGroups =
-        DependencyBuildRequest.getOutputGroups(listOf(QuerySyncLanguage.JVM), DependencyBuildRequest.RequestType.LIVE_EDIT_BUILD_APK)
-      val preparedInvocation =
-        dependencyBuilder
-          .prepareInvocation(
-            context = context,
-            maybeBuildTargets = emptySet(), // This is supported by the dependency builder.
-            outputGroups = outputGroups,
-            replaceOutputGroups = false,
-            invoker = buildInvoker
-          )
-      preparedInvocation.updateCommand(command)
-    }
+    liveEditDataExtractor?.prepareInvocation(context, buildInvoker, command)
 
     val buildOutputs =
       try {

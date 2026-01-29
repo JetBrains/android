@@ -33,6 +33,7 @@ import com.google.idea.blaze.android.run.binary.mobileinstall.MobileInstallDeplo
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeployAndLaunchStrategy;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunConfigurationRunner;
 import com.google.idea.blaze.android.run.runner.BlazeApkBuildStep;
+import com.google.idea.blaze.android.run.runner.LiveEditDataExtractor;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.logging.EventLoggingService;
@@ -126,14 +127,17 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
     ImmutableList<String> exeFlags =
         ImmutableList.copyOf(
             configState.getCommonState().getExeFlagsState().getFlagsForExternalProcesses());
-    Label binaryTargetLabel = configuration.getSingleTargetPattern() != null ? Label.of(configuration.getSingleTargetPattern()): Label.of("//");
+    Label binaryTargetLabel =
+      configuration.getSingleTargetPattern() != null ? Label.of(configuration.getSingleTargetPattern()) : Label.of("//");
     BlazeApkBuildStep buildStep =
         BazelApkBuildStepProvider
             .getBinaryBuildStep(
               project,
               AndroidBinaryLaunchMethodsUtils.useMobileInstall(configState.getLaunchMethod()),
               configState.getCommonState().isNativeDebuggingEnabled(),
-              QuerySyncUserPreferencesProvider.getInstance(project).getUserPreferences().getLiveEditEnabled(),
+              QuerySyncUserPreferencesProvider.getInstance(project).getUserPreferences().getLiveEditEnabled()
+              ? createLiveEditDataExtractor()
+              : null,
               binaryTargetLabel,
               blazeFlags,
               exeFlags,
@@ -161,7 +165,13 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
         env.getExecutor().getId(),
         configuration.getSingleTargetPattern(),
         configState.getCommonState().isNativeDebuggingEnabled());
-    return new BlazeAndroidRunConfigurationRunner(launchStrategy, configuration, buildStep, buildStep.getDeployInfoExtractor());
+
+    return new BlazeAndroidRunConfigurationRunner(launchStrategy, configuration, buildStep, buildStep.getDeployInfoExtractor(),
+                                                  buildStep.getLiveEditDataExtractor());
+  }
+
+  private LiveEditDataExtractor createLiveEditDataExtractor() {
+    return new AndroidBinaryLiveEditDataExtractor(project);
   }
 
   @Override

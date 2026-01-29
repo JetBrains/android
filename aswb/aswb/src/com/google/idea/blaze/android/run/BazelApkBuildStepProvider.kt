@@ -20,6 +20,7 @@ import com.google.idea.blaze.android.run.runner.BinaryDeployInfoExtractor
 import com.google.idea.blaze.android.run.runner.BlazeApkBuildStep
 import com.google.idea.blaze.android.run.runner.InstrumentationInfo
 import com.google.idea.blaze.android.run.runner.InstrumentationInfo.InstrumentationParserException
+import com.google.idea.blaze.android.run.runner.LiveEditDataExtractor
 import com.google.idea.blaze.base.settings.Blaze
 import com.google.idea.blaze.common.Label
 import com.intellij.execution.ExecutionException
@@ -35,7 +36,7 @@ object BazelApkBuildStepProvider {
     project: Project,
     useMobileInstall: Boolean,
     nativeDebuggingEnabled: Boolean,
-    liveEditEnabled: Boolean,
+    liveEditDataExtractor: LiveEditDataExtractor?,
     label: Label,
     blazeFlags: List<String>,
     exeFlags: List<String>,
@@ -56,7 +57,7 @@ object BazelApkBuildStepProvider {
       exeFlags = exeFlags,
       useMobileInstall = useMobileInstall,
       nativeDebuggingEnabled = nativeDebuggingEnabled,
-      liveEditEnabled = liveEditEnabled,
+      liveEditDataExtractor = liveEditDataExtractor,
       launchId = launchId,
       buildInvoker = buildInvoker,
       deployInfoExtractor =
@@ -103,7 +104,7 @@ object BazelApkBuildStepProvider {
       exeFlags = exeFlags,
       useMobileInstall = useMobileInstall,
       nativeDebuggingEnabled = nativeDebuggingEnabled,
-      liveEditEnabled = false,
+      liveEditDataExtractor = null,
       launchId = launchId,
       buildInvoker = buildInvoker,
       deployInfoExtractor = AitDeployInfoExtractor(project, info, nativeDebuggingEnabled, "android_deploy_info", "default")
