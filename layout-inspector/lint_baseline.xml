@@ -4,28 +4,6 @@
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="        renderModel.hitRects.firstOrNull()?.bounds?.bounds?.location ?: return null"
-        errorLine2="                    ~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="114"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope"
-        errorLine1="        renderModel.hitRects.filter { it.node.findFilteredOwner(treeSettings) == selection }"
-        errorLine2="                    ~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="396"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope"
         errorLine1="    renderModel.hitRects.forEach { renderImages(g, it) }"
         errorLine2="                ~~~~~~~~">
         <location

@@ -19,19 +19,14 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.stdui.LabelData
 import com.android.tools.adtui.stdui.TextChunk
-import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.concurrency.createCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
-import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
-import com.android.tools.idea.layoutinspector.runningdevices.SPLITTER_KEY
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
-import com.android.tools.idea.layoutinspector.runningdevices.ui.STATE_READ_SPLITTER_NAME
 import com.android.tools.idea.layoutinspector.runningdevices.ui.ToolbarState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.createLayoutInspectorPanel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.createToolbarPanel
@@ -40,10 +35,6 @@ import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.Standa
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.navigateToSelectedViewFromRendererDoubleClick
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
-import com.android.tools.idea.layoutinspector.stateinspection.createStateInspectionPanel
-import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
-import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
-import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.android.tools.idea.layoutinspector.ui.ZoomableContainer
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
@@ -62,11 +53,9 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
-import com.intellij.ui.OnePixelSplitter
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
-import java.awt.BorderLayout
 import java.awt.CardLayout
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
@@ -121,12 +110,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     val disposable = toolWindow.disposable
     val layoutInspector = LayoutInspectorProjectService.getInstance(project).getLayoutInspector()
 
-    val layoutInspectorUi =
-      if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_STANDALONE_V2.get()) {
-        createNewStandaloneLayoutInspectorUi(disposable, project, layoutInspector)
-      } else {
-        createOldStandaloneLayoutInspectorUi(disposable, project, layoutInspector)
-      }
+    val layoutInspectorUi = createStandaloneLayoutInspectorUi(disposable, project, layoutInspector)
 
     val content = toolWindow.contentManager.factory.createContent(layoutInspectorUi, "", true)
     toolWindow.contentManager.addContent(content)
@@ -145,31 +129,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     )
   }
 
-  private fun createOldStandaloneLayoutInspectorUi(disposable: Disposable, project: Project, layoutInspector: LayoutInspector): JPanel {
-    val devicePanel = createDevicePanel(disposable, layoutInspector)
-
-    val workbench =
-      WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, disposable).apply {
-        init(devicePanel, layoutInspector, listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
-      }
-
-    val splitPanel =
-      OnePixelSplitter(true, SPLITTER_KEY, 0.65f).apply {
-        name = STATE_READ_SPLITTER_NAME
-        firstComponent = workbench
-        secondComponent = createStateInspectionPanel(layoutInspector, disposable)
-        setBlindZone { JBUI.insets(0, 1) }
-      }
-
-    val rootPanel = LayoutInspectorRootPanel(splitPanel, layoutInspector)
-
-    return JPanel(BorderLayout()).apply {
-      add(InspectorBanner(disposable, layoutInspector.notificationModel), BorderLayout.NORTH)
-      add(rootPanel, BorderLayout.CENTER)
-    }
-  }
-
-  private fun createNewStandaloneLayoutInspectorUi(
+  private fun createStandaloneLayoutInspectorUi(
     disposable: Disposable,
     project: Project,
     layoutInspector: LayoutInspector,
@@ -278,17 +238,6 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     }
 
     return rootPanel
-  }
-
-  private fun createDevicePanel(disposable: Disposable, layoutInspector: LayoutInspector): DeviceViewPanel {
-    val deviceViewPanel = DeviceViewPanel(layoutInspector = layoutInspector, disposableParent = disposable)
-
-    // notify DeviceViewPanel that a new foreground process showed up
-    layoutInspector.foregroundProcessDetection?.addForegroundProcessListener { _, _, isDebuggable ->
-      deviceViewPanel.onNewForegroundProcess(isDebuggable)
-    }
-
-    return deviceViewPanel
   }
 }
 

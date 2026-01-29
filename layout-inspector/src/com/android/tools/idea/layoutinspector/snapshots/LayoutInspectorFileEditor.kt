@@ -16,10 +16,8 @@
 package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.tools.adtui.actions.ZoomType
-import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
@@ -29,7 +27,6 @@ import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
-import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
 import com.android.tools.idea.layoutinspector.runningdevices.ui.ToolbarState
@@ -39,9 +36,6 @@ import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.Embedd
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.StandaloneRendererPanel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.navigateToSelectedViewFromRendererDoubleClick
 import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
-import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
-import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
-import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.android.tools.idea.layoutinspector.ui.ZoomableContainer
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.SNAPSHOT_CLIENT
@@ -68,7 +62,6 @@ import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StatusText
 import com.intellij.util.ui.components.BorderLayoutPanel
-import java.awt.BorderLayout
 import java.awt.Graphics
 import java.beans.PropertyChangeListener
 import java.nio.file.Path
@@ -152,20 +145,9 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
 
       rootPanel =
         when (model.pictureType) {
-          AndroidWindow.ImageType.BITMAP_AS_REQUESTED -> createNewLayoutInspectorUi(this, project, layoutInspector)
+          AndroidWindow.ImageType.BITMAP_AS_REQUESTED -> createLayoutInspectorUi(this, project, layoutInspector)
           AndroidWindow.ImageType.SKP_PENDING,
-          AndroidWindow.ImageType.SKP -> {
-            // TODO(b/459411932): remove this else statement once we fully remove the old inspector
-            // Notify the user that skia images are not going to be supported going forward
-            notificationModel.addNotification(
-              id = SNAPSHOT_OUTDATED_ID,
-              text = LayoutInspectorBundle.message(SNAPSHOT_OUTDATED_ID),
-              sticky = true,
-            )
-
-            // If the snapshot file contains a skia image fallback to old layout inspector
-            createOldLayoutInspectorUi(this, project, layoutInspector)
-          }
+          AndroidWindow.ImageType.SKP -> throw IllegalStateException("SKP image type not supported")
           AndroidWindow.ImageType.UNKNOWN -> throw IllegalStateException("Unknown picture type")
         }
 
@@ -206,7 +188,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
     return rootPanel
   }
 
-  private fun createNewLayoutInspectorUi(
+  private fun createLayoutInspectorUi(
     disposable: Disposable,
     project: Project,
     layoutInspector: LayoutInspector,
@@ -278,38 +260,6 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
     StartupManager.getInstance(project).runAfterOpened { invokeLater(ModalityState.any()) { container.zoom(ZoomType.FIT) } }
 
     return rootPanel
-  }
-
-  private fun createOldLayoutInspectorUi(
-    disposable: Disposable,
-    project: Project,
-    layoutInspector: LayoutInspector,
-  ): LayoutInspectorRootPanel {
-    val deviceViewPanel = DeviceViewPanel(layoutInspector = layoutInspector, disposableParent = disposable)
-
-    val workbench =
-      WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_SNAPSHOT_ID, null, disposable).apply {
-        init(
-          deviceViewPanel,
-          layoutInspector,
-          listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()),
-          false,
-        )
-      }
-
-    val rootPanel =
-      JPanel(BorderLayout()).apply {
-        add(InspectorBanner(disposable, layoutInspector.notificationModel), BorderLayout.NORTH)
-        add(workbench, BorderLayout.CENTER)
-      }
-
-    // Since the model was updated before the panel was created, we need to zoom to fit explicitly.
-    // If startup is in progress we have to wait until after so tools windows are opened and the
-    // window is its final size.
-    // TODO: save zoom in editor state
-    StartupManager.getInstance(project).runAfterOpened { invokeLater(ModalityState.any()) { deviceViewPanel.zoom(ZoomType.FIT) } }
-
-    return LayoutInspectorRootPanel(content = rootPanel, layoutInspector)
   }
 
   override fun getPreferredFocusedComponent(): JComponent? = null
