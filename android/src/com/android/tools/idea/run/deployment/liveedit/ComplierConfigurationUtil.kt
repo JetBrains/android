@@ -16,13 +16,15 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.module.Module
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.cli.common.arguments.toLanguageVersionSettings
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.extensionsStorage
+import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
@@ -56,6 +58,8 @@ fun getCompilerConfiguration(
     error("$file must belong to $module")
   }
   val compilerConfiguration = CompilerConfiguration().apply {
+    @OptIn(ExperimentalCompilerApi::class)
+    extensionsStorage = CompilerPluginRegistrar.ExtensionStorage()
     put(
       CommonConfigurationKeys.MODULE_NAME,
       module.name
