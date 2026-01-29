@@ -55,8 +55,10 @@ public class GradleDslLiteral extends GradleDslSettableExpression {
     super(parent, psiElement, name, literal);
     if (literalType == LiteralType.REFERENCE) {
       setReference(true);
-    } else if (literalType == LiteralType.INTERPOLATION)
-    setInterpolated(true);
+    } else if (literalType == LiteralType.INTERPOLATION) {
+      setInterpolated(true);
+    }
+
   }
 
   @Override

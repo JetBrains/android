@@ -79,6 +79,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -1216,6 +1217,25 @@ public final class GroovyDslUtil {
       return ImmutableList.of(new GradleReferenceInjection(context, element, psiElement, name));
     }
 
+    if (psiElement instanceof GrMethodCallExpression expression && isTransformReference(expression)) {
+      List<GrReferenceExpression> parts = collectReferenceParts(expression);
+
+      // search for first non function item
+      // so in `libs.versions.version.get().toInteger()` it will have one with ref `libs.versions.version`
+      Optional<GrReferenceExpression> foundItem = parts.stream()
+        .filter( part -> !isMethodCall(part))
+        .findFirst();
+
+      if (foundItem.isPresent()) {
+        GrExpression stripped = foundItem.get();
+        String name = context.getDslFile().getParser().convertReferencePsi(context, stripped);
+        GradleDslElement referenceElement = context.resolveInternalSyntaxReference(name, true);
+        if (includeUnresolved || referenceElement != null) {
+          return ImmutableList.of(new GradleReferenceInjection(context, referenceElement, stripped, name));
+        }
+      }
+    }
+
     if (!(psiElement instanceof GrString)) {
       return Collections.emptyList();
     }
@@ -1279,4 +1299,75 @@ public final class GroovyDslUtil {
     // be prevented from recreating these elements.
     removePsiIfInvalid(context);
   }
+
+  /**
+   * Returns list of parts where last call as first element so for
+   * `libs.version.get().toInteger()` will be:
+   * - libs.version.get.toInteger
+   * - libs.version.get
+   * - libs.version
+   * - libs
+   */
+  static List<GrReferenceExpression> collectReferenceParts(@NotNull GrExpression expression) {
+    List<GrReferenceExpression> parts = new ArrayList<>();
+    PsiElement current = expression;
+    while (current instanceof GrMethodCallExpression || current instanceof GrReferenceExpression) {
+      if (current instanceof GrMethodCallExpression) {
+        GrExpression invoked = ((GrMethodCallExpression)current).getInvokedExpression();
+        if (invoked instanceof GrReferenceExpression referenceExpression) {
+          parts.add(referenceExpression);
+          current = (referenceExpression).getQualifierExpression();
+        }
+        else {
+          break;
+        }
+      }
+      else {
+        parts.add((GrReferenceExpression)current);
+        current = ((GrReferenceExpression)current).getQualifierExpression();
+      }
+    }
+    return parts;
+  }
+
+  public static boolean isTypedExtractor(GrReferenceExpression expression) {
+    return transformers.contains(expression.getNode().getLastChildNode().getText())
+           && isMethodCall(expression);
+  }
+
+  public static boolean isCall(String methodName, GrReferenceExpression expression){
+    return methodName.equals(expression.getReferenceName())
+           && isMethodCall(expression);
+  }
+
+  public static boolean isMethodCall(GrReferenceExpression expression){
+    return expression.getNextSibling() instanceof GrArgumentList;
+  }
+
+  static List<String> transformers = List.of("toInteger", "toString");
+
+  /**
+   * Checking case like libs.versions.version.get().toInteger()
+   * @param propertyExpression
+   * @return
+   */
+  public static boolean isTransformReference(GrMethodCallExpression propertyExpression){
+    List<GrReferenceExpression> parts = collectReferenceParts(propertyExpression);
+    if (parts.size() < 2) return false;
+    int start;
+    // first two element may be get() or get().toInteger()
+    if (isCall("get", parts.get(0))) {
+      start = 1;
+    } else if (isTypedExtractor(parts.get(0)) && isCall("get", parts.get(1))) {
+      start = 2;
+    } else {
+      return false;
+    }
+    // all others suppose to be just references
+    for (int i = start; i < parts.size(); i++) {
+      if (isMethodCall(parts.get(i))) return false;
+    }
+    return true;
+  }
+
 }

@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpressio
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReferenceExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslUnknownElement
@@ -79,6 +80,7 @@ import org.jetbrains.kotlin.psi.KtPostfixExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtScriptInitializer
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -222,6 +224,23 @@ class KotlinDslParser(val psiFile: KtFile, override val internalContext: BuildMo
         }
       else -> return KotlinDslRawText(literal.text)
     }
+  }
+
+  override fun extractResultType(expression: PsiElement): GradleDslParser.DataType? {
+    if (expression is KtExpression) {
+      val parts = collectReferenceParts(expression)
+      if (parts.isNotEmpty()) {
+        val call = parts[0] as? KtCallExpression
+        val functionName = (call?.calleeExpression as? KtSimpleNameExpression)?.getReferencedName()
+        return when (functionName) {
+          "toInt" -> GradleDslParser.DataType.INTEGER
+          "toBoolean" -> GradleDslParser.DataType.BOOLEAN
+          "toBigDecimal" -> GradleDslParser.DataType.BIG_DECIMAL
+          else -> GradleDslParser.DataType.STRING
+        }
+      }
+    }
+    return null
   }
 
   override fun shouldInterpolate(elementToCheck: GradleDslElement): Boolean {
@@ -399,6 +418,10 @@ class KotlinDslParser(val psiFile: KtFile, override val internalContext: BuildMo
         if (isDomainObjectConfiguratorMethodName(referenceName)) {
           return GradleDslLiteral(parent, expression, name, expression, GradleDslLiteral.LiteralType.REFERENCE)
         } else {
+          // check first structure like `libs.versions.version.get().toInteger()`
+          if (isTransformReference(expression)) {
+            return GradleDslReferenceExpression(parent, psiElement, name, expression)
+          }
           // This is the case of method calls for which we want to keep all the expression name as reference and resolve the nested
           // method call. For example : System.getEnv("pass") -> in such case, we shouldn't consider the expression as a literal but rather
           // as a methodCall.
@@ -761,8 +784,12 @@ class KotlinDslParser(val psiFile: KtFile, override val internalContext: BuildMo
       is KtNameReferenceExpression ->
         GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.REFERENCE)
       // Ex: KotlinCompilerVersion.VERSION.
-      is KtDotQualifiedExpression ->
+      is KtDotQualifiedExpression -> {
+        if (isTransformReference(propertyExpression)) {
+          return GradleDslReferenceExpression(parentElement, psiElement, propertyName, propertyExpression)
+        }
         GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.REFERENCE)
+      }
       // Ex: Delete::class.
       is KtClassLiteralExpression ->
         when (val receiverExpression = propertyExpression.receiverExpression) {

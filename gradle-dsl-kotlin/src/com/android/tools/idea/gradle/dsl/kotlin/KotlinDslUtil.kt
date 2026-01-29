@@ -593,9 +593,11 @@ internal fun findInjections(
   val injectionPsiElement = injectionElement ?: psiElement
   when (psiElement) {
     // foo, KotlinCompilerVersion, android.compileSdkVersion
+
     is KtNameReferenceExpression,
     is KtDotQualifiedExpression -> {
-      val name = context.dslFile.parser.convertReferencePsi(context, psiElement)
+      val expressionToUse = if (isTransformReference(psiElement)) getStrippedExpression(psiElement) else psiElement
+      val name = context.dslFile.parser.convertReferencePsi(context, expressionToUse)
       val element = context.resolveInternalSyntaxReference(name, true)
       return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, name))
     }
@@ -631,6 +633,12 @@ internal fun findInjections(
       }
     is KtCallExpression ->
       return when {
+        isTransformReference(psiElement) -> {
+          val expressionToUse = getStrippedExpression(psiElement)
+          val name = context.dslFile.parser.convertReferencePsi(context, expressionToUse)
+          val element = context.resolveInternalSyntaxReference(name, true)
+          if (element != null) mutableListOf(GradleReferenceInjection(context, element, expressionToUse, name)) else noInjections
+        }
         isDomainObjectConfiguratorMethodName(psiElement.name()) -> {
           val name = context.dslFile.parser.convertReferencePsi(context, psiElement)
           val element = context.resolveInternalSyntaxReference(name, true)
@@ -1088,3 +1096,58 @@ internal fun isWhiteSpaceOrNls(element: PsiElement?) = element?.node?.let { WHIT
 
 private fun KtExpression?.isNullExpressionOrEmptyBlock(): Boolean =
   this.isNullExpression() || this is KtBlockExpression && this.statements.isEmpty()
+
+fun collectReferenceParts(expression: KtExpression): List<KtExpression> {
+  val parts = mutableListOf<KtExpression>()
+  var current: KtExpression? = expression
+  while (current is KtDotQualifiedExpression || current is KtCallExpression || current is KtReferenceExpression) {
+    if (current is KtDotQualifiedExpression) {
+      current.selectorExpression?.let { parts.add(it) }
+      current = current.receiverExpression
+    } else {
+      parts.add(current)
+      break
+    }
+  }
+  return parts
+}
+
+fun isGetCall(expression: KtExpression): Boolean {
+  val call = expression as? KtCallExpression ?: return false
+  return (call.calleeExpression as? KtSimpleNameExpression)?.getReferencedName() == "get"
+}
+
+fun isTypedExtractor(expression: KtExpression): Boolean {
+  val call = expression as? KtCallExpression ?: return false
+  return listOf("toInt", "toString", "toBoolean", "toBigDecimal")
+    .contains((call.calleeExpression as? KtSimpleNameExpression)?.getReferencedName())
+}
+
+fun isTransformReference(expression: KtExpression): Boolean {
+  if (expression !is KtDotQualifiedExpression && expression !is KtCallExpression) return false
+  val parts = collectReferenceParts(expression)
+  if (parts.size < 2) return false
+  val start =
+    when {
+      isGetCall(parts[0]) -> 1
+      parts.size > 2 && isTypedExtractor(parts[0]) && isGetCall(parts[1]) -> 2
+      else -> return false
+    }
+  for (i in start until parts.size) {
+    if (parts[i] is KtCallExpression) return false
+  }
+  return true
+}
+
+fun getStrippedExpression(expression: KtExpression): KtExpression {
+  var current = expression
+  while (current is KtDotQualifiedExpression) {
+    val selector = current.selectorExpression
+    if (selector != null && (isGetCall(selector) || isTypedExtractor(selector))) {
+      current = current.receiverExpression
+    } else {
+      break
+    }
+  }
+  return current
+}

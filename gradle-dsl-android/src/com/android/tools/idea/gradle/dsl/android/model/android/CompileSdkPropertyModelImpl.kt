@@ -199,7 +199,7 @@ class CompileSdkPropertyModelImpl(
     }
   }
 
-  override fun <T : Any?> getValue(typeReference: TypeReference<T>): T? {
+  override fun <T> getValue(typeReference: TypeReference<T>): T? {
     (internalModel as? CompileSdkBlockPropertyModel)?.let {
       return when (typeReference) {
         GradlePropertyModel.STRING_TYPE -> it.sdkBlockModel.getVersion()?.toHash() as T?

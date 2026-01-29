@@ -79,6 +79,14 @@ public interface GradleDslParser extends GradleDslNameConverter {
   Object extractValue(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement literal, boolean resolve);
 
   /**
+   * Extracts result type by parsing type conversion function.
+   * for example: libs.versions.version.get().toInt() - transform result to an Integer
+   * Returns null if unable to parse expression
+   */
+  @Nullable
+  DataType extractResultType(@NotNull PsiElement expression);
+
+  /**
    * @param elementToCheck GradleDslElement, returns false if a non-string element is provided.
    * @return whether the string represented by this GradleDslElement should be interpolated.
    */
@@ -114,6 +122,10 @@ public interface GradleDslParser extends GradleDslNameConverter {
                                                   @NotNull GradlePropertiesDslElement parentElement,
                                                   @Nullable GradleNameElement nameElement);
 
+  enum DataType{
+    STRING, INTEGER, BOOLEAN, BIG_DECIMAL
+  }
+
   class Adapter implements GradleDslParser {
     @NotNull private final BuildModelContext context;
     public Adapter(@NotNull BuildModelContext context) {
@@ -138,6 +150,11 @@ public interface GradleDslParser extends GradleDslNameConverter {
     @Override
     @Nullable
     public Object extractValue(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement literal, boolean resolve) {
+      return null;
+    }
+
+    @Override
+    public @Nullable DataType extractResultType(@NotNull PsiElement literal) {
       return null;
     }
 

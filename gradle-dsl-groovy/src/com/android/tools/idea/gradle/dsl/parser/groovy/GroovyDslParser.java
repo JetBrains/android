@@ -24,9 +24,12 @@ import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.External
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.SET_METHOD;
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.isDomainObjectConfiguratorMethodName;
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.collectReferenceParts;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.ensureUnquotedText;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.findInjections;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.isBlockElement;
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.isCall;
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.isTransformReference;
 import static com.intellij.psi.util.PsiTreeUtil.findChildOfType;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 import static com.intellij.psi.util.PsiTreeUtil.getNextSiblingOfType;
@@ -48,6 +51,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpressio
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReferenceExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslUnknownElement;
@@ -171,6 +175,23 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
 
     boolean isReference = newValue instanceof GrReferenceExpression || newValue instanceof GrIndexProperty;
     context.setReference(isReference);
+  }
+
+  @Override
+  public @Nullable DataType extractResultType(@NotNull PsiElement element) {
+    if (element instanceof GrMethodCallExpression expression){
+      List<GrReferenceExpression> parts = collectReferenceParts(expression);
+      if(!parts.isEmpty()) {
+        String functionName = parts.getFirst().getNode().getLastChildNode().getText();
+        return switch (functionName) {
+          case "toInteger" -> DataType.INTEGER;
+          case "toBoolean" -> DataType.BOOLEAN;
+          case "toBigDecimal" -> DataType.BIG_DECIMAL;
+          default -> DataType.STRING;
+        };
+      }
+    }
+    return null;
   }
 
   @Override
@@ -330,7 +351,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
 
     // If the reference has multiple parts ending in set(..), treat it as assignment
     if (referenceExpression.getFirstChild() instanceof GrReferenceExpression lvalue &&
-        "set".equals(referenceExpression.getReferenceName()) &&
+        isCall("set",referenceExpression) &&
         expression.getExpressionArguments().length == 1) {
       GrExpression rvalue = expression.getExpressionArguments()[0];
       GradleNameElement name = GradleNameElement.from(lvalue, this);
@@ -767,8 +788,10 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.REFERENCE);
     }
 
-    if (propertyExpression instanceof GrMethodCallExpression) { // ex: compile project("someProject")
-      GrMethodCallExpression methodCall = (GrMethodCallExpression)propertyExpression;
+    if (propertyExpression instanceof GrMethodCallExpression methodCall) { // ex: compile project("someProject")
+      if (isTransformReference(methodCall)) {
+        return new GradleDslReferenceExpression(parentElement, psiElement, propertyName, propertyExpression);
+      }
       GrReferenceExpression callReferenceExpression = getChildOfType(methodCall, GrReferenceExpression.class);
       if (callReferenceExpression != null) {
         String methodName = callReferenceExpression.getText();

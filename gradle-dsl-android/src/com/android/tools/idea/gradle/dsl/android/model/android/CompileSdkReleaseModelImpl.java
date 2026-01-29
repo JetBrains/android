@@ -49,7 +49,8 @@ public class CompileSdkReleaseModelImpl implements CompileSdkReleaseModel {
 
   @Override
   public @NotNull ResolvedPropertyModel getVersion() {
-    return GradlePropertyModelBuilder.create(myMethodCall.getArguments().get(0)).buildResolved();
+    return GradlePropertyModelBuilder.create(myMethodCall.getArguments().getFirst())
+      .buildResolved();
   }
 
   @Override

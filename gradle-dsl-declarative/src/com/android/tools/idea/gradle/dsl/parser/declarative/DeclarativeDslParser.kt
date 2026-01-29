@@ -88,6 +88,10 @@ class DeclarativeDslParser(
   override fun extractValue(context: GradleDslSimpleExpression, literal: PsiElement, resolve: Boolean): Any? =
     (literal as? DeclarativeLiteral)?.let { it.kind?.value } ?: literal.text
 
+  override fun extractResultType(expression: PsiElement): GradleDslParser.DataType? {
+    return null
+  }
+
   override fun getContext(): BuildModelContext = context
 
   override fun parse() {

@@ -126,6 +126,8 @@ class TomlDslParser(private val psiFile: TomlFile, private val dslFile: GradleDs
     }
   }
 
+  override fun extractResultType(expression: PsiElement): GradleDslParser.DataType? = null
+
   override fun getInjections(context: GradleDslSimpleExpression, psiElement: PsiElement): MutableList<GradleReferenceInjection> =
     (dslFile as? GradleVersionCatalogFile)?.getInjection(context, psiElement) ?: mutableListOf()
 

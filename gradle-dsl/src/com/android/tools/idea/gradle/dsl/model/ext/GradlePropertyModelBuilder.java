@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.settings.RepositoriesModePropertyModel;
+import com.android.tools.idea.gradle.dsl.model.catalog.CatalogTransformedPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.java.LanguageLevelPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.kotlin.JvmTargetPropertyModelImpl;
@@ -29,7 +30,9 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind;
 import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslGlobalValue;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReferenceExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import org.jetbrains.annotations.NotNull;
@@ -222,7 +225,34 @@ public class GradlePropertyModelBuilder {
    * @return the built model
    */
   public ResolvedPropertyModelImpl buildResolved() {
+    if (getTransformedElement() instanceof GradleDslReferenceExpression referenceExpression) {
+      GradlePropertyModelImpl model = new GradlePropertyModelImpl(referenceExpression);
+      GradlePropertyModel.ValueType type = referenceExpression.getForcedType();
+      if (type != null) {
+        return new CatalogTransformedPropertyModelImpl(model, type);
+      }
+    }
+
     return build().resolve();
+  }
+
+  /**
+   * Use transformers to get real element
+   * Return getElement() if no transformers
+   */
+  private GradleDslElement getTransformedElement() {
+    GradleDslElement dslElement = getElement();
+    GradleDslElement holder = myHolder != null ? myHolder : dslElement.getParent();
+    if (holder == null) {
+      assert (dslElement instanceof GradleDslFile);
+      holder = getElement();
+    }
+    for (PropertyTransform transform : myTransforms) {
+      if (transform.test(getElement(), holder)) {
+        return transform.transform(getElement());
+      }
+    }
+    return getElement();
   }
 
   public LanguageLevelPropertyModelImpl buildLanguage() {

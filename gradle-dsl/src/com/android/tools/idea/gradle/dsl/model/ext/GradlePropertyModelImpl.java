@@ -671,6 +671,9 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       // This check ensures that methods we care about, i.e targetSdkVersion(12) are not classed as unknown.
       return UNKNOWN;
     }
+    else if(element instanceof GradleDslReferenceExpression referenceExpression){
+      return referenceExpression.getForcedType();
+    }
     else if (element instanceof GradleDslSimpleExpression) {
       GradleDslSimpleExpression expression = (GradleDslSimpleExpression)element;
       Object value = expression.getValue();

@@ -38,6 +38,7 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followEle
 public abstract class GradleDslSimpleExpression extends GradleDslElementImpl implements GradleDslExpression {
   private boolean myIsInterpolated;
   private boolean myIsReference;
+  private boolean myIsTransformedReferenceValue;
   @Nullable private PsiElement myUnsavedConfigBlock;
 
   @Nullable protected PsiElement myExpression;
@@ -155,6 +156,14 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
 
   public void setReference(boolean isReference) {
     myIsReference = isReference;
+  }
+
+  public boolean isTransformedReferenceValue() {
+    return myIsTransformedReferenceValue;
+  }
+
+  public void setTransformedReferenceValue(boolean isTransformedReferenceValue) {
+    myIsTransformedReferenceValue = isTransformedReferenceValue;
   }
 
   @Nullable
