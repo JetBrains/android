@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.classes
 
+import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.google.idea.blaze.common.Label
@@ -31,11 +32,23 @@ import java.util.concurrent.ConcurrentHashMap
 data class BuildOutcome(
   val status: ProjectSystemBuildManager.BuildStatus,
   val timestamp: Instant,
-  val bootClasspath: List<Path> = emptyList(),
-  val classFileFinder: ClassFileFinder? = null,
-  val externalJars: Collection<Path> = emptyList(),
-  val builtJavaTargetPredicate: (Label) -> Boolean = { false },
-)
+  val builtTargets: Set<Label>,
+  val bootClasspath: List<Path>,
+  val classFileFinder: ClassFileFinder,
+  val externalJars: List<Path>,
+  val builtJavaTargetPredicate: (Label) -> Boolean,
+) {
+  constructor(status: ProjectSystemBuildManager.BuildStatus, timestamp: Instant) :
+    this(
+      status = status,
+      timestamp = timestamp,
+      builtTargets = emptySet(),
+      bootClasspath = emptyList(),
+      classFileFinder = EmptyClassFileFinder,
+      externalJars = emptyList(),
+      builtJavaTargetPredicate = { false },
+    )
+}
 
 private data class CachedArtifacts(val jars: Collection<Path>, val externalJars: Collection<Path>)
 
@@ -58,38 +71,7 @@ class BuildOutcomeCache {
     output: OutputInfo,
     context: BlazeContext,
   ) {
-    val outcome =
-      if (BuildResult.fromExitCode(output.exitCode).status != BuildResult.Status.SUCCESS) {
-        BuildOutcome(ProjectSystemBuildManager.BuildStatus.FAILED, Instant.now())
-      }
-      else {
-        val cache = RuntimeArtifactCache.getInstance(project)
-        val jars =
-          cache.fetchArtifacts(
-            label,
-            output.transitiveRuntimeJars,
-            context,
-            RuntimeArtifactKind.TRANSITIVE_RUNTIME_JAR
-          )
-
-        val externalJars = cache.fetchArtifacts(
-          label,
-          output.externalTransitiveRuntimeJars,
-          context,
-          RuntimeArtifactKind.EXTERNAL_TRANSITIVE_RUNTIME_JAR
-        )
-
-        val artifacts = CachedArtifacts(jars, externalJars)
-        val builtJavaTargets = output.javaArtifactInfo.keys.toSet()
-        BuildOutcome(
-          ProjectSystemBuildManager.BuildStatus.SUCCESS,
-          Instant.now(),
-          bootClasspath = emptyList(),
-          BazelClassFileFinder(artifacts.jars),
-          artifacts.externalJars,
-          builtJavaTargets::contains
-        )
-      }
+    val outcome = buildOutcome(project, label, output, context)
     put(label, outcome)
   }
 
@@ -100,4 +82,48 @@ class BuildOutcomeCache {
   private fun put(label: Label, outcome: BuildOutcome) {
     cache[label] = outcome
   }
+
+  companion object {
+    fun buildOutcome(
+      project: Project,
+      label: Label,
+      output: OutputInfo,
+      context: BlazeContext,
+    ): BuildOutcome = if (BuildResult.fromExitCode(output.exitCode).status != BuildResult.Status.SUCCESS) {
+      BuildOutcome(ProjectSystemBuildManager.BuildStatus.FAILED, Instant.now())
+    }
+    else {
+      val cache = RuntimeArtifactCache.getInstance(project)
+      val jars =
+        cache.fetchArtifacts(
+          label,
+          output.transitiveRuntimeJars,
+          context,
+          RuntimeArtifactKind.TRANSITIVE_RUNTIME_JAR
+        )
+
+      val externalJars = cache.fetchArtifacts(
+        label,
+        output.externalTransitiveRuntimeJars,
+        context,
+        RuntimeArtifactKind.EXTERNAL_TRANSITIVE_RUNTIME_JAR
+      )
+
+      val artifacts = CachedArtifacts(jars, externalJars)
+      val builtJarTargets = output.javaArtifactInfo.keys.toSet()
+      BuildOutcome(
+        ProjectSystemBuildManager.BuildStatus.SUCCESS,
+        Instant.now(),
+        builtTargets = output.javaArtifactInfo.keys.toSet(),
+        bootClasspath = emptyList(),
+        BazelClassFileFinder(artifacts.jars),
+        artifacts.externalJars.toList(),
+        builtJarTargets::contains
+      )
+    }
+  }
+}
+
+private object EmptyClassFileFinder: ClassFileFinder {
+  override fun findClassFile(fqcn: String): ClassContent? = null
 }
