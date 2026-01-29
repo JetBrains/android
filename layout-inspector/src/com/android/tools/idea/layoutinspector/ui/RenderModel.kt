@@ -23,7 +23,6 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_ALPHA_VALUE
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Image
 import java.awt.Rectangle
@@ -118,7 +117,7 @@ class RenderModel(
       modificationListeners.forEach { it() }
     }
 
-  var layerSpacing: Int = INITIAL_LAYER_SPACING
+  var layerSpacing: Int = 150
     set(value) {
       field = value
       refresh()

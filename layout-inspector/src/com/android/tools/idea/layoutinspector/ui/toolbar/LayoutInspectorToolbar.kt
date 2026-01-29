@@ -21,7 +21,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotAction
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RefreshAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RenderSettingsAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleLiveUpdatesAction
@@ -232,7 +231,6 @@ private class LayoutInspectorActionGroup(
 
     // third group
     add(Separator.getInstance())
-    add(LayerSpacingSliderAction { layoutInspector.renderModel })
     lastGroupExtraActions.forEach { add(it) }
   }
 }

@@ -34,7 +34,6 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspecti
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.toImageType
 import com.android.tools.idea.layoutinspector.runningdevices.allChildren
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RefreshAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleLiveUpdatesAction
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
@@ -304,26 +303,6 @@ class LayoutInspectorMainToolbarTest {
     val toolbar = createStandaloneToolbar()
     val isImportant = toolbar.component.getClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY) as? Boolean ?: false
     assertThat(isImportant).isTrue()
-  }
-
-  @Test
-  fun showLayerSpacingSliderOnlyIfModelIsRotated() {
-    val sliderBeforeRotation = createStandaloneToolbar().actions.find { it is LayerSpacingSliderAction } as? LayerSpacingSliderAction
-
-    sliderBeforeRotation?.let {
-      // If the action is not null, check that is disabled.
-      val presentationEnabled = getPresentation(it)
-      assertThat(presentationEnabled.isEnabled).isFalse()
-      assertThat(presentationEnabled.isVisible).isFalse()
-    }
-
-    layoutInspectorRule.inspector.renderModel.rotate(10.0, 10.0)
-
-    val sliderAfterRotation = createStandaloneToolbar().actions.find { it is LayerSpacingSliderAction } as LayerSpacingSliderAction
-
-    val presentationEnabled = getPresentation(sliderAfterRotation)
-    assertThat(presentationEnabled.isEnabled).isTrue()
-    assertThat(presentationEnabled.isVisible).isTrue()
   }
 
   @Test
