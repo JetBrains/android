@@ -120,7 +120,7 @@ fun compareWithExpectedPsi(project: Project, dslFile: GradleDslFile, expected: S
     "expected-"+dslFile.file.name,
     expected
   )
-  val dslFileExpected = object : GradleBuildFile(fileExpected, project, ":", _root_ide_package_.com.android.tools.idea.gradle.dsl.model.BuildModelContext.create(project, _root_ide_package_.org.mockito.Mockito.mock())) {}
+  val dslFileExpected = object : GradleBuildFile(fileExpected, project, ":", com.android.tools.idea.gradle.dsl.model.BuildModelContext.create(project, org.mockito.Mockito.mock())) {}
   dslFileExpected.parse()
   val expectedOutput = DebugUtil.psiToString(dslFileExpected.psiElement!!, false, false)
   val writtenOutput = DebugUtil.psiToString(dslFile.psiElement!!, false, false)
