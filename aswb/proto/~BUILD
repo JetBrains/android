@@ -25,7 +25,7 @@ java_library(
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     exports = [
         # do not sort: to get a consistent version of the protobuf-java library across all proto users
-        "@maven//:io.grpc.grpc-protobuf",
+        "//tools/vendor/google/aswb/plugin_api/maven:grpc-protobuf",
         "//tools/adt/idea/aswb/third_party/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto:build_event_stream_java_proto",
         "//tools/adt/idea/aswb/third_party/bazel/src/main/java/com/google/devtools/build/lib/starlarkdebug/proto:starlark_debugging_java_proto",
         "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:android_deploy_info_java_proto",
