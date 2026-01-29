@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
-import com.android.tools.idea.layoutinspector.ui.toolbar.NewFloatingToolbarProvider
+import com.android.tools.idea.layoutinspector.ui.toolbar.FloatingToolbarProvider
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.UiDataProvider
@@ -59,7 +59,7 @@ class ZoomableContainer(
 
   private val scrollPane = JBScrollPane(contentPanel)
   private val layeredPane = JLayeredPane()
-  private val floatingToolbarProvider = NewFloatingToolbarProvider(disposable = disposable, component = this)
+  private val floatingToolbarProvider = FloatingToolbarProvider(disposable = disposable, component = this)
 
   private val viewportLayoutManager = CenteredViewportLayout(scrollPane.viewport)
 
