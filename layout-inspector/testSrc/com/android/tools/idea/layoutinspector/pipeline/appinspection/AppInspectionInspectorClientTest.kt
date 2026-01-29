@@ -365,8 +365,7 @@ class AppInspectionInspectorClientTest {
 
     // Initial fetch additionally triggers requests for composables
     val composeCommands = ArrayBlockingQueue<LayoutInspectorComposeProtocol.Command>(2)
-    // TODO merge
-    //inspectionRule.composeInspector.listenWhen({ true }) { command -> composeCommands.add(command) }
+    inspectionRule.composeInspector.listenWhen({ true }) { command -> composeCommands.add(command) }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     startFetchReceived.await(
@@ -510,10 +509,9 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun recomposingNotSupported() = runBlocking {
-    // TODO merge
-    //val inspectorState =
-    //  FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
-    //inspectorState.simulateComposeVersionWithoutUpdateSettingsCommand()
+    val inspectorState =
+      FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.simulateComposeVersionWithoutUpdateSettingsCommand()
 
     inspectorClientSettings.inLiveMode = true
     inspectorRule.inspector.treeSettings.showRecompositions = true
@@ -526,8 +524,7 @@ class AppInspectionInspectorClientTest {
 
     // Initial fetch additionally triggers requests for composables
     val composeCommands = ArrayBlockingQueue<LayoutInspectorComposeProtocol.Command>(2)
-    // TODO merge
-    //inspectionRule.composeInspector.listenWhen({ true }) { command -> composeCommands.add(command) }
+    inspectionRule.composeInspector.listenWhen({ true }) { command -> composeCommands.add(command) }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     startFetchReceived.await(
@@ -564,8 +561,7 @@ class AppInspectionInspectorClientTest {
 
     // Initial fetch additionally triggers requests for composables
     val composeCommands = ArrayBlockingQueue<LayoutInspectorComposeProtocol.Command>(3)
-    // TODO merge
-    //inspectionRule.composeInspector.listenWhen({ true }) { command -> composeCommands.add(command) }
+    inspectionRule.composeInspector.listenWhen({ true }) { command -> composeCommands.add(command) }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     startFetchReceived.await(
@@ -648,9 +644,8 @@ class AppInspectionInspectorClientTest {
   fun composeClientShowsMessageIfOlderComposeUiLibrary() {
     setUpAdbForDebugViewAttributes(MODERN_PROCESS.device.serial)
 
-    // TODO merge
-    //inspectionRule.composeInspector.createResponseStatus =
-    //  AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE
+    inspectionRule.composeInspector.createResponseStatus =
+      AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
@@ -668,9 +663,8 @@ class AppInspectionInspectorClientTest {
   fun composeClientShowsMessageIfProguardedComposeUiLibrary() {
     setUpAdbForDebugViewAttributes(MODERN_PROCESS.device.serial)
 
-    // TODO merge
-    //inspectionRule.composeInspector.createResponseStatus =
-    //  AppInspection.CreateInspectorResponse.Status.APP_PROGUARDED
+    inspectionRule.composeInspector.createResponseStatus =
+      AppInspection.CreateInspectorResponse.Status.APP_PROGUARDED
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
@@ -683,9 +677,8 @@ class AppInspectionInspectorClientTest {
   fun composeClientShowsMessageIfLibraryVersionNotFound() {
     setUpAdbForDebugViewAttributes(MODERN_PROCESS.device.serial)
 
-    // TODO merge
-    //inspectionRule.composeInspector.createResponseStatus =
-    //  AppInspection.CreateInspectorResponse.Status.VERSION_MISSING
+    inspectionRule.composeInspector.createResponseStatus =
+      AppInspection.CreateInspectorResponse.Status.VERSION_MISSING
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
@@ -818,10 +811,9 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun testCapabilitiesUpdateWithoutComposeNodes() {
-    // TODO merge
-    //val inspectorState =
-    //  FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
-    //inspectorState.createFakeViewTree()
+    val inspectorState =
+      FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
@@ -837,11 +829,10 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun testCapabilitiesUpdateWithComposeNodes() {
-    // TODO merge
-    //val inspectorState =
-    //  FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
-    //inspectorState.createFakeViewTree()
-    //inspectorState.createFakeComposeTree(withSemantics = false)
+    val inspectorState =
+      FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeComposeTree(withSemantics = false)
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
@@ -858,11 +849,10 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun testCapabilitiesUpdateWithComposeNodesWithSemantics() {
-    // TODO merge
-    //val inspectorState =
-    //  FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
-    //inspectorState.createFakeViewTree()
-    //inspectorState.createFakeComposeTree(withSemantics = true)
+    val inspectorState =
+      FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeComposeTree(withSemantics = true)
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
@@ -878,11 +868,10 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun testTextViewUnderComposeNode() {
-    // TODO merge
-    //val inspectorState =
-    //  FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
-    //inspectorState.createFakeViewTree()
-    //inspectorState.createFakeComposeTree()
+    val inspectorState =
+      FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeComposeTree()
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
@@ -917,11 +906,10 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun testComposeNoSourceInformationWarningGivenOnce() {
-    // TODO merge
-    //val inspectorState =
-    //  FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
-    //inspectorState.createFakeViewTree()
-    //inspectorState.createFakeComposeTree(withSourceInformation = false)
+    val inspectorState =
+      FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeComposeTree(withSourceInformation = false)
     var modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
@@ -941,8 +929,7 @@ class AppInspectionInspectorClientTest {
 
     // Trigger a GetComposables command to be sent.
     modelUpdatedLatch = ReportingCountDownLatch(1)
-    // TODO merge
-    //inspectorState.triggerLayoutCapture(rootId = 1)
+    inspectorState.triggerLayoutCapture(rootId = 1)
 
     // Check that the notification is not sent again:
     assertThat(inspectorRule.notificationModel.notifications).isEmpty()
@@ -950,11 +937,10 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun testDeepNestedComposeNodes() {
-    // TODO merge
-    //val inspectorState =
-    //  FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
-    //inspectorState.createFakeViewTree()
-    //inspectorState.createFakeLargeComposeTree()
+    val inspectorState =
+      FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeLargeComposeTree()
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
@@ -1045,14 +1031,12 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun testConfigurationUpdates() {
-    // TODO merge
-    //assertThat(inspectorRule.inspectorModel.resourceLookup.dpi).isNull()
-    //assertThat(inspectorRule.inspectorModel.resourceLookup.fontScale).isNull()
+    assertThat(inspectorRule.inspectorModel.resourceLookup.dpi).isNull()
+    assertThat(inspectorRule.inspectorModel.resourceLookup.fontScale).isNull()
 
-    // TODO merge
-    //val inspectorState =
-    //  FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
-    //inspectorState.createFakeViewTree()
+    val inspectorState =
+      FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
 
     var modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
@@ -1077,11 +1061,10 @@ class AppInspectionInspectorClientTest {
   @Test
   fun testResetOnPendingCommand() {
     val commandLatch = CommandLatch(TIMEOUT, TIMEOUT_UNIT)
-    // TODO merge
-    //val inspectorState =
-    //  FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
-    //inspectorState.createFakeViewTree()
-    //inspectorState.createFakeComposeTree(withSemantics = true, latch = commandLatch)
+    val inspectorState =
+      FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeComposeTree(withSemantics = true, latch = commandLatch)
 
     var modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
@@ -1101,8 +1084,7 @@ class AppInspectionInspectorClientTest {
 
     // Trigger a GetComposables command to be sent.
     modelUpdatedLatch = ReportingCountDownLatch(1)
-    // TODO merge
-    //inspectorState.triggerLayoutCapture(rootId = 1)
+    inspectorState.triggerLayoutCapture(rootId = 1)
 
     // While waiting for the GetComposables response: send a reset recompose counts command
     commandLatch.waitForCommand {
@@ -1491,10 +1473,9 @@ class AppInspectionInspectorClientWithFailingClientTest {
   fun noHardwareAcceleration() = runBlocking {
     throwOnState = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE // do not throw !!!
 
-    // TODO merge
-    //val inspectorState =
-    //  FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
-    //inspectorState.simulateNoHardwareAccelerationErrorFromStartCapturing()
+    val inspectorState =
+      FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.simulateNoHardwareAccelerationErrorFromStartCapturing()
 
     val startFetchReceived = ReportingCountDownLatch(1)
     inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) { command ->
