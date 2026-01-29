@@ -17,9 +17,7 @@ package com.android.tools.idea.run.classes
 
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.run.classes.BazelClassFileFinder
 import com.google.idea.blaze.common.Label
-import com.google.common.annotations.VisibleForTesting
 import com.google.idea.blaze.base.command.buildresult.BuildResult
 import com.google.idea.blaze.base.run.RuntimeArtifactCache
 import com.google.idea.blaze.base.run.RuntimeArtifactKind
@@ -36,6 +34,7 @@ data class BuildOutcome(
   val bootClasspath: List<Path> = emptyList(),
   val classFileFinder: ClassFileFinder? = null,
   val externalJars: Collection<Path> = emptyList(),
+  val builtJavaTargetPredicate: (Label) -> Boolean = { false },
 )
 
 private data class CachedArtifacts(val jars: Collection<Path>, val externalJars: Collection<Path>)
@@ -81,12 +80,14 @@ class BuildOutcomeCache {
         )
 
         val artifacts = CachedArtifacts(jars, externalJars)
+        val builtJavaTargets = output.javaArtifactInfo.keys.toSet()
         BuildOutcome(
           ProjectSystemBuildManager.BuildStatus.SUCCESS,
           Instant.now(),
           bootClasspath = emptyList(),
           BazelClassFileFinder(artifacts.jars),
-          artifacts.externalJars
+          artifacts.externalJars,
+          builtJavaTargets::contains
         )
       }
     put(label, outcome)

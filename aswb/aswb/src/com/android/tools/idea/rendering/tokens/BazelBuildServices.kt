@@ -34,12 +34,9 @@ import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup
 import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors
-import com.google.idea.blaze.base.run.RuntimeArtifactCache
-import com.google.idea.blaze.base.run.RuntimeArtifactKind
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.exception.BuildException
-import com.google.idea.blaze.qsync.deps.OutputInfo
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
@@ -47,10 +44,8 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
-import java.nio.file.Path
 import java.time.Instant
 import java.util.concurrent.CancellationException
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred

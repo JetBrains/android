@@ -16,10 +16,12 @@
 package com.android.tools.idea.rendering.tokens
 
 import com.android.tools.idea.projectsystem.ClassContent
+import com.android.tools.idea.run.classes.BuildOutcome
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.run.deployment.liveedit.tokens.DesugarConfigs
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySyncManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import java.nio.file.Path
@@ -33,12 +35,23 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtFile
 
 /**
- * Bazel implementation of [ApplicationLiveEditServices] for Compose previews.
+ * Bazel implementation of [ApplicationLiveEditServices] for Live Edit and Compose previews.
  */
 internal class BazelApplicationLiveEditServices(
-  private val buildTargetReference: BazelBuildTargetReference,
-  private val buildServices: BazelBuildServices
+  private val project: Project,
+  private val buildOutcomeProvider: BuildOutcomeProvider,
 ) : ApplicationLiveEditServices {
+
+  /**
+   * An interface to the most recent build result relevant to this [ApplicationLiveEditServices].
+   *
+   * (1) In the case of Live Edit build it is the results of an `.apk` build used to deploy the app.
+   *
+   * (2) In the case of Compose previews it is the results of a build initiated by Compose previews.
+   */
+  fun interface BuildOutcomeProvider {
+    fun lastBuildOutcome(): BuildOutcome?
+  }
 
   private data class CompilationDependenciesImpl(
     private val externalLibraries: List<Path>,
@@ -49,17 +62,16 @@ internal class BazelApplicationLiveEditServices(
   }
 
   override fun getCompilationDependencies(file: PsiFile): ApplicationLiveEditServices.CompilationDependencies? {
-    val label = buildTargetReference.toPreferredLabel() ?: return null
-    val outcome = buildServices.getBuildOutcome(label) ?: return null
+    val outcome = buildOutcomeProvider.lastBuildOutcome() ?: return null
     return CompilationDependenciesImpl(outcome.externalJars.toList())
   }
 
   override fun getClassContent(file: VirtualFile, className: String): ClassContent? {
-    return buildServices.getRenderingServices(buildTargetReference).classFileFinder?.findClassFile(className)
+    val outcome = buildOutcomeProvider.lastBuildOutcome() ?: return null
+    return outcome.classFileFinder?.findClassFile(className)
   }
 
   override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
-    val project = buildTargetReference.project
     val qSyncManager = QuerySyncManager.getInstance(project)
     val snapshot = qSyncManager.currentSnapshot.getOrNull() ?: return CompilerConfiguration.EMPTY
 
@@ -69,7 +81,9 @@ internal class BazelApplicationLiveEditServices(
     if (labels.isEmpty()) return CompilerConfiguration.EMPTY
 
     // Choose the target that would normally be selected for previews.
-    val label = listOf(snapshot.graph.getProjectTargets(path)).toPreferredLabel(project) ?: labels.first()
+    val label = listOf(snapshot.graph.getProjectTargets(path))
+                  .toPreferredLabel(isPreferredTarget = { buildOutcomeProvider.lastBuildOutcome()?.builtJavaTargetPredicate(it) ?: false })
+                ?: labels.first()
 
     val targetBuildInfo = snapshot.artifactIndex.builtDepsMap()[label] ?: return CompilerConfiguration.EMPTY
     val javaInfo = targetBuildInfo.javaInfo().getOrNull() ?: return CompilerConfiguration.EMPTY

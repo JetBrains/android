@@ -24,9 +24,9 @@ import com.intellij.serviceContainer.AlreadyDisposedException
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.project.TargetsToBuild
-import com.intellij.openapi.project.Project
 import kotlin.jvm.optionals.getOrNull
 
+@ConsistentCopyVisibility
 internal data class BazelBuildTargetReference internal constructor(val module_: Module, val file: VirtualFile) : BuildTargetReference {
   fun getFileWorkspaceRelativePath() = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, listOf(file)).single()
 
@@ -42,16 +42,16 @@ internal fun BazelBuildTargetReference.toAllLabels(): Set<Label> {
 }
 
 internal fun BazelBuildTargetReference.toPreferredLabel(): Label? {
+  val snapshot = QuerySyncManager.getInstance(project).currentSnapshot.getOrNull() ?: return null
+  val builds = snapshot.artifactIndex.builtDepsMap()
   return QuerySyncManager.getInstance(project)
     .getTargetsToBuildByPaths(listOf(getFileWorkspaceRelativePath()))
-    .toPreferredLabel(project)
+    .toPreferredLabel() { builds.containsKey(it) }
 }
 
-internal fun Collection<TargetsToBuild>.toPreferredLabel(project: Project): Label? {
+internal fun Collection<TargetsToBuild>.toPreferredLabel(isPreferredTarget: (Label) -> Boolean): Label? {
   val candidates = flatMap { it.targets }.toSet()
   if (candidates.size <= 1) return candidates.singleOrNull()
 
-  val snapshot = QuerySyncManager.getInstance(project).currentSnapshot.getOrNull() ?: return null
-  val builds = snapshot.artifactIndex.builtDepsMap()
-  return candidates.filter { builds.containsKey(it) }.singleOrNull()
+  return candidates.singleOrNull { isPreferredTarget(it) }
 }

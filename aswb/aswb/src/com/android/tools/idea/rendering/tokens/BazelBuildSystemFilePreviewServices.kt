@@ -17,12 +17,16 @@ package com.android.tools.idea.rendering.tokens
 
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.RenderingServices
+import com.android.tools.idea.run.classes.BuildOutcome
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem
 import com.google.idea.blaze.android.projectsystem.BazelToken
+import com.google.idea.blaze.base.qsync.QuerySyncManager
+import com.google.idea.blaze.common.Label
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import kotlin.jvm.optionals.getOrNull
 
 internal class BazelBuildSystemFilePreviewServices
   : BuildSystemFilePreviewServices<BazelProjectSystem, BazelBuildTargetReference>, BazelToken {
@@ -37,7 +41,13 @@ internal class BazelBuildSystemFilePreviewServices
   }
 
   override fun getApplicationLiveEditServices(buildTargetReference: BazelBuildTargetReference): ApplicationLiveEditServices {
-    return BazelApplicationLiveEditServices(buildTargetReference, buildServices)
+    return BazelApplicationLiveEditServices(
+      project = buildTargetReference.project,
+      buildOutcomeProvider = fun(): BuildOutcome? {
+        val preferredTarget = buildTargetReference.toPreferredLabel() ?: return null
+        return buildServices.getBuildOutcome(preferredTarget)
+      },
+    )
   }
 
   override fun subscribeBuildListener(
