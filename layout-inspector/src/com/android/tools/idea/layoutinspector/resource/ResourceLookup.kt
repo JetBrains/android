@@ -180,4 +180,8 @@ class ResourceLookup(private val project: Project) {
   @Slow
   fun isDimension(view: ViewNode, attributeName: String): Boolean =
     ReadAction.compute<Boolean, Nothing> { resolver?.isDimension(view, attributeName) ?: false }
+
+  fun findCauseOfMissingSourceLocation(): VersionProblem? {
+    return resolver?.findCauseOfMissingSourceLocation()
+  }
 }

@@ -65,7 +65,7 @@ class LambdaParameterItem(
   lookup: ViewNodeAndResourceLookup,
 ) : ParameterItem(name, PropertyType.LAMBDA, value = "λ", section, viewId, lookup, rootId, index), LinkPropertyItem {
   override val link =
-    object : AnAction("$fileName:$startLineNumber") {
+    object : AnAction("$fileName:${if (startLineNumber > 0) startLineNumber.toString() else "<unknown>"}") {
       override fun actionPerformed(event: AnActionEvent) {
         lookup.scope.launch {
           val popupLocation = JBPopupFactory.getInstance().guessBestPopupLocation(event.dataContext)
@@ -92,7 +92,12 @@ class LambdaParameterItem(
         return
       }
     }
-    invokeLater { showBalloonError("Could not determine source location", popupLocation) }
+    var content = "Could not determine source location"
+    val reason = lookup.resourceLookup.findCauseOfMissingSourceLocation()
+    if (reason != null) {
+      content = "$content\n${reason.getMessage()}"
+    }
+    invokeLater { showBalloonError(content, popupLocation) }
   }
 
   @Suppress("SameParameterValue")

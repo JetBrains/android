@@ -1,3 +1,4 @@
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.layout-inspector.gradle` start
@@ -19,16 +20,19 @@ jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
         "@lib//:kotlin-stdlib",
+        "@lib//:studio-platform-provided",
         "//libraries/protobuf",
         "//android/app-inspection/api",
         "//android/app-inspection/ide",
         "//android/app-inspection/inspector/api",
         "//android/layout-inspector",
         "//android/project-system",
+        "//android/android-common:common",
         "//android/project-system-gradle:projectSystem-gradle",
+        "//android/project-system-gradle-models:projectSystem-gradle-models",
         "//platform/core-api:core",
+        "//java/java-syntax:syntax",
     ],
 )
 
@@ -36,24 +40,57 @@ jvm_library(
     name = "gradle_test_lib",
     testonly = True,
     srcs = glob(
-        [],
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
         allow_empty = True,
     ),
-    module_name = "intellij.android.layout-inspector.gradle",
+    associates = [":gradle"],
     visibility = ["//visibility:public"],
-    runtime_deps = [
+    deps = [
         # do not sort,
-        ":gradle",
+        "@lib//:kotlin-stdlib",
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
+        "//libraries/protobuf",
         "//libraries/protobuf:protobuf_test_lib",
+        "//android/app-inspection/api",
         "//android/app-inspection/api:api_test_lib",
+        "//android/app-inspection/ide",
         "//android/app-inspection/ide:ide_test_lib",
+        "//android/app-inspection/inspector/api",
         "//android/app-inspection/inspector/api:api_test_lib",
+        "//android/layout-inspector",
         "//android/layout-inspector:layout-inspector_test_lib",
+        "//android/project-system",
         "//android/project-system:project-system_test_lib",
+        "//android/android-common:common",
+        "//android/android-common:common_test_lib",
+        "//android/project-system-gradle:projectSystem-gradle",
         "//android/project-system-gradle:projectSystem-gradle_test_lib",
+        "//libraries/junit4",
+        "//libraries/junit4:junit4_test_lib",
+        "@lib//:truth",
+        "//android/adt-testutils",
+        "//android/adt-testutils:adt-testutils_test_lib",
+        "//android/project-system-gradle-models:projectSystem-gradle-models",
+        "//android/project-system-gradle-models:projectSystem-gradle-models_test_lib",
+        "//android/android-test-framework:testFramework",
+        "//android/android-test-framework:testFramework_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
+        "//java/testFramework",
+        "//java/testFramework:testFramework_test_lib",
+        "//platform/lang-core",
+        "//platform/lang-core:lang-core_test_lib",
+        "//platform/projectModel-api:projectModel",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/core-api:core",
         "//platform/core-api:core_test_lib",
+        "//java/java-syntax:syntax",
+        "//java/java-syntax:syntax_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.layout-inspector.gradle` end
@@ -67,3 +104,10 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.layout-inspector.gradle` end
+
+### auto-generated section `test intellij.android.layout-inspector.gradle` start
+jps_test(
+    name = "gradle_test",
+    runtime_deps = [":gradle_test_lib"],
+)
+### auto-generated section `test intellij.android.layout-inspector.gradle` end

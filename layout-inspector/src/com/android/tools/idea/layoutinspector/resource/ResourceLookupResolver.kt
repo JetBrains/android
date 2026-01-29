@@ -54,6 +54,7 @@ import com.android.tools.idea.layoutinspector.properties.PropertyType.COLOR
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.namespacing
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.res.ResourceNamespaceContext
 import com.android.tools.idea.res.StateList
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -222,6 +223,12 @@ class ResourceLookupResolver(
       psiClass = psiClass.superClass
     }
     return false
+  }
+
+  fun findCauseOfMissingSourceLocation(): VersionProblem? {
+    val projectSystem = project.getProjectSystem()
+    val token = projectSystem.getTokenOrNull(LambdaResolutionToken.EP_NAME)
+    return token?.findCauseOfMissingSourceLocation(projectSystem, appFacet.module)
   }
 
   private fun findAttributeDefinition(psiClass: PsiClass, styleableName: String?, attributeName: String): AttributeDefinition? {

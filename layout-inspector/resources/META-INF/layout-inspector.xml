@@ -73,6 +73,8 @@
                     interface="com.android.tools.idea.layoutinspector.stateinspection.LayoutInspectorStateInspectionFilterProvider" />
     <extensionPoint qualifiedName="com.android.tools.idea.layoutinspector.stateinspection.stateReadRewriter"
                     interface="com.android.tools.idea.layoutinspector.stateinspection.LayoutInspectorStateReadRewriter" />
+    <extensionPoint qualifiedName="com.android.tools.idea.layoutinspector.resource.getLambdaResolutionToken"
+                    interface="com.android.tools.idea.layoutinspector.resource.LambdaResolutionToken"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.tools.idea.transport">

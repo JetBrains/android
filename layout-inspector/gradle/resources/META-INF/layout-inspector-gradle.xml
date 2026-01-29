@@ -17,4 +17,7 @@
   <extensions defaultExtensionNs="com.android.tools.idea.layoutinspector.pipeline.appinspection.compose">
     <getComposeLayoutInspectorJarToken implementation="com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposeLayoutInspectorJarGradleToken"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.layoutinspector.resource">
+    <getLambdaResolutionToken implementation="com.android.tools.idea.layoutinspector.resource.LambdaResolutionGradleToken"/>
+  </extensions>
 </idea-plugin>
