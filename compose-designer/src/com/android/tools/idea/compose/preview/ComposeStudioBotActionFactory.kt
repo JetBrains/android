@@ -28,44 +28,44 @@ interface ComposeStudioBotActionFactory {
    * An action to transform (e.g. fix, improve, evolve) the selected Compose Preview, taking both
    * the preview image and its corresponding code into account.
    */
-  fun transformPreviewAction(): AnAction?
+  fun transformPreviewAction(): AnAction
 
   /**
    * An action to fix visual lint issues found by UI Check for a Compose Preview.
    *
    * @param methodFqn The fully qualified name of the composable method.
    */
-  fun fixVisualLintIssuesAction(methodFqn: String): AnAction?
+  fun fixVisualLintIssuesAction(methodFqn: String): AnAction
 
   /**
    * An action to fix render issues in Compose Previews.
    *
    * @param renderIssues The list of render issues to fix.
    */
-  fun fixComposeRenderIssueAction(): AnAction?
+  fun fixComposeRenderIssueAction(): AnAction
 
   /**
    * [DropdownAction] to list AI agent-based actions that are specific to a single preview. It's
    * expected to be displayed in the context menu.
    */
-  fun previewAgentsDropDownAction(): DropDownAction?
+  fun previewAgentsDropDownAction(): DropDownAction
 
   /**
    * [DefaultActionGroup] to list AI agent-based actions that are specific to a single preview. It's
    * expected to be displayed in overflow menu.
    */
-  fun previewAgentsActionGroup(): DefaultActionGroup?
+  fun previewAgentsActionGroup(): DefaultActionGroup
 
   /** Action to generate Compose code from a screenshot of a UI. */
   fun screenshotToCodeAction(): AnAction
 
   /** [DropDownAction] to list AI agent-based actions that are displayed in the toolbar. */
-  fun previewAgentsToolbarAction(): DropDownAction?
+  fun previewAgentsToolbarAction(): DropDownAction
 
   companion object {
     val EP_NAME: ExtensionPointName<ComposeStudioBotActionFactory> =
-      ExtensionPointName.create(
-        "com.android.tools.idea.compose.preview.composeStudioBotActionFactory"
-      )
+        ExtensionPointName.create(
+            "com.android.tools.idea.compose.preview.composeStudioBotActionFactory"
+        )
   }
 }

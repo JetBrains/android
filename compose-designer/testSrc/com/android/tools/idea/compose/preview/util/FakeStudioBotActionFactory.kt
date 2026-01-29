@@ -31,8 +31,8 @@ open class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
 
   private fun fakeDefaultActionGroup(): DefaultActionGroup {
     return DefaultActionGroup(
-      "previewAgents",
-      listOf(transformPreviewAction(), fakeAction("Match UI"), fakeAction("Fix UI")),
+        "previewAgents",
+        listOf(transformPreviewAction(), fakeAction("Match UI"), fakeAction("Fix UI")),
     )
   }
 
@@ -66,5 +66,5 @@ open class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
     return fakeAction("Generate Code From Screenshot")
   }
 
-  override fun previewAgentsToolbarAction(): DropDownAction? = fakeDropDownAction()
+  override fun previewAgentsToolbarAction(): DropDownAction = fakeDropDownAction()
 }
