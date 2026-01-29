@@ -66,7 +66,6 @@ class ToggleLiveUpdatesAction(private val layoutInspector: LayoutInspector) :
   }
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    layoutInspector.renderModel.fireModified()
     val currentClient = client(event)
     if (currentClient.capabilities.contains(InspectorClient.Capability.SUPPORTS_CONTINUOUS_MODE)) {
       when (state) {

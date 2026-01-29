@@ -20,7 +20,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.isActionActive
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
-import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -42,7 +41,7 @@ const val RECOMPOSITION_COLOR_PURPLE_ARGB = 0xFF871094.toInt()
 const val RECOMPOSITION_COLOR_ORANGE_ARGB = 0xFFE1A336.toInt()
 
 /** Action shown in Layout Inspector toolbar, used to control Layout Inspector [RenderSettings]. */
-class RenderSettingsAction(private val renderModelProvider: () -> RenderModel, renderSettingsProvider: () -> RenderSettings) :
+class RenderSettingsAction(private val isEnabled: () -> Boolean, renderSettingsProvider: () -> RenderSettings) :
   DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE) {
 
   init {
@@ -58,7 +57,7 @@ class RenderSettingsAction(private val renderModelProvider: () -> RenderModel, r
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun update(e: AnActionEvent) {
-    val enabled = renderModelProvider().isActive
+    val enabled = isEnabled()
     e.presentation.isEnabled = enabled
     e.presentation.isPerformGroup = enabled
   }

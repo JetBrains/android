@@ -205,7 +205,6 @@ class LayoutInspectorToolWindowFactoryTest {
         notificationModel = mock(),
         treeSettings = mock(),
         executor = MoreExecutors.directExecutor(),
-        renderModel = mock(),
       )
 
     val stopInspectorLatch = CountDownLatch(1)

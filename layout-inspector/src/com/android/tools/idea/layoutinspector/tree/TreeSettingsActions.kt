@@ -20,7 +20,6 @@ import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.snapshots.FileEditorInspectorClient
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
-import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -31,10 +30,9 @@ private const val SHOW_RECOMPOSITION_COUNTS = "Show Recomposition Counts"
 /** This file contains view options for the component tree. */
 
 /** Filter menu group */
-class FilterGroupAction(renderModelProvider: () -> RenderModel?) :
-  DropDownAction("Filter", "View Options for Component Tree", StudioIcons.Common.VISIBILITY_INLINE) {
+class FilterGroupAction : DropDownAction("Filter", "View Options for Component Tree", StudioIcons.Common.VISIBILITY_INLINE) {
   init {
-    add(SystemNodeFilterAction(renderModelProvider))
+    add(SystemNodeFilterAction())
     add(HighlightSemanticsAction)
     add(CallstackAction)
     add(RecompositionCounts)
@@ -43,7 +41,7 @@ class FilterGroupAction(renderModelProvider: () -> RenderModel?) :
 }
 
 /** Filter system nodes from view hierarchy and compose hierarchy. */
-class SystemNodeFilterAction(private val renderModelProvider: () -> RenderModel?) : ToggleAction("Filter System-Defined Layers") {
+class SystemNodeFilterAction : ToggleAction("Filter System-Defined Layers") {
   override fun isSelected(event: AnActionEvent): Boolean =
     LayoutInspectorRootPanel.get(event)?.treeSettings?.hideSystemNodes ?: DEFAULT_HIDE_SYSTEM_NODES
 
@@ -67,7 +65,6 @@ class SystemNodeFilterAction(private val renderModelProvider: () -> RenderModel?
 
     // Update the component tree:
     event.treePanel()?.refresh()
-    renderModelProvider()?.refresh()
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

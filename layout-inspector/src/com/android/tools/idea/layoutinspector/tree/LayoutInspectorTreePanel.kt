@@ -169,7 +169,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     val commonActionManager = CommonActionsManager.getInstance()
     additionalActions =
       listOf(
-        FilterGroupAction { layoutInspector?.renderModel },
+        FilterGroupAction(),
         commonActionManager.createExpandAllAction(treeExpander, tree),
         commonActionManager.createCollapseAllAction(treeExpander, tree),
       )

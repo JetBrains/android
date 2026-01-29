@@ -1093,7 +1093,7 @@ class LayoutInspectorTreePanelTest {
 
   @Test
   fun testListenersAreClearedOnDispose() {
-    assertThat(inspectorRule.inspector.inspectorModel.modificationListeners.size()).isEqualTo(3)
+    assertThat(inspectorRule.inspector.inspectorModel.modificationListeners.size()).isEqualTo(2)
     val disposable = Disposer.newDisposable(projectRule.fixture.testRootDisposable)
     val panel = runInEdtAndGet { LayoutInspectorTreePanel(disposable) }
 
@@ -1101,13 +1101,13 @@ class LayoutInspectorTreePanelTest {
 
     assertThat(inspectorRule.inspector.inspectorModel.selectionListeners.size()).isEqualTo(1)
     assertThat(inspectorRule.inspector.inspectorModel.connectionListeners.size()).isEqualTo(2)
-    assertThat(inspectorRule.inspector.inspectorModel.modificationListeners.size()).isEqualTo(5)
+    assertThat(inspectorRule.inspector.inspectorModel.modificationListeners.size()).isEqualTo(4)
 
     Disposer.dispose(disposable)
 
     assertThat(inspectorRule.inspector.inspectorModel.selectionListeners.size()).isEqualTo(0)
     assertThat(inspectorRule.inspector.inspectorModel.connectionListeners.size()).isEqualTo(0)
-    assertThat(inspectorRule.inspector.inspectorModel.modificationListeners.size()).isEqualTo(3)
+    assertThat(inspectorRule.inspector.inspectorModel.modificationListeners.size()).isEqualTo(2)
   }
 
   @RunsInEdt

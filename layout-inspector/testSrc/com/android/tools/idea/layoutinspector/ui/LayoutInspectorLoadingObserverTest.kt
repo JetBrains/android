@@ -112,7 +112,7 @@ class LayoutInspectorLoadingObserverTest {
       }
     )
 
-    assertThat(inspectorRule.inspectorModel.modificationListeners.size()).isEqualTo(3)
+    assertThat(inspectorRule.inspectorModel.modificationListeners.size()).isEqualTo(2)
 
     Disposer.dispose(layoutInspectorLoadingObserver)
 

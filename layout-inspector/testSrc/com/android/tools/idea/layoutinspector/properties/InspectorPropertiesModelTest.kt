@@ -28,7 +28,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
-import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
@@ -81,7 +80,6 @@ class InspectorPropertiesModelTest {
     val mockClientSettings = mock<InspectorClientSettings>()
     val mockLauncher = mock<InspectorClientLauncher>()
     val inspectorModel = model(disposableRule.disposable) { view(ROOT, qualifiedName = "root") }
-    val mockRenderModel = mock<RenderModel>()
 
     val mockTreeSettings = mock<TreeSettings>()
     return LayoutInspector(
@@ -94,7 +92,6 @@ class InspectorPropertiesModelTest {
       inspectorModel,
       NotificationModel(projectRule.project),
       mockTreeSettings,
-      renderModel = mockRenderModel,
     )
   }
 

@@ -172,7 +172,7 @@ data class SelectedTabState(
         ToggleDeepInspectAction(
           isSelected = { toolbarState.isDeepInspectEnabled.value },
           setSelected = { toolbarState.setDeepInspectEnabled(it) },
-          isRendering = { layoutInspector.renderModel.isActive },
+          isRendering = { !layoutInspector.inspectorModel.isEmpty },
           connectedClientProvider = { layoutInspector.currentClient },
         )
 

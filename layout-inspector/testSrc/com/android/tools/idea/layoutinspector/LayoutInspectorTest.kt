@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.testutils.waitForCondition
 import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
@@ -31,15 +30,12 @@ import com.android.tools.idea.layoutinspector.pipeline.fakeDevice
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
-import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
-import java.util.concurrent.TimeUnit
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
@@ -47,7 +43,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.timeout
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.kotlin.mock
@@ -71,7 +66,6 @@ class LayoutInspectorTest {
   private lateinit var processModel: ProcessesModel
   private lateinit var mockForegroundProcessDetection: ForegroundProcessDetection
   private lateinit var inspectorModel: InspectorModel
-  private lateinit var mockRenderModel: RenderModel
   private lateinit var scope: CoroutineScope
 
   @Before
@@ -85,7 +79,6 @@ class LayoutInspectorTest {
     val mockClientSettings = mock<InspectorClientSettings>()
     val mockLauncher = mock<InspectorClientLauncher>()
     inspectorModel = model(disposableRule.disposable) { view(ROOT, qualifiedName = "root") }
-    mockRenderModel = mock()
 
     val mockTreeSettings = mock<TreeSettings>()
     layoutInspector =
@@ -99,7 +92,6 @@ class LayoutInspectorTest {
         inspectorModel,
         NotificationModel(projectRule.project),
         mockTreeSettings,
-        renderModel = mockRenderModel,
       )
   }
 
@@ -144,16 +136,6 @@ class LayoutInspectorTest {
 
     verifyNoMoreInteractions(mockForegroundProcessDetection)
     assertThat(processModel.selectedProcess).isNull()
-  }
-
-  @Test
-  fun updateRenderOnModelChanges() {
-    var imagesRefreshed = false
-    val newWindow = window(ROOT, ROOT, onRefreshImages = { imagesRefreshed = true })
-
-    inspectorModel.update(newWindow, listOf(ROOT), 0)
-    waitForCondition(10.seconds) { imagesRefreshed }
-    verify(mockRenderModel, timeout(TimeUnit.SECONDS.toMillis(10)).times(2)).refresh()
   }
 
   @Test

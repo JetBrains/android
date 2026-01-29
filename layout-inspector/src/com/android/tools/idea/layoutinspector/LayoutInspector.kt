@@ -33,8 +33,6 @@ import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetectio
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.EditorRenderSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
-import com.android.tools.idea.layoutinspector.ui.RenderLogic
-import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
@@ -84,8 +82,6 @@ private constructor(
   val launcher: InspectorClientLauncher?,
   private val currentClientProvider: () -> InspectorClient,
   workerExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
-  val renderModel: RenderModel,
-  val renderLogic: RenderLogic,
 ) {
 
   /** Construct a LayoutInspector that can launch new [InspectorClient]s as needed using [launcher]. */
@@ -101,8 +97,6 @@ private constructor(
     treeSettings: TreeSettings,
     renderSettings: RenderSettings = InspectorRenderSettings(),
     executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
-    renderModel: RenderModel = RenderModel(layoutInspectorModel, notificationModel, treeSettings) { launcher.activeClient },
-    renderLogic: RenderLogic = RenderLogic(renderModel, renderSettings),
   ) : this(
     layoutInspectorModel,
     notificationModel,
@@ -117,8 +111,6 @@ private constructor(
     launcher,
     { launcher.activeClient },
     executor,
-    renderModel,
-    renderLogic,
   ) {
     launcher.addClientChangedListener(::onClientChanged)
   }
@@ -133,8 +125,6 @@ private constructor(
     treeSettings: TreeSettings,
     renderSettings: RenderSettings = EditorRenderSettings(),
     executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
-    renderModel: RenderModel = RenderModel(layoutInspectorModel, notificationModel, treeSettings) { client },
-    renderLogic: RenderLogic = RenderLogic(renderModel, renderSettings),
   ) : this(
     inspectorModel = layoutInspectorModel,
     notificationModel = notificationModel,
@@ -149,8 +139,6 @@ private constructor(
     launcher = null,
     currentClientProvider = { client },
     workerExecutor = executor,
-    renderModel,
-    renderLogic,
   ) {
     onClientChanged(client)
   }
@@ -158,10 +146,7 @@ private constructor(
   init {
     // refresh the rendering each time the inspector model changes
     inspectorModel.addModificationListener { _, newAndroidWindow, _ ->
-      coroutineScope.launch {
-        newAndroidWindow?.refreshImages(renderLogic.renderSettings.scaleFraction)
-        renderModel.refresh()
-      }
+      coroutineScope.launch { newAndroidWindow?.refreshImages(renderSettings.scaleFraction) }
     }
   }
 

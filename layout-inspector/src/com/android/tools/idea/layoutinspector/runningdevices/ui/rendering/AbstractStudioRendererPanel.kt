@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.adblib.utils.createChildScope
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
-import com.android.tools.idea.layoutinspector.ui.HQ_RENDERING_HINTS
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -32,6 +31,7 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Image
 import java.awt.Rectangle
+import java.awt.RenderingHints
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.geom.AffineTransform
@@ -42,6 +42,16 @@ import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+
+val HQ_RENDERING_HINTS =
+  mapOf(
+    RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
+    RenderingHints.KEY_TEXT_ANTIALIASING to RenderingHints.VALUE_TEXT_ANTIALIAS_ON,
+    RenderingHints.KEY_FRACTIONALMETRICS to RenderingHints.VALUE_FRACTIONALMETRICS_ON,
+    RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY,
+    RenderingHints.KEY_INTERPOLATION to RenderingHints.VALUE_INTERPOLATION_BILINEAR,
+    RenderingHints.KEY_STROKE_CONTROL to RenderingHints.VALUE_STROKE_PURE,
+  )
 
 /** Base class for a studio-side renderer (non on-device renderer) that is driven by an [EmbeddedRendererModel]. */
 abstract class AbstractStudioRendererPanel(

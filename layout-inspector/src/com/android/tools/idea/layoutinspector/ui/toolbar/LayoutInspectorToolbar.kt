@@ -214,8 +214,8 @@ private class LayoutInspectorActionGroup(
 
     val rendererSettingsAction =
       RenderSettingsAction(
-        renderModelProvider = { layoutInspector.renderModel },
-        renderSettingsProvider = { layoutInspector.renderLogic.renderSettings },
+        isEnabled = { !layoutInspector.inspectorModel.isEmpty },
+        renderSettingsProvider = { layoutInspector.renderSettings },
       )
     add(rendererSettingsAction)
     firstGroupExtraActions.forEach { add(it) }
