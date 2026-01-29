@@ -20,6 +20,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
+import com.intellij.compiler.options.CompileStepBeforeRun
+import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.openapi.extensions.ExtensionNotApplicableException
 import com.intellij.testFramework.DisposableRule
@@ -29,10 +31,13 @@ import org.junit.Test
 
 class AndroidDeclarativeWatchFaceConfigurationTypeTest {
   private val flagRule = FlagRule(StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION, true)
-  private val appRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.inMemory()
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rule = RuleChain(flagRule, appRule, disposableRule)
+  @get:Rule val rule = RuleChain(flagRule, projectRule, disposableRule)
+
+  private val project
+    get() = projectRule.project
 
   @Test
   fun `the declarative watch face run configuration is available when the flag is enabled`() {
@@ -45,5 +50,19 @@ class AndroidDeclarativeWatchFaceConfigurationTypeTest {
     StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION.overrideForTest(false, disposableRule.disposable)
 
     AndroidDeclarativeWatchFaceConfigurationType()
+  }
+
+  // Regression test for b/476891944
+  @Test
+  fun `default make task is disabled`() {
+    val factory = AndroidDeclarativeWatchFaceConfigurationType().configurationFactories.single()
+    val configSettings = RunManager.getInstance(project)
+      .createConfiguration("test config", factory)
+    val beforeRunTasks = configSettings.configuration.beforeRunTasks
+
+    val makeTasks = beforeRunTasks
+      .filterIsInstance<CompileStepBeforeRun.MakeBeforeRunTask>()
+      .filter { it.isEnabled }
+    assertThat(makeTasks).isEmpty()
   }
 }

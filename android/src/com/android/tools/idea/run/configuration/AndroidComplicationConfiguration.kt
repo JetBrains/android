@@ -48,7 +48,7 @@ class AndroidComplicationConfigurationType :
   }
 
   init {
-    addFactory(object : ConfigurationFactory(this) {
+    addFactory(object : AndroidWearConfigurationFactory(this) {
       override fun getId() = "AndroidComplicationConfigurationFactory"
       override fun createTemplateConfiguration(project: Project) = AndroidComplicationConfiguration(project, this)
     })

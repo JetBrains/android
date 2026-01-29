@@ -19,6 +19,7 @@ import com.android.tools.idea.execution.common.DeployableToDevice
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.compiler.options.CompileStepBeforeRun
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
@@ -53,5 +54,19 @@ class AndroidTileConfigurationTest {
       "run tile", AndroidTileConfigurationType().configurationFactories.single())
 
     assertThat(DeployableToDevice.deploysToLocalDevice(configSettings.configuration)).isTrue()
+  }
+
+  // Regression test for b/476891944
+  @Test
+  fun testDefaultMakeTaskIsDisabled() {
+    val factory = AndroidTileConfigurationType().configurationFactories.single()
+    val configSettings = RunManager.getInstance(project)
+      .createConfiguration("test config", factory)
+    val beforeRunTasks = configSettings.configuration.beforeRunTasks
+
+    val makeTasks = beforeRunTasks
+      .filterIsInstance<CompileStepBeforeRun.MakeBeforeRunTask>()
+      .filter { it.isEnabled }
+    assertThat(makeTasks).isEmpty()
   }
 }

@@ -98,7 +98,7 @@ class AndroidDeclarativeWatchFaceConfigurationType :
       throw ExtensionNotApplicableException.create()
     }
     addFactory(
-      object : ConfigurationFactory(this) {
+      object : AndroidWearConfigurationFactory(this) {
         override fun getId() = "AndroidDeclarativeWatchFaceConfigurationFactory"
 
         override fun createTemplateConfiguration(project: Project) =

@@ -43,7 +43,7 @@ class AndroidTileConfigurationType :
   }
 
   init {
-    addFactory(object : ConfigurationFactory(this) {
+    addFactory(object : AndroidWearConfigurationFactory(this) {
       override fun getId() = "AndroidTileConfigurationFactory"
       override fun createTemplateConfiguration(project: Project) = AndroidTileConfiguration(project, this)
     })

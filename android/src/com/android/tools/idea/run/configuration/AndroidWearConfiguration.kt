@@ -40,9 +40,12 @@ import com.android.tools.idea.run.configuration.editors.AndroidWearConfiguration
 import com.android.tools.idea.run.configuration.execution.ApplicationDeployerImpl
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
 import com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.Companion.getModuleForAndroidRunConfiguration
+import com.intellij.compiler.options.CompileStepBeforeRun
+import com.intellij.execution.BeforeRunTask
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
+import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.execution.configurations.JavaRunConfigurationModule
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefaultDebugAction
@@ -52,10 +55,23 @@ import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAc
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.util.xmlb.XmlSerializer
 import org.jdom.Element
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
+
+abstract class AndroidWearConfigurationFactory(type: ConfigurationType) :
+  ConfigurationFactory(type) {
+  override fun configureBeforeRunTaskDefaults(
+    providerID: Key<out BeforeRunTask<*>>,
+    task: BeforeRunTask<*>,
+  ) {
+    if (CompileStepBeforeRun.ID == providerID) {
+      task.isEnabled = false
+    }
+  }
+}
 
 abstract class AndroidWearConfiguration(project: Project, factory: ConfigurationFactory) :
   ModuleBasedConfiguration<JavaRunConfigurationModule, Element>(JavaRunConfigurationModule(project, false), factory),

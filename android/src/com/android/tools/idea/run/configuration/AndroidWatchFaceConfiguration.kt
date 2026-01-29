@@ -42,7 +42,7 @@ class AndroidWatchFaceConfigurationType :
   }
 
   init {
-    addFactory(object : ConfigurationFactory(this) {
+    addFactory(object : AndroidWearConfigurationFactory(this) {
       override fun getId() = "AndroidWatchFaceConfigurationFactory"
       override fun createTemplateConfiguration(project: Project) = AndroidWatchFaceConfiguration(project, this)
     })
