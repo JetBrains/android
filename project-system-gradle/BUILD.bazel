@@ -271,6 +271,7 @@ jvm_library(
     "//android/intellij.android.testutils:testutils_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//plugins/gradle:gradle-common",
+    "//plugins/gradle/plugin",
     "//plugins/gradle/java",
     "//plugins/gradle/tooling-extension-api:toolingExtension",
     "//plugins/groovy",

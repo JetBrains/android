@@ -36,6 +36,7 @@ jvm_library(
     "//android/android-test-framework:testFramework_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//plugins/gradle:gradle-common",
+    "//plugins/gradle/plugin",
     "//platform/analysis-api:analysis",
     "//java/testFramework",
     "//platform/core-api:core",

@@ -71,6 +71,7 @@ jvm_library(
     "//android/android-test-framework:testFramework_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//plugins/gradle:gradle-common",
+    "//plugins/gradle/plugin",
     "//java/compiler/impl",
     "//java/java-analysis-impl:analysis-impl",
     "//java/java-analysis-api:analysis",

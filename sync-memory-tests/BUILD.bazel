@@ -40,6 +40,7 @@ jvm_library(
     "//android/intellij.android.testutils:testutils_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//plugins/gradle:gradle-common",
+    "//plugins/gradle/plugin",
     "//platform/core-api:core",
     "//platform/extensions",
     "//platform/external-system-api:externalSystem",

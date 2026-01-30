@@ -469,6 +469,7 @@ jvm_library(
     "//android/utp:utp_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//plugins/gradle:gradle-common",
+    "//plugins/gradle/plugin",
     "//java/openapi:java",
     "//java/java-frontback-impl:frontback-impl",
     "//java/testFramework",

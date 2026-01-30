@@ -35,6 +35,7 @@
     <orderEntry type="module" module-name="intellij.platform.codeStyle.impl" />
     <orderEntry type="module" module-name="intellij.kotlin.base.util" />
     <orderEntry type="module" module-name="intellij.gradle" />
+    <orderEntry type="module" module-name="intellij.gradle.plugin" />
     <orderEntry type="module" module-name="intellij.gradle.java" />
   </component>
 </module>

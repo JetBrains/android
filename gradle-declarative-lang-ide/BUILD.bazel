@@ -40,6 +40,7 @@ jvm_library(
     "//platform/code-style-impl:codeStyle-impl",
     "//plugins/kotlin/base/util",
     "//plugins/gradle",
+    "//plugins/gradle/plugin",
     "//plugins/gradle/java",
   ]
 )

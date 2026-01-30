@@ -49,6 +49,7 @@ jvm_library(
     "//android/server-flags:server-flags_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
     "//plugins/gradle:gradle-common",
+    "//plugins/gradle/plugin",
     "//java/openapi:java",
     "//java/idea-ui:ui",
     "//java/testFramework",

@@ -15,7 +15,7 @@
   -->
 <idea-plugin>
   <dependencies>
-    <plugin id="com.intellij.gradle"/>
+    <module name="intellij.gradle"/>
   </dependencies>
   <extensions defaultExtensionNs="com.intellij">
     <registryKey key="gradle.declarative.ide.support" defaultValue="false" description="Declarative IDE support"/>

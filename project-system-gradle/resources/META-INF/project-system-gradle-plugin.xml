@@ -15,8 +15,7 @@
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <dependencies>
-    <plugin id="com.intellij.gradle"/>
-    <plugin id="org.jetbrains.plugins.gradle"/>
+    <module name="intellij.gradle"/>
     <plugin id="org.jetbrains.kotlin"/>
   </dependencies>
 

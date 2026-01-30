@@ -106,6 +106,7 @@ jvm_library(
     "//android/intellij.android.testutils:testutils_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//plugins/gradle:gradle-common",
+    "//plugins/gradle/plugin",
     "//java/java-frontback-psi-api:frontback-psi",
     "//java/testFramework",
     "//platform/analysis-api:analysis",

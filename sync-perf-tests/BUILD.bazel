@@ -26,6 +26,7 @@ jvm_library(
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/android-test-framework:testFramework_test_lib",
     "//plugins/gradle:gradle-common",
+    "//plugins/gradle/plugin",
     "//platform/core-api:core",
     "//platform/core-impl",
     "//platform/external-system-api:externalSystem",

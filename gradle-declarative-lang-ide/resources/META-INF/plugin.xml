@@ -27,7 +27,7 @@
   <dependencies>
     <plugin id="com.intellij.java" />
     <module name="intellij.java.backend" />
-    <plugin id="com.intellij.gradle" />
+    <module name="intellij.gradle" />
     <plugin id="org.jetbrains.kotlin" />
   </dependencies>
 
