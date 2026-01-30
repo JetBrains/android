@@ -56,7 +56,7 @@ public final class ProductFlavorsDslElement extends AbstractFlavorTypeCollection
   public List<ProductFlavorModel> get() {
     List<ProductFlavorModel> result = new ArrayList<>();
     for (ProductFlavorDslElement dslElement : getValues(ProductFlavorDslElement.class)) {
-      if (!isGradleContainerMethodName(dslElement.getName())) {
+      if (dslElement.getPsiElement() == null || !isGradleContainerMethodName(dslElement.getName()) || dslElement.getMethodName() != null) {
         result.add(new ProductFlavorModelImpl(dslElement));
       }
     }

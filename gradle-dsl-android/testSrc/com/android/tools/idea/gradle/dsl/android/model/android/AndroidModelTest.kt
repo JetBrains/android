@@ -1161,6 +1161,13 @@ class AndroidModelTest : AndroidGradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddAndApplyCollectionMethodBuildTypeBlock() {
+    // `all` actually does not work as a buildType name because it leads to conflicting task names, but the
+    // principle is sound.
+    doTestAddAndApplyOneBuildTypeBlock("all", TestFile.ADD_AND_APPLY_COLLECTION_METHOD_BUILD_TYPE_BLOCK_EXPECTED)
+  }
+
+  @Test
   fun testAddAndApplyBuildTypeBlock() {
     writeToBuildFile(TestFile.ADD_AND_APPLY_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
@@ -2622,6 +2629,7 @@ class AndroidModelTest : AndroidGradleFileModelTestCase() {
     PARSE_VARIED_CONFIGURATOR_BUILD_TYPE_STATEMENTS("parseVariedConfiguratorBuildTypeStatements"),
     ADD_AND_APPLY_BUILD_TYPE_BLOCK("addAndApplyBuildTypeBlock"),
     ADD_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyBuildTypeBlockExpected"),
+    ADD_AND_APPLY_COLLECTION_METHOD_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyCollectionMethodBuildTypeBlockExpected"),
     ADD_AND_APPLY_DEREF_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyDerefBuildTypeBlockExpected"),
     ADD_AND_APPLY_DOTTED_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyDottedBuildTypeBlockExpected"),
     ADD_AND_APPLY_LANGUAGE_KEYWORD_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyLanguageKeywordBuildTypeBlockExpected"),

@@ -55,7 +55,7 @@ public class TargetsDslElement extends GradleDslElementMap implements GradleDslN
   public List<TargetModel> get() {
     List<TargetModel> result = new ArrayList<>();
     for (TargetDslElement dslElement : getValues(TargetDslElement.class)) {
-      if (!isGradleContainerMethodName(dslElement.getName())) {
+      if (dslElement.getPsiElement() == null || !isGradleContainerMethodName(dslElement.getName()) || dslElement.getMethodName() != null) {
         result.add(new TargetModelImpl(dslElement));
       }
     }

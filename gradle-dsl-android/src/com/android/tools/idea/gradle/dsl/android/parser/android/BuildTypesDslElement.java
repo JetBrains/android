@@ -58,7 +58,7 @@ public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslE
     List<BuildTypeModel> result = new ArrayList<>();
     for (BuildTypeDslElement dslElement : getValues(BuildTypeDslElement.class)) {
       // Filter any buildtypes that we have wrongly detected.
-      if (!isGradleContainerMethodName(dslElement.getName())) {
+      if (dslElement.getPsiElement() == null || !isGradleContainerMethodName(dslElement.getName()) || dslElement.getMethodName() != null) {
         result.add(new BuildTypeModelImpl(dslElement));
       }
     }
