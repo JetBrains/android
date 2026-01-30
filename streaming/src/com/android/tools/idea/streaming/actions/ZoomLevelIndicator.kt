@@ -71,14 +71,14 @@ class ZoomLevelIndicator : DumbAwareAction(EmptyIcon.ICON_16), CustomComponentAc
     place: String
   ) : ActionButton(action, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE) {
 
-    private var myCachedTextPainter: TextPainter? = null
+    private var cachedTextPainter: TextPainter? = null
     private val textPainter: TextPainter
       get() {
         val text = presentation.description ?: ""
-        if (myCachedTextPainter?.baseFont != font || myCachedTextPainter?.text != text) {
-          myCachedTextPainter = null
+        if (cachedTextPainter?.baseFont != font || cachedTextPainter?.text != text) {
+          cachedTextPainter = null
         }
-        return myCachedTextPainter ?: TextPainter(font, text, width).also { myCachedTextPainter = it }
+        return cachedTextPainter ?: TextPainter(font, text, width).also { cachedTextPainter = it }
       }
 
     override fun paintComponent(g: Graphics) {
