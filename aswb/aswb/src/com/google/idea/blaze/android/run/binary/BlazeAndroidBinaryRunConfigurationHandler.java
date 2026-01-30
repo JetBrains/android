@@ -19,6 +19,7 @@ import static com.google.idea.blaze.android.run.LaunchMetrics.logBinaryLaunch;
 
 import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.run.ValidationError;
+import com.android.tools.sdk.AndroidPlatform;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -34,6 +35,7 @@ import com.google.idea.blaze.android.run.runner.BlazeAndroidDeployAndLaunchStrat
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunConfigurationRunner;
 import com.google.idea.blaze.android.run.runner.BlazeApkBuildStep;
 import com.google.idea.blaze.android.run.runner.LiveEditDataExtractor;
+import com.google.idea.blaze.android.sync.sdk.SdkUtil;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.logging.EventLoggingService;
@@ -136,7 +138,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
               AndroidBinaryLaunchMethodsUtils.useMobileInstall(configState.getLaunchMethod()),
               configState.getCommonState().isNativeDebuggingEnabled(),
               QuerySyncUserPreferencesProvider.getInstance(project).getUserPreferences().getLiveEditEnabled()
-              ? createLiveEditDataExtractor()
+              ? createLiveEditDataExtractor(binaryTargetLabel)
               : null,
               binaryTargetLabel,
               blazeFlags,
@@ -170,8 +172,12 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
                                                   buildStep.getLiveEditDataExtractor());
   }
 
-  private LiveEditDataExtractor createLiveEditDataExtractor() {
-    return new AndroidBinaryLiveEditDataExtractor(project);
+  private LiveEditDataExtractor createLiveEditDataExtractor(Label binaryTargetLabel) {
+    AndroidPlatform androidPlatform = SdkUtil.getAndroidPlatform(project);
+    if (androidPlatform == null) {
+      throw new IllegalStateException("Internal error: Android platform is not available");
+    }
+    return new AndroidBinaryLiveEditDataExtractor(project, binaryTargetLabel);
   }
 
   @Override

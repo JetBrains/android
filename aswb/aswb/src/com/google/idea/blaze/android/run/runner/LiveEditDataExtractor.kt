@@ -15,9 +15,11 @@
  */
 package com.google.idea.blaze.android.run.runner
 
+import com.android.tools.idea.run.classes.BuildOutcome
 import com.google.idea.blaze.base.bazel.BuildSystem
 import com.google.idea.blaze.base.command.BlazeCommand
 import com.google.idea.blaze.base.scope.BlazeContext
+import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
 
 /**
  * An entity that knows how to instrument Bazel build and how to collect data required for Live Edit from the build results.
@@ -28,4 +30,8 @@ interface LiveEditDataExtractor {
     buildInvoker: BuildSystem.BuildInvoker,
     commandBuilder: BlazeCommand.Builder,
   )
+
+  fun blockingExtract(context: BlazeContext, buildOutputs: BlazeBuildOutputs)
+
+  fun getBuildOutcomeBlocking(): BuildOutcome
 }

@@ -17,7 +17,6 @@ package com.google.idea.blaze.android.run.binary
 
 import com.android.tools.idea.run.classes.BuildOutcome
 import com.android.tools.idea.run.classes.BuildOutcomeCache
-import com.android.tools.sdk.AndroidPlatform
 import com.google.idea.blaze.android.run.runner.LiveEditDataExtractor
 import com.google.idea.blaze.base.bazel.BuildSystem
 import com.google.idea.blaze.base.command.BlazeCommand
@@ -29,7 +28,6 @@ import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import com.intellij.openapi.project.Project
-import java.nio.file.Path
 import java.time.Instant
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.completeWith
@@ -37,6 +35,7 @@ import kotlinx.coroutines.runBlocking
 
 class AndroidBinaryLiveEditDataExtractor(
   private val project: Project,
+  private val binaryTarget: Label
 ): LiveEditDataExtractor {
   private var preparedInvocation: DependencyBuilder.PreparedInvocation? = null
   private val outcome: CompletableDeferred<BuildOutcome> = CompletableDeferred()
@@ -59,5 +58,19 @@ class AndroidBinaryLiveEditDataExtractor(
       )
     invocation.updateCommand(commandBuilder)
     this.preparedInvocation = invocation
+  }
+
+  override fun blockingExtract(context: BlazeContext, buildOutputs: BlazeBuildOutputs) {
+    outcome.completeWith(
+      runCatching {
+        val invocation = preparedInvocation ?: error("Iternal error: blockingExtract extract called too soon")
+        val outputInfo = invocation.createOutputInfo(buildOutputs, Instant.now(), context)
+        BuildOutcomeCache.buildOutcome(project, binaryTarget, outputInfo, context)
+      }
+    )
+  }
+
+  override fun getBuildOutcomeBlocking(): BuildOutcome {
+    return runBlocking { outcome.await() }
   }
 }

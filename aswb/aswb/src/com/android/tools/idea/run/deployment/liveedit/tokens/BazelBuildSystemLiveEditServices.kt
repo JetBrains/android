@@ -16,55 +16,29 @@
 package com.android.tools.idea.run.deployment.liveedit.tokens
 
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
-import com.android.tools.idea.projectsystem.ClassContent
-import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices.Companion.DEFAULT_RUNTIME_VERSION
+import com.android.tools.idea.run.classes.BuildOutcome
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem
 import com.google.idea.blaze.android.projectsystem.BazelToken
 import com.google.idea.blaze.android.run.BazelApplicationProjectContext
-import com.google.idea.blaze.base.qsync.QuerySyncUserPreferencesProvider
+import com.google.idea.blaze.common.Label
 import com.google.idea.common.experiments.BoolExperiment
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiFile
-import java.nio.file.Path
-import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.psi.KtFile
 
 class BazelBuildSystemLiveEditServices :  BuildSystemLiveEditServices<BazelProjectSystem, BazelApplicationProjectContext>, BazelToken {
 
   override fun isApplicable(
     applicationProjectContext: ApplicationProjectContext
   ): Boolean {
-    return applicationProjectContext is BazelApplicationProjectContext
-           && QuerySyncUserPreferencesProvider(applicationProjectContext.project).userPreferences.liveEditEnabled
+    return (applicationProjectContext as? BazelApplicationProjectContext)?.liveEditDataExtractor != null
   }
 
   override fun getApplicationServices(
     bazelApplicationProjectContext: BazelApplicationProjectContext
   ): ApplicationLiveEditServices {
-    return object: ApplicationLiveEditServices {
-      private val compilationDependencies = object: ApplicationLiveEditServices.CompilationDependencies {
-        override fun getExternalLibraries(): List<Path> = emptyList()
-        override fun getBootClasspath(): List<Path> = emptyList()
-      }
-
-      override fun getClassContent(
-        file: VirtualFile,
-        className: String,
-      ): ClassContent? {
-        throw UnsupportedOperationException()
-      }
-
-      override fun getCompilationDependencies(file: PsiFile): ApplicationLiveEditServices.CompilationDependencies? = compilationDependencies
-
-      override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
-        throw UnsupportedOperationException()
-      }
-
-      override fun getDesugarConfigs() = DesugarConfigs.NotKnown("Desugar config not supported in ASWB")
-
-
-      override fun getRuntimeVersionString() = DEFAULT_RUNTIME_VERSION
-    }
+    val liveEditData = bazelApplicationProjectContext.liveEditDataExtractor ?: error("Internal error: liveEditDataExtractor == null")
+    return BazelApplicationLiveEditServices(
+      project = bazelApplicationProjectContext.project,
+      buildOutcomeProvider = liveEditData::getBuildOutcomeBlocking
+    )
   }
   override fun disqualifyingBytecodeTransformation(
     bazelApplicationProjectContext: BazelApplicationProjectContext

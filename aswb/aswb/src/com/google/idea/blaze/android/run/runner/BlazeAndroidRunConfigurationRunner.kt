@@ -124,7 +124,7 @@ class BlazeAndroidRunConfigurationRunner(
           executeUnderBuildProgress(environment) { context ->
             val buildOutputs = apkBuildStep.build(context)
             val deployInfo = extractDeployInfo(context, environment.project, buildOutputs)
-
+            liveEditDataExtractor?.blockingExtract(context, buildOutputs)
             launchStrategy.createBlazeAndroidRunContext(environment, deployInfo, liveEditDataExtractor, runConfig)
           }
           ?: throw ExecutionException("APK build failed")
