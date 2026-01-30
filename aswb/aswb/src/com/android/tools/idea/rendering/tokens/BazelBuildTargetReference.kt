@@ -17,13 +17,13 @@
 package com.android.tools.idea.rendering.tokens
 
 import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.run.deployment.liveedit.tokens.toPreferredLabel
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
+import com.google.idea.blaze.base.qsync.QuerySyncManager
+import com.google.idea.blaze.common.Label
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.serviceContainer.AlreadyDisposedException
-import com.google.idea.blaze.base.qsync.QuerySyncManager
-import com.google.idea.blaze.common.Label
-import com.google.idea.blaze.qsync.project.TargetsToBuild
 import kotlin.jvm.optionals.getOrNull
 
 @ConsistentCopyVisibility
@@ -47,11 +47,4 @@ internal fun BazelBuildTargetReference.toPreferredLabel(): Label? {
   return QuerySyncManager.getInstance(project)
     .getTargetsToBuildByPaths(listOf(getFileWorkspaceRelativePath()))
     .toPreferredLabel() { builds.containsKey(it) }
-}
-
-internal fun Collection<TargetsToBuild>.toPreferredLabel(isPreferredTarget: (Label) -> Boolean): Label? {
-  val candidates = flatMap { it.targets }.toSet()
-  if (candidates.size <= 1) return candidates.singleOrNull()
-
-  return candidates.singleOrNull { isPreferredTarget(it) }
 }

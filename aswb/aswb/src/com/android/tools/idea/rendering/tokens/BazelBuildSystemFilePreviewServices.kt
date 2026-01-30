@@ -19,6 +19,7 @@ import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.RenderingServices
 import com.android.tools.idea.run.classes.BuildOutcome
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
+import com.android.tools.idea.run.deployment.liveedit.tokens.BazelApplicationLiveEditServices
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem
 import com.google.idea.blaze.android.projectsystem.BazelToken
 import com.google.idea.blaze.base.qsync.QuerySyncManager

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.tokens
+package com.android.tools.idea.run.deployment.liveedit.tokens
 
 import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.run.classes.BuildOutcome
-import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
-import com.android.tools.idea.run.deployment.liveedit.tokens.DesugarConfigs
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySyncManager
+import com.google.idea.blaze.common.Label
+import com.google.idea.blaze.qsync.project.TargetsToBuild
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
@@ -37,7 +37,7 @@ import org.jetbrains.kotlin.psi.KtFile
 /**
  * Bazel implementation of [ApplicationLiveEditServices] for Live Edit and Compose previews.
  */
-internal class BazelApplicationLiveEditServices(
+class BazelApplicationLiveEditServices(
   private val project: Project,
   private val buildOutcomeProvider: BuildOutcomeProvider,
 ) : ApplicationLiveEditServices {
@@ -107,4 +107,11 @@ internal class BazelApplicationLiveEditServices(
   override fun getRuntimeVersionString(): String {
     return ApplicationLiveEditServices.DEFAULT_RUNTIME_VERSION
   }
+}
+
+fun Collection<TargetsToBuild>.toPreferredLabel(isPreferredTarget: (Label) -> Boolean): Label? {
+  val candidates = flatMap { it.targets }.toSet()
+  if (candidates.size <= 1) return candidates.singleOrNull()
+
+  return candidates.singleOrNull { isPreferredTarget(it) }
 }
