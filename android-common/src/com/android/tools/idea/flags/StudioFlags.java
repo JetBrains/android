@@ -2772,6 +2772,11 @@ public final class StudioFlags {
                     "Enable context compression",
                     "Enables agent context compression where when full, the oldest half is summarized to shorten the total context length");
 
+  public static final Flag<Boolean> STUDIOBOT_AI_CODE_ENABLED =
+    new BooleanFlag(STUDIOBOT, "aicode",
+                    "Enable AICode integration",
+                    "Enable AICode backend integration to be used for agent, code transform and code completion");
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
