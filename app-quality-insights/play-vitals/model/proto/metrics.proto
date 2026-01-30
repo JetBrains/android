@@ -1,50 +1,13 @@
 syntax = "proto3";
 
 package google.play.developer.reporting.v1beta1;
+
 import "google/type/datetime.proto";
 import "google/type/decimal.proto";
-option java_package = "com.google.play.developer.reporting";
-option java_outer_classname = "MetricsProto";
+
 option java_multiple_files = true;
-
-// Reference: https://source.corp.google.com/piper///depot/google3/google/play/developer/reporting/v1main/metrics.proto
-//
-// Granularity of the aggregation for rows in a metric set query result.
-enum AggregationPeriod {
-
-  // Unspecified granularity.
-  AGGREGATION_PERIOD_UNSPECIFIED = 0;
-
-  // Data is aggregated in hourly intervals.
-  HOURLY = 1;
-
-  // Data is aggregated in daily intervals.
-  DAILY = 2;
-
-  // Data is aggregated over the full timeline range. Effectively this produces
-  // a single value rather than a timeline.
-  FULL_RANGE = 3;
-}
-
-// Indicates the view selected by the user. The output data will correspond to
-// the selected view
-enum UserCohort {
-
-  // Unspecified User cohort. This will automatically choose the default value.
-  USER_COHORT_UNSPECIFIED = 0;
-
-  // This is default view. Contains data from public released android versions
-  // only.
-  OS_PUBLIC = 1;
-
-  // This is the view with just android beta data excluding released OS version
-  // data.
-  OS_BETA = 2;
-
-  // This is the view with data only from users who have opted in to be testers
-  // for a given app, excluding OS beta data.
-  APP_TESTERS = 3;
-}
+option java_outer_classname = "MetricsProto";
+option java_package = "com.google.play.developer.reporting";
 
 // Represents the latest available time that can be requested in a
 // [TimelineSpec][google.play.developer.reporting.${api_version}.TimelineSpec].
@@ -53,10 +16,8 @@ enum UserCohort {
 // aggregation may lag behind `HOURLY` in cases where such aggregation is
 // computed only once at the end of the day.
 message FreshnessInfo {
-
   // Information about data freshness for a single aggregation period.
   message Freshness {
-
     // Aggregation period for which data is available.
     AggregationPeriod aggregation_period = 1;
 
@@ -69,15 +30,12 @@ message FreshnessInfo {
     // America/Los_Angeles`, the value of this field would be `2021-06-24
     // 00:00:00 America/Los_Angeles` so it can be easily reused in
     // [TimelineSpec.end_time][google.play.developer.reporting.TimelineSpec.end_time].
-    google.type.DateTime latest_end_time = 2;
+    type.DateTime latest_end_time = 2;
   }
 
   // Information about data freshness for every supported aggregation period.
   //
   // This field has set semantics, keyed by the `aggregation_period` field.
-  //
-  // (-- This could have been a proto map, if proto3 supported enum keys. --)
-  // (-- What's the plural of 'freshness'? --)
   repeated Freshness freshnesses = 1;
 }
 
@@ -101,7 +59,6 @@ message FreshnessInfo {
 // support all timezones, so make sure to check which timezones are supported by
 // the metric set you want to query.
 message TimelineSpec {
-
   // Type of the aggregation period of the datapoints in the timeline.
   //
   // Intervals are identified by the date and time at the start of the interval.
@@ -119,29 +76,26 @@ message TimelineSpec {
   //     left unset to use the default timezone specified by the metric set.
   //
   // The timezone of the end point must match the timezone of the start point.
-  google.type.DateTime start_time = 2;
+  type.DateTime start_time = 2;
 
   // Ending datapoint of the timeline (exclusive). See start_time for
   // restrictions. The timezone of the end point must match the timezone of the
   // start point.
-  google.type.DateTime end_time = 3;
+  type.DateTime end_time = 3;
 }
 
 // Represents the value of a single dimension.
 message DimensionValue {
+  // Name of the dimension.
+  string dimension = 1;
 
   // Actual value of the dimension. Type-dependent.
   oneof value {
-
     // Actual value, represented as a string.
     string string_value = 2;
-
     // Actual value, represented as an int64.
     int64 int64_value = 3;
   }
-
-  // Name of the dimension.
-  string dimension = 1;
 
   // Human-friendly label for the value, always in English.
   // For example, 'Spain' for the 'ES' country code.
@@ -160,14 +114,13 @@ message MetricValue {
 
   // Actual value of the metric. Type-dependent.
   oneof value {
-
     // Actual value, represented as a decimal number.
-    google.type.Decimal decimal_value = 2;
+    type.Decimal decimal_value = 2;
   }
 
   // If given, represents a confidence interval for value.
   oneof confidence_interval {
-    // Confidence interval of a value that is of type type.Decimal.
+    // Confidence interval of a value that is of type `type.Decimal`.
     DecimalConfidenceInterval decimal_value_confidence_interval = 3;
   }
 }
@@ -175,24 +128,58 @@ message MetricValue {
 // Represents the confidence interval of a metric.
 message DecimalConfidenceInterval {
   // The confidence interval's lower bound.
-  google.type.Decimal lower_bound = 1;
+  type.Decimal lower_bound = 1;
   // The confidence interval's upper bound.
-  google.type.Decimal upper_bound = 2;
+  type.Decimal upper_bound = 2;
 }
 
 // Represents a row of dimensions and metrics.
 message MetricsRow {
-
   // Granularity of the aggregation period of the row.
   AggregationPeriod aggregation_period = 1;
 
   // Starting date (and time for hourly aggregation) of the period covered by
   // this row.
-  google.type.DateTime start_time = 2;
+  type.DateTime start_time = 2;
 
   // Dimension columns in the row.
   repeated DimensionValue dimensions = 3;
 
   // Metric columns in the row.
   repeated MetricValue metrics = 4;
+}
+
+// Granularity of the aggregation for rows in a metric set query result.
+enum AggregationPeriod {
+  // Unspecified granularity.
+  AGGREGATION_PERIOD_UNSPECIFIED = 0;
+
+  // Data is aggregated in hourly intervals.
+  HOURLY = 1;
+
+  // Data is aggregated in daily intervals.
+  DAILY = 2;
+
+  // Data is aggregated over the full timeline range. Effectively this produces
+  // a single value rather than a timeline.
+  FULL_RANGE = 3;
+}
+
+// Indicates the view selected by the user. The output data will correspond to
+// the selected view
+enum UserCohort {
+  // Unspecified User cohort. This will automatically choose the default value.
+  USER_COHORT_UNSPECIFIED = 0;
+
+  // This is default view. Contains data from public released android versions
+  // only.
+  OS_PUBLIC = 1;
+
+  // This is the view with just android beta data excluding released OS version
+  // data.
+  OS_BETA = 2;
+
+  // This is the view with data only from users who have opted in to be testers
+  // for a given app, excluding OS beta data.
+  APP_TESTERS = 3;
 }

@@ -1,18 +1,17 @@
 syntax = "proto3";
 
 package google.play.developer.reporting.v1beta1;
-import "metrics.proto";
-option java_package = "com.google.play.developer.reporting";
-option java_outer_classname = "AnomaliesServiceProto";
-option java_multiple_files = true;
 
-// Reference: https://source.corp.google.com/piper///depot/google3/google/play/developer/reporting/v1main/anomalies_service.proto
-//
+import "metrics.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "AnomaliesServiceProto";
+option java_package = "com.google.play.developer.reporting";
+
 // Service to describe and query anomalies.
 service AnomaliesService {
   // Lists anomalies in any of the datasets.
-  rpc ListAnomalies(ListAnomaliesRequest) returns (ListAnomaliesResponse) {
-  }
+  rpc ListAnomalies(ListAnomaliesRequest) returns (ListAnomaliesResponse) {}
 }
 
 // Represents an anomaly detected in a dataset.
@@ -53,10 +52,7 @@ message Anomaly {
 }
 
 // Request to list anomalies in datasets.
-// (-- api-linter: core::0132::request-parent-reference=disabled
-//     aip.dev/not-precedent: There is no app resource on any API yet. --)
 message ListAnomaliesRequest {
-
   // Parent app for which anomalies were detected.
   //
   // Format: apps/{app}
@@ -94,7 +90,6 @@ message ListAnomaliesRequest {
 
 // Response with a list of anomalies in datasets.
 message ListAnomaliesResponse {
-
   // Anomalies that were found.
   repeated Anomaly anomalies = 1;
 

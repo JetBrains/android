@@ -1,24 +1,22 @@
 syntax = "proto3";
 
 package google.play.developer.reporting.v1beta1;
-import "releases.proto";
-option java_package = "com.google.play.developer.reporting";
-option java_outer_classname = "ReportingServiceProto";
-option java_multiple_files = true;
 
-// Reference: https://source.corp.google.com/piper///depot/google3/google/play/developer/reporting/v1main/reporting_service.proto
-//
+import "releases.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "ReportingServiceProto";
+option java_package = "com.google.play.developer.reporting";
+
 // Service used to retrieve reporting metadata.
 service ReportingService {
   // Describes filtering options for releases.
-  rpc FetchReleaseFilterOptions(FetchReleaseFilterOptionsRequest) returns
-    (ReleaseFilterOptions) {
-  }
+  rpc FetchReleaseFilterOptions(FetchReleaseFilterOptionsRequest)
+      returns (ReleaseFilterOptions) {}
 
   // Searches for Apps accessible by the user.
-  rpc SearchAccessibleApps(SearchAccessibleAppsRequest) returns
-    (SearchAccessibleAppsResponse) {
-  }
+  rpc SearchAccessibleApps(SearchAccessibleAppsRequest)
+      returns (SearchAccessibleAppsResponse) {}
 }
 
 // Request message for

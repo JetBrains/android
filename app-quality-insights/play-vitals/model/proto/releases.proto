@@ -1,12 +1,11 @@
 syntax = "proto3";
 
 package google.play.developer.reporting.v1beta1;
-option java_package = "com.google.play.developer.reporting";
-option java_outer_classname = "ReleasesProto";
-option java_multiple_files = true;
 
-// https://source.corp.google.com/piper///depot/google3/google/play/developer/reporting/v1main/releases.proto
-//
+option java_multiple_files = true;
+option java_outer_classname = "ReleasesProto";
+option java_package = "com.google.play.developer.reporting";
+
 // A representation of a Play release track.
 message Track {
   // Readable identifier of the track.

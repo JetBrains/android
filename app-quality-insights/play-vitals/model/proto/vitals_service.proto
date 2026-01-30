@@ -1,85 +1,79 @@
 syntax = "proto3";
 
 package google.play.developer.reporting.v1beta1;
-import "metrics.proto";
-option java_package = "com.google.play.developer.reporting";
-option java_outer_classname = "VitalsServiceProto";
-option java_multiple_files = true;
 
-// Reference: https://source.corp.google.com/piper///depot/google3/google/play/developer/reporting/v1main/vitals_service.proto
-//
+import "metrics.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "VitalsServiceProto";
+option java_package = "com.google.play.developer.reporting";
+
 // Service to describe and query Android Vitals bad behavior data metrics,
 // such as crash rate, ANR rate, etc.
 service VitalsService {
-
   // Describes the properties of the metric set.
-  rpc GetCrashRateMetricSet(GetCrashRateMetricSetRequest) returns
-    (CrashRateMetricSet) {
-  }
+  rpc GetCrashRateMetricSet(GetCrashRateMetricSetRequest)
+      returns (CrashRateMetricSet) {}
 
   // Queries the metrics in the metric set.
-  rpc QueryCrashRateMetricSet(QueryCrashRateMetricSetRequest) returns
-    (QueryCrashRateMetricSetResponse) {
-  }
+  rpc QueryCrashRateMetricSet(QueryCrashRateMetricSetRequest)
+      returns (QueryCrashRateMetricSetResponse) {}
 
   // Describes the properties of the metric set.
-  rpc GetAnrRateMetricSet(GetAnrRateMetricSetRequest) returns (AnrRateMetricSet)
-    {
-  }
+  rpc GetAnrRateMetricSet(GetAnrRateMetricSetRequest)
+      returns (AnrRateMetricSet) {}
 
   // Queries the metrics in the metric set.
-  rpc QueryAnrRateMetricSet(QueryAnrRateMetricSetRequest) returns
-    (QueryAnrRateMetricSetResponse) {
-  }
+  rpc QueryAnrRateMetricSet(QueryAnrRateMetricSetRequest)
+      returns (QueryAnrRateMetricSetResponse) {}
+
+  // Describes the properties of the metric set.
+  rpc GetLmkRateMetricSet(GetLmkRateMetricSetRequest)
+      returns (LmkRateMetricSet) {}
+
+  // Queries the metrics in the metric set.
+  rpc QueryLmkRateMetricSet(QueryLmkRateMetricSetRequest)
+      returns (QueryLmkRateMetricSetResponse) {}
 
   // Describes the properties of the metric set.
   rpc GetExcessiveWakeupRateMetricSet(GetExcessiveWakeupRateMetricSetRequest)
-    returns (ExcessiveWakeupRateMetricSet) {
-  }
+      returns (ExcessiveWakeupRateMetricSet) {}
 
   // Queries the metrics in the metric set.
-  rpc
-    QueryExcessiveWakeupRateMetricSet(QueryExcessiveWakeupRateMetricSetRequest)
-    returns (QueryExcessiveWakeupRateMetricSetResponse) {
-  }
+  rpc QueryExcessiveWakeupRateMetricSet(
+      QueryExcessiveWakeupRateMetricSetRequest)
+      returns (QueryExcessiveWakeupRateMetricSetResponse) {}
 
   // Describes the properties of the metric set.
-  rpc
-    GetStuckBackgroundWakelockRateMetricSet(GetStuckBackgroundWakelockRateMetricSetRequest)
-    returns (StuckBackgroundWakelockRateMetricSet) {
-  }
+  rpc GetStuckBackgroundWakelockRateMetricSet(
+      GetStuckBackgroundWakelockRateMetricSetRequest)
+      returns (StuckBackgroundWakelockRateMetricSet) {}
 
   // Queries the metrics in the metric set.
-  rpc
-    QueryStuckBackgroundWakelockRateMetricSet(QueryStuckBackgroundWakelockRateMetricSetRequest)
-    returns (QueryStuckBackgroundWakelockRateMetricSetResponse) {
-  }
+  rpc QueryStuckBackgroundWakelockRateMetricSet(
+      QueryStuckBackgroundWakelockRateMetricSetRequest)
+      returns (QueryStuckBackgroundWakelockRateMetricSetResponse) {}
 
   // Describes the properties of the metric set.
-  rpc GetSlowStartRateMetricSet(GetSlowStartRateMetricSetRequest) returns
-    (SlowStartRateMetricSet) {
-  }
+  rpc GetSlowStartRateMetricSet(GetSlowStartRateMetricSetRequest)
+      returns (SlowStartRateMetricSet) {}
 
   // Queries the metrics in the metric set.
-  rpc QuerySlowStartRateMetricSet(QuerySlowStartRateMetricSetRequest) returns
-    (QuerySlowStartRateMetricSetResponse) {
-  }
+  rpc QuerySlowStartRateMetricSet(QuerySlowStartRateMetricSetRequest)
+      returns (QuerySlowStartRateMetricSetResponse) {}
 
   // Describes the properties of the metric set.
   rpc GetSlowRenderingRateMetricSet(GetSlowRenderingRateMetricSetRequest)
-    returns (SlowRenderingRateMetricSet) {
-  }
+      returns (SlowRenderingRateMetricSet) {}
 
   // Queries the metrics in the metric set.
   rpc QuerySlowRenderingRateMetricSet(QuerySlowRenderingRateMetricSetRequest)
-    returns (QuerySlowRenderingRateMetricSetResponse) {
-  }
+      returns (QuerySlowRenderingRateMetricSetResponse) {}
 }
 
 // Request message for
 // [GetCrashRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.GetCrashRateMetricSet].
 message GetCrashRateMetricSetRequest {
-
   // The resource name.
   //
   // Format: apps/{app}/crashRateMetricSet
@@ -221,7 +215,6 @@ message CrashRateMetricSet {
 // Request message for
 // [QueryCrashRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.QueryCrashRateMetricSet].
 message QueryCrashRateMetricSetRequest {
-
   // The resource name.
   //
   // Format: apps/{app}/crashRateMetricSet
@@ -391,7 +384,6 @@ message QueryCrashRateMetricSetRequest {
 // Response message for
 // [QueryCrashRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.QueryCrashRateMetricSet].
 message QueryCrashRateMetricSetResponse {
-
   // Returned rows of data.
   repeated MetricsRow rows = 1;
 
@@ -402,7 +394,6 @@ message QueryCrashRateMetricSetResponse {
 // Request message for
 // [GetAnrRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.GetAnrRateMetricSet].
 message GetAnrRateMetricSetRequest {
-
   // The resource name.
   //
   // Format: apps/{app}/anrRateMetricSet
@@ -542,7 +533,6 @@ message AnrRateMetricSet {
 // Request message for
 // [QueryAnrRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.QueryAnrRateMetricSet].
 message QueryAnrRateMetricSetRequest {
-
   // The resource name.
   //
   // Format: apps/{app}/anrRateMetricSet
@@ -629,35 +619,325 @@ message QueryAnrRateMetricSetRequest {
   //     Screen density of the device, e.g., mdpi, hdpi.
   repeated string dimensions = 3;
 
+  //  Metrics to aggregate.
+  //
+  //  **Supported metrics:**
+  //
+  //   *  `anrRate` (`google.type.Decimal`): Percentage of distinct users in the
+  //      aggregation period that experienced at least one ANR.
+  //   *  `anrRate7dUserWeighted` (`google.type.Decimal`): Rolling average value
+  //      of `anrRate` in the last 7 days. The daily values are weighted by the
+  //      count of distinct users for the day. Not supported in HOURLY
+  //      granularity.
+  //   *  `anrRate28dUserWeighted` (`google.type.Decimal`): Rolling average
+  //      value of `anrRate` in the last 28 days. The daily values are weighted
+  //      by the count of distinct users for the day. Not supported in HOURLY
+  //      granularity.
+  //   *  `userPerceivedAnrRate` (`google.type.Decimal`): Percentage of distinct
+  //      users in the aggregation period that experienced at least one
+  //      user-perceived ANR. User-perceived ANRs are currently those of 'Input
+  //      dispatching' type.
+  //   *  `userPerceivedAnrRate7dUserWeighted` (`google.type.Decimal`): Rolling
+  //      average value of `userPerceivedAnrRate` in the last 7 days. The daily
+  //      values are weighted by the count of distinct users for the day. Not
+  //      supported in HOURLY granularity.
+  //   *  `userPerceivedAnrRate28dUserWeighted` (`google.type.Decimal`): Rolling
+  //      average value of `userPerceivedAnrRate` in the last 28 days. The daily
+  //      values are weighted by the count of distinct users for the day. Not
+  // .    supported in HOURLY granularity.
+  //   *  `distinctUsers` (`google.type.Decimal`): Count of distinct users
+  //      in the aggregation period that were used as normalization value for
+  //      the `anrRate` and `userPerceivedAnrRate` metrics. A user is counted in
+  //      this metric if they used the app in the foreground during the
+  //      aggregation period. Care must be taken not to aggregate this count
+  //      further, as it may result in users being counted multiple times. The
+  //      value is rounded to the nearest multiple of 10, 100, 1,000 or
+  //      1,000,000, depending on the magnitude of the value.
+  repeated string metrics = 4;
+
+  // Filters to apply to data. The filtering expression follows
+  // [AIP-160](https://google.aip.dev/160) standard and supports filtering
+  // by equality of all breakdown dimensions.
+  string filter = 7;
+
+  // Maximum size of the returned data.
+  //
+  // If unspecified, at most 1000 rows will be returned.
+  // The maximum value is 100,000; values above 100,000 will be coerced to
+  // 100,000.
+  int32 page_size = 5;
+
+  // A page token, received from a previous call.
+  // Provide this to retrieve the subsequent page.
+  //
+  // When paginating, all other parameters provided to the request must
+  // match the call that provided the page token.
+  string page_token = 6;
+
+  // User view to select. The output data will correspond to the selected view.
+  //
+  // **Supported values:**
+  //
+  //  * `OS_PUBLIC`
+  //     To select data from all publicly released Android versions. This is the
+  //     default. Supports all the above dimensions.
+  //  * `APP_TESTERS`
+  //     To select data from users who have opted in to be testers. Supports all
+  //     the above dimensions.
+  //  * `OS_BETA`
+  //     To select data from beta android versions only, excluding data from
+  //     released android versions. Only the following dimensions are supported:
+  //
+  //    * `versionCode`
+  //       ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
+  //       version of the app that was running on the user's device.
+  //    * `osBuild`
+  //       ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //       OS build of the user's device, e.g., "T1B2.220916.004".
+  UserCohort user_cohort = 8;
+}
+
+// Response message for
+// [QueryAnrRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.QueryAnrRateMetricSet].
+message QueryAnrRateMetricSetResponse {
+  // Returned rows of data.
+  repeated MetricsRow rows = 1;
+
+  // Continuation token to fetch the next page of data.
+  string next_page_token = 2;
+}
+
+// Request message for
+// [GetLmkRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.GetLmkRateMetricSet].
+message GetLmkRateMetricSetRequest {
+  // The resource name.
+  //
+  // Format: apps/{app}/lmkRateMetricSet
+  string name = 1;
+}
+
+// Singleton resource representing the set of LMK (Low Memory Kill)
+// metrics.
+//
+// This metric set contains LMKs data combined with usage data to produce a
+// normalized metric independent of user counts.
+//
+// **Supported aggregation periods:**
+//
+//  * [DAILY][google.play.developer.reporting.v1beta1.AggregationPeriod.DAILY]:
+//    metrics are aggregated in calendar date intervals. Due to historical
+//    constraints, the only supported timezone is `America/Los_Angeles`.
+//
+// **Supported metrics:**
+//
+//  *  `userPerceivedLmkRate` (`google.type.Decimal`): Percentage of distinct
+//     users in the aggregation period that experienced at least one LMK
+//     while they were actively using your app (a user-perceived LMK). An
+//     app is considered to be in active use if it is displaying any activity
+//     or executing any foreground service.
+//  *  `userPerceivedLmkRate7dUserWeighted` (`google.type.Decimal`): Rolling
+//     average value of `userPerceivedLmkRate` in the last 7 days. The daily
+//     values are weighted by the count of distinct users for the day.
+//  *  `userPerceivedLmkRate28dUserWeighted` (`google.type.Decimal`): Rolling
+//     average value of `userPerceivedLmkRate` in the last 28 days. The daily
+//     values are weighted by the count of distinct users for the day.
+//  *  `distinctUsers` (`google.type.Decimal`): Count of distinct users
+//     in the aggregation period that were used as normalization value for the
+//     `userPerceivedLmkRate` metrics. A user is counted in this
+//     metric if they used the app in the foreground during the aggregation
+//     period. Care must be taken not to aggregate this count further, as it may
+//     result in users being counted multiple times. The value is rounded to the
+//     nearest multiple of 10, 100, 1,000 or 1,000,000, depending on the
+//     magnitude of the value.
+//
+// **Supported dimensions:**
+//
+//  * `apiLevel`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     the API level of Android that was running on the user's device, e.g., 26.
+//  * `versionCode`
+//     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
+//     version of the app that was running on the user's device.
+//  * `deviceModel`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     unique identifier of the user's device model. The form of the
+//     identifier is 'deviceBrand/device', where deviceBrand corresponds
+//     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+//     google/coral.
+//  * `deviceBrand`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     unique identifier of the user's device brand, e.g., google.
+//  * `deviceType`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     the type (also known as form factor) of the user's device, e.g., PHONE.
+//  * `countryCode`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     the country or region of the user's device based on their IP address,
+//     represented as a 2-letter ISO-3166 code (e.g. US for the United States).
+//  * `deviceRamBucket`
+//     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
+//     RAM of the device, in MB, in buckets (3GB, 4GB, etc.).
+//  *  `deviceSocMake`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     Make of the device's primary system-on-chip, e.g., Samsung.
+//     [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER)
+//  *  `deviceSocModel`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     Model of the device's primary system-on-chip, e.g., "Exynos 2100".
+//     [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL)
+//  *  `deviceCpuMake`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     Make of the device's CPU, e.g., Qualcomm.
+//  *  `deviceCpuModel`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     Model of the device's CPU, e.g., "Kryo 240".
+//  *  `deviceGpuMake`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     Make of the device's GPU, e.g., ARM.
+//  *  `deviceGpuModel`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     Model of the device's GPU, e.g., Mali.
+//  *  `deviceGpuVersion`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     Version of the device's GPU, e.g., T750.
+//  *  `deviceVulkanVersion`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     Vulkan version of the device, e.g., "4198400".
+//  *  `deviceGlEsVersion`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     OpenGL ES version of the device, e.g., "196610".
+//  *  `deviceScreenSize`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     Screen size of the device, e.g., NORMAL, LARGE.
+//  *  `deviceScreenDpi`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     Screen density of the device, e.g., mdpi, hdpi.
+//
+// **Required permissions**: to access this resource, the calling user needs the
+// _View app information (read-only)_ permission for the app.
+//
+// **Related metric sets:**
+//
+//  * [vitals.errors][google.play.developer.reporting.v1beta1.CrashRateMetricSet]
+//    contains normalized metrics about crashes, another stability metric.
+//  * [vitals.errors][google.play.developer.reporting.v1beta1.AnrRateMetricSet]
+//    contains normalized metrics about ANRs, another stability metric.
+//
+// (== resource_for v1beta1.vitals.lmkrate ==)
+message LmkRateMetricSet {
+  // The resource name.
+  //
+  // Format: apps/{app}/lmkRateMetricSet
+  string name = 1;
+
+  // Summary about data freshness in this resource.
+  FreshnessInfo freshness_info = 2;
+}
+
+// Request message for
+// [QueryLmkRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.QueryLmkRateMetricSet].
+message QueryLmkRateMetricSetRequest {
+  // The resource name.
+  //
+  // Format: apps/{app}/lmkRateMetricSet
+  string name = 1;
+
+  // Specification of the timeline aggregation parameters.
+  //
+  // **Supported aggregation periods:**
+  //
+  //  * [DAILY][google.play.developer.reporting.v1beta1.AggregationPeriod.DAILY]:
+  //    metrics are aggregated in calendar date intervals. Due to historical
+  //    constraints, the default and only supported timezone is
+  //    `America/Los_Angeles`.
+  TimelineSpec timeline_spec = 2;
+
+  // Dimensions to slice the metrics by.
+  //
+  // **Supported dimensions:**
+  //
+  //  * `apiLevel`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     the API level of Android that was running on the user's device,
+  //     e.g., 26.
+  //  * `versionCode`
+  //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
+  //     version of the app that was running on the user's device.
+  //  * `deviceModel`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     unique identifier of the user's device model. The form of the
+  //     identifier is 'deviceBrand/device', where deviceBrand corresponds
+  //     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+  //     google/coral.
+  //  * `deviceBrand`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     unique identifier of the user's device brand, e.g., google.
+  //  * `deviceType`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     the type (also known as form factor) of the user's device, e.g., PHONE.
+  //  * `countryCode`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     the country or region of the user's device based on their IP address,
+  //     represented as a 2-letter ISO-3166 code (e.g. US for the United
+  //     States).
+  //  * `deviceRamBucket`
+  //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
+  //     RAM of the device, in MB, in buckets (3GB, 4GB, etc.).
+  //  *  `deviceSocMake`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     Make of the device's primary system-on-chip, e.g., Samsung.
+  //     [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER)
+  //  *  `deviceSocModel`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     Model of the device's primary system-on-chip, e.g., "Exynos 2100".
+  //     [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL)
+  //  *  `deviceCpuMake`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     Make of the device's CPU, e.g., Qualcomm.
+  //  *  `deviceCpuModel`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     Model of the device's CPU, e.g., "Kryo 240".
+  //  *  `deviceGpuMake`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     Make of the device's GPU, e.g., ARM.
+  //  *  `deviceGpuModel`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     Model of the device's GPU, e.g., Mali.
+  //  *  `deviceGpuVersion`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     Version of the device's GPU, e.g., T750.
+  //  *  `deviceVulkanVersion`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     Vulkan version of the device, e.g., "4198400".
+  //  *  `deviceGlEsVersion`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     OpenGL ES version of the device, e.g., "196610".
+  //  *  `deviceScreenSize`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     Screen size of the device, e.g., NORMAL, LARGE.
+  //  *  `deviceScreenDpi`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     Screen density of the device, e.g., mdpi, hdpi.
+  repeated string dimensions = 3;
+
   // Metrics to aggregate.
   //
   // **Supported metrics:**
   //
-  //  *  `anrRate` (`google.type.Decimal`): Percentage of distinct users in the
-  //     aggregation period that experienced at least one ANR.
-  //  *  `anrRate7dUserWeighted` (`google.type.Decimal`): Rolling average value
-  //     of `anrRate` in the last 7 days. The daily values are weighted by the
-  //     count of distinct users for the day. Not supported in HOURLY
-  //     granularity.
-  //  *  `anrRate28dUserWeighted` (`google.type.Decimal`): Rolling average
-  //     value of `anrRate` in the last 28 days. The daily values are weighted
-  //     by the count of distinct users for the day. Not supported in HOURLY
-  //     granularity.
-  //  *  `userPerceivedAnrRate` (`google.type.Decimal`): Percentage of distinct
-  //     users in the aggregation period that experienced at least one
-  //     user-perceived ANR. User-perceived ANRs are currently those of 'Input
-  //     dispatching' type.
-  //  *  `userPerceivedAnrRate7dUserWeighted` (`google.type.Decimal`): Rolling
-  //     average value of `userPerceivedAnrRate` in the last 7 days. The daily
-  //     values are weighted by the count of distinct users for the day. Not
-  //     supported in HOURLY granularity.
-  //  *  `userPerceivedAnrRate28dUserWeighted` (`google.type.Decimal`): Rolling
-  //     average value of `userPerceivedAnrRate` in the last 28 days. The daily
-  //     values are weighted by the count of distinct users for the day. Not
-  // .    supported in HOURLY granularity.
+  //  *  `userPerceivedLmkRate` (`google.type.Decimal`): Percentage of distinct
+  //     users in the aggregation period that experienced at least one LMK
+  //     while they were actively using your app (a user-perceived LMK). An
+  //     app is considered to be in active use if it is displaying any activity
+  //     or executing any foreground service.
+  //  *  `userPerceivedLmkRate7dUserWeighted` (`google.type.Decimal`): Rolling
+  //     average value of `userPerceivedLmkRate` in the last 7 days. The daily
+  //     values are weighted by the count of distinct users for the day.
+  //  *  `userPerceivedLmkRate28dUserWeighted` (`google.type.Decimal`): Rolling
+  //     average value of `userPerceivedLmkRate` in the last 28 days. The daily
+  //     values are weighted by the count of distinct users for the day.
   //  *  `distinctUsers` (`google.type.Decimal`): Count of distinct users
   //     in the aggregation period that were used as normalization value for the
-  //     `anrRate` and `userPerceivedAnrRate` metrics. A user is counted in this
+  //     `userPerceivedLmkRate` metrics. A user is counted in this
   //     metric if they used the app in the foreground during the aggregation
   //     period. Care must be taken not to aggregate this count further, as it
   //     may result in users being counted multiple times. The value is rounded
@@ -708,9 +988,8 @@ message QueryAnrRateMetricSetRequest {
 }
 
 // Response message for
-// [QueryAnrRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.QueryAnrRateMetricSet].
-message QueryAnrRateMetricSetResponse {
-
+// [QueryLmkRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.QueryLmkRateMetricSet].
+message QueryLmkRateMetricSetResponse {
   // Returned rows of data.
   repeated MetricsRow rows = 1;
 
@@ -721,7 +1000,6 @@ message QueryAnrRateMetricSetResponse {
 // Request message for
 // [GetExcessiveWakeupRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.GetExcessiveWakeupRateMetricSet].
 message GetExcessiveWakeupRateMetricSetRequest {
-
   // The resource name.
   //
   // Format: apps/{app}/excessiveWakeupRateMetricSet
@@ -827,7 +1105,6 @@ message GetExcessiveWakeupRateMetricSetRequest {
 //
 // (== resource_for v1beta1.vitals.excessivewakeuprate ==)
 message ExcessiveWakeupRateMetricSet {
-
   // The resource name.
   //
   // Format: apps/{app}/excessiveWakeupRateMetricSet
@@ -840,7 +1117,6 @@ message ExcessiveWakeupRateMetricSet {
 // Request message for
 // [QueryExcessiveWakeupRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.QueryExcessiveWakeupRateMetricSet].
 message QueryExcessiveWakeupRateMetricSetRequest {
-
   // The resource name.
   //
   // Format: apps/{app}/excessiveWakeupRateMetricSet
@@ -965,32 +1241,13 @@ message QueryExcessiveWakeupRateMetricSetRequest {
   string page_token = 6;
 
   // User view to select. The output data will correspond to the selected view.
-  //
-  // **Supported values:**
-  //
-  //  * `OS_PUBLIC`
-  //     To select data from all publicly released Android versions. This is the
-  //     default. Supports all the above dimensions.
-  //  * `APP_TESTERS`
-  //     To select data from users who have opted in to be testers. Supports all
-  //     the above dimensions.
-  //  * `OS_BETA`
-  //     To select data from beta android versions only, excluding data from
-  //     released android versions. Only the following dimensions are supported:
-  //
-  //    * `versionCode`
-  //       ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
-  //       version of the app that was running on the user's device.
-  //    * `osBuild`
-  //       ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //       OS build of the user's device, e.g., "T1B2.220916.004".
+  // The only supported value is `OS_PUBLIC`.
   UserCohort user_cohort = 8;
 }
 
 // Response message for
 // [QueryExcessiveWakeupRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.QueryExcessiveWakeupRateMetricSet].
 message QueryExcessiveWakeupRateMetricSetResponse {
-
   // Returned rows of data.
   repeated MetricsRow rows = 1;
 
@@ -1001,7 +1258,6 @@ message QueryExcessiveWakeupRateMetricSetResponse {
 // Request message for
 // [GetStuckBackgroundWakelockRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.GetStuckBackgroundWakelockRateMetricSet].
 message GetStuckBackgroundWakelockRateMetricSetRequest {
-
   // The resource name.
   //
   // Format: apps/{app}/stuckBackgroundWakelockRateMetricSet
@@ -1109,7 +1365,6 @@ message GetStuckBackgroundWakelockRateMetricSetRequest {
 //
 // (== resource_for v1beta1.vitals.stuckbackgroundwakelockrate ==)
 message StuckBackgroundWakelockRateMetricSet {
-
   // The resource name.
   //
   // Format: apps/{app}/stuckBackgroundWakelockRateMetricSet
@@ -1122,7 +1377,6 @@ message StuckBackgroundWakelockRateMetricSet {
 // Request message for
 // [QueryStuckBackgroundWakelockRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.QueryStuckBackgroundWakelockRateMetricSet].
 message QueryStuckBackgroundWakelockRateMetricSetRequest {
-
   // The resource name.
   //
   // Format: apps/{app}/stuckBackgroundWakelockRateMetricSet
@@ -1248,32 +1502,13 @@ message QueryStuckBackgroundWakelockRateMetricSetRequest {
   string page_token = 6;
 
   // User view to select. The output data will correspond to the selected view.
-  //
-  // **Supported values:**
-  //
-  //  * `OS_PUBLIC`
-  //     To select data from all publicly released Android versions. This is the
-  //     default. Supports all the above dimensions.
-  //  * `APP_TESTERS`
-  //     To select data from users who have opted in to be testers. Supports all
-  //     the above dimensions.
-  //  * `OS_BETA`
-  //     To select data from beta android versions only, excluding data from
-  //     released android versions. Only the following dimensions are supported:
-  //
-  //    * `versionCode`
-  //       ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
-  //       version of the app that was running on the user's device.
-  //    * `osBuild`
-  //       ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //       OS build of the user's device, e.g., "T1B2.220916.004".
+  // The only supported value is `OS_PUBLIC`.
   UserCohort user_cohort = 8;
 }
 
 // Response message for
 // [QueryStuckBackgroundWakelockRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.QueryStuckBackgroundWakelockRateMetricSet].
 message QueryStuckBackgroundWakelockRateMetricSetResponse {
-
   // Returned rows of data.
   repeated MetricsRow rows = 1;
 
@@ -1284,7 +1519,6 @@ message QueryStuckBackgroundWakelockRateMetricSetResponse {
 // Request message for
 // [GetSlowStartRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.GetSlowStartRateMetricSet].
 message GetSlowStartRateMetricSetRequest {
-
   // The resource name.
   //
   // Format: apps/{app}/slowStartRateMetricSet
@@ -1398,7 +1632,6 @@ message GetSlowStartRateMetricSetRequest {
 //
 // (== resource_for v1beta1.vitals.slowstartrate ==)
 message SlowStartRateMetricSet {
-
   // The resource name.
   //
   // Format: apps/{app}/slowStartRateMetricSet
@@ -1411,7 +1644,6 @@ message SlowStartRateMetricSet {
 // Request message for
 // [QuerySlowStartRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.QuerySlowStartRateMetricSet].
 message QuerySlowStartRateMetricSetRequest {
-
   // The resource name.
   //
   // Format: apps/{app}/slowStartRateMetricSet
@@ -1535,32 +1767,13 @@ message QuerySlowStartRateMetricSetRequest {
   string page_token = 6;
 
   // User view to select. The output data will correspond to the selected view.
-  //
-  // **Supported values:**
-  //
-  //  * `OS_PUBLIC`
-  //     To select data from all publicly released Android versions. This is the
-  //     default. Supports all the above dimensions.
-  //  * `APP_TESTERS`
-  //     To select data from users who have opted in to be testers. Supports all
-  //     the above dimensions.
-  //  * `OS_BETA`
-  //     To select data from beta Android versions only, excluding data from
-  //     released Android versions. Only the following dimensions are supported:
-  //
-  //    * `versionCode`
-  //       ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
-  //       version of the app that was running on the user's device.
-  //    * `osBuild`
-  //       ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //       OS build of the user's device, e.g., "T1B2.220916.004".
+  // The only supported value is `OS_PUBLIC`.
   UserCohort user_cohort = 8;
 }
 
 // Response message for
 // [QuerySlowStartRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.QuerySlowStartRateMetricSet].
 message QuerySlowStartRateMetricSetResponse {
-
   // Returned rows of data.
   repeated MetricsRow rows = 1;
 
@@ -1571,7 +1784,6 @@ message QuerySlowStartRateMetricSetResponse {
 // Request message for
 // [GetSlowRenderingRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.GetSlowRenderingRateMetricSet].
 message GetSlowRenderingRateMetricSetRequest {
-
   // The resource name.
   //
   // Format: apps/{app}/slowRenderingRateMetricSet
@@ -1690,7 +1902,6 @@ message GetSlowRenderingRateMetricSetRequest {
 //
 // (== resource_for v1beta1.vitals.slowrenderingrate ==)
 message SlowRenderingRateMetricSet {
-
   // The resource name.
   //
   // Format: apps/{app}/slowRenderingRateMetricSet
@@ -1703,7 +1914,6 @@ message SlowRenderingRateMetricSet {
 // Request message for
 // [QuerySlowRenderingRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.QuerySlowRenderingRateMetricSet].
 message QuerySlowRenderingRateMetricSetRequest {
-
   // The resource name.
   //
   // Format: apps/{app}/slowRenderingRateMetricSet
@@ -1835,32 +2045,13 @@ message QuerySlowRenderingRateMetricSetRequest {
   string page_token = 6;
 
   // User view to select. The output data will correspond to the selected view.
-  //
-  // **Supported values:**
-  //
-  //  * `OS_PUBLIC`
-  //     To select data from all publicly released Android versions. This is the
-  //     default. Supports all the above dimensions.
-  //  * `APP_TESTERS`
-  //     To select data from users who have opted in to be testers. Supports all
-  //     the above dimensions.
-  //  * `OS_BETA`
-  //     To select data from beta Android versions only, excluding data from
-  //     released Android versions. Only the following dimensions are supported:
-  //
-  //    * `versionCode`
-  //       ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
-  //       version of the app that was running on the user's device.
-  //    * `osBuild`
-  //       ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //       OS build of the user's device, e.g., "T1B2.220916.004".
+  // The only supported value is `OS_PUBLIC`.
   UserCohort user_cohort = 8;
 }
 
 // Response message for
 // [QuerySlowRenderingRateMetricSet][google.play.developer.reporting.v1beta1.VitalsService.QuerySlowRenderingRateMetricSet].
 message QuerySlowRenderingRateMetricSetResponse {
-
   // Returned rows of data.
   repeated MetricsRow rows = 1;
 

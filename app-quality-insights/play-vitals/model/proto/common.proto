@@ -1,13 +1,13 @@
 syntax = "proto3";
 
 package google.play.developer.reporting.v1beta1;
-import "google/type/datetime.proto";
-option java_package = "com.google.play.developer.reporting";
-option java_outer_classname = "CommonProto";
-option java_multiple_files = true;
 
-// Reference: https://source.corp.google.com/piper///depot/google3/google/play/developer/reporting/v1main/common.proto
-//
+import "google/type/datetime.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "CommonProto";
+option java_package = "com.google.play.developer.reporting";
+
 // Represents an interval between two DateTime points.
 //
 // The time_zone field of both start_time and end_time must match.
@@ -15,12 +15,12 @@ message DateTimeInterval {
   // Starting datapoint of the interval (inclusive).
   //
   // The timezone of the end point must match the timezone of the start point.
-  google.type.DateTime start_time = 2;
+  type.DateTime start_time = 2;
 
   // Ending datapoint of the interval (exclusive).
   //
   // The timezone of the end point must match the timezone of the start point.
-  google.type.DateTime end_time = 3;
+  type.DateTime end_time = 3;
 }
 
 // Representations of an app version.
