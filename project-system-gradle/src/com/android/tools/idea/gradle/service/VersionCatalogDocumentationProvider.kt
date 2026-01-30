@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service
 
-import com.android.tools.idea.gradle.dsl.utils.EXT_VERSIONS_TOML
+import com.android.tools.idea.gradle.refactoring.isVersionCatalogFile
 import com.intellij.lang.documentation.DocumentationProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
@@ -46,7 +46,7 @@ class VersionCatalogDocumentationProvider : DocumentationProvider {
   override fun generateDoc(element: PsiElement, originalElement: PsiElement?): String? = generate(element, originalElement)
 
   private fun generate(element: PsiElement, originalElement: PsiElement?): String? {
-    if (!element.containingFile.name.endsWith(EXT_VERSIONS_TOML)) return null
+    if (!isVersionCatalogFile(element)) return null
     // sometimes element is KeySegment and from tests it's leaf
     val el = if (element is LeafPsiElement) element.parent else element
     val table = element.findParentOfType<TomlTable>()

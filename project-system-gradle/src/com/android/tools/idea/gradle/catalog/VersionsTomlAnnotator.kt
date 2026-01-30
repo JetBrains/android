@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.catalog
 
-import com.android.tools.idea.gradle.dsl.utils.EXT_VERSIONS_TOML
+import com.android.tools.idea.gradle.refactoring.isVersionCatalogFile
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
@@ -43,7 +43,7 @@ class VersionsTomlAnnotator : Annotator {
   private val reservedNames = listOf("extensions", "convention")
 
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-    if (!element.containingFile.name.endsWith(EXT_VERSIONS_TOML)) return
+    if (!isVersionCatalogFile(element)) return
 
     if (element.isFirstElement()) {
       initFileStatusFlag(element.containingFile, holder)

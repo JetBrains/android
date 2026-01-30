@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.index
 
 import com.android.tools.idea.gradle.dsl.utils.EXT_VERSIONS_TOML
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore.iterateChildrenRecursively
@@ -24,6 +25,7 @@ import com.intellij.openapi.vfs.VirtualFileFilter
 import com.intellij.openapi.vfs.isFile
 import com.intellij.util.indexing.IndexableSetContributor
 import java.io.File
+import org.jetbrains.plugins.gradle.service.resolve.getVersionCatalogFiles
 
 /** Contributor iterates and add .versions.toml files from gradle folder, ignoring subdirectories. */
 class VersionCatalogFileIndexContributor : IndexableSetContributor() {
@@ -33,7 +35,8 @@ class VersionCatalogFileIndexContributor : IndexableSetContributor() {
 
   override fun getAdditionalProjectRootsToIndex(project: Project): Set<VirtualFile> {
     val versionsTomlFilter = VirtualFileFilter { file ->
-      (file.isDirectory && file.name == GRADLE_FOLDER) || file.name.endsWith(EXT_VERSIONS_TOML)
+      val versionFiles = ModuleManager.getInstance(project).modules.flatMap { getVersionCatalogFiles(it).values }.toSet()
+      (file.isDirectory && file.name == GRADLE_FOLDER) || file.name.endsWith(EXT_VERSIONS_TOML) || file in versionFiles
     }
     val result = mutableSetOf<VirtualFile>()
     LocalFileSystem.getInstance().findFileByIoFile(File(project.basePath, GRADLE_FOLDER))?.let {

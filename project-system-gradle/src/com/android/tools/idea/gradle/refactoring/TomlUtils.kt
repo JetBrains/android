@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.refactoring
 
 import com.android.tools.idea.gradle.dsl.utils.EXT_VERSIONS_TOML
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.PsiElement
+import org.jetbrains.plugins.gradle.service.resolve.getVersionCatalogFiles
 import org.toml.lang.psi.TomlKeySegment
 import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlTable
@@ -33,4 +35,11 @@ fun isVersionCatalogAlias(psiElement: TomlKeySegment): Boolean {
   return false
 }
 
-fun isVersionCatalogFile(psiElement: PsiElement): Boolean = psiElement.containingFile?.name?.endsWith(EXT_VERSIONS_TOML) ?: false
+fun isVersionCatalogFile(psiElement: PsiElement): Boolean {
+  if (psiElement.containingFile?.name?.endsWith(EXT_VERSIONS_TOML) == true) return true
+  else {
+    val files = ModuleUtilCore.findModuleForPsiElement(psiElement)?.run { getVersionCatalogFiles(this).values.toSet() }
+    if (files?.contains(psiElement.containingFile?.virtualFile) == true) return true
+  }
+  return false
+}
