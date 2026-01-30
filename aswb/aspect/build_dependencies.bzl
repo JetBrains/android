@@ -6,6 +6,7 @@ load(
     ":build_dependencies_deps.bzl",
     "ZIP_TOOL_LABEL",
     _ide_android_not_validated = "IDE_ANDROID",
+    _ide_bazel_not_validated = "IDE_BAZEL",
     _ide_cc_not_validated = "IDE_CC",
     _ide_java_not_validated = "IDE_JAVA",
     _ide_java_proto_not_validated = "IDE_JAVA_PROTO",
@@ -90,6 +91,12 @@ IDE_CC = _validate_ide(
     ),
 )
 
+IDE_BAZEL = _validate_ide(
+    _ide_bazel_not_validated,
+    template = struct(
+        skip_target = _target_rule_function,
+    ),
+)
 JVM_SRC_ATTRS = _unique(["srcs"] + IDE_JAVA.srcs_attributes + IDE_JAVA_PROTO.srcs_attributes + IDE_KOTLIN.srcs_attributes)
 
 def _noneToEmpty(d):
@@ -799,6 +806,8 @@ def _collect_dependencies_core_impl(
         target,
         ctx,
         params):
+    if IDE_BAZEL.skip_target(target, ctx.rule):
+        return create_dependencies_info(label = target.label)
     if hasattr(ctx.rule.attr, "tags"):
         if "no-ide" in ctx.rule.attr.tags:
             return create_dependencies_info(label = target.label)
