@@ -202,7 +202,7 @@ void DisplayStreamer::Run() {
   VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = frame_number_};
   FrameStreamStopReason stop_reason = FrameStreamStopReason::CODEC_STOPPED;
   int error_count = 0;
-  int frame_before_timeout = 0;
+  uint32_t frame_before_timeout = 0;
 
   while (stop_reason != FrameStreamStopReason::END_OF_STREAM && !thread_handle_.IsStopping() && !Agent::IsShuttingDown()) {
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
@@ -222,7 +222,7 @@ void DisplayStreamer::Run() {
       frame_timeout_ = INITIAL_FRAME_TIMEOUT;
       ReleaseVirtualDisplay(jni);
     }
-    Log::D("Display %d: stop_reason=%d, frame_number_=%d frame_before_timeout=%d frame_timeout_=%lld ms",
+    Log::D("Display %d: stop_reason=%d, frame_number_=%u frame_before_timeout=%u frame_timeout_=%lld ms",
            display_id_, stop_reason, frame_number_, frame_before_timeout, frame_timeout_.count());
     if (virtual_display_.IsNull() && display_token_.IsNull()) {
       string display_name = StringPrintf("studio.screen.sharing:%d", display_id_);
