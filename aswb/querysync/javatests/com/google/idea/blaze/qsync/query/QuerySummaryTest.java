@@ -129,10 +129,16 @@ public class QuerySummaryTest {
     QueryData.SourceFile buildSrc = qs.getSourceFilesMap().get(buildLabel);
     assertThat(buildSrc.subincliudes())
         .containsExactly(
+            Label.of("//tools/adt/idea/aswb/build_defs:test_data_build_defs.bzl"),
             Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes.bzl"),
             Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes2.bzl"));
     assertThat(qs.getReverseSubincludeMap())
         .containsExactly(
+            Path.of("tools/adt/idea/aswb/build_defs/test_data_build_defs.bzl"),
+            ImmutableSet.of(
+                TestData.ROOT.resolve("buildincludes/sub/includes/BUILD"),
+                TestData.ROOT.resolve("buildincludes/sub/BUILD"),
+                TestData.ROOT.resolve("buildincludes/BUILD")),
             TestData.ROOT.resolve("buildincludes/sub/includes/includes.bzl"),
             ImmutableSet.of(
                 TestData.ROOT.resolve("buildincludes/sub/includes/BUILD"),
@@ -153,10 +159,12 @@ public class QuerySummaryTest {
     QueryData.SourceFile buildSrc = qs.getSourceFilesMap().get(buildLabel);
     assertThat(buildSrc.subincliudes())
         .containsExactly(
+            Label.of("//tools/adt/idea/aswb/build_defs:test_data_build_defs.bzl"),
             Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes.bzl"),
             Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes2.bzl"));
     assertThat(qs.getAllBuildIncludedFiles())
         .containsExactly(
+            Label.of("//tools/adt/idea/aswb/build_defs:test_data_build_defs.bzl"),
             Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes.bzl"),
             Label.of(TestData.ROOT_PACKAGE + "/buildincludes/sub/includes:includes2.bzl"));
   }

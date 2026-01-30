@@ -1,4 +1,5 @@
 load("//tools/adt/idea/aswb:android.bzl", "android_library")
+load("//tools/adt/idea/aswb/build_defs:test_data_build_defs.bzl", "java_library_for_test_data")
 
 proto_library(
     name = "proto",
@@ -10,7 +11,7 @@ java_proto_library(
     deps = [":proto"],
 )
 
-java_library(
+java_library_for_test_data(
     name = "protodep",
     srcs = ["TestClassProtoDep.java"],
     deps = [":proto_java_proto"],
