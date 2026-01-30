@@ -233,7 +233,7 @@ class LiveEditProjectMonitorTest {
   @Ignore("b/326255667")
   fun recompositionCheckRate() {
     // Force the test env to queue up 10 Live Edit recomposition status retrieval
-    val numRecompositionRequested = NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT * 2
+    val numRecompositionRequested = LiveEditProjectMonitor.NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT * 2
     val recompositionStatusRequestFinished = CountDownLatch(numRecompositionRequested)
 
     // We should only get a single failure.
@@ -274,11 +274,11 @@ class LiveEditProjectMonitorTest {
   @Test
   fun recompositionCheckCount() {
     // Force the test env to queue up 10 Live Edit recomposition status retrieval
-    val numRecompositionRequested = NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT * 2
+    val numRecompositionRequested = LiveEditProjectMonitor.NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT * 2
     val recompositionStatusRequestFinished = CountDownLatch(numRecompositionRequested)
 
     // We should only get 5 status update.
-    val taskComposeStatusFinished = CountDownLatch(NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT)
+    val taskComposeStatusFinished = CountDownLatch(LiveEditProjectMonitor.NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT)
 
     var totalStatusRetrieve = 0
     val monitor =
@@ -310,7 +310,7 @@ class LiveEditProjectMonitorTest {
     recompositionStatusRequestFinished.await()
     taskComposeStatusFinished.await()
 
-    assertEquals(NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT, totalStatusRetrieve)
+    assertEquals(LiveEditProjectMonitor.NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT, totalStatusRetrieve)
   }
 
   @Test
