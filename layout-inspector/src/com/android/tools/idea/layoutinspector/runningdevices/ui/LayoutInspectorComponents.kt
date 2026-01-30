@@ -29,7 +29,7 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_ALPHA_VALUE
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.OverlayActionGroup
-import com.android.tools.idea.layoutinspector.ui.toolbar.createEmbeddedLayoutInspectorToolbar
+import com.android.tools.idea.layoutinspector.ui.toolbar.createLayoutInspectorToolbar
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
@@ -198,7 +198,7 @@ fun createToolbarPanel(
       setAlpha = { toolbarState.setOverlayTransparency(it) },
     )
 
-  return createEmbeddedLayoutInspectorToolbar(
+  return createLayoutInspectorToolbar(
     parentDisposable = disposable,
     targetComponent = targetComponent,
     layoutInspector = layoutInspector,

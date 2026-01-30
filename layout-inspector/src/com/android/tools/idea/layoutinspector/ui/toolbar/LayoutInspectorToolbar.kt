@@ -21,9 +21,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotAction
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RefreshAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RenderSettingsAction
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleLiveUpdatesAction
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -51,8 +49,7 @@ const val LAYOUT_INSPECTOR_MAIN_TOOLBAR = "LayoutInspector.MainToolbar"
 const val EMBEDDED_LAYOUT_INSPECTOR_TOOLBAR = "EmbeddedLayoutInspector.Toolbar"
 
 /**
- * Creates the toolbar used by Embedded Layout Inspector. This toolbar is the same as the one used by the Standalone Layout Inspector, but
- * the toolbar also contains a label with the name of the tool.
+ * Creates the toolbar used by Layout Inspector.
  *
  * @param targetComponent used as data context provider. It is necessary because some of the actions in the toolbar get LayoutInspector from
  *   [LayoutInspectorRootPanel] data context.
@@ -61,7 +58,7 @@ const val EMBEDDED_LAYOUT_INSPECTOR_TOOLBAR = "EmbeddedLayoutInspector.Toolbar"
  * @param firstGroupExtraActions Actions to be added to before the first separator.
  * @param lastGroupExtraActions Actions to be added as a new group at the end.
  */
-fun createEmbeddedLayoutInspectorToolbar(
+fun createLayoutInspectorToolbar(
   parentDisposable: Disposable,
   targetComponent: JComponent,
   layoutInspector: LayoutInspector,
@@ -76,7 +73,6 @@ fun createEmbeddedLayoutInspectorToolbar(
       layoutInspector = layoutInspector,
       selectProcessAction = selectProcessAction,
       firstGroupExtraActions = firstGroupExtraActions,
-      middleGroupExtraActions = emptyList(),
       lastGroupExtraActions = lastGroupExtraActions,
     )
 
@@ -120,46 +116,6 @@ fun createEmbeddedLayoutInspectorToolbar(
 }
 
 /**
- * Creates the toolbar used by Standalone Layout Inspector.
- *
- * @param targetComponent used as data context provider. It is necessary because some of the actions in the toolbar get LayoutInspector from
- *   [LayoutInspectorRootPanel] data context.
- * @param firstGroupExtraActions Actions to be added to before the first separator.
- * @param lastGroupExtraActions Actions to be added as a new group at the end.
- */
-fun createStandaloneLayoutInspectorToolbar(
-  parentDisposable: Disposable,
-  targetComponent: JComponent,
-  layoutInspector: LayoutInspector,
-  selectProcessAction: AnAction?,
-  firstGroupExtraActions: List<AnAction> = emptyList(),
-  lastGroupExtraActions: List<AnAction> = emptyList(),
-): ActionToolbar {
-  val middleActions =
-    if (!layoutInspector.isSnapshot) {
-      listOf(ToggleLiveUpdatesAction(layoutInspector), RefreshAction)
-    } else {
-      emptyList()
-    }
-
-  val actionGroup =
-    LayoutInspectorActionGroup(
-      layoutInspector = layoutInspector,
-      selectProcessAction = selectProcessAction,
-      firstGroupExtraActions = firstGroupExtraActions,
-      middleGroupExtraActions = middleActions,
-      lastGroupExtraActions = lastGroupExtraActions,
-    )
-
-  return createLayoutInspectorToolbarInternal(
-    parentDisposable = parentDisposable,
-    targetComponent = targetComponent,
-    layoutInspector = layoutInspector,
-    actionGroup = actionGroup,
-  )
-}
-
-/**
  * Private helper to create the common [ActionToolbar] and set up its listeners.
  *
  * @param targetComponent used as data context provider. It is necessary because some of the actions in the toolbar get LayoutInspector from
@@ -194,14 +150,12 @@ private fun createLayoutInspectorToolbarInternal(
  * Action Group containing all the actions used in Layout Inspector's main toolbar.
  *
  * @param firstGroupExtraActions Actions to be added to before the first separator.
- * @param middleGroupExtraActions Actions to be added between the first and last separators.
  * @param lastGroupExtraActions Actions to be added as a new group at the end.
  */
 private class LayoutInspectorActionGroup(
   layoutInspector: LayoutInspector,
   selectProcessAction: AnAction?,
   firstGroupExtraActions: List<AnAction>,
-  middleGroupExtraActions: List<AnAction>,
   lastGroupExtraActions: List<AnAction>,
 ) : DefaultActionGroup() {
   init {
@@ -221,12 +175,6 @@ private class LayoutInspectorActionGroup(
     firstGroupExtraActions.forEach { add(it) }
     if (!layoutInspector.isSnapshot) {
       add(SnapshotAction)
-    }
-
-    // second group
-    if (middleGroupExtraActions.isNotEmpty()) {
-      add(Separator.getInstance())
-      middleGroupExtraActions.forEach { add(it) }
     }
 
     // third group
