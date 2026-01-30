@@ -3091,6 +3091,7 @@ Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.so.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/libfirebase_java_proto.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/protobuf-java-util-3.22.3.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/aicode_grpc.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_grpc.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_proto.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_protobuf.jar

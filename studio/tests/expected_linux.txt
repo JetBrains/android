@@ -3079,6 +3079,7 @@ android-studio/plugins/firebase/lib/firebase.so.jar
 android-studio/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
 android-studio/plugins/firebase/lib/libfirebase_java_proto.jar
 android-studio/plugins/firebase/lib/protobuf-java-util-3.22.3.jar
+android-studio/plugins/gemini/lib/aicode_grpc.jar
 android-studio/plugins/gemini/lib/aida_grpc.jar
 android-studio/plugins/gemini/lib/aida_proto.jar
 android-studio/plugins/gemini/lib/aida_protobuf.jar

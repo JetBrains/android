@@ -819,6 +819,7 @@ studio_plugin(
         "//tools/vendor/google/ml/aiplugin/rag/lucene/sdkcompat:lucene-lib",
         "//tools/vendor/modelcontextprotocol/kotlin-sdk:mcp-sdk-libraries",
         "//tools/vendor/google/ml/aiplugin/android/journeys/gradle:libjourneys-java-proto",
+        "//tools/vendor/google/ml/aiplugin/backends/aicode:aicode_grpc",
     ],
     modules = {
         "aiplugin.jar": [
@@ -834,6 +835,7 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/android/journeys/gradle:aiplugin.android.journeys.gradle",
             "//tools/vendor/google/ml/aiplugin/android-plugin:aiplugin.android-plugin",
             "//tools/vendor/google/ml/aiplugin/android-plugin/descriptor:aiplugin.android-plugin.descriptor",
+            "//tools/vendor/google/ml/aiplugin/backends/aicode:aiplugin.backends.aicode",
             "//tools/vendor/google/ml/aiplugin/backends/local:aiplugin.backends.local",
             "//tools/vendor/google/ml/aiplugin/backends/third-party:aiplugin.backends.third-party",
             "//tools/vendor/google/ml/aiplugin/editor/prediction-services:aiplugin.editor.prediction-services",
@@ -864,6 +866,8 @@ studio_plugin(
         "@intellij//:com.intellij.java",
         "@intellij//:intellij.libraries.compose.foundation.desktop",
         "@intellij//:intellij.libraries.compose.runtime.desktop",
+        "@intellij//:intellij.libraries.grpc",
+        "@intellij//:intellij.libraries.grpc.netty.shaded",
         "@intellij//:intellij.libraries.lucene.common",
         "@intellij//:intellij.libraries.skiko",
         "@intellij//:intellij.platform.jewel.foundation",
