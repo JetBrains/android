@@ -147,4 +147,24 @@ class VersionCatalogReferenceResolutionTest : GradleFileModelTestCase() {
     assertThat(propertyModel.valueType).isEqualTo(GradlePropertyModel.ValueType.INTEGER)
     assertThat(propertyModel.toInt()).isEqualTo(1)
   }
+
+  @Test
+  @Throws(Exception::class)
+  fun testResolveCatalogReferenceWithInterpolate() {
+    writeToVersionCatalogFile(
+      """
+      [versions]
+      version = "34"
+      """
+        .trimIndent()
+    )
+    writeToBuildFile(TestFileNameImpl.REFERENCE_RESOLUTION_FROM_VERSION_CATALOG_ASSIGNMENT_INTERPOLATE)
+
+    val android = getGradleBuildModel().android()
+    assertNotNull(android)
+    val propertyModel = android.compileSdkVersion()
+    assertThat(propertyModel).isNotNull()
+    assertThat(propertyModel.valueType).isEqualTo(GradlePropertyModel.ValueType.INTERPOLATED)
+    assertThat(propertyModel.toString()).isEqualTo("android-34")
+  }
 }

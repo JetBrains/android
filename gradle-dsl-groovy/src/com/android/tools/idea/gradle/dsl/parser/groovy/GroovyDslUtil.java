@@ -25,6 +25,7 @@ import static com.intellij.psi.util.PsiTreeUtil.findChildOfType;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOLON;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOMMA;
+import static org.jetbrains.plugins.groovy.lang.psi.impl.GroovyPsiElementImpl.findExpressionChild;
 import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.addQuotes;
 import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.escapeStringCharacters;
 
@@ -889,6 +890,16 @@ public final class GroovyDslUtil {
     return null;
   }
 
+
+  @Nullable
+  static GrExpression extractInjectedElement(@NotNull GrStringInjection injection) {
+    GrClosableBlock closableBlock = injection.getClosableBlock();
+    if (closableBlock != null) {
+      return findExpressionChild(closableBlock);
+    }
+    return null;
+  }
+
   @Nullable
   static String getInjectionName(@NotNull GrStringInjection injection) {
     String variableName = null;
@@ -1217,17 +1228,9 @@ public final class GroovyDslUtil {
       return ImmutableList.of(new GradleReferenceInjection(context, element, psiElement, name));
     }
 
-    if (psiElement instanceof GrMethodCallExpression expression && isTransformReference(expression)) {
-      List<GrReferenceExpression> parts = collectReferenceParts(expression);
-
-      // search for first non function item
-      // so in `libs.versions.version.get().toInteger()` it will have one with ref `libs.versions.version`
-      Optional<GrReferenceExpression> foundItem = parts.stream()
-        .filter( part -> !isMethodCall(part))
-        .findFirst();
-
-      if (foundItem.isPresent()) {
-        GrExpression stripped = foundItem.get();
+    if (psiElement instanceof GrMethodCallExpression expression) {
+      GrExpression stripped = extractCatalogReference(expression);
+      if (stripped != null) {
         String name = context.getDslFile().getParser().convertReferencePsi(context, stripped);
         GradleDslElement referenceElement = context.resolveInternalSyntaxReference(name, true);
         if (includeUnresolved || referenceElement != null) {
@@ -1252,6 +1255,21 @@ public final class GroovyDslUtil {
           //  nevertheless be better to integrate that into psiToName rather than special-case getInjectionName, if only to be able
           //  to remove this call to the String form of resolveExternalSyntaxReference.
           GradleDslElement referenceElement = context.resolveExternalSyntaxReference(name, true);
+          if (referenceElement == null) {
+            // try reference like libs.versions.version.get().toInt()
+            GrExpression expression = extractInjectedElement(injection);
+            if (expression instanceof GrMethodCallExpression callExpression) {
+              GrExpression stripped = extractCatalogReference(callExpression);
+              if (stripped != null) {
+                String referenceName = context.getDslFile().getParser().convertReferencePsi(context, stripped);
+                GradleDslElement catalogElement = context.resolveInternalSyntaxReference(referenceName, true);
+                if (catalogElement != null) {
+                  injections.add(new GradleReferenceInjection(context, catalogElement, injection, referenceName));
+                  continue;
+                }
+              }
+            }
+          }
           if (includeUnresolved || referenceElement != null) {
             injections.add(new GradleReferenceInjection(context, referenceElement, injection, name));
           }
@@ -1342,6 +1360,22 @@ public final class GroovyDslUtil {
 
   public static boolean isMethodCall(GrReferenceExpression expression){
     return expression.getNextSibling() instanceof GrArgumentList;
+  }
+
+  @Nullable
+  private static GrExpression extractCatalogReference(@NotNull GrMethodCallExpression callExpression){
+    if(isTransformReference(callExpression)) {
+      List<GrReferenceExpression> parts = collectReferenceParts(callExpression);
+
+      // search for first non function item
+      // so in `libs.versions.version.get().toInteger()` it will have one with ref `libs.versions.version`
+      Optional<GrReferenceExpression> foundItem = parts.stream()
+        .filter(part -> !isMethodCall(part))
+        .findFirst();
+
+      return foundItem.orElse(null);
+    }
+    return null;
   }
 
   static List<String> transformers = List.of("toInteger", "toString");
