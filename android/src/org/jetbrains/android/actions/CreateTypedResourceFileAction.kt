@@ -94,13 +94,7 @@ open class CreateTypedResourceFileAction(
 
   override fun create(newName: String, directory: PsiDirectory): Array<PsiElement> {
     val module = ModuleUtilCore.findModuleForPsiElement(directory)
-    return doCreateAndNavigate(
-      newName,
-      directory,
-      getDefaultRootTag(module),
-      this.isChooseTagName,
-      true,
-    )
+    return doCreateAndNavigate(newName, directory, getDefaultRootTag(module), this.isChooseTagName, true)
   }
 
   fun doCreateAndNavigate(
@@ -110,17 +104,12 @@ open class CreateTypedResourceFileAction(
     chooseTagName: Boolean,
     navigate: Boolean,
   ): Array<PsiElement> {
-    val psiFile = if (resourceFolderType == ResourceFolderType.RAW) {
-      createRawFileResource(newName, directory)
-    } else {
-      createXmlFileResource(
-        newName,
-        directory,
-        rootTagName,
-        resourceFolderType.resourceType,
-        valuesResourceFile,
-      )
-    }
+    val psiFile =
+      if (resourceFolderType == ResourceFolderType.RAW) {
+        createRawFileResource(newName, directory)
+      } else {
+        createXmlFileResource(newName, directory, rootTagName, resourceFolderType.resourceType, valuesResourceFile)
+      }
 
     if (navigate) doNavigate(psiFile)
     if (psiFile is XmlFile && chooseTagName) doChooseTagName(psiFile)
@@ -144,31 +133,26 @@ open class CreateTypedResourceFileAction(
     }
   }
 
-  override fun isAvailable(context: DataContext) =
-    super.isAvailable(context) && doIsAvailable(context, resourceFolderType)
+  override fun isAvailable(context: DataContext) = super.isAvailable(context) && doIsAvailable(context, resourceFolderType)
 
   open fun getAllowedTagNames(facet: AndroidFacet) = listOf(getDefaultRootTag(facet.module))
 
   fun getSortedAllowedTagNames(facet: AndroidFacet) = getAllowedTagNames(facet).sorted()
 
   fun getDefaultRootTag(module: Module?) =
-    if (resourceFolderType == ResourceFolderType.RAW) ""
-    else getDefaultRootTagByResourceType(module, resourceFolderType)
+    if (resourceFolderType == ResourceFolderType.RAW) "" else getDefaultRootTagByResourceType(module, resourceFolderType)
 
   override fun getErrorTitle(): String = CommonBundle.getErrorTitle()
 
-  override fun getCommandName(): String? =
-    AndroidBundle.message("new.typed.resource.command.name", resourceFolderType)
+  override fun getCommandName(): String? = AndroidBundle.message("new.typed.resource.command.name", resourceFolderType)
 
   override fun getActionName(directory: PsiDirectory, newName: String): String =
     CreateResourceFileAction.doGetActionName(directory, newName)
 
   override fun toString() = resourcePresentableName
 
-  private inner class MyValidator(project: Project, directory: PsiDirectory) :
-    MyInputValidator(project, directory), InputValidatorEx {
-    private val nameValidator: IdeResourceNameValidator =
-      forFilename(resourceFolderType, SdkConstants.DOT_XML)
+  private inner class MyValidator(project: Project, directory: PsiDirectory) : MyInputValidator(project, directory), InputValidatorEx {
+    private val nameValidator: IdeResourceNameValidator = forFilename(resourceFolderType, SdkConstants.DOT_XML)
 
     override fun getErrorText(inputString: String?) = nameValidator.getErrorText(inputString)
 
@@ -181,16 +165,14 @@ open class CreateTypedResourceFileAction(
     @JvmStatic
     fun doIsAvailable(context: DataContext, resourceType: ResourceFolderType): Boolean {
       // Requires a given PsiElement.
-      val element =
-        CommonDataKeys.PSI_ELEMENT.getData(context)?.takeIf { AndroidFacet.getInstance(it) != null }
-          ?: return false
+      val element = CommonDataKeys.PSI_ELEMENT.getData(context)?.takeIf { AndroidFacet.getInstance(it) != null } ?: return false
 
       return application.runReadAction<Boolean> {
         // Verify the given PsiElement is a directory within a valid resource type folder (e.g:
         // .../res/color). Don't call .parents because it only works within files.
-        generateSequence(element, PsiElement::getParent)
-          .filterIsInstance<PsiDirectory>()
-          .any { isResourceSubdirectory(it, resourceType.getName(), true) }
+        generateSequence(element, PsiElement::getParent).filterIsInstance<PsiDirectory>().any {
+          isResourceSubdirectory(it, resourceType.getName(), true)
+        }
       }
     }
 
@@ -213,10 +195,8 @@ open class CreateTypedResourceFileAction(
         ResourceFolderType.LAYOUT ->
           when {
             module == null -> AndroidUtils.TAG_LINEAR_LAYOUT
-            module.dependsOn(GoogleMavenArtifactId.CONSTRAINT_LAYOUT) ->
-              AndroidXConstants.CONSTRAINT_LAYOUT.oldName()
-            module.dependsOn(GoogleMavenArtifactId.ANDROIDX_CONSTRAINTLAYOUT) ->
-              AndroidXConstants.CONSTRAINT_LAYOUT.newName()
+            module.dependsOn(GoogleMavenArtifactId.CONSTRAINT_LAYOUT) -> AndroidXConstants.CONSTRAINT_LAYOUT.oldName()
+            module.dependsOn(GoogleMavenArtifactId.ANDROIDX_CONSTRAINTLAYOUT) -> AndroidXConstants.CONSTRAINT_LAYOUT.newName()
             else -> AndroidUtils.TAG_LINEAR_LAYOUT
           }
         ResourceFolderType.TRANSITION -> TransitionDomUtil.DEFAULT_ROOT

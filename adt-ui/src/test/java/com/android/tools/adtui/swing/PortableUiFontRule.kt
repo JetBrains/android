@@ -24,12 +24,10 @@ import javax.swing.plaf.FontUIResource
 import org.junit.rules.ExternalResource
 
 /**
- * Sets all default fonts to Droid Sans that is included in the bundled JDK. This makes fonts the
- * same across all platforms.
+ * Sets all default fonts to Droid Sans that is included in the bundled JDK. This makes fonts the same across all platforms.
  *
- * To improve error detection it may be helpful to scale the font used up (to improve matches across
- * platforms and detect text changes) or down (to decrease the importance of text in generated
- * images).
+ * To improve error detection it may be helpful to scale the font used up (to improve matches across platforms and detect text changes) or
+ * down (to decrease the importance of text in generated images).
  */
 class PortableUiFontRule(val scale: Float = 1.0f) : ExternalResource() {
 

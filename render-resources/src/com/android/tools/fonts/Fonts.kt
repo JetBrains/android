@@ -25,10 +25,23 @@ class Fonts {
     // Used to provide completion for values of android:fontFamily attribute
     // https://android.googlesource.com/platform/frameworks/base/+/android-6.0.0_r5/data/fonts/fonts.xml
     @JvmField
-    val AVAILABLE_FAMILIES: List<String> = listOf(
-      "sans-serif", "sans-serif-thin", "sans-serif-light", "sans-serif-medium", "sans-serif-black",
-      "sans-serif-condensed", "sans-serif-condensed-light", "sans-serif-condensed-medium",
-      "serif", "monospace", "serif-monospace", "casual", "cursive", "sans-serif-smallcaps")
+    val AVAILABLE_FAMILIES: List<String> =
+      listOf(
+        "sans-serif",
+        "sans-serif-thin",
+        "sans-serif-light",
+        "sans-serif-medium",
+        "sans-serif-black",
+        "sans-serif-condensed",
+        "sans-serif-condensed-light",
+        "sans-serif-condensed-medium",
+        "serif",
+        "monospace",
+        "serif-monospace",
+        "casual",
+        "cursive",
+        "sans-serif-smallcaps",
+      )
 
     @JvmStatic
     fun getFallbackResourceUrl(provider: FontProvider): URL {

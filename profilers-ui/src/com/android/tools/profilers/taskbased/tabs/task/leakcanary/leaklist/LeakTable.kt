@@ -60,17 +60,12 @@ private fun LeakListRow(leak: Leak, isSelected: Boolean) {
   val occurrences = leak.leakTraceCount.toString()
 
   Row(
-    modifier = Modifier
-      .fillMaxWidth()
-      .height(TaskBasedUxDimensions.TABLE_ROW_HEIGHT_DP)
-      .background(
-        if (isSelected)
-          TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR
-        else
-          Color.Transparent
-      )
-      .padding(horizontal = TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP)
-      .testTag("leakListRow")
+    modifier =
+      Modifier.fillMaxWidth()
+        .height(TaskBasedUxDimensions.TABLE_ROW_HEIGHT_DP)
+        .background(if (isSelected) TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR else Color.Transparent)
+        .padding(horizontal = TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP)
+        .testTag("leakListRow")
   ) {
     LeftAlignedColumnText(name, rowScope = this)
     RightAlignedColumnText(text = occurrences, colWidth = LEAKCANARY_OCCURRENCE_COL_WIDTH_DP)
@@ -81,30 +76,30 @@ private fun LeakListRow(leak: Leak, isSelected: Boolean) {
 @Composable
 private fun LeakListHeader() {
   Row(
-    modifier = Modifier
-      .fillMaxWidth()
-      .height(TaskBasedUxDimensions.TABLE_HEADER_ROW_HEIGHT_DP)
-      .background(TaskBasedUxColors.TABLE_HEADER_BACKGROUND_COLOR)
-      .padding(horizontal = TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP)
+    modifier =
+      Modifier.fillMaxWidth()
+        .height(TaskBasedUxDimensions.TABLE_HEADER_ROW_HEIGHT_DP)
+        .background(TaskBasedUxColors.TABLE_HEADER_BACKGROUND_COLOR)
+        .padding(horizontal = TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP)
   ) {
     LeftAlignedColumnText(text = TaskBasedUxStrings.LEAKCANARY_LEAK_HEADER_TEXT, rowScope = this)
     Divider(thickness = 1.dp, modifier = Modifier.fillMaxHeight(), orientation = Orientation.Vertical)
-    RightAlignedColumnText(text = TaskBasedUxStrings.LEAKCANARY_OCCURRENCES_HEADER_TEXT,
-                           colWidth = LEAKCANARY_OCCURRENCE_COL_WIDTH_DP)
+    RightAlignedColumnText(text = TaskBasedUxStrings.LEAKCANARY_OCCURRENCES_HEADER_TEXT, colWidth = LEAKCANARY_OCCURRENCE_COL_WIDTH_DP)
     Divider(thickness = 1.dp, modifier = Modifier.fillMaxHeight(), orientation = Orientation.Vertical)
-    RightAlignedColumnText(text = TaskBasedUxStrings.LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT,
-                           colWidth = LEAKCANARY_TOTAL_LEAKED_COL_WIDTH_DP)
+    RightAlignedColumnText(text = TaskBasedUxStrings.LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT, colWidth = LEAKCANARY_TOTAL_LEAKED_COL_WIDTH_DP)
   }
 }
 
 @Composable
-fun LeakListContent(leaks: List<Leak>, selectedLeak: Leak?,
-                    isRecording: Boolean,
-                    onLeakSelection: (Leak) -> Unit) {
+fun LeakListContent(leaks: List<Leak>, selectedLeak: Leak?, isRecording: Boolean, onLeakSelection: (Leak) -> Unit) {
   Column {
-      LeakListHeader()
-      Divider(color = TaskBasedUxColors.TABLE_SEPARATOR_COLOR, modifier = Modifier.fillMaxWidth(), thickness = 1.dp,
-              orientation = Orientation.Horizontal)
+    LeakListHeader()
+    Divider(
+      color = TaskBasedUxColors.TABLE_SEPARATOR_COLOR,
+      modifier = Modifier.fillMaxWidth(),
+      thickness = 1.dp,
+      orientation = Orientation.Horizontal,
+    )
     if (leaks.isEmpty()) {
       NoLeaksMessageText(isRecording)
     } else {
@@ -118,7 +113,7 @@ fun LeakTable(leaks: List<Leak>, selectedLeak: Leak?, onLeakSelection: (Leak) ->
   val listState = rememberSelectableLazyListState()
 
   Box(modifier = Modifier.fillMaxSize()) {
-    SelectableLazyColumn (
+    SelectableLazyColumn(
       state = listState,
       selectionMode = SelectionMode.Single,
       onSelectedIndexesChange = {
@@ -126,11 +121,9 @@ fun LeakTable(leaks: List<Leak>, selectedLeak: Leak?, onLeakSelection: (Leak) ->
           val newSelectedLeak = leaks[it.first()]
           onLeakSelection(newSelectedLeak)
         }
-      }
+      },
     ) {
-      items(items = leaks, key = { it }) {
-        LeakListRow(leak = it, isSelected = (it == selectedLeak))
-      }
+      items(items = leaks, key = { it }) { LeakListRow(leak = it, isSelected = (it == selectedLeak)) }
     }
     VerticalScrollbar(
       adapter = rememberScrollbarAdapter(listState.lazyListState),
@@ -142,16 +135,27 @@ fun LeakTable(leaks: List<Leak>, selectedLeak: Leak?, onLeakSelection: (Leak) ->
 @Composable
 fun NoLeaksMessageText(isRecording: Boolean) {
   Box(modifier = Modifier.fillMaxSize().padding(horizontal = 15.dp), contentAlignment = Alignment.Center) {
-    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally,
-           verticalArrangement = Arrangement.Center) {
+    Column(
+      modifier = Modifier.fillMaxSize(),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Center,
+    ) {
       if (isRecording) {
         EllipsisText(text = TaskBasedUxStrings.LEAKCANARY_LEAK_LIST_EMPTY_INITIAL_MESSAGE, maxLines = 3, textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.height(10.dp))
-        EllipsisText(text = TaskBasedUxStrings.LEAKCANARY_INSTALLATION_REQUIRED_MESSAGE, maxLines = 3,
-                     fontStyle = FontStyle.Italic, textAlign = TextAlign.Center)
+        EllipsisText(
+          text = TaskBasedUxStrings.LEAKCANARY_INSTALLATION_REQUIRED_MESSAGE,
+          maxLines = 3,
+          fontStyle = FontStyle.Italic,
+          textAlign = TextAlign.Center,
+        )
       } else {
-        EllipsisText(text = TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE, fontStyle = FontStyle.Italic, maxLines = 3,
-                     textAlign = TextAlign.Center)
+        EllipsisText(
+          text = TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE,
+          fontStyle = FontStyle.Italic,
+          maxLines = 3,
+          textAlign = TextAlign.Center,
+        )
       }
     }
   }

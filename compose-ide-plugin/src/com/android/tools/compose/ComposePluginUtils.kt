@@ -53,10 +53,7 @@ import org.jetbrains.kotlin.util.OperatorNameConventions
 private const val COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME = "IntelliJComposableCallTextAttributes"
 
 internal val COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
-  TextAttributesKey.createTextAttributesKey(
-    COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME,
-    DefaultLanguageHighlighterColors.FUNCTION_CALL,
-  )
+  TextAttributesKey.createTextAttributesKey(COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME, DefaultLanguageHighlighterColors.FUNCTION_CALL)
 
 fun isComposeEnabled(element: PsiElement): Boolean = element.getModuleSystem()?.usesCompose ?: false
 
@@ -82,40 +79,29 @@ internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): S
 }
 
 internal fun KtDeclaration.returnTypeFqName(): String? =
-  if (this !is KtCallableDeclaration) null
-    else analyze(this) { asFqNameString(this@returnTypeFqName.returnType) }
+  if (this !is KtCallableDeclaration) null else analyze(this) { asFqNameString(this@returnTypeFqName.returnType) }
 
 @OptIn(KaAllowAnalysisOnEdt::class)
 internal fun KtElement.callReturnTypeFqName() = allowAnalysisOnEdt {
   analyze(this) {
-    val call =
-          this@callReturnTypeFqName.resolveToCall()?.calls?.firstOrNull()
-            as? KaCallableMemberCall<*, *>
+    val call = this@callReturnTypeFqName.resolveToCall()?.calls?.firstOrNull() as? KaCallableMemberCall<*, *>
     call?.let { asFqNameString(it.symbol.returnType) }
   }
 }
 
 @OptIn(KaExperimentalApi::class)
-internal fun KaSession.asFqNameString(type: KaType) =
-  type.fullyExpandedType.render(position = Variance.INVARIANT)
+internal fun KaSession.asFqNameString(type: KaType) = type.fullyExpandedType.render(position = Variance.INVARIANT)
 
 internal fun KtFunction.hasComposableAnnotation() = hasAnnotation(ComposeClassIds.Composable)
 
 internal fun isComposableInvocation(callableSymbol: KaCallableSymbol): Boolean {
-  fun hasComposableAnnotation(annotated: KaAnnotated?) =
-    annotated != null && ComposeClassIds.Composable in annotated.annotations
+  fun hasComposableAnnotation(annotated: KaAnnotated?) = annotated != null && ComposeClassIds.Composable in annotated.annotations
 
   val type = callableSymbol.returnType
   if (hasComposableAnnotation(type)) return true
   val functionSymbol = callableSymbol as? KaNamedFunctionSymbol
-  if (
-    functionSymbol != null &&
-      functionSymbol.isOperator &&
-      functionSymbol.name == OperatorNameConventions.INVOKE
-  ) {
-    functionSymbol.receiverType?.let { receiverType ->
-      if (hasComposableAnnotation(receiverType)) return true
-    }
+  if (functionSymbol != null && functionSymbol.isOperator && functionSymbol.name == OperatorNameConventions.INVOKE) {
+    functionSymbol.receiverType?.let { receiverType -> if (hasComposableAnnotation(receiverType)) return true }
   }
   return when (callableSymbol) {
     is KaValueParameterSymbol -> false

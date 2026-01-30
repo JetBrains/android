@@ -19,10 +19,10 @@ import com.android.resources.Density
 import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRound
 import com.android.sdklib.devices.Device
+import kotlin.test.assertNotNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.test.assertNotNull
 
 internal class DeviceUtilsKtTest {
 
@@ -56,10 +56,7 @@ internal class DeviceUtilsKtTest {
     assertEquals(2280f, landscapeConfig.height)
 
     // On legacy DeviceSpec, width and height are swapped to reflect orientation
-    assertEquals(
-      "spec:width=2300px,height=2280px,dpi=240,isRound=true,chinSize=10px",
-      landscapeConfig.deviceSpec(),
-    )
+    assertEquals("spec:width=2300px,height=2280px,dpi=240,isRound=true,chinSize=10px", landscapeConfig.deviceSpec())
   }
 
   @Test
@@ -76,10 +73,7 @@ internal class DeviceUtilsKtTest {
     device = deviceFromDeviceSpec("spec:width=300px,height=200px")
     assertEquals(300, screenProvider().xDimension)
     assertEquals(200, screenProvider().yDimension)
-    assertEquals(
-      ScreenOrientation.LANDSCAPE,
-      orientationProvider(),
-    ) // Orientation implied from dimensions
+    assertEquals(ScreenOrientation.LANDSCAPE, orientationProvider()) // Orientation implied from dimensions
 
     device = deviceFromDeviceSpec("spec:width=100px,height=200px,orientation=portrait")
     assertEquals(100, screenProvider().xDimension)
@@ -91,13 +85,7 @@ internal class DeviceUtilsKtTest {
   fun deviceInstanceRoundAndChin() {
     // From DeviceConfig
     var screen =
-      DeviceConfig(
-          width = 100f,
-          height = 100f,
-          dimUnit = DimUnit.px,
-          shape = Shape.Round,
-          chinSize = 20f,
-        )
+      DeviceConfig(width = 100f, height = 100f, dimUnit = DimUnit.px, shape = Shape.Round, chinSize = 20f)
         .createDeviceInstance()
         .defaultHardware
         .screen
@@ -105,10 +93,7 @@ internal class DeviceUtilsKtTest {
     assertEquals(20, screen.chin)
 
     // From DeviceSpec Language
-    screen =
-      deviceFromDeviceSpec("spec:width=100px,height=200px,isRound=true,chinSize=50px")!!
-        .defaultHardware
-        .screen
+    screen = deviceFromDeviceSpec("spec:width=100px,height=200px,isRound=true,chinSize=50px")!!.defaultHardware.screen
     assertEquals(ScreenRound.ROUND, screen.screenRound)
     assertEquals(50, screen.chin)
   }
@@ -155,8 +140,7 @@ internal class DeviceUtilsKtTest {
     assertEquals(ScreenOrientation.PORTRAIT, deviceById.defaultState.orientation)
 
     // Device parameters should be the same as 'id1' with a different orientation
-    val deviceByParentId =
-      existingDevices.findOrParseFromDefinition("spec:parent=id1,orientation=landscape")
+    val deviceByParentId = existingDevices.findOrParseFromDefinition("spec:parent=id1,orientation=landscape")
     val screen2 = deviceByParentId!!.defaultHardware.screen
     // Devices defined by 'spec' are always Custom devices
     assertEquals("Custom", deviceByParentId.id)
@@ -167,41 +151,16 @@ internal class DeviceUtilsKtTest {
   }
 }
 
-private fun deviceFromDeviceSpec(deviceDefinition: String): Device? =
-  emptyList<Device>().findOrParseFromDefinition(deviceDefinition)
+private fun deviceFromDeviceSpec(deviceDefinition: String): Device? = emptyList<Device>().findOrParseFromDefinition(deviceDefinition)
 
 private fun buildMockDevices(): List<Device> {
   // Assign it to name if even, otherwise as an id
   var nameOrIdCount = 0
   return listOf(
-      DeviceConfig(
-        width = 1080f,
-        height = 1920f,
-        dimUnit = DimUnit.px,
-        dpi = 320,
-        shape = Shape.Normal,
-      ),
-      DeviceConfig(
-        width = 540f,
-        height = 960f,
-        dimUnit = DimUnit.px,
-        dpi = 640,
-        shape = Shape.Normal,
-      ),
-      DeviceConfig(
-        width = 1080f,
-        height = 2280f,
-        dimUnit = DimUnit.px,
-        dpi = 480,
-        shape = Shape.Normal,
-      ),
-      DeviceConfig(
-        width = 600f,
-        height = 600f,
-        dimUnit = DimUnit.px,
-        dpi = 480,
-        shape = Shape.Round,
-      ),
+      DeviceConfig(width = 1080f, height = 1920f, dimUnit = DimUnit.px, dpi = 320, shape = Shape.Normal),
+      DeviceConfig(width = 540f, height = 960f, dimUnit = DimUnit.px, dpi = 640, shape = Shape.Normal),
+      DeviceConfig(width = 1080f, height = 2280f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Normal),
+      DeviceConfig(width = 600f, height = 600f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Round),
     )
     .map {
       Device.Builder(it.createDeviceInstance())

@@ -82,9 +82,7 @@ open class FakeJBPopup<T>(
 
   fun selectItem(item: T) {
     if (!items.contains(item)) {
-      throw IllegalArgumentException(
-        "No such item: $item. Available items: ${items.joinToString(",")}}"
-      )
+      throw IllegalArgumentException("No such item: $item. Available items: ${items.joinToString(",")}}")
     }
     callback?.consume(item)
   }

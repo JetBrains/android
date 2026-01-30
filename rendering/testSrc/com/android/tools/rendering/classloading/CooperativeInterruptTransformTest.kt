@@ -86,15 +86,11 @@ class CooperativeInterruptTransformTest {
   @Test
   fun `check cooperative interrupt`() {
     val testClassLoader =
-      setupTestClassLoaderWithTransformation(
-        mapOf("Test" to LoopTestClass::class.java),
-        beforeTransformTrace,
-        afterTransformTrace,
-      ) { visitor ->
+      setupTestClassLoaderWithTransformation(mapOf("Test" to LoopTestClass::class.java), beforeTransformTrace, afterTransformTrace) {
+        visitor ->
         CooperativeInterruptTransform(visitor, 100)
       }
-    val loopTestInstance =
-      testClassLoader.loadClass("Test").getDeclaredConstructor().newInstance() as LoopTestInterface
+    val loopTestInstance = testClassLoader.loadClass("Test").getDeclaredConstructor().newInstance() as LoopTestInterface
     // The alivenessCheck will be automatically set to true by the thread in every loop iteration.
     // This way, we can check the thread is working and not just blocked in an invalid bytecode
     // sequence.
@@ -130,19 +126,15 @@ class CooperativeInterruptTransformTest {
 
     // Interrupt the thread. When the thread finishes, it will release the lock.
     longThread.interrupt()
-    if (!threadLock.tryLock(10, TimeUnit.SECONDS))
-      fail("The thread should finish when interrupt is called")
+    if (!threadLock.tryLock(10, TimeUnit.SECONDS)) fail("The thread should finish when interrupt is called")
   }
 
   @Test
   fun `check class does not instrument all methods`() {
     val instrumentedChecks = mutableSetOf<String>()
     val testClassLoader =
-      setupTestClassLoaderWithTransformation(
-        mapOf("Test" to LoopTestClass::class.java),
-        beforeTransformTrace,
-        afterTransformTrace,
-      ) { visitor ->
+      setupTestClassLoaderWithTransformation(mapOf("Test" to LoopTestClass::class.java), beforeTransformTrace, afterTransformTrace) {
+        visitor ->
         CooperativeInterruptTransform(visitor, 100) { className, methodName ->
           instrumentedChecks.add("$className.$methodName")
           // We do not instrument any of the methods for this test
@@ -156,7 +148,7 @@ class CooperativeInterruptTransformTest {
       Test.getCounter
       Test.methodCall
       Test.setCounter
-    """
+      """
         .trimIndent(),
       instrumentedChecks.sorted().joinToString("\n"),
     )

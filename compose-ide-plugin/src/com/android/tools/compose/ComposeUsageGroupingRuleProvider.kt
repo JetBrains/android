@@ -31,22 +31,14 @@ import com.intellij.usages.rules.PsiElementUsage
 import com.intellij.usages.rules.UsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRuleEx
 import com.intellij.usages.rules.UsageGroupingRuleProviderEx
+import javax.swing.Icon
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtFunction
-import javax.swing.Icon
 
 private val PREVIEW_ANNOTATIONS =
-  listOf(
-    "Preview",
-    "PreviewDynamicColors",
-    "PreviewFontScale",
-    "PreviewLightDark",
-    "PreviewParameter",
-    "PreviewScreenSizes",
-  )
+  listOf("Preview", "PreviewDynamicColors", "PreviewFontScale", "PreviewLightDark", "PreviewParameter", "PreviewScreenSizes")
 
-private val PREVIEW_CLASS_IDS =
-  PREVIEW_ANNOTATIONS.map { ClassId.fromString("androidx/compose/ui/tooling/preview/$it") }
+private val PREVIEW_CLASS_IDS = PREVIEW_ANNOTATIONS.map { ClassId.fromString("androidx/compose/ui/tooling/preview/$it") }
 
 /** Returns whether a [PsiElement] is used within a Kotlin function annotated with @Preview. */
 private tailrec fun PsiElement.isInPreviewFunction(): Boolean {
@@ -62,17 +54,12 @@ private fun KtFunction.hasPreviewAnnotation() = PREVIEW_CLASS_IDS.any(::hasAnnot
 
 /** Returns whether any of the [UsageTarget]s represent @Composable functions. */
 private fun Array<out UsageTarget>.containsComposable(): Boolean =
-  asSequence()
-    .filterIsInstance<PsiElementUsageTarget>()
-    .mapNotNull { it.element as? KtFunction }
-    .any { it.hasComposableAnnotation() }
+  asSequence().filterIsInstance<PsiElementUsageTarget>().mapNotNull { it.element as? KtFunction }.any { it.hasComposableAnnotation() }
 
 class ComposeUsageGroupingRuleProvider : UsageGroupingRuleProviderEx {
-  override fun getActiveRules(project: Project): Array<UsageGroupingRule> =
-    arrayOf(PreviewUsageGroupingRule)
+  override fun getActiveRules(project: Project): Array<UsageGroupingRule> = arrayOf(PreviewUsageGroupingRule)
 
-  override fun getAllRules(project: Project, usageView: UsageView?): Array<UsageGroupingRule> =
-    arrayOf(PreviewUsageGroupingRule)
+  override fun getAllRules(project: Project, usageView: UsageView?): Array<UsageGroupingRule> = arrayOf(PreviewUsageGroupingRule)
 }
 
 private object PreviewUsageGroupingRule : UsageGroupingRuleEx {
@@ -90,8 +77,7 @@ private object PreviewUsageGroupingRule : UsageGroupingRuleEx {
     // something to idea.log we can look for in our
     // end-to-end test, provided we turn on debugging for this class.
     if (java.lang.Boolean.getBoolean("studio.run.under.integration.test")) {
-      Logger.getInstance(ComposeUsageGroupingRuleProvider::class.java)
-        .debug("Saw usage: ${usage.presentation.plainText.trim()}")
+      Logger.getInstance(ComposeUsageGroupingRuleProvider::class.java).debug("Saw usage: ${usage.presentation.plainText.trim()}")
     }
 
     val element = (usage as? PsiElementUsage)?.element ?: return emptyList()
@@ -113,6 +99,5 @@ internal object PreviewUsageGroup : UsageGroupBase(1) {
 internal object ProductionUsageGroup : UsageGroupBase(0) {
   override fun getIcon(): Icon? = null
 
-  override fun getPresentableGroupText() =
-    ComposeBundle.message("usage.group.in.nonpreview.function")
+  override fun getPresentableGroupText() = ComposeBundle.message("usage.group.in.nonpreview.function")
 }

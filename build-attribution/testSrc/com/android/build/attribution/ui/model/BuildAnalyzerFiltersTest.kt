@@ -33,48 +33,46 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
+import java.awt.Dimension
+import java.util.UUID
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import java.awt.Dimension
-import java.util.UUID
 
 class BuildAnalyzerFiltersTest {
-  @get:Rule
-  val projectRule: ProjectRule = ProjectRule()
+  @get:Rule val projectRule: ProjectRule = ProjectRule()
 
-  @get:Rule
-  var disposableRule = DisposableRule()
+  @get:Rule var disposableRule = DisposableRule()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
-  private val task1 = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
-    issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-  }
+  private val task1 =
+    mockTask(":app", "compile", "compiler.plugin", 2000).apply { issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this)) }
   private val task2 = mockTask(":app", "resources", "resources.plugin", 1000)
   private val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000)
 
-  private val defaultWarningFilterItemsList = listOf(
-    BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS,
-    BuildAttributionUiEvent.FilterItem.SHOW_THIRD_PARTY_TASKS,
-    BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS,
-    BuildAttributionUiEvent.FilterItem.SHOW_ALWAYS_RUN_TASK_WARNINGS,
-    BuildAttributionUiEvent.FilterItem.SHOW_TASK_SETUP_ISSUE_WARNINGS,
-    BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS,
-    BuildAttributionUiEvent.FilterItem.SHOW_CONFIGURATION_CACHE_WARNINGS,
-    BuildAttributionUiEvent.FilterItem.SHOW_JETIFIER_USAGE_WARNINGS,
-  )
+  private val defaultWarningFilterItemsList =
+    listOf(
+      BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS,
+      BuildAttributionUiEvent.FilterItem.SHOW_THIRD_PARTY_TASKS,
+      BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS,
+      BuildAttributionUiEvent.FilterItem.SHOW_ALWAYS_RUN_TASK_WARNINGS,
+      BuildAttributionUiEvent.FilterItem.SHOW_TASK_SETUP_ISSUE_WARNINGS,
+      BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS,
+      BuildAttributionUiEvent.FilterItem.SHOW_CONFIGURATION_CACHE_WARNINGS,
+      BuildAttributionUiEvent.FilterItem.SHOW_JETIFIER_USAGE_WARNINGS,
+    )
 
-  private val defaultTasksFilterItemsList = listOf(
-    BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS,
-    BuildAttributionUiEvent.FilterItem.SHOW_THIRD_PARTY_TASKS,
-    BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS,
-    BuildAttributionUiEvent.FilterItem.SHOW_TASKS_WITHOUT_WARNINGS
-  )
+  private val defaultTasksFilterItemsList =
+    listOf(
+      BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS,
+      BuildAttributionUiEvent.FilterItem.SHOW_THIRD_PARTY_TASKS,
+      BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS,
+      BuildAttributionUiEvent.FilterItem.SHOW_TASKS_WITHOUT_WARNINGS,
+    )
 
   val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3)), BuildAttributionWarningsFilter())
   val buildSessionId = UUID.randomUUID().toString()
@@ -92,21 +90,24 @@ class BuildAnalyzerFiltersTest {
 
   @Test
   fun testInitialWarningsFilterState() {
-    val initialFilterActionsState = (warningsFilterActions(model.warningsPageModel, controller, disposableRule.disposable) as DefaultActionGroup).childActionsOrStubs
-      .filterIsInstance<WarningsFilterToggleAction>()
-      .map { it.templateText to it.isSelected(model.warningsPageModel.filter) }
+    val initialFilterActionsState =
+      (warningsFilterActions(model.warningsPageModel, controller, disposableRule.disposable) as DefaultActionGroup)
+        .childActionsOrStubs
+        .filterIsInstance<WarningsFilterToggleAction>()
+        .map { it.templateText to it.isSelected(model.warningsPageModel.filter) }
 
-    val expected = listOf(
-      "Show Always-run tasks" to true,
-      "Show Task Setup issues" to true,
-      "Show issues for Android/Java/Kotlin plugins" to true,
-      "Show issues for other plugins" to true,
-      "Show issues for project customization" to true,
-      "Include issues for tasks non determining this build duration" to false,
-      "Show annotation processors issues" to true,
-      "Show configuration cache issues" to true,
-      "Show Jetifier usage warning" to true,
-    )
+    val expected =
+      listOf(
+        "Show Always-run tasks" to true,
+        "Show Task Setup issues" to true,
+        "Show issues for Android/Java/Kotlin plugins" to true,
+        "Show issues for other plugins" to true,
+        "Show issues for project customization" to true,
+        "Include issues for tasks non determining this build duration" to false,
+        "Show annotation processors issues" to true,
+        "Show configuration cache issues" to true,
+        "Show Jetifier usage warning" to true,
+      )
 
     Truth.assertThat(initialFilterActionsState).isEqualTo(expected)
   }
@@ -194,16 +195,19 @@ class BuildAnalyzerFiltersTest {
 
   @Test
   fun testInitialTaskFilterState() {
-    val initialFilterActionsState = (tasksFilterActions(model.tasksPageModel, controller) as DefaultActionGroup).childActionsOrStubs
-      .filterIsInstance<TasksFilterToggleAction>()
-      .map { it.templateText to it.isSelected(model.tasksPageModel.filter) }
+    val initialFilterActionsState =
+      (tasksFilterActions(model.tasksPageModel, controller) as DefaultActionGroup)
+        .childActionsOrStubs
+        .filterIsInstance<TasksFilterToggleAction>()
+        .map { it.templateText to it.isSelected(model.tasksPageModel.filter) }
 
-    val expected = listOf(
-      "Show tasks for Android/Java/Kotlin plugins" to true,
-      "Show tasks for other plugins" to true,
-      "Show tasks for project customization" to true,
-      "Show tasks without warnings" to true
-    )
+    val expected =
+      listOf(
+        "Show tasks for Android/Java/Kotlin plugins" to true,
+        "Show tasks for other plugins" to true,
+        "Show tasks for project customization" to true,
+        "Show tasks without warnings" to true,
+      )
 
     Truth.assertThat(initialFilterActionsState).isEqualTo(expected)
   }
@@ -245,16 +249,20 @@ class BuildAnalyzerFiltersTest {
   // Verify metrics sent: 2 events, for item switch off and back on.
   private fun verifyMetricsSent(
     filterItemToggled: BuildAttributionUiEvent.FilterItem,
-    defaultFilterState: List<BuildAttributionUiEvent.FilterItem>
+    defaultFilterState: List<BuildAttributionUiEvent.FilterItem>,
   ) {
-    val filterEvents = tracker.usages
-      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-      .map { event -> event.studioEvent.buildAttributionUiEvent.let { it.eventType to it.appliedFiltersList } }
+    val filterEvents =
+      tracker.usages
+        .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+        .map { event -> event.studioEvent.buildAttributionUiEvent.let { it.eventType to it.appliedFiltersList } }
 
     val updatedFilterItemsList = defaultFilterState.filterNot { it == filterItemToggled }
-    Truth.assertThat(filterEvents).isEqualTo(listOf(
-      BuildAttributionUiEvent.EventType.FILTER_APPLIED to updatedFilterItemsList,
-      BuildAttributionUiEvent.EventType.FILTER_APPLIED to defaultFilterState
-    ))
+    Truth.assertThat(filterEvents)
+      .isEqualTo(
+        listOf(
+          BuildAttributionUiEvent.EventType.FILTER_APPLIED to updatedFilterItemsList,
+          BuildAttributionUiEvent.EventType.FILTER_APPLIED to defaultFilterState,
+        )
+      )
   }
 }

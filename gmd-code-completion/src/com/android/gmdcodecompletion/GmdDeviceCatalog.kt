@@ -19,13 +19,13 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
 import com.intellij.openapi.diagnostic.Logger
 
-/** Defines basic behavior of device catalogs for GMD code completion
- *  ManagedVirtualDeviceCatalog and FtlDeviceCatalog inherits this abstract class
+/**
+ * Defines basic behavior of device catalogs for GMD code completion ManagedVirtualDeviceCatalog and FtlDeviceCatalog inherits this abstract
+ * class
  */
 abstract class GmdDeviceCatalog {
   companion object {
-    internal fun toJson(catalog: GmdDeviceCatalog): String =
-      GsonBuilder().create().toJson(catalog).replace(Regex("(?<!\\\\)\""), "'")
+    internal fun toJson(catalog: GmdDeviceCatalog): String = GsonBuilder().create().toJson(catalog).replace(Regex("(?<!\\\\)\""), "'")
 
     inline fun <reified T : GmdDeviceCatalog> fromJson(json: String): T {
       return try {

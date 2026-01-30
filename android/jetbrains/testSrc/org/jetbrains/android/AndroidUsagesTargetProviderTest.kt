@@ -28,50 +28,51 @@ class AndroidUsagesTargetProviderTest : AndroidTestCase() {
 
   private val MODULE_WITH_DEPENDENCY = "MODULE_WITH_DEPENDENCY"
   private val MODULE_WITHOUT_DEPENDENCY = "MODULE_WITHOUT_DEPENDENCY"
-  private lateinit var MAIN_MODULE_COLOR_FILE : VirtualFile
-  private lateinit var MAIN_MODULE_USAGE_COLOR_FILE : VirtualFile
-  private lateinit var MODULE_WITH_DEPENDENCY_COLOR_FILE : VirtualFile
-  private lateinit var MODULE_WITHOUT_DEPENDENCY_COLOR_FILE : VirtualFile
+  private lateinit var MAIN_MODULE_COLOR_FILE: VirtualFile
+  private lateinit var MAIN_MODULE_USAGE_COLOR_FILE: VirtualFile
+  private lateinit var MODULE_WITH_DEPENDENCY_COLOR_FILE: VirtualFile
+  private lateinit var MODULE_WITHOUT_DEPENDENCY_COLOR_FILE: VirtualFile
 
   private val COLORS_XML =
-    //language=XML
+    // language=XML
     """
     <resources>
         <color name="testColor">#123456</color>
     </resources>
-    """.trimIndent()
+    """
+      .trimIndent()
 
   override fun setUp() {
     super.setUp()
     MAIN_MODULE_COLOR_FILE = myFixture.addFileToProject("/res/values/colors.xml", COLORS_XML).virtualFile
-    MAIN_MODULE_USAGE_COLOR_FILE = myFixture.addFileToProject(
-      "/res/values/morecolors.xml",
-      //language=XML
-      """
-      <resources>
-          <color name="newColor">@color/testColor</color>
-      </resources>
-      """.trimIndent()
-    ).virtualFile
-    MODULE_WITH_DEPENDENCY_COLOR_FILE = myFixture.addFileToProject(
-      getAdditionalModulePath(MODULE_WITH_DEPENDENCY) + "/res/values/colors.xml",
-      COLORS_XML
-    ).virtualFile
-    MODULE_WITHOUT_DEPENDENCY_COLOR_FILE = myFixture.addFileToProject(
-      getAdditionalModulePath(MODULE_WITHOUT_DEPENDENCY) + "/res/values/colors.xml",
-      COLORS_XML
-    ).virtualFile
+    MAIN_MODULE_USAGE_COLOR_FILE =
+      myFixture
+        .addFileToProject(
+          "/res/values/morecolors.xml",
+          // language=XML
+          """
+          <resources>
+              <color name="newColor">@color/testColor</color>
+          </resources>
+          """
+            .trimIndent(),
+        )
+        .virtualFile
+    MODULE_WITH_DEPENDENCY_COLOR_FILE =
+      myFixture.addFileToProject(getAdditionalModulePath(MODULE_WITH_DEPENDENCY) + "/res/values/colors.xml", COLORS_XML).virtualFile
+    MODULE_WITHOUT_DEPENDENCY_COLOR_FILE =
+      myFixture.addFileToProject(getAdditionalModulePath(MODULE_WITHOUT_DEPENDENCY) + "/res/values/colors.xml", COLORS_XML).virtualFile
   }
 
   override fun configureAdditionalModules(
     projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
-    modules: MutableList<MyAdditionalModuleData>
+    modules: MutableList<MyAdditionalModuleData>,
   ) {
     addModuleWithAndroidFacet(projectBuilder, modules, MODULE_WITHOUT_DEPENDENCY, PROJECT_TYPE_LIBRARY, false)
     addModuleWithAndroidFacet(projectBuilder, modules, MODULE_WITH_DEPENDENCY, PROJECT_TYPE_LIBRARY, true)
   }
 
-  private fun getElementFromTargetProvider() : ResourceReferencePsiElement {
+  private fun getElementFromTargetProvider(): ResourceReferencePsiElement {
     val targets = AndroidUsagesTargetProvider().getTargets(myFixture.editor, myFixture.file)
     assertThat(targets).hasLength(1)
     val primaryTarget = targets!![0]

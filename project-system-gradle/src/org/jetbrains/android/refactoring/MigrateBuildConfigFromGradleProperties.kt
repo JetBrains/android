@@ -88,20 +88,23 @@ private fun shouldEnable(project: Project): Boolean {
 
 class MigrateBuildConfigFromGradlePropertiesAction : AndroidGradleBaseRefactoringAction() {
   override fun getHandler(dataContext: DataContext) = MigrateBuildConfigFromGradlePropertiesHandler()
+
   override fun isAvailableInEditorOnly() = false
+
   override fun isAvailableForLanguage(language: Language?) = true
+
   override fun isEnabledOnDataContext(dataContext: DataContext) = dataContext.project?.let { shouldEnable(it) } ?: false
+
   override fun isEnabledOnElements(elements: Array<PsiElement>) = shouldEnable(elements.first().project)
+
   override fun isAvailableOnElementInEditorAndFile(element: PsiElement, editor: Editor, file: PsiFile, context: DataContext) =
     shouldEnable(element.project)
 }
 
 class MigrateBuildConfigFromGradlePropertiesHandler : RefactoringActionHandler {
-  @UiThread
-  override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext?) = invoke(project)
+  @UiThread override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext?) = invoke(project)
 
-  @UiThread
-  override fun invoke(project: Project, elements: Array<out PsiElement>, dataContext: DataContext?) = invoke(project)
+  @UiThread override fun invoke(project: Project, elements: Array<out PsiElement>, dataContext: DataContext?) = invoke(project)
 
   @UiThread
   private fun invoke(project: Project) {
@@ -133,7 +136,11 @@ class MigrateBuildConfigFromGradlePropertiesHandler : RefactoringActionHandler {
         }
         val agpVersion = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project) ?: return@runProcessWithProgressSynchronously
         processor = MigrateBuildConfigFromGradlePropertiesRefactoringProcessor(project, agpVersion, indicator)
-      }, "Migrate Build Config from Gradle Properties", true, project)
+      },
+      "Migrate Build Config from Gradle Properties",
+      true,
+      project,
+    )
     processor?.apply {
       PsiManager.getInstance(project).dropPsiCaches()
       DumbService.getInstance(project).completeJustSubmittedTasks()
@@ -146,7 +153,7 @@ class MigrateBuildConfigFromGradlePropertiesHandler : RefactoringActionHandler {
 class MigrateBuildConfigFromGradlePropertiesRefactoringProcessor(
   project: Project,
   private val agpVersion: AgpVersion,
-  indicator: ProgressIndicator?
+  indicator: ProgressIndicator?,
 ) : BaseRefactoringProcessor(project) {
   private val projectBuildModel: ProjectBuildModel
   private val targets = ArrayList<PsiElement>()
@@ -167,10 +174,12 @@ class MigrateBuildConfigFromGradlePropertiesRefactoringProcessor(
   // TODO(xof): AndroidBundleize
   override fun getCommandName() = "Migrate buildConfig setting from gradle.properties to build Dsl"
 
-  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>) = object : UsageViewDescriptorAdapter() {
-    override fun getElements() = targets.toTypedArray()
-    override fun getProcessedElementsHeader() = "Migrate buildConfig setting to build Dsl"
-  }
+  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>) =
+    object : UsageViewDescriptorAdapter() {
+      override fun getElements() = targets.toTypedArray()
+
+      override fun getProcessedElementsHeader() = "Migrate buildConfig setting to build Dsl"
+    }
 
   protected override fun findUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -223,17 +232,16 @@ class MigrateBuildConfigFromGradlePropertiesRefactoringProcessor(
         // usages elsewhere.  Oh well.  (This is consistent with how other refactoring tools work.)
         val references = ReferencesSearch.search(buildConfigClass, GlobalSearchScope.projectScope(myProject))
         if (references.findAll().isEmpty()) {
-          if (buildModel.android().defaultConfig().buildConfigFields().isNotEmpty() ||
+          if (
+            buildModel.android().defaultConfig().buildConfigFields().isNotEmpty() ||
               buildModel.android().buildTypes().any { it.buildConfigFields().isNotEmpty() } ||
-              buildModel.android().productFlavors().any { it.buildConfigFields().isNotEmpty() }) {
+              buildModel.android().productFlavors().any { it.buildConfigFields().isNotEmpty() }
+          ) {
             // We have buildConfig Dsl in this module, but no use of it.  Since after the change buildConfig will be off in this module,
             // delete the buildConfigFields.
-            buildModel.psiFile?.let {
-              usages.add(ModuleWithoutBuildConfigButWithBuildConfigDslUsageInfo(it, projectBuildModel, module))
-            }
+            buildModel.psiFile?.let { usages.add(ModuleWithoutBuildConfigButWithBuildConfigDslUsageInfo(it, projectBuildModel, module)) }
           }
-        }
-        else {
+        } else {
           buildModel.psiFile?.let {
             // We have a use of BuildConfig in this module.  Make sure the feature is turned on explicitly in this module.
             usages.add(ModuleWithBuildConfigUsageInfo(it, projectBuildModel, module))
@@ -265,26 +273,29 @@ class MigrateBuildConfigFromGradlePropertiesRefactoringProcessor(
       }
     }
 
-    myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_BUILD_CONFIG_FROM_GRADLE_PROPERTIES.toReason())
-    UndoManager.getInstance(myProject).undoableActionPerformed(object : BasicUndoableAction() {
-      override fun undo() {
-        myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE.toReason())
-      }
-      override fun redo() {
-        myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE.toReason())
-      }
-    })
+    myProject
+      .getSyncManager()
+      .requestSyncProject(GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_BUILD_CONFIG_FROM_GRADLE_PROPERTIES.toReason())
+    UndoManager.getInstance(myProject)
+      .undoableActionPerformed(
+        object : BasicUndoableAction() {
+          override fun undo() {
+            myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE.toReason())
+          }
 
+          override fun redo() {
+            myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE.toReason())
+          }
+        }
+      )
   }
 
-  abstract class MigrateBuildPropertiesUsageInfo(element: PsiElement): UsageInfo(element) {
+  abstract class MigrateBuildPropertiesUsageInfo(element: PsiElement) : UsageInfo(element) {
     abstract fun doIt()
   }
 
-  class ExistingGradlePropertiesUsageInfo(
-    val element: PropertiesFileImpl,
-    val newSetting: Boolean?
-  ): MigrateBuildPropertiesUsageInfo(element) {
+  class ExistingGradlePropertiesUsageInfo(val element: PropertiesFileImpl, val newSetting: Boolean?) :
+    MigrateBuildPropertiesUsageInfo(element) {
     override fun doIt() {
       when (newSetting) {
         null -> element.findPropertyByKey(BUILDCONFIG_PROPERTY)?.psiElement?.delete()
@@ -293,28 +304,22 @@ class MigrateBuildConfigFromGradlePropertiesRefactoringProcessor(
     }
   }
 
-  class NewGradlePropertiesUsageInfo(val element: PsiDirectory, val newSetting: Boolean): MigrateBuildPropertiesUsageInfo(element) {
+  class NewGradlePropertiesUsageInfo(val element: PsiDirectory, val newSetting: Boolean) : MigrateBuildPropertiesUsageInfo(element) {
     override fun doIt() {
       val propertiesFile = element.createFile(FN_GRADLE_PROPERTIES) as? PropertiesFileImpl
       propertiesFile?.addProperty(BUILDCONFIG_PROPERTY, "$newSetting")
     }
   }
 
-  class ModuleWithBuildConfigUsageInfo(
-    element: PsiElement,
-    val buildModel: ProjectBuildModel,
-    val module: Module
-  ): MigrateBuildPropertiesUsageInfo(element) {
+  class ModuleWithBuildConfigUsageInfo(element: PsiElement, val buildModel: ProjectBuildModel, val module: Module) :
+    MigrateBuildPropertiesUsageInfo(element) {
     override fun doIt() {
       buildModel.getModuleBuildModel(module)?.android()?.buildFeatures()?.buildConfig()?.setValue(true)
     }
   }
 
-  class ModuleWithoutBuildConfigButWithBuildConfigDslUsageInfo(
-    element: PsiElement,
-    val buildModel: ProjectBuildModel,
-    val module: Module
-  ): MigrateBuildPropertiesUsageInfo(element) {
+  class ModuleWithoutBuildConfigButWithBuildConfigDslUsageInfo(element: PsiElement, val buildModel: ProjectBuildModel, val module: Module) :
+    MigrateBuildPropertiesUsageInfo(element) {
     override fun doIt() {
       buildModel.getModuleBuildModel(module)?.android()?.run {
         productFlavors().forEach { it.removeAllBuildConfigFields() }

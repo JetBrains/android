@@ -23,16 +23,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * The PastRecordingsTabModel serves as the data model for the past recordings tab. It owns the recording list model to manage the
- * available recordings the user can select from, as well as current recording selection. It also implements the behavior on open Profiler
- * task button click, reading the recording and Profiler task selection and using such values to launch the Profiler task.
+ * The PastRecordingsTabModel serves as the data model for the past recordings tab. It owns the recording list model to manage the available
+ * recordings the user can select from, as well as current recording selection. It also implements the behavior on open Profiler task button
+ * click, reading the recording and Profiler task selection and using such values to launch the Profiler task.
  */
 class PastRecordingsTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profilers) {
-  val recordingListModel = RecordingListModel(profilers, taskHandlers, taskGridModel::resetTaskSelection, taskGridModel::onTaskSelection,
-                                              ::onEnterTaskButtonClick)
+  val recordingListModel =
+    RecordingListModel(profilers, taskHandlers, taskGridModel::resetTaskSelection, taskGridModel::onTaskSelection, ::onEnterTaskButtonClick)
 
   @VisibleForTesting
-  val selectedRecording get() = recordingListModel.selectedRecording.value
+  val selectedRecording
+    get() = recordingListModel.selectedRecording.value
 
   private val _isBannerClosed = MutableStateFlow(false)
   val isBannerClosed = _isBannerClosed.asStateFlow()

@@ -30,6 +30,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.diagnostic.WindowsDefenderChecker
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Dimension
+import java.nio.file.Path
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -39,56 +41,57 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.awt.Dimension
-import java.nio.file.Path
 
 @RunsInEdt
 class WindowsDefenderWarningUITest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
-  private val listOfPaths = listOf(
-    Path.of("C:\\Users\\username\\.gradle"),
-    Path.of("C:\\Users\\username\\AndroidStudioProjects\\MyApp"),
-    Path.of("C:\\Users\\username\\AppData\\Local\\Google\\Android")
-  )
+  private val listOfPaths =
+    listOf(
+      Path.of("C:\\Users\\username\\.gradle"),
+      Path.of("C:\\Users\\username\\AndroidStudioProjects\\MyApp"),
+      Path.of("C:\\Users\\username\\AppData\\Local\\Google\\Android"),
+    )
 
-  private val checkerMock = mock<WindowsDefenderChecker>().apply {
-    whenever(this.isStatusCheckIgnored(any())).thenReturn(false)
-    whenever(this.isRealTimeProtectionEnabled).thenReturn(true)
-    whenever(this.getPathsToExclude(any())).thenReturn(listOfPaths)
-  }
+  private val checkerMock =
+    mock<WindowsDefenderChecker>().apply {
+      whenever(this.isStatusCheckIgnored(any())).thenReturn(false)
+      whenever(this.isRealTimeProtectionEnabled).thenReturn(true)
+      whenever(this.getPathsToExclude(any())).thenReturn(listOfPaths)
+    }
 
   @Test
   fun testWarningTreeNodeCreatedByTheModelWhenShouldBeShown() {
-    val mockUiData = MockUiData().apply {
-      windowsDefenderWarningData =  WindowsDefenderCheckService.WindowsDefenderWarningData(true, emptyList())
-    }
+    val mockUiData =
+      MockUiData().apply { windowsDefenderWarningData = WindowsDefenderCheckService.WindowsDefenderWarningData(true, emptyList()) }
 
     val model = WarningsDataPageModelImpl(mockUiData)
     assertThat(
-      model.treeRoot.preorderEnumeration().asSequence()
-        .filter { (it as? WarningsTreeNode)?.descriptor is WindowsDefenderWarningNodeDescriptor }
-        .toList()
-    ).hasSize(1)
+        model.treeRoot
+          .preorderEnumeration()
+          .asSequence()
+          .filter { (it as? WarningsTreeNode)?.descriptor is WindowsDefenderWarningNodeDescriptor }
+          .toList()
+      )
+      .hasSize(1)
   }
 
   @Test
   fun testWarningTreeNodeNotCreatedByTheModelWhenShouldNotBeShown() {
-    val mockUiData = MockUiData().apply {
-      windowsDefenderWarningData =  WindowsDefenderCheckService.NO_WARNING
-    }
+    val mockUiData = MockUiData().apply { windowsDefenderWarningData = WindowsDefenderCheckService.NO_WARNING }
 
     val model = WarningsDataPageModelImpl(mockUiData)
     assertThat(
-      model.treeRoot.preorderEnumeration().asSequence()
-        .filter { (it as? WarningsTreeNode)?.descriptor is WindowsDefenderWarningNodeDescriptor }
-        .toList()
-    ).hasSize(0)
+        model.treeRoot
+          .preorderEnumeration()
+          .asSequence()
+          .filter { (it as? WarningsTreeNode)?.descriptor is WindowsDefenderWarningNodeDescriptor }
+          .toList()
+      )
+      .hasSize(0)
   }
 
   @Test
@@ -140,7 +143,8 @@ class WindowsDefenderWarningUITest {
 
     assertThat(page.autoExclusionLine.isVisible).isTrue()
     assertThat(page.autoExcludeStatus.isVisible).isTrue()
-    assertThat(page.autoExcludeStatus.text).isEqualTo("The folders have been successfully excluded from Windows Defender's Real-Time Protection.")
+    assertThat(page.autoExcludeStatus.text)
+      .isEqualTo("The folders have been successfully excluded from Windows Defender's Real-Time Protection.")
     assertThat(page.suppressLine.isVisible).isTrue()
     assertThat(page.warningSuppressedMessage.isVisible).isFalse()
     verify(checkerMock, times(1)).ignoreStatusCheck(any(), eq(true))
@@ -164,7 +168,8 @@ class WindowsDefenderWarningUITest {
 
     assertThat(page.autoExclusionLine.isVisible).isTrue()
     assertThat(page.autoExcludeStatus.isVisible).isTrue()
-    assertThat(page.autoExcludeStatus.text).isEqualTo("Failed to exclude folders. Check the log for \"WindowsDefenderChecker\" for more details.")
+    assertThat(page.autoExcludeStatus.text)
+      .isEqualTo("Failed to exclude folders. Check the log for \"WindowsDefenderChecker\" for more details.")
     assertThat(page.suppressLine.isVisible).isTrue()
     assertThat(page.warningSuppressedMessage.isVisible).isFalse()
     verify(checkerMock, never()).ignoreStatusCheck(any(), eq(true))
@@ -173,9 +178,7 @@ class WindowsDefenderWarningUITest {
   private fun createPage(checkerMock: WindowsDefenderChecker): WindowsDefenderWarningPage {
     val service = WindowsDefenderCheckService(projectRule.project) { checkerMock }
     service.checkRealTimeProtectionStatus()
-    val mockUiData = MockUiData().apply {
-      windowsDefenderWarningData =  service.warningData
-    }
+    val mockUiData = MockUiData().apply { windowsDefenderWarningData = service.warningData }
     val model = WarningsDataPageModelImpl(mockUiData)
     val mockHandlers = mock<ViewActionHandlers>()
 
@@ -187,5 +190,3 @@ class WindowsDefenderWarningUITest {
     return TreeWalker(page).descendants().filterIsInstance<WindowsDefenderWarningPage>().single()
   }
 }
-
-

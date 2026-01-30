@@ -33,13 +33,10 @@ private const val BASE_PATH = "intentions"
 
 @RunWith(JUnit4::class)
 class AndroidCodeGenerationTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   private val fixture by lazy {
-    projectRule.fixture.apply {
-      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
-    }
+    projectRule.fixture.apply { testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString() }
   }
   private val facet by lazy { requireNotNull(fixture.module.androidFacet) }
 
@@ -50,11 +47,15 @@ class AndroidCodeGenerationTest {
     val file = fixture.copyFileToProject("$BASE_PATH/CodeGeneration.java", "src/p1/p2/Class.java")
     fixture.configureFromExistingVirtualFile(file)
 
-    WriteCommandAction.runWriteCommandAction(fixture.project) { SurroundWithHandler.invoke(fixture.project, fixture.editor, fixture.file, JavaWithIfSurrounder()) }
+    WriteCommandAction.runWriteCommandAction(fixture.project) {
+      SurroundWithHandler.invoke(fixture.project, fixture.editor, fixture.file, JavaWithIfSurrounder())
+    }
     fixture.checkResultByFile("$BASE_PATH/CodeGeneration_afterSurroundWithIf.java")
     WriteCommandAction.runWriteCommandAction(fixture.project) { EditorTestUtil.executeAction(fixture.editor, "Unwrap") }
     fixture.checkResultByFile("$BASE_PATH/CodeGeneration_afterUnwrap.java")
-    WriteCommandAction.runWriteCommandAction(fixture.project) { SurroundWithHandler.invoke(fixture.project, fixture.editor, fixture.file, JavaWithDoWhileSurrounder()) }
+    WriteCommandAction.runWriteCommandAction(fixture.project) {
+      SurroundWithHandler.invoke(fixture.project, fixture.editor, fixture.file, JavaWithDoWhileSurrounder())
+    }
     fixture.checkResultByFile("$BASE_PATH/CodeGeneration_afterSurroundWithDoWhile.java")
   }
 }

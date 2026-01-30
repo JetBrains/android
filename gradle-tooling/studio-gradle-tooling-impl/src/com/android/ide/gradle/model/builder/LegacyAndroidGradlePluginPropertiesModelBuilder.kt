@@ -24,10 +24,6 @@ import com.android.ide.gradle.model.builder.LegacyAndroidGradlePluginPropertiesM
 import com.android.ide.gradle.model.builder.LegacyAndroidGradlePluginPropertiesModelBuilder.VariantCollectionProvider.LibraryVariant
 import com.android.ide.gradle.model.impl.LegacyAndroidGradlePluginPropertiesImpl
 import java.io.File
-import org.gradle.api.DomainObjectSet
-import org.gradle.api.Project
-import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import java.lang.reflect.Method
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
@@ -36,8 +32,12 @@ import kotlin.collections.List
 import kotlin.collections.set
 import kotlin.getOrElse
 import kotlin.getOrThrow
+import org.gradle.api.DomainObjectSet
+import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
+import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 
 /**
  * An injected Gradle tooling model builder to fetch information from legacy versions of the Android Gradle plugin
@@ -46,9 +46,11 @@ import org.gradle.api.provider.Provider
  *
  * This model should not be requested when AGP >= 7.4 is used, as the information is held directly in the model.
  */
-class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: PluginType) : ParameterizedToolingModelBuilder<LegacyAndroidGradlePluginPropertiesModelParameters> {
+class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: PluginType) :
+  ParameterizedToolingModelBuilder<LegacyAndroidGradlePluginPropertiesModelParameters> {
 
-  override fun getParameterType(): Class<LegacyAndroidGradlePluginPropertiesModelParameters> = LegacyAndroidGradlePluginPropertiesModelParameters::class.java
+  override fun getParameterType(): Class<LegacyAndroidGradlePluginPropertiesModelParameters> =
+    LegacyAndroidGradlePluginPropertiesModelParameters::class.java
 
   override fun canBuild(modelName: String): Boolean {
     return modelName == LegacyAndroidGradlePluginProperties::class.java.name
@@ -56,8 +58,14 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
 
   override fun buildAll(modelName: String, project: Project): Nothing = error("parameter required")
 
-  override fun buildAll(modelName: String, parameters: LegacyAndroidGradlePluginPropertiesModelParameters, project: Project): LegacyAndroidGradlePluginProperties {
-    check (modelName == LegacyAndroidGradlePluginProperties::class.java.name) { "Only valid model is ${LegacyAndroidGradlePluginProperties::class.java.name}" }
+  override fun buildAll(
+    modelName: String,
+    parameters: LegacyAndroidGradlePluginPropertiesModelParameters,
+    project: Project,
+  ): LegacyAndroidGradlePluginProperties {
+    check(modelName == LegacyAndroidGradlePluginProperties::class.java.name) {
+      "Only valid model is ${LegacyAndroidGradlePluginProperties::class.java.name}"
+    }
     val problems = mutableListOf<Exception>()
     val applicationIdMap = fetchApplicationIds(parameters, project, problems)
     val (namespace, androidTestNamespace) = fetchNamespace(parameters, project, problems)
@@ -75,11 +83,15 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
       mappingR8TextFiles,
       buildTypesMatchingFallbacks,
       productFlavorsMatchingFallbacks,
-      missingDimensionStrategies
-      )
+      missingDimensionStrategies,
+    )
   }
 
-  private fun fetchMappingTextFiles(parameters: LegacyAndroidGradlePluginPropertiesModelParameters, project: Project, problems: MutableList<Exception>): Map<String, File?> {
+  private fun fetchMappingTextFiles(
+    parameters: LegacyAndroidGradlePluginPropertiesModelParameters,
+    project: Project,
+    problems: MutableList<Exception>,
+  ): Map<String, File?> {
     if (!parameters.mappingFile) return mapOf()
     val extension = project.extensions.findByName("android") ?: return mapOf()
     val mappingFiles = mutableMapOf<String, File?>()
@@ -88,26 +100,29 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
       val container = variantCollectionProvider.variants
       for (variant in container) {
         val variantName = variant.invokeMethod<String>("getName")
-        val mappingFileProvider = variant.javaClass.getMethodCached("getMappingFileProvider").runCatching {
-          getOrThrow().invoke(variant) as Provider<FileCollection>
-        }.getOrElse {
-          problems += RuntimeException(
-            "Failed to read mappingFile for ${variantName}.\n" +
-            it
-          )
-          null
-        } ?: continue
+        val mappingFileProvider =
+          variant.javaClass
+            .getMethodCached("getMappingFileProvider")
+            .runCatching { getOrThrow().invoke(variant) as Provider<FileCollection> }
+            .getOrElse {
+              problems += RuntimeException("Failed to read mappingFile for ${variantName}.\n" + it)
+              null
+            } ?: continue
         runCatching {
           mappingFiles[variantName] =
             // files still can fire missing value that we cannot check
-            if(mappingFileProvider.isPresent) mappingFileProvider.get().files.firstOrNull() else null
+            if (mappingFileProvider.isPresent) mappingFileProvider.get().files.firstOrNull() else null
         }
       }
     }
     return mappingFiles
   }
 
-  private fun fetchApplicationIds(parameters: LegacyAndroidGradlePluginPropertiesModelParameters, project: Project, problems: MutableList<Exception>): Map<String, String> {
+  private fun fetchApplicationIds(
+    parameters: LegacyAndroidGradlePluginPropertiesModelParameters,
+    project: Project,
+    problems: MutableList<Exception>,
+  ): Map<String, String> {
     if (!parameters.componentToApplicationIdMap) return mapOf()
     val extension = project.extensions.findByName("android") ?: return mapOf()
     val applicationIdMap = mutableMapOf<String, String>()
@@ -116,16 +131,19 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
       val container = variantCollectionProvider.variants
       for (variant in container) {
         val componentName = variant.invokeMethod<String>("getName")
-        val applicationId = variant.javaClass.getMethodCached("getApplicationId").runCatching {
-          getOrThrow().invoke(variant) as String
-        }.getOrElse {
-          problems += RuntimeException(
-            "Failed to read applicationId for ${componentName}.\n" +
-            "Setting the application ID to the output of a task in the variant api is not supported",
-            it
-          )
-          null
-        } ?: continue
+        val applicationId =
+          variant.javaClass
+            .getMethodCached("getApplicationId")
+            .runCatching { getOrThrow().invoke(variant) as String }
+            .getOrElse {
+              problems +=
+                RuntimeException(
+                  "Failed to read applicationId for ${componentName}.\n" +
+                    "Setting the application ID to the output of a task in the variant api is not supported",
+                  it,
+                )
+              null
+            } ?: continue
         applicationIdMap[componentName] = applicationId
       }
     }
@@ -133,11 +151,15 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
   }
 
   // This only applies to AGP 4.2 and below
-  private fun fetchNamespace(parameters: LegacyAndroidGradlePluginPropertiesModelParameters, project: Project, problems: MutableList<Exception>): Pair<String?, String?> {
+  private fun fetchNamespace(
+    parameters: LegacyAndroidGradlePluginPropertiesModelParameters,
+    project: Project,
+    problems: MutableList<Exception>,
+  ): Pair<String?, String?> {
     if (!parameters.namespace) return Pair(null, null)
     val extension = project.extensions.findByName("android") ?: return Pair(null, null)
-    var namespace : String? = null
-    var androidTestNamespace : String? = null
+    var namespace: String? = null
+    var androidTestNamespace: String? = null
 
     try {
       for (variantCollectionProvider in pluginType.variantCollectionProviders(extension)) {
@@ -146,8 +168,9 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
           // Use getGenerateBuildConfigProvider if possible to avoid triggering a user-visible deprecation warning,
           // but fall back to getGenerateBuildConfig if getGenerateBuildConfigProvider is not present
           val generateBuildConfigTask =
-            variant.invokeMethodIfPresent<Any?>("getGenerateBuildConfigProvider")?.invokeMethod("get") ?:
-              variant.invokeMethod<Any?>("getGenerateBuildConfig") ?: continue
+            variant.invokeMethodIfPresent<Any?>("getGenerateBuildConfigProvider")?.invokeMethod("get")
+              ?: variant.invokeMethod<Any?>("getGenerateBuildConfig")
+              ?: continue
           val namespaceObject = generateBuildConfigTask.invokeMethod<Any?>("getBuildConfigPackageName") ?: continue
           // This changed type from String to Property<String>, handle both.
           val componentNamespace = if (namespaceObject is String) namespaceObject else namespaceObject.invokeMethod("get") as String
@@ -170,22 +193,28 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
   }
 
   // This only applies for AGP model producer version < 9 (i.e. below AGP 8.7)
-  private fun fetchIsDataBindingEnabled(parameters: LegacyAndroidGradlePluginPropertiesModelParameters, project: Project,  problems: MutableList<Exception>): Boolean? {
+  private fun fetchIsDataBindingEnabled(
+    parameters: LegacyAndroidGradlePluginPropertiesModelParameters,
+    project: Project,
+    problems: MutableList<Exception>,
+  ): Boolean? {
     if (!parameters.dataBinding) return null
     val androidExtension = project.extensions.findByName("android") ?: return null
     try {
       val dataBinding = androidExtension.invokeMethod<Any>("getDataBinding")
       // Most recent form
-      dataBinding.invokeMethodIfPresent<Boolean>("getEnable")?.let { return it }
+      dataBinding.invokeMethodIfPresent<Boolean>("getEnable")?.let {
+        return it
+      }
 
       // For 4.x AGPs, buildFeatures was where the value was set and using dataBinding.isEnabled would result in a spurious deprecation
       // warning during sync.
       val buildFeatures = androidExtension.invokeMethodIfPresent<Any>("getBuildFeatures")
       if (buildFeatures != null) {
         // Simulate the logic in those versions of AGP which fell back to the project property, if set.
-        return (buildFeatures.invokeMethodIfPresent<Boolean?>("getDataBinding")) ?:
-            project.findProperty("android.defaults.buildfeatures.databinding")?.toBoolean()
-               ?: false
+        return (buildFeatures.invokeMethodIfPresent<Boolean?>("getDataBinding"))
+          ?: project.findProperty("android.defaults.buildfeatures.databinding")?.toBoolean()
+          ?: false
       }
 
       // The original way this was exposed in the AGP DSL.
@@ -199,7 +228,7 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
   private fun fetchBuildTypesMatchingFallbacks(
     parameters: LegacyAndroidGradlePluginPropertiesModelParameters,
     project: Project,
-    problems: MutableList<Exception>
+    problems: MutableList<Exception>,
   ): Map<String, List<String>> {
     if (!parameters.matchingFallbacks) return emptyMap()
     val androidExtension = project.extensions.findByName("android") ?: return emptyMap()
@@ -211,7 +240,6 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
         val matchingFallbacks = buildType.invokeMethod<List<String>>("getMatchingFallbacks")
         buildTypesToFallbacks[name] = matchingFallbacks
       }
-
     } catch (e: Exception) {
       problems += RuntimeException("Failed to fetch BuildTypes matchingFallbacks", e)
       return emptyMap()
@@ -222,7 +250,7 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
   private fun fetchProductFlavorsMatchingFallbacks(
     parameters: LegacyAndroidGradlePluginPropertiesModelParameters,
     project: Project,
-    problems: MutableList<Exception>
+    problems: MutableList<Exception>,
   ): Map<String, List<String>> {
     if (!parameters.matchingFallbacks) return emptyMap()
     val androidExtension = project.extensions.findByName("android") ?: return emptyMap()
@@ -234,7 +262,6 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
         val matchingFallbacks = productFlavor.invokeMethod<List<String>>("getMatchingFallbacks")
         productFlavorsToFallbacks[name] = matchingFallbacks
       }
-
     } catch (e: Exception) {
       problems += RuntimeException("Failed to fetch BuildTypes matchingFallbacks", e)
       return emptyMap()
@@ -245,7 +272,7 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
   private fun fetchMissingDimensionStrategies(
     parameters: LegacyAndroidGradlePluginPropertiesModelParameters,
     project: Project,
-    problems: MutableList<Exception>
+    problems: MutableList<Exception>,
   ): Map<String, Map<String, List<String>>> {
     if (!parameters.missingDimensionStrategies) return emptyMap()
     val androidExtension = project.extensions.findByName("android") ?: return emptyMap()
@@ -255,15 +282,17 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
       val missingDimensionStrategy = productFlavor.invokeMethod<Map<String, Any>>("getMissingDimensionStrategies")
       val name = productFlavor.invokeMethod<String>("getName")
       if (missingDimensionStrategy.isNotEmpty()) {
-        productFlavorsToStrategies[name] = missingDimensionStrategy.mapValues { (_, it) ->
-          val requested = it.invokeMethod<String>("getRequested")
-          val fallbacks = it.invokeMethod<List<String>>("getFallbacks")
-          // For ProductFlavors: AGP < 9.0 puts the name of the current productFlavor as the 'requested' dimension, which doesn't match
-          // the user intent and caused some unintended matching. (see https://issuetracker.google.com/460094802).
-          // As we're collecting these values for the purposes of the variant selection heuristics, we will "correctly" reflect the user intent by
-          // dropping the "requested" value, rather than replicating the incorrect behavior in older AGPs.
-          if (isDefaultConfig) listOf(requested).plus(fallbacks) else fallbacks
-        }
+        productFlavorsToStrategies[name] =
+          missingDimensionStrategy.mapValues { (_, it) ->
+            val requested = it.invokeMethod<String>("getRequested")
+            val fallbacks = it.invokeMethod<List<String>>("getFallbacks")
+            // For ProductFlavors: AGP < 9.0 puts the name of the current productFlavor as the 'requested' dimension, which doesn't match
+            // the user intent and caused some unintended matching. (see https://issuetracker.google.com/460094802).
+            // As we're collecting these values for the purposes of the variant selection heuristics, we will "correctly" reflect the user
+            // intent by
+            // dropping the "requested" value, rather than replicating the incorrect behavior in older AGPs.
+            if (isDefaultConfig) listOf(requested).plus(fallbacks) else fallbacks
+          }
       }
     }
     try {
@@ -275,7 +304,6 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
       for (productFlavor in productFlavors) {
         productFlavor?.let { populateMissingDimensionStrategies(productFlavor, false) }
       }
-
     } catch (e: Exception) {
       problems += RuntimeException("Failed to get MissingDimensionStrategy information for ${project.path}. Cause:\n$e", e)
       return emptyMap()
@@ -284,33 +312,49 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
   }
 
   // Modelled from AGP's logic in OptionParsers.kt
-  private fun Any.toBoolean(): Boolean? = when (this) {
-    is Boolean -> this
-    is CharSequence ->
-      when (toString().lowercase(Locale.US)) {
-        "true" -> true
-        "false" -> false
-        else -> null
-      }
-    is Number ->
-      when (toInt()) {
-        0 -> false
-        1 -> true
-        else -> null
-      }
-    else -> null
-  }
+  private fun Any.toBoolean(): Boolean? =
+    when (this) {
+      is Boolean -> this
+      is CharSequence ->
+        when (toString().lowercase(Locale.US)) {
+          "true" -> true
+          "false" -> false
+          else -> null
+        }
+      is Number ->
+        when (toInt()) {
+          0 -> false
+          1 -> true
+          else -> null
+        }
+      else -> null
+    }
 
-  sealed class VariantCollectionProvider(private val extensionObject: Any, private val getterName: String, val isMain: Boolean, val providesApplicationId: Boolean) {
-    class ApplicationVariant(extensionObject: Any): VariantCollectionProvider(extensionObject, getterName = "getApplicationVariants", isMain = true, providesApplicationId = true)
-    class LibraryVariant(extensionObject: Any): VariantCollectionProvider(extensionObject, getterName = "getLibraryVariants", isMain = true, providesApplicationId = false)
+  sealed class VariantCollectionProvider(
+    private val extensionObject: Any,
+    private val getterName: String,
+    val isMain: Boolean,
+    val providesApplicationId: Boolean,
+  ) {
+    class ApplicationVariant(extensionObject: Any) :
+      VariantCollectionProvider(extensionObject, getterName = "getApplicationVariants", isMain = true, providesApplicationId = true)
+
+    class LibraryVariant(extensionObject: Any) :
+      VariantCollectionProvider(extensionObject, getterName = "getLibraryVariants", isMain = true, providesApplicationId = false)
+
     // Don't get main application IDs from dynamic features (see comment on com.android.builder.model.v2.ide.AndroidArtifact.applicationId)
-    class DynamicFeature(extensionObject: Any): VariantCollectionProvider(extensionObject, getterName = "getApplicationVariants", isMain = true, providesApplicationId = false)
-    // Only return the main application ID for base features (equivalent to apps in the new dynamic feature world)
-    class InstantAppFeature(extensionObject: Any, isBaseFeature: Boolean): VariantCollectionProvider(extensionObject, getterName = "getFeatureVariants", isMain = true, providesApplicationId = isBaseFeature)
-    class AndroidTest(extensionObject: Any): VariantCollectionProvider(extensionObject, getterName = "getTestVariants", isMain = false, providesApplicationId = true)
+    class DynamicFeature(extensionObject: Any) :
+      VariantCollectionProvider(extensionObject, getterName = "getApplicationVariants", isMain = true, providesApplicationId = false)
 
-    val variants: DomainObjectSet<*> get() = extensionObject.invokeMethod(getterName)
+    // Only return the main application ID for base features (equivalent to apps in the new dynamic feature world)
+    class InstantAppFeature(extensionObject: Any, isBaseFeature: Boolean) :
+      VariantCollectionProvider(extensionObject, getterName = "getFeatureVariants", isMain = true, providesApplicationId = isBaseFeature)
+
+    class AndroidTest(extensionObject: Any) :
+      VariantCollectionProvider(extensionObject, getterName = "getTestVariants", isMain = false, providesApplicationId = true)
+
+    val variants: DomainObjectSet<*>
+      get() = extensionObject.invokeMethod(getterName)
   }
 
   enum class PluginType(val variantCollectionProviders: (Any) -> Set<VariantCollectionProvider>) {
@@ -318,8 +362,7 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
     LIBRARY({ setOf(LibraryVariant(it), AndroidTest(it)) }),
     TEST({ setOf(ApplicationVariant(it)) }),
     DYNAMIC_FEATURE({ setOf(DynamicFeature(it), AndroidTest(it)) }),
-    INSTANT_APP_FEATURE({ setOf(InstantAppFeature(it, it.invokeMethod<Boolean?>("getBaseFeature") == true), AndroidTest(it)) }
-    ),
+    INSTANT_APP_FEATURE({ setOf(InstantAppFeature(it, it.invokeMethod<Boolean?>("getBaseFeature") == true), AndroidTest(it)) }),
   }
 
   companion object {
@@ -350,7 +393,7 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
     }
 
     private fun register(registry: ToolingModelBuilderRegistry, pluginType: PluginType) {
-        registry.register(LegacyAndroidGradlePluginPropertiesModelBuilder(pluginType))
+      registry.register(LegacyAndroidGradlePluginPropertiesModelBuilder(pluginType))
     }
   }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.analytics;
+package com.android.analytics
 
 import com.android.tools.analytics.toProto
 import org.HdrHistogram.Histogram

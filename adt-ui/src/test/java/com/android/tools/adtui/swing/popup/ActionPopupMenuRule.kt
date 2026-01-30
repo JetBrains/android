@@ -53,24 +53,18 @@ class ActionPopupMenuRule : ExternalResource() {
   override fun before() {
     val actionManager = spy(ActionManager.getInstance())
 
-    doAnswer { invocation ->
-        FakeActionPopupMenu(invocation.getArgument(0), invocation.getArgument(1)).also {
-          lastPopup = it
-        }
-      }
+    doAnswer { invocation -> FakeActionPopupMenu(invocation.getArgument(0), invocation.getArgument(1)).also { lastPopup = it } }
       .whenever(actionManager)
       .createActionPopupMenu(ArgumentMatchers.anyString(), any())
 
-    ApplicationManager.getApplication()
-      .replaceService(ActionManager::class.java, actionManager, disposable)
+    ApplicationManager.getApplication().replaceService(ActionManager::class.java, actionManager, disposable)
   }
 
   override fun after() {
     Disposer.dispose(disposable)
   }
 
-  private class FakeActionPopupMenu(private val place: String, private val group: ActionGroup) :
-    ActionPopupMenu {
+  private class FakeActionPopupMenu(private val place: String, private val group: ActionGroup) : ActionPopupMenu {
     private var dataProvider: Supplier<out DataContext>? = null
     var popup: FakePopupMenu? = null
 
@@ -123,13 +117,7 @@ class ActionPopupMenuRule : ExternalResource() {
       private set
 
     private fun createActionEvent(action: AnAction, dataContext: DataContext): AnActionEvent {
-      return AnActionEvent.createEvent(
-        dataContext,
-        action.templatePresentation.clone(),
-        place,
-        ActionUiKind.NONE,
-        null,
-      )
+      return AnActionEvent.createEvent(dataContext, action.templatePresentation.clone(), place, ActionUiKind.NONE, null)
     }
   }
 }

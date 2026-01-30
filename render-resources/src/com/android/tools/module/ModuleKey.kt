@@ -15,7 +15,5 @@
  */
 package com.android.tools.module
 
-/**
- * A key to use instead of [Module] avoiding direct references from Layoutlib.
- */
+/** A key to use instead of [Module] avoiding direct references from Layoutlib. */
 class ModuleKey

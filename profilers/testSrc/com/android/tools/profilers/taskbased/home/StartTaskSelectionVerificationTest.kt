@@ -31,17 +31,16 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createProfilerDeviceSelection
-import org.junit.Test
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
+import org.junit.Test
 
 class StartTaskSelectionVerificationTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("TaskHomeTabModelTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskHomeTabModelTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -54,46 +53,49 @@ class StartTaskSelectionVerificationTest {
     myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myManager)
-    taskHandlers.forEach {  myProfilers.addTaskHandler(it.key, it.value)  }
+    taskHandlers.forEach { myProfilers.addTaskHandler(it.key, it.value) }
     taskHomeTabModel = TaskHomeTabModel(myProfilers)
   }
 
   @Test
   fun testInvalidDevice() {
-    val error = getStartTaskError(
-      ProfilerTaskType.SYSTEM_TRACE,
-      // Set an invalid device selection.
-      createDeviceSelection(isValid = false),
-      createProcessSelection(isValid = true, isAlive = true),
-      TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
-      myProfilers
-    )
+    val error =
+      getStartTaskError(
+        ProfilerTaskType.SYSTEM_TRACE,
+        // Set an invalid device selection.
+        createDeviceSelection(isValid = false),
+        createProcessSelection(isValid = true, isAlive = true),
+        TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
+        myProfilers,
+      )
     assertEquals(StartTaskSelectionErrorCode.INVALID_DEVICE, error.startTaskSelectionErrorCode)
   }
 
   @Test
   fun testInvalidProcess() {
-    val error = getStartTaskError(
-      ProfilerTaskType.SYSTEM_TRACE,
-      createDeviceSelection(isValid = true),
-      // Set an invalid process selection.
-      createProcessSelection(isValid = false),
-      TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
-      myProfilers
-    )
+    val error =
+      getStartTaskError(
+        ProfilerTaskType.SYSTEM_TRACE,
+        createDeviceSelection(isValid = true),
+        // Set an invalid process selection.
+        createProcessSelection(isValid = false),
+        TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
+        myProfilers,
+      )
     assertEquals(StartTaskSelectionErrorCode.INVALID_PROCESS, error.startTaskSelectionErrorCode)
   }
 
   @Test
   fun testInvalidTask() {
-    val error = getStartTaskError(
-      // Set an invalid task selection (UNSPECIFIED task type).
-      ProfilerTaskType.UNSPECIFIED,
-      createDeviceSelection(isValid = true),
-      createProcessSelection(isValid = true, isAlive = true),
-      TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
-      myProfilers
-    )
+    val error =
+      getStartTaskError(
+        // Set an invalid task selection (UNSPECIFIED task type).
+        ProfilerTaskType.UNSPECIFIED,
+        createDeviceSelection(isValid = true),
+        createProcessSelection(isValid = true, isAlive = true),
+        TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
+        myProfilers,
+      )
     assertEquals(StartTaskSelectionErrorCode.INVALID_TASK, error.startTaskSelectionErrorCode)
   }
 
@@ -103,15 +105,16 @@ class StartTaskSelectionVerificationTest {
     // profiler will automatically switch the task starting point dropdown selection to "Now", preventing this error. This test (and the
     // error is tests) is here as coverage for if that auto-selection behavior is ever removed.
     myProfilers.preferredProcessName = "fake.name"
-    val error = getStartTaskError(
-      ProfilerTaskType.SYSTEM_TRACE,
-      createDeviceSelection(isValid = true),
-      // A valid process selection is made, but the process name is set to be different from the preferred process.
-      createProcessSelection(isValid = true, name = "name.fake"),
-      // Make sure that this error only shows when the user has selected startup tasks.
-      TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
-      myProfilers
-    )
+    val error =
+      getStartTaskError(
+        ProfilerTaskType.SYSTEM_TRACE,
+        createDeviceSelection(isValid = true),
+        // A valid process selection is made, but the process name is set to be different from the preferred process.
+        createProcessSelection(isValid = true, name = "name.fake"),
+        // Make sure that this error only shows when the user has selected startup tasks.
+        TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
+        myProfilers,
+      )
     assertEquals(StartTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK, error.startTaskSelectionErrorCode)
   }
 
@@ -119,15 +122,17 @@ class StartTaskSelectionVerificationTest {
   fun testTaskUnsupportedOnStartup() {
     // This error can occur when the user selects a dead preferred process, and a task that does not support starting from process start.
     myProfilers.preferredProcessName = "fake.name"
-    val error = getStartTaskError(
-      // Heap dump is a task that is unsupported on startup
-      ProfilerTaskType.HEAP_DUMP,
-      createDeviceSelection(true),
-      // Set the process name to match the preferred process so that starting a task from process start is enabled for the offline process.
-      createProcessSelection(true, isAlive = false, name = "fake.name"),
-      TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
-      myProfilers
-    )
+    val error =
+      getStartTaskError(
+        // Heap dump is a task that is unsupported on startup
+        ProfilerTaskType.HEAP_DUMP,
+        createDeviceSelection(true),
+        // Set the process name to match the preferred process so that starting a task from process start is enabled for the offline
+        // process.
+        createProcessSelection(true, isAlive = false, name = "fake.name"),
+        TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
+        myProfilers,
+      )
     assertEquals(StartTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP, error.startTaskSelectionErrorCode)
   }
 
@@ -135,67 +140,83 @@ class StartTaskSelectionVerificationTest {
   fun testStartupTaskUsingUnsupportedDevice() {
     // This error can occur when the user selects a dead preferred process, and a task that does not support starting from process start.
     myProfilers.preferredProcessName = "fake.name"
-    val systemTraceError = getStartTaskError(
-      ProfilerTaskType.SYSTEM_TRACE,
-      // System trace, callstack sample, and java/kotlin method recording tasks required device with api >= 26
-      createDeviceSelection(true, featureLevel = 25),
-      // Set the process name to match the preferred process so that starting a task from process start is enabled for the offline process.
-      createProcessSelection(true, isAlive = false, name = "fake.name"),
-      TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
-      myProfilers
-    )
+    val systemTraceError =
+      getStartTaskError(
+        ProfilerTaskType.SYSTEM_TRACE,
+        // System trace, callstack sample, and java/kotlin method recording tasks required device with api >= 26
+        createDeviceSelection(true, featureLevel = 25),
+        // Set the process name to match the preferred process so that starting a task from process start is enabled for the offline
+        // process.
+        createProcessSelection(true, isAlive = false, name = "fake.name"),
+        TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
+        myProfilers,
+      )
     assertEquals(StartTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN, systemTraceError.startTaskSelectionErrorCode)
 
-    val nativeAllocationsError = getStartTaskError(
-      ProfilerTaskType.NATIVE_ALLOCATIONS,
-      // Native allocations task requires device with api >= 29
-      createDeviceSelection(true, featureLevel = 28),
-      // Set the process name to match the preferred process so that starting a task from process start is enabled for the offline process.
-      createProcessSelection(true, isAlive = false, name = "fake.name"),
-      TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
-      myProfilers
+    val nativeAllocationsError =
+      getStartTaskError(
+        ProfilerTaskType.NATIVE_ALLOCATIONS,
+        // Native allocations task requires device with api >= 29
+        createDeviceSelection(true, featureLevel = 28),
+        // Set the process name to match the preferred process so that starting a task from process start is enabled for the offline
+        // process.
+        createProcessSelection(true, isAlive = false, name = "fake.name"),
+        TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
+        myProfilers,
+      )
+    assertEquals(
+      StartTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN,
+      nativeAllocationsError.startTaskSelectionErrorCode,
     )
-    assertEquals(StartTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN, nativeAllocationsError.startTaskSelectionErrorCode)
   }
 
   @Test
   fun testDeviceSelectionIsOffline() {
     // The error for the device selection being offline is only shown when the user tries to perform a task from "Now".
-    val error = getStartTaskError(
-      ProfilerTaskType.SYSTEM_TRACE,
-      // Device selection is valid, but offline.
-      createDeviceSelection(isValid = true, isRunning = false),
-      createProcessSelection(isValid = true),
-      TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
-      myProfilers
-    )
+    val error =
+      getStartTaskError(
+        ProfilerTaskType.SYSTEM_TRACE,
+        // Device selection is valid, but offline.
+        createDeviceSelection(isValid = true, isRunning = false),
+        createProcessSelection(isValid = true),
+        TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
+        myProfilers,
+      )
     assertEquals(StartTaskSelectionErrorCode.DEVICE_SELECTION_IS_OFFLINE, error.startTaskSelectionErrorCode)
   }
 
   @Test
   fun testTaskUnsupportedByProcess() {
     // The error a process not supporting a task is only shown when the user tries to perform a task from "Now".
-    val error = getStartTaskError(
-      ProfilerTaskType.HEAP_DUMP,
-      // Device selection is valid and online (required to start a task from "Now").
-      createDeviceSelection(isValid = true, isRunning = true),
-      // Heap dump task is not supported by a profileable process.
-      createProcessSelection(isValid = true, exposureLevel = ExposureLevel.PROFILEABLE),
-      TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
-      myProfilers
-    )
+    val error =
+      getStartTaskError(
+        ProfilerTaskType.HEAP_DUMP,
+        // Device selection is valid and online (required to start a task from "Now").
+        createDeviceSelection(isValid = true, isRunning = true),
+        // Heap dump task is not supported by a profileable process.
+        createProcessSelection(isValid = true, exposureLevel = ExposureLevel.PROFILEABLE),
+        TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
+        myProfilers,
+      )
     val x = error
   }
 
-  private fun createDeviceSelection(isValid: Boolean,
-                                    isRunning: Boolean = false,
-                                    featureLevel: Int = 0) = if (isValid) createProfilerDeviceSelection(featureLevel, isRunning) else null
+  private fun createDeviceSelection(isValid: Boolean, isRunning: Boolean = false, featureLevel: Int = 0) =
+    if (isValid) createProfilerDeviceSelection(featureLevel, isRunning) else null
 
-  private fun createProcessSelection(isValid: Boolean,
-                                     isAlive: Boolean = false,
-                                     name: String = "",
-                                     exposureLevel: ExposureLevel = ExposureLevel.DEBUGGABLE) =
-    if (isValid) TaskModelTestUtils.createProcess(123, name, if (isAlive) Common.Process.State.ALIVE else Common.Process.State.DEAD, 456L,
-                                                  exposureLevel)
+  private fun createProcessSelection(
+    isValid: Boolean,
+    isAlive: Boolean = false,
+    name: String = "",
+    exposureLevel: ExposureLevel = ExposureLevel.DEBUGGABLE,
+  ) =
+    if (isValid)
+      TaskModelTestUtils.createProcess(
+        123,
+        name,
+        if (isAlive) Common.Process.State.ALIVE else Common.Process.State.DEAD,
+        456L,
+        exposureLevel,
+      )
     else Common.Process.getDefaultInstance()
 }

@@ -60,13 +60,12 @@ fun isRequiredAttribute(attrName: XmlName, element: DomElement): Boolean {
   }
 }
 
-private val CUSTOM_PERMISSIONS =
-  Key.create<CachedValue<Collection<String>?>>("merged.manifest.custom.permissions")
+private val CUSTOM_PERMISSIONS = Key.create<CachedValue<Collection<String>?>>("merged.manifest.custom.permissions")
 
 /**
- * Returns the names of the custom permissions queried from [AndroidManifestIndex]. However, if
- * index is not ready, it falls back to the custom permissions listed in the primary manifest of the
- * module corresponding to the given [facet], or null if the primary manifest couldn't be found.
+ * Returns the names of the custom permissions queried from [AndroidManifestIndex]. However, if index is not ready, it falls back to the
+ * custom permissions listed in the primary manifest of the module corresponding to the given [facet], or null if the primary manifest
+ * couldn't be found.
  */
 fun getCustomPermissions(facet: AndroidFacet): Collection<String>? {
   try {
@@ -84,14 +83,12 @@ fun getCustomPermissions(facet: AndroidFacet): Collection<String>? {
   return facet.putUserDataIfAbsent(CUSTOM_PERMISSIONS, cachedValue).value
 }
 
-private val CUSTOM_PERMISSION_GROUPS =
-  Key.create<CachedValue<Collection<String>?>>("merged.manifest.custom.permission.groups")
+private val CUSTOM_PERMISSION_GROUPS = Key.create<CachedValue<Collection<String>?>>("merged.manifest.custom.permission.groups")
 
 /**
- * Returns the names of the custom permission groups queried from [AndroidManifestIndex]. However,
- * if index is not ready, it falls back to the custom permission groups listed in the primary
- * manifest of the module corresponding to the given [facet], or null if the primary manifest
- * couldn't be found.
+ * Returns the names of the custom permission groups queried from [AndroidManifestIndex]. However, if index is not ready, it falls back to
+ * the custom permission groups listed in the primary manifest of the module corresponding to the given [facet], or null if the primary
+ * manifest couldn't be found.
  */
 fun getCustomPermissionGroups(facet: AndroidFacet): Collection<String>? {
   try {
@@ -110,20 +107,16 @@ fun getCustomPermissionGroups(facet: AndroidFacet): Collection<String>? {
 }
 
 /**
- * Creates a [CachedValue] that runs the given [valueSelector] on the facet's primary manifest. If
- * the manifest is missing, the returned [CachedValue] returns null and will check for the manifest
- * again next time it's evaluated.
+ * Creates a [CachedValue] that runs the given [valueSelector] on the facet's primary manifest. If the manifest is missing, the returned
+ * [CachedValue] returns null and will check for the manifest again next time it's evaluated.
  *
- * Note that the primary manifest is a subset of the effective merged manifest and relying on is
- * most likely incorrect. It's up to the [AndroidModuleSystem] to determine which values can be
- * safely read from just the primary manifest.
+ * Note that the primary manifest is a subset of the effective merged manifest and relying on is most likely incorrect. It's up to the
+ * [AndroidModuleSystem] to determine which values can be safely read from just the primary manifest.
  *
  * @see com.android.tools.idea.model.MergedManifestManager
  * @see com.android.tools.idea.projectsystem.AndroidModuleSystem
  */
-fun <T> AndroidFacet.cachedValueFromPrimaryManifest(
-  valueSelector: AndroidManifestXmlFile.() -> T
-): CachedValue<T?> {
+fun <T> AndroidFacet.cachedValueFromPrimaryManifest(valueSelector: AndroidManifestXmlFile.() -> T): CachedValue<T?> {
   return CachedValuesManager.getManager(module.project).createCachedValue<T?> {
     val primaryManifest = runReadAction { getPrimaryManifestXml() }
     if (primaryManifest == null) {
@@ -138,10 +131,7 @@ fun <T> AndroidFacet.cachedValueFromPrimaryManifest(
 /** Returns the PSI representation of the facet's primary manifest, if available. */
 fun AndroidFacet.getPrimaryManifestXml(): AndroidManifestXmlFile? {
   if (isDisposed) return null
-  val psiFile =
-    SourceProviderManager.getInstance(this).mainManifestFile?.let {
-      AndroidPsiUtils.getPsiFileSafely(module.project, it)
-    }
+  val psiFile = SourceProviderManager.getInstance(this).mainManifestFile?.let { AndroidPsiUtils.getPsiFileSafely(module.project, it) }
   return (psiFile as? XmlFile)?.let {
     if (it.rootTag?.name == TAG_MANIFEST) {
       AndroidManifestXmlFile(it)

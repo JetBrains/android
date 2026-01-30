@@ -35,17 +35,22 @@ import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import com.intellij.openapi.diagnostic.Logger
 import icons.StudioIcons
-import icons.StudioIconsCompose
-import org.jetbrains.jewel.ui.component.Icon
 import javax.swing.Icon
+import org.jetbrains.jewel.ui.component.Icon
 
 private val logger = Logger.getInstance("DeviceSelectionContent")
 
 @Composable
 fun DeviceSelectionContent(selectedDevice: ProfilerDeviceSelection?, selectedDevicesCount: Int) {
-  Box(modifier = Modifier.height(TaskBasedUxDimensions.TOP_BAR_HEIGHT_DP).padding(
-    vertical = TaskBasedUxDimensions.DEVICE_SELECTION_VERTICAL_PADDING_DP,
-    horizontal = TaskBasedUxDimensions.DEVICE_SELECTION_HORIZONTAL_PADDING_DP), contentAlignment = Alignment.BottomStart) {
+  Box(
+    modifier =
+      Modifier.height(TaskBasedUxDimensions.TOP_BAR_HEIGHT_DP)
+        .padding(
+          vertical = TaskBasedUxDimensions.DEVICE_SELECTION_VERTICAL_PADDING_DP,
+          horizontal = TaskBasedUxDimensions.DEVICE_SELECTION_HORIZONTAL_PADDING_DP,
+        ),
+    contentAlignment = Alignment.BottomStart,
+  ) {
     when (selectedDevicesCount) {
       0 -> DeviceText(TaskBasedUxStrings.NO_DEVICE_SELECTED_TITLE)
       1 -> {
@@ -66,9 +71,7 @@ fun DeviceText(text: String) {
 
 @Composable
 private fun DeviceIcon(icon: Icon?, description: String) {
-  DeviceIconUtils.getDeviceIconKey(icon)?.let {
-    Icon(it, contentDescription = description)
-  }
+  DeviceIconUtils.getDeviceIconKey(icon)?.let { Icon(it, contentDescription = description) }
 }
 
 @Composable
@@ -81,7 +84,7 @@ private fun DeviceSelectionContentContainer(content: @Composable () -> Unit) {
   Row(
     modifier = Modifier.fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(TaskBasedUxDimensions.DEVICE_SELECTION_TITLE_HORIZONTAL_SPACE_DP),
-    verticalAlignment = Alignment.CenterVertically
+    verticalAlignment = Alignment.CenterVertically,
   ) {
     content()
   }
@@ -92,7 +95,7 @@ private fun DeviceSelectionTextContainer(content: @Composable () -> Unit) {
   Row(
     modifier = Modifier.fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(TaskBasedUxDimensions.DEVICE_SELECTION_TITLE_HORIZONTAL_SPACE_DP),
-    verticalAlignment = Alignment.Bottom
+    verticalAlignment = Alignment.Bottom,
   ) {
     content()
   }
@@ -104,21 +107,21 @@ fun SingleDeviceSelectionContent(selectedDevice: ProfilerDeviceSelection) {
     DeviceIcon(selectedDevice.icon, selectedDevice.name)
     DeviceSelectionTextContainer {
       DeviceText(selectedDevice.name)
-      val deviceSelectionInfo = if (selectedDevice.isRunning) {
-        // If the 'device' field of a running device still has a default instance of Common.Device, this is indicative that the selected
-        // device is actually running, but the profiler-side device data has not found the running device yet. This brief state of waiting
-        // for the device information to arrive to the profiler will be communicated via a "Loading" subtext next to the selected device name.
-        if (selectedDevice.device == Common.Device.getDefaultInstance()) {
-          logger.info("Device '${selectedDevice.name}' is running, but profiler-side device data has not been found yet.")
-          TaskBasedUxStrings.LOADING_SELECTED_DEVICE_INFO
+      val deviceSelectionInfo =
+        if (selectedDevice.isRunning) {
+          // If the 'device' field of a running device still has a default instance of Common.Device, this is indicative that the selected
+          // device is actually running, but the profiler-side device data has not found the running device yet. This brief state of waiting
+          // for the device information to arrive to the profiler will be communicated via a "Loading" subtext next to the selected device
+          // name.
+          if (selectedDevice.device == Common.Device.getDefaultInstance()) {
+            logger.info("Device '${selectedDevice.name}' is running, but profiler-side device data has not been found yet.")
+            TaskBasedUxStrings.LOADING_SELECTED_DEVICE_INFO
+          } else {
+            "Android ${selectedDevice.device.version}, API ${selectedDevice.device.apiLevel}"
+          }
+        } else {
+          TaskBasedUxStrings.SELECTED_DEVICE_OFFLINE
         }
-        else {
-          "Android ${selectedDevice.device.version}, API ${selectedDevice.device.apiLevel}"
-        }
-      }
-      else {
-        TaskBasedUxStrings.SELECTED_DEVICE_OFFLINE
-      }
       DeviceStatusText(deviceSelectionInfo)
     }
   }

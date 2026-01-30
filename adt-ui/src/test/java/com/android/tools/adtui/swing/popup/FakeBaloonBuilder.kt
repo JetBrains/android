@@ -103,18 +103,11 @@ class FakeBalloonBuilder(
 
   override fun setDisposable(anchor: Disposable) = this
 
-  override fun createBalloon() =
-    FakeBalloon(component, htmlContent, requestFocus, factory.disposable).also {
-      factory.addBalloon(it)
-    }
+  override fun createBalloon() = FakeBalloon(component, htmlContent, requestFocus, factory.disposable).also { factory.addBalloon(it) }
 }
 
-class FakeBalloon(
-  val component: JComponent,
-  val htmlContent: String,
-  private val requestFocus: Boolean,
-  parentDisposable: Disposable,
-) : Balloon {
+class FakeBalloon(val component: JComponent, val htmlContent: String, private val requestFocus: Boolean, parentDisposable: Disposable) :
+  Balloon {
   var target: Any? = null
     private set
 
@@ -171,8 +164,7 @@ class FakeBalloon(
     ui = FakeUi(component, createFakeWindow = true, parentDisposable = this)
     listeners.forEach { it.beforeShown(mock()) }
     if (requestFocus) {
-      val focusManager =
-        KeyboardFocusManager.getCurrentKeyboardFocusManager() as? FakeKeyboardFocusManager
+      val focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager() as? FakeKeyboardFocusManager
       originalFocusOwner = focusManager?.focusOwner
       focusManager?.focusOwner = component
     }
@@ -197,8 +189,7 @@ class FakeBalloon(
 
   override fun hide(ok: Boolean) {
     if (requestFocus) {
-      val focusManager =
-        KeyboardFocusManager.getCurrentKeyboardFocusManager() as? FakeKeyboardFocusManager
+      val focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager() as? FakeKeyboardFocusManager
       focusManager?.focusOwner = originalFocusOwner
     }
 

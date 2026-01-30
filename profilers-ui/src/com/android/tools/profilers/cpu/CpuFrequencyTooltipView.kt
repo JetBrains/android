@@ -26,8 +26,7 @@ import javax.swing.JPanel
 class CpuFrequencyTooltipView(parent: JComponent, val tooltip: CpuFrequencyTooltip) : TooltipView(tooltip.timeline) {
   private val content = JPanel(TabularLayout("*").setVGap(12))
 
-  @VisibleForTesting
-  val valueLabel = createTooltipLabel()
+  @VisibleForTesting val valueLabel = createTooltipLabel()
 
   override fun createTooltip(): JComponent {
     return content

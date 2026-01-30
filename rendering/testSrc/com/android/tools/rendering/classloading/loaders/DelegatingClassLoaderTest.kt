@@ -26,10 +26,7 @@ internal class DelegatingClassLoaderTest {
   @Test
   fun `check loader successfully finds class`() {
     val classLoader =
-      DelegatingClassLoader(
-        null,
-        StaticLoader(TestClass::class.java.canonicalName to loadClassBytes(TestClass::class.java)),
-      )
+      DelegatingClassLoader(null, StaticLoader(TestClass::class.java.canonicalName to loadClassBytes(TestClass::class.java)))
 
     assertNotNull(classLoader.loadClass(TestClass::class.java.canonicalName))
 
@@ -47,11 +44,7 @@ internal class DelegatingClassLoaderTest {
 
   @Test
   fun `check class renaming`() {
-    val classLoader =
-      DelegatingClassLoader(
-        null,
-        StaticLoader("private.Test" to loadClassBytes(TestClass::class.java)),
-      )
+    val classLoader = DelegatingClassLoader(null, StaticLoader("private.Test" to loadClassBytes(TestClass::class.java)))
 
     assertNotNull(classLoader.loadClass("private.Test"))
 

@@ -53,10 +53,8 @@ import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
-/**
- * Provides references to all accessible resource fields, when a user types "R.resourceType." for kotlin files.
- */
-class AndroidNonTransitiveRClassKotlinCompletionContributor : CompletionContributor()   {
+/** Provides references to all accessible resource fields, when a user types "R.resourceType." for kotlin files. */
+class AndroidNonTransitiveRClassKotlinCompletionContributor : CompletionContributor() {
 
   init {
     extend(
@@ -64,38 +62,38 @@ class AndroidNonTransitiveRClassKotlinCompletionContributor : CompletionContribu
       PlatformPatterns.psiElement()
         .withSuperParent(1, KtSimpleNameExpression::class.java)
         .withSuperParent(2, KtDotQualifiedExpression::class.java),
-      object : CompletionProvider<CompletionParameters>(){
+      object : CompletionProvider<CompletionParameters>() {
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
           addNonLocalResourceFields(parameters, result)
         }
-      }
+      },
     )
   }
 
- fun addNonLocalResourceFields(parameters: CompletionParameters, result: CompletionResultSet) {
-   val element = parameters.position
-   val facet = element.androidFacet ?: return
-   val moduleSystem = element.getModuleSystem() ?: return
-   if (moduleSystem.isRClassTransitive) return
-   val expression = element.parent as? KtSimpleNameExpression ?: return
-   if (!matchesRequiredFormat(expression)) return
-   val innerRClassElement = expression.getPreviousInQualifiedChain() as? KtSimpleNameExpression ?: return
-   val references = (innerRClassElement as PsiElement).references
-   if (references.isEmpty()) return
-   val innerRClass = PsiMultiReference(references, references.last().element).resolve() as? ResourceRepositoryInnerRClass ?: return
-   val moduleRClass = innerRClass.containingClass as? ModuleRClass ?: return
-   val rClassesAccessibleFromModule = ProjectLightResourceClassService.getInstance(element.project)
-     .getLightRClassesAccessibleFromModule(facet.module)
-     .filter { !(it is ModuleRClass && it.facet == moduleRClass.facet) }
-   val list = rClassesAccessibleFromModule
-     .flatMap { it.findInnerClassByName(innerRClass.resourceType.getName(), false)?.allFields?.toList() ?: emptyList() }
-     .map { NonTransitiveResourceFieldLookupElement(it) }
-   result.addAllElements(list)
+  fun addNonLocalResourceFields(parameters: CompletionParameters, result: CompletionResultSet) {
+    val element = parameters.position
+    val facet = element.androidFacet ?: return
+    val moduleSystem = element.getModuleSystem() ?: return
+    if (moduleSystem.isRClassTransitive) return
+    val expression = element.parent as? KtSimpleNameExpression ?: return
+    if (!matchesRequiredFormat(expression)) return
+    val innerRClassElement = expression.getPreviousInQualifiedChain() as? KtSimpleNameExpression ?: return
+    val references = (innerRClassElement as PsiElement).references
+    if (references.isEmpty()) return
+    val innerRClass = PsiMultiReference(references, references.last().element).resolve() as? ResourceRepositoryInnerRClass ?: return
+    val moduleRClass = innerRClass.containingClass as? ModuleRClass ?: return
+    val rClassesAccessibleFromModule =
+      ProjectLightResourceClassService.getInstance(element.project).getLightRClassesAccessibleFromModule(facet.module).filter {
+        !(it is ModuleRClass && it.facet == moduleRClass.facet)
+      }
+    val list =
+      rClassesAccessibleFromModule
+        .flatMap { it.findInnerClassByName(innerRClass.resourceType.getName(), false)?.allFields?.toList() ?: emptyList() }
+        .map { NonTransitiveResourceFieldLookupElement(it) }
+    result.addAllElements(list)
   }
 
-  /**
-   * Verifies the kotlin reference matches "R.resourceType.%resourceName%" without resolving, no package prefix allowed.
-   */
+  /** Verifies the kotlin reference matches "R.resourceType.%resourceName%" without resolving, no package prefix allowed. */
   private fun matchesRequiredFormat(expression: KtSimpleNameExpression): Boolean {
     val innerRClassReference = expression.getPreviousInQualifiedChain() as? KtSimpleNameExpression ?: return false
     val rClassReference = innerRClassReference.getPreviousInQualifiedChain() as? KtSimpleNameExpression ?: return false
@@ -104,20 +102,18 @@ class AndroidNonTransitiveRClassKotlinCompletionContributor : CompletionContribu
   }
 }
 
-/**
- * Provides references to all accessible resource fields, when a user types "R.resourceType." for Java files.
- */
+/** Provides references to all accessible resource fields, when a user types "R.resourceType." for Java files. */
 class AndroidNonTransitiveRClassJavaCompletionContributor : CompletionContributor() {
 
   init {
     extend(
       CompletionType.BASIC,
       PlatformPatterns.psiElement().withSuperParent(1, PsiReferenceExpression::class.java),
-      object : CompletionProvider<CompletionParameters>(){
+      object : CompletionProvider<CompletionParameters>() {
         override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
           addNonLocalResourceFields(parameters, result)
         }
-      }
+      },
     )
   }
 
@@ -144,12 +140,14 @@ class AndroidNonTransitiveRClassJavaCompletionContributor : CompletionContributo
     // them using a different CompletionSorter
     val result = JavaCompletionSorting.addJavaSorting(parameters, _result)
 
-    val rClassesAccessibleFromModule = ProjectLightResourceClassService.getInstance(element.project)
-      .getLightRClassesAccessibleFromModule(facet.module)
-      .filter { !(it is ModuleRClass && it.facet == moduleRClass.facet) }
-    val lookupElements = rClassesAccessibleFromModule
-      .flatMap { it.findInnerClassByName(typeName, false)?.allFields?.toList() ?: emptyList() }
-      .map { NonTransitiveResourceFieldLookupElement(it) }
+    val rClassesAccessibleFromModule =
+      ProjectLightResourceClassService.getInstance(element.project).getLightRClassesAccessibleFromModule(facet.module).filter {
+        !(it is ModuleRClass && it.facet == moduleRClass.facet)
+      }
+    val lookupElements =
+      rClassesAccessibleFromModule
+        .flatMap { it.findInnerClassByName(typeName, false)?.allFields?.toList() ?: emptyList() }
+        .map { NonTransitiveResourceFieldLookupElement(it) }
     result.addAllElements(lookupElements)
   }
 }
@@ -157,8 +155,8 @@ class AndroidNonTransitiveRClassJavaCompletionContributor : CompletionContributo
 /**
  * Lookup element for resources shown on R.resourceType. elements that are not from the current Module R class
  *
- * Insert handler is provided to insert the correct package name of the R class of the selected resource.
- * Presentation is provided so that users can differentiate resources defined in multiple modules but with the same resource name.
+ * Insert handler is provided to insert the correct package name of the R class of the selected resource. Presentation is provided so that
+ * users can differentiate resources defined in multiple modules but with the same resource name.
  */
 class NonTransitiveResourceFieldLookupElement(element: PsiField) :
   LookupElementDecorator<LookupElement>(LookupElementBuilder.create(element)) {
@@ -186,10 +184,9 @@ class NonTransitiveResourceFieldLookupElement(element: PsiField) :
 
     val elementAtCaretOffset = file.findElementAt(context.startOffset) ?: return
     if (file.language == KotlinLanguage.INSTANCE) {
-      val rClassElement = elementAtCaretOffset
-                            .parentOfType<KtExpression>()
-                            ?.getPreviousInQualifiedChain()
-                            ?.getPreviousInQualifiedChain() as? PsiElement ?: return
+      val rClassElement =
+        elementAtCaretOffset.parentOfType<KtExpression>()?.getPreviousInQualifiedChain()?.getPreviousInQualifiedChain() as? PsiElement
+          ?: return
       if (rClassElement.text == R_CLASS) {
         (rClassElement.references.first { it is KtSimpleNameReference } as KtSimpleNameReference).bindToElement(rClass, NO_SHORTENING)
       }

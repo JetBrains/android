@@ -104,12 +104,16 @@ class TraceSignatureConverterTest {
 
   @Test
   fun convertsMethodToString() {
-    val str = TraceSignatureConverter.getTraceSignature(PsiTypes.intType(), arrayOf(
-      createPsiTypeForGeneric("java.util.List<String>", "java.util.List"),
-      createPsiTypeForGeneric("java.util.ArrayList<T>", "java.util.ArrayList"),
-      PsiTypes.booleanType(),
-      PsiArrayType(PsiArrayType(createPsiTypeFor("java.lang.Integer")))
-    ))
+    val str =
+      TraceSignatureConverter.getTraceSignature(
+        PsiTypes.intType(),
+        arrayOf(
+          createPsiTypeForGeneric("java.util.List<String>", "java.util.List"),
+          createPsiTypeForGeneric("java.util.ArrayList<T>", "java.util.ArrayList"),
+          PsiTypes.booleanType(),
+          PsiArrayType(PsiArrayType(createPsiTypeFor("java.lang.Integer"))),
+        ),
+      )
 
     assertThat(str).isEqualTo("(Ljava/util/List;Ljava/util/ArrayList;Z[[Ljava/lang/Integer;)I")
   }

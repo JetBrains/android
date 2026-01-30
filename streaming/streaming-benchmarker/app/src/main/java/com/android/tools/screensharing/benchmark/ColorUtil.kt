@@ -8,11 +8,9 @@ import kotlin.random.Random
 /**
  * Encodes a positive integer into a list of colors using at most [bitsPerChannel] bits per channel.
  *
- * A value of 0 [bitsPerChannel] means that the integer will be encoded as a sequence of black and white,
- * i.e. in binary.
+ * A value of 0 [bitsPerChannel] means that the integer will be encoded as a sequence of black and white, i.e. in binary.
  *
- * Will throw an [IllegalArgumentException] if the integer is negative or if [bitsPerChannel] is
- * more than 8.
+ * Will throw an [IllegalArgumentException] if the integer is negative or if [bitsPerChannel] is more than 8.
  */
 fun Int.toColors(maxBits: Int, bitsPerChannel: Int): List<Int> {
   require(this >= 0) { "Cannot encode a negative integer" }
@@ -36,23 +34,21 @@ fun @receiver:ColorInt Int.toHexColorString(): String {
 }
 
 /** Creates a random color. */
-@ColorInt
-fun randomColor(): Int =
-  Color.rgb(Random.nextInt(255), Random.nextInt(255), Random.nextInt(255))
+@ColorInt fun randomColor(): Int = Color.rgb(Random.nextInt(255), Random.nextInt(255), Random.nextInt(255))
 
-private fun Int.bits(minBits: Int = Int.SIZE_BITS) : String = toUInt().toString(2).padStart(minBits, '0')
+private fun Int.bits(minBits: Int = Int.SIZE_BITS): String = toUInt().toString(2).padStart(minBits, '0')
 
 @ColorInt
-private fun List<String>.toColor() : Int {
+private fun List<String>.toColor(): Int {
   require(!isEmpty()) { "Must provide at least one value." }
   return when (size) {
     1 -> Color.rgb(get(0).toColorChannel(), 0, 0)
     2 -> Color.rgb(get(0).toColorChannel(), get(1).toColorChannel(), 0)
-    else ->  Color.rgb(get(0).toColorChannel(), get(1).toColorChannel(), get(2).toColorChannel())
+    else -> Color.rgb(get(0).toColorChannel(), get(1).toColorChannel(), get(2).toColorChannel())
   }
 }
 
-private fun String.toColorChannel() : Int {
+private fun String.toColorChannel(): Int {
   require(length in 1..8) { "Cannot fit $length bits in a color channel." }
   return (toInt(2) * (255 / ((1 shl length) - 1).toDouble())).roundToInt().coerceIn(0, 255)
 }

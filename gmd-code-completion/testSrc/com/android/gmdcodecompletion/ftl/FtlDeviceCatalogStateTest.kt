@@ -15,15 +15,13 @@
  */
 package com.android.gmdcodecompletion.ftl
 
-import com.android.gmdcodecompletion.fullFtlDeviceCatalog
 import com.android.gmdcodecompletion.freshFtlDeviceCatalogState
-import com.android.gmdcodecompletion.fullAndroidDeviceCatalog
-import com.android.gmdcodecompletion.matchFtlDeviceCatalog
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.fail
-import junit.framework.Assert.assertTrue
-import org.junit.Test
+import com.android.gmdcodecompletion.fullFtlDeviceCatalog
 import java.util.Calendar
+import junit.framework.Assert.assertFalse
+import junit.framework.Assert.assertTrue
+import junit.framework.Assert.fail
+import org.junit.Test
 
 class FtlDeviceCatalogStateTest {
 
@@ -62,8 +60,7 @@ class FtlDeviceCatalogStateTest {
       assertTrue(deserializedDeviceCatalog.apiLevels == testFtlDeviceCatalog.apiLevels)
       assertTrue(deserializedDeviceCatalog.orientation == testFtlDeviceCatalog.orientation)
       assertTrue(deserializedDeviceCatalog.locale == testFtlDeviceCatalog.locale)
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       fail("FtlDeviceCatalog fails to serialize / deserialize")
     }
   }

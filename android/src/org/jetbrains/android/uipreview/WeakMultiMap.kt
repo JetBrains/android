@@ -19,17 +19,19 @@ import com.intellij.util.containers.MultiMap
 import java.util.Collections
 import java.util.WeakHashMap
 
-class WeakMultiMap<K, V> private constructor(private val useWeakValues: Boolean): MultiMap<K, V>(WeakHashMap<K, Collection<V>>()) {
-  override fun createCollection(): MutableCollection<V> = if (useWeakValues) {
-    Collections.newSetFromMap(WeakHashMap())
-  } else {
-    mutableSetOf()
-  }
+class WeakMultiMap<K, V> private constructor(private val useWeakValues: Boolean) : MultiMap<K, V>(WeakHashMap<K, Collection<V>>()) {
+  override fun createCollection(): MutableCollection<V> =
+    if (useWeakValues) {
+      Collections.newSetFromMap(WeakHashMap())
+    } else {
+      mutableSetOf()
+    }
 
   override fun createEmptyCollection(): Collection<V> = setOf()
 
   companion object {
     fun <K, V> create(): WeakMultiMap<K, V> = WeakMultiMap(false)
+
     fun <K, V> createWithWeakValues(): WeakMultiMap<K, V> = WeakMultiMap(true)
   }
 }

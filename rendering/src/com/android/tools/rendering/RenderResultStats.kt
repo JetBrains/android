@@ -56,8 +56,7 @@ constructor(
       renderDurationMs = maxOf(renderDurationMs, stats.renderDurationMs),
       classesFound = maxOf(classesFound, stats.classesFound),
       totalClassLoadDurationMs = maxOf(totalClassLoadDurationMs, stats.totalClassLoadDurationMs),
-      totalClassRewriteDurationMs =
-        maxOf(totalClassRewriteDurationMs, stats.totalClassRewriteDurationMs),
+      totalClassRewriteDurationMs = maxOf(totalClassRewriteDurationMs, stats.totalClassRewriteDurationMs),
     )
 
   companion object {

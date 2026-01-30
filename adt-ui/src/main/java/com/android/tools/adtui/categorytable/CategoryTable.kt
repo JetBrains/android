@@ -56,18 +56,16 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 
 /**
- * A JTable-like UI component that displays tabular data, but also allows grouping rows into
- * hierarchical categories, and showing / hiding those categories like a JTree.
+ * A JTable-like UI component that displays tabular data, but also allows grouping rows into hierarchical categories, and showing / hiding
+ * those categories like a JTree.
  *
- * Unlike JTable, child components are created for each cell and added to the widget hierarchy, so
- * event handlers work normally. This also means that mouse events captured by a cell widget will
- * not be received by the [CategoryTable]; cell widgets may [forward] the mouse event to the table
- * if they want the table to handle the event as well (for row selection).
+ * Unlike JTable, child components are created for each cell and added to the widget hierarchy, so event handlers work normally. This also
+ * means that mouse events captured by a cell widget will not be received by the [CategoryTable]; cell widgets may [forward] the mouse event
+ * to the table if they want the table to handle the event as well (for row selection).
  *
- * The value type of the table, T, should be an immutable data class. Its components will be read
- * frequently via its [Attribute] classes; the values should not change. Instead, [removeRow] and
- * [addRow] can be used to replace rows, or, if a [primaryKey] is provided, [updateRow] can be used
- * to update a row "in-place".
+ * The value type of the table, T, should be an immutable data class. Its components will be read frequently via its [Attribute] classes;
+ * the values should not change. Instead, [removeRow] and [addRow] can be used to replace rows, or, if a [primaryKey] is provided,
+ * [updateRow] can be used to update a row "in-place".
  */
 @UiThread
 class CategoryTable<T : Any>(
@@ -85,12 +83,10 @@ class CategoryTable<T : Any>(
   }
 
   /** The listener called when a category row is clicked. */
-  var categoryRowMouseClickListener: CategoryRowMouseClickListener<T> =
-    DefaultCategoryRowMouseClickListener()
+  var categoryRowMouseClickListener: CategoryRowMouseClickListener<T> = DefaultCategoryRowMouseClickListener()
 
   /** The listener called when a column header is clicked. */
-  var categoryTableHeaderClickListener: CategoryTableHeaderClickListener<T> =
-    DefaultCategoryTableHeaderClickListener()
+  var categoryTableHeaderClickListener: CategoryTableHeaderClickListener<T> = DefaultCategoryTableHeaderClickListener()
 
   internal val header =
     CategoryTableHeader(columns, { columnSorters.firstOrNull() }, ::mouseClickedOnHeader).also {
@@ -98,16 +94,12 @@ class CategoryTable<T : Any>(
       it.resizingAllowed = false
     }
 
-  /**
-   * The values in the table, in display order (considering grouping and sorting). Maintained by
-   * [groupAndSortValues].
-   */
+  /** The values in the table, in display order (considering grouping and sorting). Maintained by [groupAndSortValues]. */
   var values: List<T> = emptyList()
     private set
 
   /**
-   * All [CategoryRowComponent] and [ValueRowComponent] components in the table, in display order.
-   * Includes both visible and invisible rows.
+   * All [CategoryRowComponent] and [ValueRowComponent] components in the table, in display order. Includes both visible and invisible rows.
    */
   internal var rowComponents: List<RowComponent<T>> = emptyList()
     private set
@@ -162,10 +154,8 @@ class CategoryTable<T : Any>(
   private var scope = createComponentScope()
 
   private val tablePresentationManager = TablePresentationManager()
-  private var selectedPresentation =
-    TablePresentation(colors.selectedForeground, colors.selectedBackground, true)
-  private var unselectedPresentation =
-    TablePresentation(colors.unselectedForeground, colors.unselectedBackground, false)
+  private var selectedPresentation = TablePresentation(colors.selectedForeground, colors.selectedBackground, true)
+  private var unselectedPresentation = TablePresentation(colors.unselectedForeground, colors.unselectedBackground, false)
 
   init {
     emptyStatePanel?.let { add(it) }
@@ -280,9 +270,7 @@ class CategoryTable<T : Any>(
           else -> SortOrder.ASCENDING
         }
       // Move the toggled column to the front, followed by the rest.
-      columnSorters =
-        persistentListOf(ColumnSortOrder(attribute, newSortOrder)) +
-          currentSortOrders.filter { it.attribute != attribute }
+      columnSorters = persistentListOf(ColumnSortOrder(attribute, newSortOrder)) + currentSortOrders.filter { it.attribute != attribute }
     }
   }
 
@@ -291,9 +279,7 @@ class CategoryTable<T : Any>(
   }
 
   fun <C> addGrouping(attribute: Attribute<T, C>) {
-    columns
-      .find { it.attribute == attribute && !it.visibleWhenGrouped }
-      ?.let { header.removeColumn(attribute) }
+    columns.find { it.attribute == attribute && !it.visibleWhenGrouped }?.let { header.removeColumn(attribute) }
 
     groupByAttributes += attribute
     groupAndSortValues()
@@ -309,28 +295,23 @@ class CategoryTable<T : Any>(
     groupAndSortValues()
     updateComponents()
 
-    columns
-      .find { it.attribute == attribute && !it.visibleWhenGrouped }
-      ?.let { header.restoreColumn(attribute) }
+    columns.find { it.attribute == attribute && !it.visibleWhenGrouped }?.let { header.restoreColumn(attribute) }
   }
 
   /**
-   * Adds the given row to the table. If a row already exists with the same primary key, it is
-   * updated to the new value. This may result in addition or deletion of category nodes.
+   * Adds the given row to the table. If a row already exists with the same primary key, it is updated to the new value. This may result in
+   * addition or deletion of category nodes.
    *
-   * @param beforeKey adds the element before the element with this primary key; if null, adds to
-   *   the end. A stable sort is performed after the element is added. Thus, if the new element is
-   *   equal in sort order to the given key, it will remain in the same position after the sort.
+   * @param beforeKey adds the element before the element with this primary key; if null, adds to the end. A stable sort is performed after
+   *   the element is added. Thus, if the new element is equal in sort order to the given key, it will remain in the same position after the
+   *   sort.
    * @return true if a new row was added
    */
   fun addOrUpdateRow(rowValue: T, beforeKey: Any? = null): Boolean {
     val key = primaryKey(rowValue)
     val add = !valueRows.contains(key)
     if (add) {
-      valueRows[key] =
-        ValueRowComponent(rowDataProvider, header, columns, rowValue, key).also {
-          addRowComponent(it)
-        }
+      valueRows[key] = ValueRowComponent(rowDataProvider, header, columns, rowValue, key).also { addRowComponent(it) }
       updateValues { it.withInsertedItemBefore(beforeKey, rowValue) }
     } else {
       updateValues { currentValues ->
@@ -396,10 +377,9 @@ class CategoryTable<T : Any>(
   }
 
   /**
-   * Update [rowComponents] based on [values]: we have our values and their categorizations, and we
-   * need to create or reuse appropriate [CategoryRowComponent] components. Appropriate
-   * [ValueRowComponent] components should already exist. We also need to update visibility based on
-   * [collapsedNodes].
+   * Update [rowComponents] based on [values]: we have our values and their categorizations, and we need to create or reuse appropriate
+   * [CategoryRowComponent] components. Appropriate [ValueRowComponent] components should already exist. We also need to update visibility
+   * based on [collapsedNodes].
    */
   private fun updateComponents() {
     val oldCategoryRows = categoryRows
@@ -507,15 +487,11 @@ class CategoryTable<T : Any>(
   private fun Column.SizeConstraint.toSizeRequirements() = SizeRequirements(min, preferred, max, 0f)
 
   override fun getPreferredSize(): Dimension =
-    Dimension(
-      header.preferredSize.width,
-      rowComponents.sumOf { if (it.isVisible) it.preferredSize.height else 0 },
-    )
+    Dimension(header.preferredSize.width, rowComponents.sumOf { if (it.isVisible) it.preferredSize.height else 0 })
 
   /**
-   * Rather than implementing the whole LayoutManager interface, we perform the layout in doLayout.
-   * This avoids a lot of unnecessary boilerplate from LayoutManager, and is the approach used by
-   * JTable.
+   * Rather than implementing the whole LayoutManager interface, we perform the layout in doLayout. This avoids a lot of unnecessary
+   * boilerplate from LayoutManager, and is the approach used by JTable.
    */
   override fun doLayout() {
     emptyStatePanel?.bounds = bounds
@@ -525,10 +501,7 @@ class CategoryTable<T : Any>(
 
   /** Recomputes column widths based on their width constraints. */
   private fun updateHeaderColumnWidths() {
-    val sizeRequirements =
-      header.columnModel.columnList
-        .map { columns[it.modelIndex].widthConstraint.toSizeRequirements() }
-        .toTypedArray()
+    val sizeRequirements = header.columnModel.columnList.map { columns[it.modelIndex].widthConstraint.toSizeRequirements() }.toTypedArray()
     val offsets = IntArray(sizeRequirements.size)
     val spans = IntArray(sizeRequirements.size)
 
@@ -572,18 +545,10 @@ class CategoryTable<T : Any>(
   override fun getPreferredScrollableViewportSize() = preferredSize
 
   // TODO: refine this
-  override fun getScrollableUnitIncrement(
-    visibleRect: Rectangle?,
-    orientation: Int,
-    direction: Int,
-  ) = JBUI.scale(16)
+  override fun getScrollableUnitIncrement(visibleRect: Rectangle?, orientation: Int, direction: Int) = JBUI.scale(16)
 
   // TODO: refine this
-  override fun getScrollableBlockIncrement(
-    visibleRect: Rectangle?,
-    orientation: Int,
-    direction: Int,
-  ) = JBUI.scale(48)
+  override fun getScrollableBlockIncrement(visibleRect: Rectangle?, orientation: Int, direction: Int) = JBUI.scale(48)
 
   override fun getScrollableTracksViewportWidth() = true
 
@@ -591,8 +556,7 @@ class CategoryTable<T : Any>(
   override fun getScrollableTracksViewportHeight() = rowComponents.isEmpty()
 
   companion object {
-    private val defaultCoroutineDispatcher =
-      Executor { block -> SwingUtilities.invokeLater(block) }.asCoroutineDispatcher()
+    private val defaultCoroutineDispatcher = Executor { block -> SwingUtilities.invokeLater(block) }.asCoroutineDispatcher()
 
     private enum class TableActions {
       SELECT_NEXT_ROW,
@@ -663,11 +627,7 @@ interface CategoryTableHeaderClickListener<T : Any> {
 
 /** Sorts the column when clicked. */
 open class DefaultCategoryTableHeaderClickListener<T : Any> : CategoryTableHeaderClickListener<T> {
-  override fun columnHeaderClicked(
-    e: MouseEvent,
-    table: CategoryTable<T>,
-    column: Column<T, *, *>,
-  ) {
+  override fun columnHeaderClicked(e: MouseEvent, table: CategoryTable<T>, column: Column<T, *, *>) {
     if (SwingUtilities.isLeftMouseButton(e)) {
       table.toggleSortOrder(column.attribute)
     }
@@ -675,8 +635,8 @@ open class DefaultCategoryTableHeaderClickListener<T : Any> : CategoryTableHeade
 }
 
 /**
- * Sorts a list of values: first, by each of the grouping attributes, then finally by the sorting
- * attributes. This puts all values of the same group together.
+ * Sorts a list of values: first, by each of the grouping attributes, then finally by the sorting attributes. This puts all values of the
+ * same group together.
  */
 internal fun <T> groupAndSort(
   values: List<T>,
@@ -684,8 +644,7 @@ internal fun <T> groupAndSort(
   attributeSorters: List<ColumnSortOrder<T>>,
 ): List<T> =
   (groupByAttributes.map { attribute ->
-      val sortOrder =
-        attributeSorters.find { it.attribute == attribute }?.sortOrder ?: SortOrder.ASCENDING
+      val sortOrder = attributeSorters.find { it.attribute == attribute }?.sortOrder ?: SortOrder.ASCENDING
       checkNotNull(attribute.valueSorter(sortOrder)) { "Groupable attributes must be sortable" }
     } + attributeSorters.mapNotNull { it.attribute.valueSorter(it.sortOrder) })
     .reduceOrNull { a, b -> a.then(b) }

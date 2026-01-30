@@ -26,25 +26,23 @@ import javax.swing.JButton
 import kotlin.reflect.KProperty
 
 /**
- * A [TableComponent] that has an icon whose presentation it changes based on the
- * [TablePresentation].
+ * A [TableComponent] that has an icon whose presentation it changes based on the [TablePresentation].
  *
- * This enables a common interface and largely shared implementation for IconLabel and IconButton,
- * despite their need to inherit from different base classes.
+ * This enables a common interface and largely shared implementation for IconLabel and IconButton, despite their need to inherit from
+ * different base classes.
  */
 interface IconTableComponent : TableComponent {
   var baseIcon: Icon?
   var iconColor: Color?
 
   /**
-   * The icon setter that should already be present on the Swing component. This is declared on the
-   * interface so that IconTableComponent methods can call it.
+   * The icon setter that should already be present on the Swing component. This is declared on the interface so that IconTableComponent
+   * methods can call it.
    */
   fun setIcon(icon: Icon?)
 
   /**
-   * Updates the icon in response to a change in [baseIcon] or [iconColor]. (May be overridden to
-   * update additional properties as needed.)
+   * Updates the icon in response to a change in [baseIcon] or [iconColor]. (May be overridden to update additional properties as needed.)
    */
   fun updateIcon() {
     setIcon(baseIcon?.applyColor(iconColor))
@@ -88,10 +86,7 @@ class IconLabel(initialBaseIcon: Icon?) : JBLabel(initialBaseIcon), IconTableCom
     updateIcon()
   }
 
-  override fun updateTablePresentation(
-    manager: TablePresentationManager,
-    presentation: TablePresentation,
-  ) {
+  override fun updateTablePresentation(manager: TablePresentationManager, presentation: TablePresentation) {
     manager.defaultApplyPresentation(this, presentation)
     updateIconColor(presentation)
   }
@@ -117,10 +112,7 @@ open class IconButton(initialBaseIcon: Icon?) : JButton(), IconTableComponent {
     updateIcon()
   }
 
-  override fun updateTablePresentation(
-    manager: TablePresentationManager,
-    presentation: TablePresentation,
-  ) {
+  override fun updateTablePresentation(manager: TablePresentationManager, presentation: TablePresentation) {
     manager.defaultApplyPresentation(this, presentation)
     updateIconColor(presentation)
     rowSelected = presentation.rowSelected

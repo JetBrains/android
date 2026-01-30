@@ -42,12 +42,12 @@ import com.android.tools.profilers.memory.AllocStatsDataSeries
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject
 import com.google.common.util.concurrent.MoreExecutors
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
 
 class DataSeriesPerformanceTest {
   companion object {
@@ -66,8 +66,13 @@ class DataSeriesPerformanceTest {
 
   @Before
   fun setup() {
-    service = DataStoreService("TestService", TestUtils.createTempDirDeletedOnExit().toString(),
-                               Consumer<Runnable> { ticker.run(it) }, FakeLogService())
+    service =
+      DataStoreService(
+        "TestService",
+        TestUtils.createTempDirDeletedOnExit().toString(),
+        Consumer<Runnable> { ticker.run(it) },
+        FakeLogService(),
+      )
     for (namespace in service.databases.keys) {
       val db = service.databases[namespace]!!
       val performantDatabase = namespace.myCharacteristic == DataStoreDatabase.Characteristic.PERFORMANT
@@ -94,18 +99,16 @@ class DataSeriesPerformanceTest {
     val timer = FakeTimer()
     val studioProfilers = StudioProfilers(client, FakeIdeProfilerServices(), timer)
     studioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
-    val dataSeriesToTest = mapOf(Pair("Cpu-Usage",
-                                      CpuUsage.buildDataSeries(client.transportClient, session, null)),
-                                 Pair("Cpu-Thread-Count",
-                                      CpuThreadCountDataSeries(client.transportClient, session.streamId, session.pid)),
-                                 Pair("Cpu-Thread-State",
-                                      CpuThreadStateDataSeries(client.transportClient, session.streamId, session.pid, 1, null)),
-                                 Pair("Event-Activities", LifecycleEventDataSeries(studioProfilers, false)),
-                                 Pair("Event-Interactions", UserEventDataSeries(studioProfilers)),
-                                 Pair("Memory-Allocation",
-                                      AllocStatsDataSeries(studioProfilers) { sample -> sample.javaAllocationCount.toLong() }),
-                                 Pair("Memory-LiveAllocation", TestLiveAllocationSeries(studioProfilers, session))
-    )
+    val dataSeriesToTest =
+      mapOf(
+        Pair("Cpu-Usage", CpuUsage.buildDataSeries(client.transportClient, session, null)),
+        Pair("Cpu-Thread-Count", CpuThreadCountDataSeries(client.transportClient, session.streamId, session.pid)),
+        Pair("Cpu-Thread-State", CpuThreadStateDataSeries(client.transportClient, session.streamId, session.pid, 1, null)),
+        Pair("Event-Activities", LifecycleEventDataSeries(studioProfilers, false)),
+        Pair("Event-Interactions", UserEventDataSeries(studioProfilers)),
+        Pair("Memory-Allocation", AllocStatsDataSeries(studioProfilers) { sample -> sample.javaAllocationCount.toLong() }),
+        Pair("Memory-LiveAllocation", TestLiveAllocationSeries(studioProfilers, session)),
+      )
     val nameToMetrics = mutableMapOf<String, Metric>()
     val queryStep = QUERY_INTERVAL / 2
     logMemoryUsed("Before-Query-Memory-Used")
@@ -119,9 +122,10 @@ class DataSeriesPerformanceTest {
       }
     }
     nameToMetrics.values.forEach {
-      it.setAnalyzers(cpuBenchmark, setOf(WindowDeviationAnalyzer.Builder()
-                                            .addMeanTolerance(WindowDeviationAnalyzer.MeanToleranceParams.Builder().build())
-                                            .build()))
+      it.setAnalyzers(
+        cpuBenchmark,
+        setOf(WindowDeviationAnalyzer.Builder().addMeanTolerance(WindowDeviationAnalyzer.MeanToleranceParams.Builder().build()).build()),
+      )
       it.commit()
     }
     logMemoryUsed("After-Query-Memory-Used")
@@ -173,8 +177,7 @@ class DataSeriesPerformanceTest {
       if (lastRunner is PollRunner) {
         val poller = lastRunner as PollRunner
         poller.poll()
-      }
-      else {
+      } else {
         lastRunner!!.run()
       }
     }

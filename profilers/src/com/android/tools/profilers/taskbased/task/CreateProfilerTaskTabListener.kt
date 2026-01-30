@@ -19,9 +19,7 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.intellij.util.messages.Topic
 
-/**
- * Listener of events requesting that a Profiler tab for a specific task be created.
- */
+/** Listener of events requesting that a Profiler tab for a specific task be created. */
 fun interface CreateProfilerTaskTabListener {
 
   /**
@@ -33,7 +31,6 @@ fun interface CreateProfilerTaskTabListener {
   fun createProfilerTaskTab(taskType: ProfilerTaskType, args: TaskArgs)
 
   companion object {
-    @JvmField
-    val TOPIC = Topic("Command to create a Profiler tab for a specific task", CreateProfilerTaskTabListener::class.java)
+    @JvmField val TOPIC = Topic("Command to create a Profiler tab for a specific task", CreateProfilerTaskTabListener::class.java)
   }
 }

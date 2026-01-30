@@ -34,9 +34,7 @@ interface Queries : ManifestElement {
 
   @DefinesXml
   interface Package : AndroidDomElement {
-    @Attribute("name")
-    @Convert(AndroidPackageConverter::class)
-    fun getName(): AndroidAttributeValue<String>
+    @Attribute("name") @Convert(AndroidPackageConverter::class) fun getName(): AndroidAttributeValue<String>
   }
 
   @DefinesXml
@@ -48,22 +46,16 @@ interface Queries : ManifestElement {
     fun getCategory(): Category
 
     /**
-     * Data is redefined here because some of the "AndroidManifestData" styleable's attributes are
-     * not applicable in this context per
+     * Data is redefined here because some of the "AndroidManifestData" styleable's attributes are not applicable in this context per
      * https://developer.android.com/training/package-visibility/declaring#intent-filter-signature.
      */
     @DefinesXml
-    @Styleable(
-      "AndroidManifestData",
-      skippedAttributes = ["path", "pathPrefix", "pathPattern", "port", "mimeGroup"],
-    )
+    @Styleable("AndroidManifestData", skippedAttributes = ["path", "pathPrefix", "pathPattern", "port", "mimeGroup"])
     interface Data : AndroidDomElement {}
   }
 
   @DefinesXml
   interface Provider : AndroidDomElement {
-    @Attribute("authorities")
-    @Convert(AndroidPackageConverter::class)
-    fun getAuthorities(): AndroidAttributeValue<String>
+    @Attribute("authorities") @Convert(AndroidPackageConverter::class) fun getAuthorities(): AndroidAttributeValue<String>
   }
 }

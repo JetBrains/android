@@ -26,13 +26,11 @@ import org.gradle.tooling.events.task.TaskSuccessResult
  * @param projectPath the path of the project that this task was executed in
  * @param originPlugin the plugin that registered the task
  */
-data class TaskDataId(val taskName: String,
-                      val projectPath: String,
-                      val originPlugin: PluginData)
+data class TaskDataId(val taskName: String, val projectPath: String, val originPlugin: PluginData)
 
 /**
- * Represents an executed task in a gradle build.
- * A task is uniquely identified by a combination of [taskName], [projectPath] and [originPlugin].
+ * Represents an executed task in a gradle build. A task is uniquely identified by a combination of [taskName], [projectPath] and
+ * [originPlugin].
  *
  * @param taskId stores key information and is used in comparisons
  * @param executionStartTime the timestamp when the task started executing
@@ -40,23 +38,23 @@ data class TaskDataId(val taskName: String,
  * @param executionMode whether the task was fully executed, incrementally executed, fetch from cache, or was up to date
  * @param executionReasons the reasons why the task needed to run
  */
-class TaskData(private val taskId: TaskDataId,
-               val executionStartTime: Long,
-               val executionEndTime: Long,
-               val executionMode: TaskExecutionMode,
-               val executionReasons: List<String>) {
+class TaskData(
+  private val taskId: TaskDataId,
+  val executionStartTime: Long,
+  val executionEndTime: Long,
+  val executionMode: TaskExecutionMode,
+  val executionReasons: List<String>,
+) {
 
-  constructor(taskName: String,
-              projectPath: String,
-              originPlugin: PluginData,
-              executionStartTime: Long,
-              executionEndTime: Long,
-              executionMode: TaskExecutionMode,
-              executionReasons: List<String>) : this(TaskDataId(taskName, projectPath, originPlugin),
-                                                     executionStartTime,
-                                                     executionEndTime,
-                                                     executionMode,
-                                                     executionReasons)
+  constructor(
+    taskName: String,
+    projectPath: String,
+    originPlugin: PluginData,
+    executionStartTime: Long,
+    executionEndTime: Long,
+    executionMode: TaskExecutionMode,
+    executionReasons: List<String>,
+  ) : this(TaskDataId(taskName, projectPath, originPlugin), executionStartTime, executionEndTime, executionMode, executionReasons)
 
   val taskName: String
     get() = this.taskId.taskName
@@ -67,13 +65,11 @@ class TaskData(private val taskId: TaskDataId,
   val originPlugin: PluginData
     get() = this.taskId.originPlugin
 
-  /**
-   * The execution duration of the task in milliseconds.
-   */
+  /** The execution duration of the task in milliseconds. */
   val executionTime: Long = executionEndTime - executionStartTime
   /**
-   * Indicates whether the task is on the critical path of the current build.
-   * This field is set later at the end of the build as it's determined by the critical path analyzer
+   * Indicates whether the task is on the critical path of the current build. This field is set later at the end of the build as it's
+   * determined by the critical path analyzer
    */
   var isOnTheCriticalPath: Boolean = false
 
@@ -81,25 +77,18 @@ class TaskData(private val taskId: TaskDataId,
     FROM_CACHE,
     UP_TO_DATE,
     INCREMENTAL,
-    FULL
+    FULL,
   }
 
-  /**
-   * The class name of the task.
-   * This field is set later at the end of the build as it's coming from AGP.
-   */
+  /** The class name of the task. This field is set later at the end of the build as it's coming from AGP. */
   var taskType: String = UNKNOWN_TASK_TYPE
     private set
 
-  /**
-   * Primary execution function of the task.
-   */
+  /** Primary execution function of the task. */
   var primaryTaskCategory: TaskCategory = TaskCategory.UNCATEGORIZED
     private set
 
-  /**
-   * All other execution functions of the task.
-   */
+  /** All other execution functions of the task. */
   var secondaryTaskCategories: List<TaskCategory> = mutableListOf()
 
   fun setTaskType(taskType: String?) {
@@ -118,25 +107,27 @@ class TaskData(private val taskId: TaskDataId,
   }
 
   private fun setPrimaryTaskCategory(primaryTaskCategory: TaskCategory) {
-    this.primaryTaskCategory = when {
-      primaryTaskCategory != TaskCategory.UNCATEGORIZED && primaryTaskCategory != TaskCategory.MISC -> primaryTaskCategory
+    this.primaryTaskCategory =
+      when {
+        primaryTaskCategory != TaskCategory.UNCATEGORIZED && primaryTaskCategory != TaskCategory.MISC -> primaryTaskCategory
 
-      isKotlinCompilationTask() || originPlugin.isKotlinPlugin() -> TaskCategory.KOTLIN
-      isJavaCompilationTask() || originPlugin.isJavaPlugin() -> TaskCategory.JAVA
-      originPlugin.isGradlePlugin() -> TaskCategory.GRADLE
+        isKotlinCompilationTask() || originPlugin.isKotlinPlugin() -> TaskCategory.KOTLIN
+        isJavaCompilationTask() || originPlugin.isJavaPlugin() -> TaskCategory.JAVA
+        originPlugin.isGradlePlugin() -> TaskCategory.GRADLE
 
-      originPlugin.pluginType == PluginData.PluginType.BUILDSRC_PLUGIN -> TaskCategory.BUILD_SOURCE
-      originPlugin.pluginType == PluginData.PluginType.SCRIPT -> TaskCategory.BUILD_SCRIPT
+        originPlugin.pluginType == PluginData.PluginType.BUILDSRC_PLUGIN -> TaskCategory.BUILD_SOURCE
+        originPlugin.pluginType == PluginData.PluginType.SCRIPT -> TaskCategory.BUILD_SCRIPT
 
-      else -> TaskCategory.UNCATEGORIZED
-    }
+        else -> TaskCategory.UNCATEGORIZED
+      }
   }
 
   private fun setSecondaryTaskCategory(secondaryTaskCategories: List<TaskCategory>) {
-    this.secondaryTaskCategories = when {
-      isJavaCompilationTask() || isKotlinCompilationTask() -> listOf(TaskCategory.COMPILATION)
-      else -> secondaryTaskCategories
-    }
+    this.secondaryTaskCategories =
+      when {
+        isJavaCompilationTask() || isKotlinCompilationTask() -> listOf(TaskCategory.COMPILATION)
+        else -> secondaryTaskCategories
+      }
   }
 
   private fun isJavaCompilationTask(): Boolean {
@@ -148,8 +139,7 @@ class TaskData(private val taskId: TaskDataId,
   }
 
   override fun equals(other: Any?): Boolean {
-    return other is TaskData &&
-           taskId == other.taskId
+    return other is TaskData && taskId == other.taskId
   }
 
   override fun hashCode(): Int {
@@ -162,9 +152,9 @@ class TaskData(private val taskId: TaskDataId,
 
   fun isKaptTask(): Boolean {
     return taskType == "org.jetbrains.kotlin.gradle.internal.KaptTask" ||
-           taskType == "org.jetbrains.kotlin.gradle.internal.KaptWithKotlincTask" ||
-           taskType == "org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask" ||
-           taskType == "org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask"
+      taskType == "org.jetbrains.kotlin.gradle.internal.KaptWithKotlincTask" ||
+      taskType == "org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask" ||
+      taskType == "org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask"
   }
 
   fun isAndroidTask(): Boolean {
@@ -195,13 +185,15 @@ class TaskData(private val taskId: TaskDataId,
       val result = taskFinishEvent.result as TaskSuccessResult
       val taskPath = taskFinishEvent.descriptor.taskPath
       val lastColonIndex = taskPath.lastIndexOf(':')
-      return TaskData(taskPath.substring(lastColonIndex + 1),
-                      taskPath.substring(0, lastColonIndex),
-                      pluginContainer.getPlugin(taskFinishEvent.descriptor.originPlugin, taskPath.substring(0, lastColonIndex)),
-                      result.startTime,
-                      result.endTime,
-                      getTaskExecutionMode(result.isFromCache, result.isUpToDate, result.isIncremental),
-                      result.executionReasons ?: emptyList())
+      return TaskData(
+        taskPath.substring(lastColonIndex + 1),
+        taskPath.substring(0, lastColonIndex),
+        pluginContainer.getPlugin(taskFinishEvent.descriptor.originPlugin, taskPath.substring(0, lastColonIndex)),
+        result.startTime,
+        result.endTime,
+        getTaskExecutionMode(result.isFromCache, result.isUpToDate, result.isIncremental),
+        result.executionReasons ?: emptyList(),
+      )
     }
   }
 }

@@ -29,10 +29,7 @@ class TaskMetadataMappersTest {
 
   @Test
   fun testTrackStatusToStatsProto() {
-    val trackStatus = TrackStatus.newBuilder()
-      .setStatus(TrackStatus.Status.SUCCESS)
-      .setStartTime(123456789L)
-      .build()
+    val trackStatus = TrackStatus.newBuilder().setStatus(TrackStatus.Status.SUCCESS).setStartTime(123456789L).build()
 
     val statsProto = trackStatus.toStatsProto()
 
@@ -42,11 +39,12 @@ class TaskMetadataMappersTest {
 
   @Test
   fun testTraceStopStatusToStatsProto() {
-    val traceStopStatus = Trace.TraceStopStatus.newBuilder()
-      .setStatus(Trace.TraceStopStatus.Status.SUCCESS)
-      .setErrorCode(10L)
-      .setStoppingDurationNs(5000L)
-      .build()
+    val traceStopStatus =
+      Trace.TraceStopStatus.newBuilder()
+        .setStatus(Trace.TraceStopStatus.Status.SUCCESS)
+        .setErrorCode(10L)
+        .setStoppingDurationNs(5000L)
+        .build()
 
     val statsProto = traceStopStatus.toStatsProto()
 
@@ -57,11 +55,12 @@ class TaskMetadataMappersTest {
 
   @Test
   fun testTraceStartStatusToStatsProto() {
-    val traceStartStatus = Trace.TraceStartStatus.newBuilder()
-      .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
-      .setErrorCode(20L)
-      .setStartTimeNs(987654321L)
-      .build()
+    val traceStartStatus =
+      Trace.TraceStartStatus.newBuilder()
+        .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
+        .setErrorCode(20L)
+        .setStartTimeNs(987654321L)
+        .build()
 
     val statsProto = traceStartStatus.toStatsProto()
 
@@ -72,10 +71,8 @@ class TaskMetadataMappersTest {
 
   @Test
   fun testHeapDumpStatusToStatsProto() {
-    val heapDumpStatus = Memory.HeapDumpStatus.newBuilder()
-      .setStatus(Memory.HeapDumpStatus.Status.SUCCESS)
-      .setStartTime(1122334455L)
-      .build()
+    val heapDumpStatus =
+      Memory.HeapDumpStatus.newBuilder().setStatus(Memory.HeapDumpStatus.Status.SUCCESS).setStartTime(1122334455L).build()
 
     val statsProto = heapDumpStatus.toStatsProto()
 
@@ -85,11 +82,12 @@ class TaskMetadataMappersTest {
 
   @Test
   fun testUnrecognizedTrackStatus() {
-      val trackStatus = TrackStatus.newBuilder()
-          .setStatusValue(100) // Arbitrary unrecognized value
-          .build()
+    val trackStatus =
+      TrackStatus.newBuilder()
+        .setStatusValue(100) // Arbitrary unrecognized value
+        .build()
 
-      val statsProto = trackStatus.toStatsProto()
-      assertThat(statsProto.status).isEqualTo(AllocationTrackStatus.Status.UNRECOGNIZED)
+    val statsProto = trackStatus.toStatsProto()
+    assertThat(statsProto.status).isEqualTo(AllocationTrackStatus.Status.UNRECOGNIZED)
   }
 }

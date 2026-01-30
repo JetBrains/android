@@ -25,17 +25,13 @@ class DownloadsInfoPageModelTest {
   @Test
   fun testEmptyTextForGradleVersion() {
     val model = DownloadsInfoPageModel(DownloadsAnalyzer.GradleDoesNotProvideEvents)
-    Truth.assertThat(model.repositoriesTableEmptyText).isEqualTo(
-      "Minimal Gradle version providing downloads data is 7.3."
-    )
+    Truth.assertThat(model.repositoriesTableEmptyText).isEqualTo("Minimal Gradle version providing downloads data is 7.3.")
   }
 
   @Test
   fun testEmptyTextForEmptyResult() {
     val model = DownloadsInfoPageModel(DownloadsAnalyzer.ActiveResult(emptyList()))
-    Truth.assertThat(model.repositoriesTableEmptyText).isEqualTo(
-      "There was no attempt to download files during this build."
-    )
+    Truth.assertThat(model.repositoriesTableEmptyText).isEqualTo("There was no attempt to download files during this build.")
   }
 
   /** Test the formatted content of the table. */
@@ -55,10 +51,14 @@ class DownloadsInfoPageModelTest {
         appendLine()
       }
     }
-    Truth.assertThat(tableDump.trimEnd()).isEqualTo("""
-      |Google|5|300 kB|1.0s|0|0.0s|
-      |Maven Central|3|10 kB|0.5s|2|<0.1s|
-    """.trimIndent())
+    Truth.assertThat(tableDump.trimEnd())
+      .isEqualTo(
+        """
+        |Google|5|300 kB|1.0s|0|0.0s|
+        |Maven Central|3|10 kB|0.5s|2|<0.1s|
+        """
+          .trimIndent()
+      )
   }
 
   @Test

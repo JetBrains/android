@@ -17,10 +17,8 @@ package com.android.build.attribution.data
 
 import com.google.wireless.android.sdk.stats.BuildAttributionStats
 
-enum class BuildInvocationType(
-  val metricsType: BuildAttributionStats.BuildType
-){
+enum class BuildInvocationType(val metricsType: BuildAttributionStats.BuildType) {
   REGULAR_BUILD(BuildAttributionStats.BuildType.REGULAR_BUILD),
   CONFIGURATION_CACHE_TRIAL(BuildAttributionStats.BuildType.CONFIGURATION_CACHE_TRIAL_FLOW_BUILD),
-  CHECK_JETIFIER(BuildAttributionStats.BuildType.CHECK_JETIFIER_BUILD)
+  CHECK_JETIFIER(BuildAttributionStats.BuildType.CHECK_JETIFIER_BUILD),
 }

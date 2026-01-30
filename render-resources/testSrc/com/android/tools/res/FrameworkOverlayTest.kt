@@ -16,9 +16,9 @@
 package com.android.tools.res
 
 import com.android.testutils.TestUtils
+import java.util.zip.ZipFile
 import org.junit.Assert.assertNotNull
 import org.junit.Test
-import java.util.zip.ZipFile
 
 class FrameworkOverlayTest {
 

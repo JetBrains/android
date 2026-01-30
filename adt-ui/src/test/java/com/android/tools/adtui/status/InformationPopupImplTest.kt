@@ -76,14 +76,8 @@ class InformationPopupImplTest {
         true,
       )
 
-    assertTrue(
-      fakeUi.findComponent(JLabel::class.java) { it.text == "<html>Title</html>" }!!.isVisible
-    )
-    assertTrue(
-      fakeUi
-        .findComponent(JLabel::class.java) { it.text == "<html>A Description</html>" }!!
-        .isVisible
-    )
+    assertTrue(fakeUi.findComponent(JLabel::class.java) { it.text == "<html>Title</html>" }!!.isVisible)
+    assertTrue(fakeUi.findComponent(JLabel::class.java) { it.text == "<html>A Description</html>" }!!.isVisible)
     assertTrue(fakeUi.findAllComponents(ActionButton::class.java).isEmpty())
   }
 
@@ -112,14 +106,8 @@ class InformationPopupImplTest {
         true,
       )
 
-    assertTrue(
-      fakeUi.findComponent(JLabel::class.java) { it.text == "<html>Title</html>" }!!.isVisible
-    )
-    assertTrue(
-      fakeUi
-        .findComponent(JLabel::class.java) { it.text == "<html>A Description</html>" }!!
-        .isVisible
-    )
+    assertTrue(fakeUi.findComponent(JLabel::class.java) { it.text == "<html>Title</html>" }!!.isVisible)
+    assertTrue(fakeUi.findComponent(JLabel::class.java) { it.text == "<html>A Description</html>" }!!.isVisible)
 
     // This must have the overflow icon
     val menuButton = fakeUi.findComponent(ActionButton::class.java)!!
@@ -161,10 +149,7 @@ class InformationPopupImplTest {
         true,
       )
 
-    assertEquals(
-      "Action 1, Action 2",
-      fakeUi.findAllComponents<AnActionLink>().joinToString(", ") { it.text },
-    )
+    assertEquals("Action 1, Action 2", fakeUi.findAllComponents<AnActionLink>().joinToString(", ") { it.text })
   }
 
   @Test
@@ -202,14 +187,9 @@ class InformationPopupImplTest {
     val fakeUi = FakeUi(parent, 1.0, true)
     popup.showPopup(disposableRule.disposable, parent)
 
-    assertEquals(
-      "Action 1, Action 2",
-      fakeUi.findAllComponents<AnActionLink>().joinToString(", ") { it.text },
-    )
+    assertEquals("Action 1, Action 2", fakeUi.findAllComponents<AnActionLink>().joinToString(", ") { it.text })
 
-    fakeUi.clickOn(
-      fakeUi.findAllComponents<AnActionLink>().find { link -> link.text == "Action 2" }!!
-    )
+    fakeUi.clickOn(fakeUi.findAllComponents<AnActionLink>().find { link -> link.text == "Action 2" }!!)
 
     val latch = CountDownLatch(1)
     val visible = Ref<Boolean>(popup.isVisible())
@@ -227,8 +207,7 @@ class InformationPopupImplTest {
   @Test
   fun testPopupWithAdditionalActionsDisplaysAdditionalActions() {
     val spyActionManager = spy(ActionManager.getInstance())
-    ApplicationManager.getApplication()
-      .replaceService(ActionManager::class.java, spyActionManager, disposableRule.disposable)
+    ApplicationManager.getApplication().replaceService(ActionManager::class.java, spyActionManager, disposableRule.disposable)
 
     val popup =
       InformationPopupImpl(
@@ -265,10 +244,7 @@ class InformationPopupImplTest {
     verify(spyActionManager).createActionPopupMenu(anyString(), captor.capture())
 
     val additionalActionsGroup = captor.value
-    assertEquals(
-      "Action 1, Action 2",
-      additionalActionsGroup.getChildren(null).joinToString(", ") { it.templateText },
-    )
+    assertEquals("Action 1, Action 2", additionalActionsGroup.getChildren(null).joinToString(", ") { it.templateText })
     assertTrue(additionalActionsGroup.isPopup)
     assertTrue(additionalActionsGroup.templatePresentation.isVisible)
   }
@@ -295,10 +271,7 @@ class InformationPopupImplTest {
     assertFalse(popup.hasEnteredPopup)
 
     // Move mouse into the popup
-    fakeUi.mouse.moveTo(
-      popup.popupComponent.x + popup.popupComponent.width / 2,
-      popup.popupComponent.y + popup.popupComponent.height / 2,
-    )
+    fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width / 2, popup.popupComponent.y + popup.popupComponent.height / 2)
     assertTrue(popup.hasEnteredPopup)
   }
 
@@ -324,10 +297,7 @@ class InformationPopupImplTest {
     assertFalse(popup.hasEnteredPopup)
 
     // Move mouse into the popup
-    fakeUi.mouse.moveTo(
-      popup.popupComponent.x + popup.popupComponent.width / 2,
-      popup.popupComponent.y + popup.popupComponent.height / 2,
-    )
+    fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width / 2, popup.popupComponent.y + popup.popupComponent.height / 2)
     assertTrue(popup.hasEnteredPopup)
 
     // Move back out, popup should be closed
@@ -358,10 +328,7 @@ class InformationPopupImplTest {
     assertFalse(isCallbackCalled)
 
     // Move mouse into the popup, callback is fired
-    fakeUi.mouse.moveTo(
-      popup.popupComponent.x + popup.popupComponent.width / 2,
-      popup.popupComponent.y + popup.popupComponent.height / 2,
-    )
+    fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width / 2, popup.popupComponent.y + popup.popupComponent.height / 2)
     assertTrue(isCallbackCalled)
   }
 }

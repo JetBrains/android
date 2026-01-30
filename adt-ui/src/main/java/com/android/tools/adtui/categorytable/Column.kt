@@ -45,29 +45,22 @@ interface Column<T, C, U : JComponent> {
   fun createUi(rowValue: T): U
 
   /**
-   * If the UI for this column has MouseListeners, this delegate should be installed as an
-   * additional MouseListener if the standard mouse behavior for the row is still desired (i.e.,
-   * selecting the row).
+   * If the UI for this column has MouseListeners, this delegate should be installed as an additional MouseListener if the standard mouse
+   * behavior for the row is still desired (i.e., selecting the row).
    */
   fun installMouseDelegate(component: U, mouseDelegate: DelegateMouseEventHandler) {}
 
   /**
-   * Updates the UI based on the current value. Updating the UI only in response to this method
-   * helps to ensure that the overall state of the table remains in sync.
+   * Updates the UI based on the current value. Updating the UI only in response to this method helps to ensure that the overall state of
+   * the table remains in sync.
    */
   fun updateValue(rowValue: T, component: U, value: C)
 
   val widthConstraint: SizeConstraint
 
-  data class SizeConstraint(
-    val min: Int = 0,
-    val max: Int = Int.MAX_VALUE,
-    val preferred: Int = max,
-  ) {
+  data class SizeConstraint(val min: Int = 0, val max: Int = Int.MAX_VALUE, val preferred: Int = max) {
     init {
-      check(preferred != Int.MAX_VALUE) {
-        "Either max or preferred must be set to a non-default value"
-      }
+      check(preferred != Int.MAX_VALUE) { "Either max or preferred must be set to a non-default value" }
     }
 
     companion object {

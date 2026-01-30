@@ -18,9 +18,7 @@ package com.android.tools.profilers.tasks.args.singleartifact.cpu
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.tasks.args.singleartifact.SingleArtifactTaskArgs
 
-/**
- * The following class serves as a wrapper for all arguments/data passed to a CPU task handler.
- */
-class CpuTaskArgs(override val isFromStartup: Boolean, val artifact: CpuCaptureSessionArtifact?): SingleArtifactTaskArgs {
+/** The following class serves as a wrapper for all arguments/data passed to a CPU task handler. */
+class CpuTaskArgs(override val isFromStartup: Boolean, val artifact: CpuCaptureSessionArtifact?) : SingleArtifactTaskArgs {
   fun getCpuCaptureArtifact() = artifact
 }

@@ -24,10 +24,11 @@ class GarbageCollectionAnalyzerTest {
 
   @Test
   fun testAnalyzer() {
-    val attributionData = AndroidGradlePluginAttributionData(
-      garbageCollectionData = mapOf(("gc1" to 500L), ("gc2" to 200L)),
-      javaInfo = JavaInfo("11.0.8", "N/A", "", emptyList())
-    )
+    val attributionData =
+      AndroidGradlePluginAttributionData(
+        garbageCollectionData = mapOf(("gc1" to 500L), ("gc2" to 200L)),
+        javaInfo = JavaInfo("11.0.8", "N/A", "", emptyList()),
+      )
 
     val analyzer = GarbageCollectionAnalyzer()
     analyzer.onBuildStart()
@@ -61,7 +62,8 @@ class GarbageCollectionAnalyzerTest {
 
     analyzer.onBuildStart()
     analyzer.receiveBuildAttributionReport(
-      AndroidGradlePluginAttributionData(javaInfo = JavaInfo(vmArguments = listOf("-Xmx8G", "-XX:+UseSerialGC"))))
+      AndroidGradlePluginAttributionData(javaInfo = JavaInfo(vmArguments = listOf("-Xmx8G", "-XX:+UseSerialGC")))
+    )
 
     assertThat(analyzer.result.isSettingSet).isTrue()
   }

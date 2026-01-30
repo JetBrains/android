@@ -19,34 +19,44 @@ import com.android.tools.adtui.model.AbstractPaginatedTableModel
 import javax.swing.RowSorter
 import javax.swing.SortOrder
 
-/**
- * Create a table model backed by this mutable list. Sorting the table will modify this list.
- */
-inline fun<reified C: Enum<C>, R> MutableList<R>.asTableModel(crossinline getColumn: (C) -> (R) -> Comparable<*>,
-                                                              crossinline getClass: (C) -> Class<*>,
-                                                              crossinline getName: (C) -> String,
-                                                              name: String = "table",
-                                                              pageSize: Int = 25) =
+/** Create a table model backed by this mutable list. Sorting the table will modify this list. */
+inline fun <reified C : Enum<C>, R> MutableList<R>.asTableModel(
+  crossinline getColumn: (C) -> (R) -> Comparable<*>,
+  crossinline getClass: (C) -> Class<*>,
+  crossinline getName: (C) -> String,
+  name: String = "table",
+  pageSize: Int = 25,
+) =
   object : PaginatedTableModel<R>(pageSize) {
-    override val rows get() = this@asTableModel
+    override val rows
+      get() = this@asTableModel
+
     override fun getDataSize() = rows.size
+
     override fun getDataValueAt(dataIndex: Int, columnIndex: Int) = getColumn(enumValues<C>()[columnIndex])(rows[dataIndex])
+
     override fun getColumnCount() = enumValues<C>().size
+
     override fun getColumnClass(columnIndex: Int) = getClass(enumValues<C>()[columnIndex])
+
     override fun getColumnName(column: Int) = getName(enumValues<C>()[column])
+
     override fun toString() = name
+
     override fun sortData(sortKeys: List<RowSorter.SortKey>) {
       if (sortKeys.isNotEmpty()) {
-        rows.sortWith(sortKeys
-                        .map { key ->
-                          val cmp = compareBy(getColumn(enumValues<C>()[key.column]))
-                          if (key.sortOrder == SortOrder.ASCENDING) cmp else cmp.reversed()
-                        }
-                        .reduce(Comparator<R>::then))
+        rows.sortWith(
+          sortKeys
+            .map { key ->
+              val cmp = compareBy(getColumn(enumValues<C>()[key.column]))
+              if (key.sortOrder == SortOrder.ASCENDING) cmp else cmp.reversed()
+            }
+            .reduce(Comparator<R>::then)
+        )
       }
     }
   }
 
-abstract class PaginatedTableModel<R>(initialPageSize: Int): AbstractPaginatedTableModel(initialPageSize) {
+abstract class PaginatedTableModel<R>(initialPageSize: Int) : AbstractPaginatedTableModel(initialPageSize) {
   abstract val rows: List<R>
 }

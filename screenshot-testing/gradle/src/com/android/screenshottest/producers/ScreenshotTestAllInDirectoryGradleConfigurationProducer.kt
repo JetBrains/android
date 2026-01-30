@@ -28,12 +28,11 @@ import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import org.jetbrains.plugins.gradle.util.TasksToRun
 
 /**
- * A configuration producer for creating Gradle run configurations for screenshot tests
- * within a given directory.  This class extends {@link AllInDirectoryGradleConfigurationProducer}
- * to leverage its directory-based configuration creation capabilities. The configuration is produced as long
- * as there is a screenshot test source set present in the directory
+ * A configuration producer for creating Gradle run configurations for screenshot tests within a given directory. This class extends {@link
+ * AllInDirectoryGradleConfigurationProducer} to leverage its directory-based configuration creation capabilities. The configuration is
+ * produced as long as there is a screenshot test source set present in the directory
  */
-class ScreenshotTestAllInDirectoryGradleConfigurationProducer: AllInDirectoryGradleConfigurationProducer() {
+class ScreenshotTestAllInDirectoryGradleConfigurationProducer : AllInDirectoryGradleConfigurationProducer() {
   override fun suggestConfigurationName(context: ConfigurationContext, element: PsiElement, chosenElements: List<PsiElement>): String {
     return "Screenshot Tests in ${context.module!!.name}"
   }
@@ -51,21 +50,25 @@ class ScreenshotTestAllInDirectoryGradleConfigurationProducer: AllInDirectoryGra
 
     val taskNames = getScreenshotTestTaskNames(context) ?: return false
     val configurationTaskNames = configuration.settings.taskNames
-    return  configurationTaskNames == taskNames
+    return configurationTaskNames == taskNames
   }
 
-  override fun getAllTestsTaskToRun(context: ConfigurationContext,
-                                    element: PsiElement,
-                                    chosenElements: List<PsiElement>): List<TestTasksToRun> {
+  override fun getAllTestsTaskToRun(
+    context: ConfigurationContext,
+    element: PsiElement,
+    chosenElements: List<PsiElement>,
+  ): List<TestTasksToRun> {
     val tasksToRun = mutableListOf<TestTasksToRun>()
     val tasks = getScreenshotTestTaskNames(context) ?: return tasksToRun
     tasksToRun.add(TestTasksToRun(TasksToRun.Impl("screenshotTest", tasks), ""))
     return tasksToRun
   }
 
-  override fun doSetupConfigurationFromContext(configuration: GradleRunConfiguration,
-                                               context: ConfigurationContext,
-                                               sourceElement: Ref<PsiElement>): Boolean {
+  override fun doSetupConfigurationFromContext(
+    configuration: GradleRunConfiguration,
+    context: ConfigurationContext,
+    sourceElement: Ref<PsiElement>,
+  ): Boolean {
     if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()) {
       return false
     }

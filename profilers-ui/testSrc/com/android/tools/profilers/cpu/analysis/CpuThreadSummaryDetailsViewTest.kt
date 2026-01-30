@@ -37,30 +37,27 @@ import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import java.util.concurrent.TimeUnit
+import javax.swing.JTable
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
-import java.util.concurrent.TimeUnit
-import javax.swing.JTable
 
 class CpuThreadSummaryDetailsViewTest {
   companion object {
     private val CAPTURE_RANGE = Range(0.0, Double.MAX_VALUE)
   }
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  @get:Rule
-  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CpuThreadSummaryDetailsViewTest", transportService)
+  @get:Rule var grpcServer = FakeGrpcServer.createFakeGrpcServer("CpuThreadSummaryDetailsViewTest", transportService)
 
   private lateinit var profilersView: StudioProfilersView
 
@@ -72,18 +69,13 @@ class CpuThreadSummaryDetailsViewTest {
 
   @Test
   fun componentsArePopulated() {
-    val timeline = DefaultTimeline().apply {
-      viewRange.set(TimeUnit.MILLISECONDS.toMicros(100).toDouble(), TimeUnit.MILLISECONDS.toMicros(200).toDouble())
-    }
-    val cpuThreadTrackModel = CpuThreadTrackModel(
-      Mockito.mock(CpuCapture::class.java),
-      CpuThreadInfo(123, "foo"),
-      timeline,
-      MultiSelectionModel(),
-      Utils::runOnUi)
-    val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply {
-      dataSeries.add(cpuThreadTrackModel)
-    }
+    val timeline =
+      DefaultTimeline().apply {
+        viewRange.set(TimeUnit.MILLISECONDS.toMicros(100).toDouble(), TimeUnit.MILLISECONDS.toMicros(200).toDouble())
+      }
+    val cpuThreadTrackModel =
+      CpuThreadTrackModel(Mockito.mock(CpuCapture::class.java), CpuThreadInfo(123, "foo"), timeline, MultiSelectionModel(), Utils::runOnUi)
+    val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply { dataSeries.add(cpuThreadTrackModel) }
     val view = CpuThreadSummaryDetailsView(profilersView, model)
 
     assertThat(view.timeRangeLabel.text).isEqualTo("00:00.100 - 00:00.200")
@@ -94,18 +86,10 @@ class CpuThreadSummaryDetailsViewTest {
 
   @Test
   fun rangeChangeUpdatesLabels() {
-    val timeline = DefaultTimeline().apply {
-      viewRange.set(0.0, 0.0)
-    }
-    val cpuThreadTrackModel = CpuThreadTrackModel(
-      Mockito.mock(CpuCapture::class.java),
-      CpuThreadInfo(123, "foo"),
-      timeline,
-      MultiSelectionModel(),
-      Utils::runOnUi)
-    val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply {
-      dataSeries.add(cpuThreadTrackModel)
-    }
+    val timeline = DefaultTimeline().apply { viewRange.set(0.0, 0.0) }
+    val cpuThreadTrackModel =
+      CpuThreadTrackModel(Mockito.mock(CpuCapture::class.java), CpuThreadInfo(123, "foo"), timeline, MultiSelectionModel(), Utils::runOnUi)
+    val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply { dataSeries.add(cpuThreadTrackModel) }
     val view = CpuThreadSummaryDetailsView(profilersView, model)
 
     assertThat(view.timeRangeLabel.text).isEqualTo("00:00.000 - 00:00.000")
@@ -118,46 +102,25 @@ class CpuThreadSummaryDetailsViewTest {
 
   @Test
   fun threadStatesArePopulatedForSysTrace() {
-    val timeline = DefaultTimeline().apply {
-      viewRange.set(0.0, 0.0)
-    }
-    val sysTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
-      whenever(getThreadStatesForThread(123)).thenReturn(listOf())
-    }
-    val sysTrace = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(type).thenReturn(TraceType.PERFETTO)
-      whenever(systemTraceData).thenReturn(sysTraceData)
-    }
-    val cpuThreadTrackModel = CpuThreadTrackModel(
-      sysTrace,
-      CpuThreadInfo(123, "foo"),
-      timeline,
-      MultiSelectionModel(),
-      Utils::runOnUi)
-    val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply {
-      dataSeries.add(cpuThreadTrackModel)
-    }
+    val timeline = DefaultTimeline().apply { viewRange.set(0.0, 0.0) }
+    val sysTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply { whenever(getThreadStatesForThread(123)).thenReturn(listOf()) }
+    val sysTrace =
+      Mockito.mock(CpuCapture::class.java).apply {
+        whenever(type).thenReturn(TraceType.PERFETTO)
+        whenever(systemTraceData).thenReturn(sysTraceData)
+      }
+    val cpuThreadTrackModel = CpuThreadTrackModel(sysTrace, CpuThreadInfo(123, "foo"), timeline, MultiSelectionModel(), Utils::runOnUi)
+    val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply { dataSeries.add(cpuThreadTrackModel) }
     val view = CpuThreadSummaryDetailsView(profilersView, model)
     assertThat(TreeWalker(view).descendants().filterIsInstance<JTable>()).isNotEmpty()
   }
 
   @Test
   fun threadStatesNotPopulatedForNonSysTrace() {
-    val timeline = DefaultTimeline().apply {
-      viewRange.set(0.0, 0.0)
-    }
-    val sysTrace = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(type).thenReturn(TraceType.ART)
-    }
-    val cpuThreadTrackModel = CpuThreadTrackModel(
-      sysTrace,
-      CpuThreadInfo(123, "foo"),
-      timeline,
-      MultiSelectionModel(),
-      Utils::runOnUi)
-    val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply {
-      dataSeries.add(cpuThreadTrackModel)
-    }
+    val timeline = DefaultTimeline().apply { viewRange.set(0.0, 0.0) }
+    val sysTrace = Mockito.mock(CpuCapture::class.java).apply { whenever(type).thenReturn(TraceType.ART) }
+    val cpuThreadTrackModel = CpuThreadTrackModel(sysTrace, CpuThreadInfo(123, "foo"), timeline, MultiSelectionModel(), Utils::runOnUi)
+    val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply { dataSeries.add(cpuThreadTrackModel) }
     val view = CpuThreadSummaryDetailsView(profilersView, model)
     assertThat(TreeWalker(view).descendants().filterIsInstance<JTable>()).isEmpty()
   }

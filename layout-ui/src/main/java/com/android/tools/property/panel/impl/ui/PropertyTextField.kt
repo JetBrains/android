@@ -82,12 +82,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) :
     // Trick: Use the component from the event.source for tooltip in tables. See
     // TableEditor.getToolTip().
     val component = event.source as? JComponent ?: this
-    PropertyTooltip.setToolTip(
-      component,
-      editorModel.property,
-      editorModel.editingValue,
-      text = text.orEmpty(),
-    )
+    PropertyTooltip.setToolTip(component, editorModel.property, editorModel.editingValue, text = text.orEmpty())
     return null
   }
 

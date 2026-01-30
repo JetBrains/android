@@ -20,8 +20,7 @@ import com.android.SdkConstants.VALUE_TRUE
 import com.android.tools.property.panel.api.PropertyItem
 
 /** Model for a 3 state boolean property: on/off/unset. */
-class ThreeStateBooleanPropertyEditorModel(property: PropertyItem) :
-  TextFieldWithLeftButtonEditorModel(property, true) {
+class ThreeStateBooleanPropertyEditorModel(property: PropertyItem) : TextFieldWithLeftButtonEditorModel(property, true) {
 
   override var value: String
     get() = property.resolvedValue.orEmpty()

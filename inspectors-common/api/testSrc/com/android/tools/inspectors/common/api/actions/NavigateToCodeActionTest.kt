@@ -26,16 +26,22 @@ import org.junit.Rule
 import org.junit.Test
 
 class NavigateToCodeActionTest {
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   @Test
   fun update_noNavigatable() {
-    val action = NavigateToCodeAction({ CodeLocation.stub() }, CodeNavigator(object : NavSource {
-      override fun lookUp(location: CodeLocation, arch: String?): Navigatable? {
-        return null
-      }
-    }, CodeNavigator.testExecutor))
+    val action =
+      NavigateToCodeAction(
+        { CodeLocation.stub() },
+        CodeNavigator(
+          object : NavSource {
+            override fun lookUp(location: CodeLocation, arch: String?): Navigatable? {
+              return null
+            }
+          },
+          CodeNavigator.testExecutor,
+        ),
+      )
     val event = TestActionEvent.createTestEvent()
 
     action.update(event)
@@ -45,13 +51,20 @@ class NavigateToCodeActionTest {
 
   @Test
   fun update_notNavigatable() {
-    val action = NavigateToCodeAction({ CodeLocation.stub() }, CodeNavigator(object : NavSource {
-      override fun lookUp(location: CodeLocation, arch: String?): Navigatable {
-        return object : Navigatable {
-          override fun canNavigateToSource() = false
-        }
-      }
-    }, CodeNavigator.testExecutor))
+    val action =
+      NavigateToCodeAction(
+        { CodeLocation.stub() },
+        CodeNavigator(
+          object : NavSource {
+            override fun lookUp(location: CodeLocation, arch: String?): Navigatable {
+              return object : Navigatable {
+                override fun canNavigateToSource() = false
+              }
+            }
+          },
+          CodeNavigator.testExecutor,
+        ),
+      )
     val event = TestActionEvent.createTestEvent()
 
     action.update(event)
@@ -61,13 +74,20 @@ class NavigateToCodeActionTest {
 
   @Test
   fun update_navigatable() {
-    val action = NavigateToCodeAction({ CodeLocation.stub() }, CodeNavigator(object : NavSource {
-      override fun lookUp(location: CodeLocation, arch: String?): Navigatable {
-        return object : Navigatable {
-          override fun canNavigateToSource() = true
-        }
-      }
-    }, CodeNavigator.testExecutor))
+    val action =
+      NavigateToCodeAction(
+        { CodeLocation.stub() },
+        CodeNavigator(
+          object : NavSource {
+            override fun lookUp(location: CodeLocation, arch: String?): Navigatable {
+              return object : Navigatable {
+                override fun canNavigateToSource() = true
+              }
+            }
+          },
+          CodeNavigator.testExecutor,
+        ),
+      )
     val event = TestActionEvent.createTestEvent()
 
     action.update(event)

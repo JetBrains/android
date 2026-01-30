@@ -33,11 +33,9 @@ private typealias ResourceFilter = (ResourceItem) -> Boolean
 /**
  * Base class for light implementations of inner classes of the R class, e.g. `R.string`.
  *
- * Implementations need to implement [doGetFields], most likely by calling one of the
- * [buildResourceFields] methods.
+ * Implementations need to implement [doGetFields], most likely by calling one of the [buildResourceFields] methods.
  */
-abstract class InnerRClassBase
-protected constructor(context: AndroidLightClassBase, val resourceType: ResourceType) :
+abstract class InnerRClassBase protected constructor(context: AndroidLightClassBase, val resourceType: ResourceType) :
   AndroidLightInnerClassBase(context, resourceType.getName()) {
   private var fieldsCache: CachedValue<Array<PsiField>>? = null
   private val logger = thisLogger()
@@ -50,8 +48,7 @@ protected constructor(context: AndroidLightClassBase, val resourceType: Resource
           logger.info("Recomputed ${fields.size} fields for $this")
 
           if (fields.isEmpty()) {
-            ResourceUpdateTracer.getInstance()
-              .dumpTrace("No fields found for ${this.qualifiedName}")
+            ResourceUpdateTracer.getInstance().dumpTrace("No fields found for ${this.qualifiedName}")
           }
 
           // When ResourceRepositoryManager's caches are dropped, new instances of repositories are
@@ -59,9 +56,7 @@ protected constructor(context: AndroidLightClassBase, val resourceType: Resource
           // sure the CachedValue doesn't hold on to any particular repository instance and instead
           // reads the modification count of the "current" instance.
           val modificationTracker = fieldsDependencies
-          require(modificationTracker !is ResourceRepository) {
-            "Resource repository leaked in a CachedValue."
-          }
+          require(modificationTracker !is ResourceRepository) { "Resource repository leaked in a CachedValue." }
 
           CachedValueProvider.Result.create(fields, modificationTracker)
         }
@@ -89,27 +84,15 @@ protected constructor(context: AndroidLightClassBase, val resourceType: Resource
       val styleableFields = mutableMapOf<String, ResourceVisibility>()
       val styleableAttrFields = mutableListOf<StyleableAttrFieldUrl>()
       repository.getResources(namespace, resourceType).values().forEach {
-        val visibility =
-          if (resourceFilter(it)) ResourceVisibility.PUBLIC else ResourceVisibility.PRIVATE
+        val visibility = if (resourceFilter(it)) ResourceVisibility.PUBLIC else ResourceVisibility.PRIVATE
         if (it.type == ResourceType.STYLEABLE) {
           styleableFields.merge(it.name, visibility, ResourceVisibility::max)
           styleableAttrFields.addAll(
-            findStyleableAttrFields(
-              it,
-              createRepositoryProvider(studioResourceRepositoryManager, repository),
-              resourceFilter,
-            )
+            findStyleableAttrFields(it, createRepositoryProvider(studioResourceRepositoryManager, repository), resourceFilter)
           )
         } else otherFields.merge(it.name, visibility, ResourceVisibility::max)
       }
-      return buildResourceFields(
-        otherFields,
-        styleableFields,
-        styleableAttrFields,
-        resourceType,
-        context,
-        fieldModifier,
-      )
+      return buildResourceFields(otherFields, styleableFields, styleableAttrFields, resourceType, context, fieldModifier)
     }
 
     @JvmStatic
@@ -123,20 +106,10 @@ protected constructor(context: AndroidLightClassBase, val resourceType: Resource
     ): Array<PsiField> {
       val factory = JavaPsiFacade.getElementFactory(context.project)
       val innerRClassFields =
-        context.containingFile.viewProvider.virtualFile
-          .getUserData(AndroidResolveScopeEnlarger.BACKING_CLASS)
-          ?.getResources(resourceType)
+        context.containingFile.viewProvider.virtualFile.getUserData(AndroidResolveScopeEnlarger.BACKING_CLASS)?.getResources(resourceType)
 
       val startId = resourceType.ordinal * 100_000
-      val otherLightFields =
-        otherFields.toLightFields(
-          innerRClassFields,
-          factory,
-          startId,
-          PsiTypes.intType(),
-          context,
-          fieldModifier,
-        )
+      val otherLightFields = otherFields.toLightFields(innerRClassFields, factory, startId, PsiTypes.intType(), context, fieldModifier)
 
       val styleableStartId = startId + otherFields.size
       val styleableLightFields =
@@ -150,21 +123,14 @@ protected constructor(context: AndroidLightClassBase, val resourceType: Resource
         )
 
       val attrStartId = styleableStartId + styleableFields.size
-      val styleableAttrLightFields =
-        styleableAttrFields.toLightFields(
-          innerRClassFields,
-          factory,
-          attrStartId,
-          context,
-          fieldModifier,
-        )
+      val styleableAttrLightFields = styleableAttrFields.toLightFields(innerRClassFields, factory, attrStartId, context, fieldModifier)
 
       return (otherLightFields + styleableLightFields + styleableAttrLightFields).toTypedArray()
     }
 
     /**
-     * Creates a [RepositoryProvider] that uses the [studioResourceRepositoryManager] if non-null,
-     * otherwise falls back to the [fallbackRepository]
+     * Creates a [RepositoryProvider] that uses the [studioResourceRepositoryManager] if non-null, otherwise falls back to the
+     * [fallbackRepository]
      */
     private fun createRepositoryProvider(
       studioResourceRepositoryManager: StudioResourceRepositoryManager?,
@@ -174,10 +140,7 @@ protected constructor(context: AndroidLightClassBase, val resourceType: Resource
       else studioResourceRepositoryManager.getResourcesForNamespace(resourceNamespace)
     }
 
-    /**
-     * Returns a [ResourceReference] for the attribute, if it can be found and passes the
-     * [resourceFilter]
-     */
+    /** Returns a [ResourceReference] for the attribute, if it can be found and passes the [resourceFilter] */
     private fun getAttributeResourceReference(
       attrName: String,
       attrNamespace: ResourceNamespace,
@@ -196,14 +159,10 @@ protected constructor(context: AndroidLightClassBase, val resourceType: Resource
       repositoryProvider: RepositoryProvider,
       resourceFilter: ResourceFilter,
     ): List<StyleableAttrFieldUrl> {
-      val attributes =
-        (resource.resourceValue as? StyleableResourceValue)?.allAttributes ?: return emptyList()
-      val resourceReference =
-        ResourceReference(resource.namespace, ResourceType.STYLEABLE, resource.name)
+      val attributes = (resource.resourceValue as? StyleableResourceValue)?.allAttributes ?: return emptyList()
+      val resourceReference = ResourceReference(resource.namespace, ResourceType.STYLEABLE, resource.name)
       val attributeResourceReferences =
-        attributes.mapNotNull {
-          getAttributeResourceReference(it.name, it.namespace, repositoryProvider, resourceFilter)
-        }
+        attributes.mapNotNull { getAttributeResourceReference(it.name, it.namespace, repositoryProvider, resourceFilter) }
       // StyleableAttrFieldUrl maps from the resource itself to the attribute of that resource.
       return attributeResourceReferences.map { StyleableAttrFieldUrl(resourceReference, it) }
     }
@@ -219,15 +178,9 @@ protected constructor(context: AndroidLightClassBase, val resourceType: Resource
     ): List<ResourceLightField> =
       entries.mapIndexed { i, (fieldName, visibility) ->
         val fieldId = innerRClassFields?.get(fieldName) ?: (nextId + i)
-        ResourceLightField(
-            fieldName,
-            context,
-            psiType,
-            fieldModifier,
-            fieldId.takeIf { fieldModifier == FINAL },
-            visibility,
-          )
-          .apply { initializer = factory.createExpressionFromText(fieldId.toString(), this) }
+        ResourceLightField(fieldName, context, psiType, fieldModifier, fieldId.takeIf { fieldModifier == FINAL }, visibility).apply {
+          initializer = factory.createExpressionFromText(fieldId.toString(), this)
+        }
       }
 
     /** Converts the attributes in [this] to [StyleableAttrLightField]s. */
@@ -239,13 +192,9 @@ protected constructor(context: AndroidLightClassBase, val resourceType: Resource
       fieldModifier: AndroidLightField.FieldModifier,
     ): List<StyleableAttrLightField> = mapIndexed { i, fieldContents ->
       val fieldId = innerRClass?.get(fieldContents.toFieldName()) ?: (nextId + i)
-      StyleableAttrLightField(
-          fieldContents,
-          context,
-          fieldModifier,
-          fieldId.takeIf { fieldModifier == FINAL },
-        )
-        .apply { initializer = factory.createExpressionFromText(fieldId.toString(), this) }
+      StyleableAttrLightField(fieldContents, context, fieldModifier, fieldId.takeIf { fieldModifier == FINAL }).apply {
+        initializer = factory.createExpressionFromText(fieldId.toString(), this)
+      }
     }
   }
 }

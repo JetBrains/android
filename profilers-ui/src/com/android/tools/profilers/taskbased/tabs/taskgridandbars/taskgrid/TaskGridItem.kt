@@ -44,13 +44,12 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.TASK_SELECTION_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.TASK_HOVER_BACKGROUND_COLOR
+import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.TASK_SELECTION_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_TOOLTIP_WIDTH_DP
-import com.android.tools.profilers.taskbased.common.icons.TaskIconUtils
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
+import com.android.tools.profilers.taskbased.common.icons.TaskIconUtils
 import com.android.tools.profilers.tasks.ProfilerTaskType
-import icons.StudioIconsCompose
 import org.jetbrains.jewel.foundation.modifier.onHover
 import org.jetbrains.jewel.ui.component.ButtonState
 import org.jetbrains.jewel.ui.component.Icon
@@ -59,19 +58,32 @@ import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.focusOutline
 
 @Composable
-fun TaskGridItem(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit, isTaskTitleV2Enabled: Boolean) {
-  TaskIconAndDescriptionWrapper(task = task, isSelectedTask = isSelectedTask, onTaskSelection = onTaskSelection, isTaskTitleV2Enabled = isTaskTitleV2Enabled)
+fun TaskGridItem(
+  task: ProfilerTaskType,
+  isSelectedTask: Boolean,
+  onTaskSelection: (task: ProfilerTaskType) -> Unit,
+  isTaskTitleV2Enabled: Boolean,
+) {
+  TaskIconAndDescriptionWrapper(
+    task = task,
+    isSelectedTask = isSelectedTask,
+    onTaskSelection = onTaskSelection,
+    isTaskTitleV2Enabled = isTaskTitleV2Enabled,
+  )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit, isTaskTitleV2Enabled: Boolean) {
+fun TaskIconAndDescriptionWrapper(
+  task: ProfilerTaskType,
+  isSelectedTask: Boolean,
+  onTaskSelection: (task: ProfilerTaskType) -> Unit,
+  isTaskTitleV2Enabled: Boolean,
+) {
 
   var isHovered by remember { mutableStateOf(false) }
   val interactionSource = remember { MutableInteractionSource() }
-  var buttonState by remember(interactionSource) {
-    mutableStateOf(ButtonState.of(enabled = true))
-  }
+  var buttonState by remember(interactionSource) { mutableStateOf(ButtonState.of(enabled = true)) }
 
   LaunchedEffect(interactionSource) {
     interactionSource.interactions.collect { interaction ->
@@ -84,30 +96,27 @@ fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolea
 
   Tooltip(
     { Text(TaskBasedUxStrings.getTaskTooltip(task), modifier = Modifier.width(TASK_TOOLTIP_WIDTH_DP)) },
-    tooltipPlacement = TooltipPlacement.ComponentRect()
+    tooltipPlacement = TooltipPlacement.ComponentRect(),
   ) {
     Box(
       contentAlignment = Alignment.Center,
-      modifier = Modifier
-        .padding(vertical = 5.dp)
-        .fillMaxWidth()
-        .focusOutline(buttonState, RoundedCornerShape(2.dp))
-        .clip(shape = RoundedCornerShape(4.dp))
-        .background(
-          if (isSelectedTask) {
-            TASK_SELECTION_BACKGROUND_COLOR
-          }
-          else if (isHovered) {
-            TASK_HOVER_BACKGROUND_COLOR
-          }
-          else {
-            Color.Transparent
-          })
-        .selectable(selected = isSelectedTask, interactionSource = interactionSource, indication = null) {
-          onTaskSelection(task)
-        }
-        .onHover { isHovered = it }
-        .testTag("TaskGridItem")
+      modifier =
+        Modifier.padding(vertical = 5.dp)
+          .fillMaxWidth()
+          .focusOutline(buttonState, RoundedCornerShape(2.dp))
+          .clip(shape = RoundedCornerShape(4.dp))
+          .background(
+            if (isSelectedTask) {
+              TASK_SELECTION_BACKGROUND_COLOR
+            } else if (isHovered) {
+              TASK_HOVER_BACKGROUND_COLOR
+            } else {
+              Color.Transparent
+            }
+          )
+          .selectable(selected = isSelectedTask, interactionSource = interactionSource, indication = null) { onTaskSelection(task) }
+          .onHover { isHovered = it }
+          .testTag("TaskGridItem"),
     ) {
       TaskIconAndDescription(task = task, this, isTaskTitleV2Enabled = isTaskTitleV2Enabled)
     }
@@ -133,15 +142,10 @@ fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope, isTaskTit
         text = taskTitle,
         textAlign = TextAlign.Center,
         fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.align(Alignment.CenterHorizontally)
+        modifier = Modifier.align(Alignment.CenterHorizontally),
       )
       Spacer(modifier = Modifier.height(5.dp))
-      Text(
-        text = taskSubtitle,
-        textAlign = TextAlign.Center,
-        color = Color.Gray,
-        modifier = Modifier.align(Alignment.CenterHorizontally)
-      )
+      Text(text = taskSubtitle, textAlign = TextAlign.Center, color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
     }
   }
 }

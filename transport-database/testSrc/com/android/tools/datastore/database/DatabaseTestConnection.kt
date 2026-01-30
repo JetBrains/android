@@ -20,8 +20,7 @@ import java.sql.PreparedStatement
 import java.sql.Statement
 
 /**
- * A connection class that returns {@link TestStatement} and {@TestPreparedStatement}'s in place
- * of a statement that writes to the database.
+ * A connection class that returns {@link TestStatement} and {@TestPreparedStatement}'s in place of a statement that writes to the database.
  */
 class DatabaseTestConnection(val conn: Connection) : Connection by conn {
   override fun createStatement(): Statement {

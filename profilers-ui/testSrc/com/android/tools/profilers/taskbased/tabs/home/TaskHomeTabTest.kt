@@ -59,14 +59,11 @@ class TaskHomeTabTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
-  @get:Rule
-  val composeTestRule = createStudioComposeTestRule()
+  @get:Rule val composeTestRule = createStudioComposeTestRule()
 
-  @get:Rule
-  val ignoreTestRule = IgnoreTestRule()
+  @get:Rule val ignoreTestRule = IgnoreTestRule()
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("TaskGridViewTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskGridViewTestChannel", myTransportService, FakeEventService())
 
   private val myComponents = FakeIdeProfilerComponents()
 
@@ -78,11 +75,7 @@ class TaskHomeTabTest {
   @Before
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     taskHomeTabModel = myProfilers.taskHomeTabModel
     ideProfilerServices.enableTaskBasedUx(true)
@@ -99,40 +92,38 @@ class TaskHomeTabTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, light theme`() {
-    standaloneSingleWindowApplication(
-      title = "Testing TaskHomeTab",
-    ) {
-      StudioTestTheme(darkMode = false) {
-        TaskHomeTab(taskHomeTabModel, myComponents)
-      }
+    standaloneSingleWindowApplication(title = "Testing TaskHomeTab") {
+      StudioTestTheme(darkMode = false) { TaskHomeTab(taskHomeTabModel, myComponents) }
     }
   }
 
   @Ignore("b/309566948")
   @Test
   fun `visual test, dark theme`() {
-    standaloneSingleWindowApplication(
-      title = "Testing TaskHomeTab",
-    ) {
-      StudioTestTheme(darkMode = true) {
-        TaskHomeTab(taskHomeTabModel, myComponents)
-      }
+    standaloneSingleWindowApplication(title = "Testing TaskHomeTab") {
+      StudioTestTheme(darkMode = true) { TaskHomeTab(taskHomeTabModel, myComponents) }
     }
   }
 
   @Test
   fun `selecting device, process, and task enable start profiler task button`() {
-    composeTestRule.setContent {
-      TaskHomeTab(taskHomeTabModel, myComponents)
-    }
+    composeTestRule.setContent { TaskHomeTab(taskHomeTabModel, myComponents) }
 
     // Populate the device.
     val device = TaskModelTestUtils.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 28)
     // Populate the processes for the selected device.
-    TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
-                                                                                     device.deviceId), myTransportService, myTimer)
-    TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
-                                                                                     device.deviceId), myTransportService, myTimer)
+    TaskModelTestUtils.addDeviceWithProcess(
+      device,
+      TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId),
+      myTransportService,
+      myTimer,
+    )
+    TaskModelTestUtils.addDeviceWithProcess(
+      device,
+      TaskModelTestUtils.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId),
+      myTransportService,
+      myTimer,
+    )
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     // Select the device
     taskHomeTabModel.processListModel.onDeviceSelection(device)
@@ -164,9 +155,7 @@ class TaskHomeTabTest {
 
   @Test
   fun `test selecting dead preferred process and startup-capable task`() {
-    composeTestRule.setContent {
-      TaskHomeTab(taskHomeTabModel, myComponents)
-    }
+    composeTestRule.setContent { TaskHomeTab(taskHomeTabModel, myComponents) }
 
     // Select the offline device
     taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, false, false, ""))
@@ -199,18 +188,24 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting an alive, non preferred process and startup capable task`() {
     // should not allow for startup dropdown option to be present
-    composeTestRule.setContent {
-      TaskHomeTab(taskHomeTabModel, myComponents)
-    }
+    composeTestRule.setContent { TaskHomeTab(taskHomeTabModel, myComponents) }
 
     // Set the preferred process to a non-empty/null name so the dead/static entry is allowed to be added
     myProfilers.preferredProcessName = "com.foo.bar"
 
     // Add online device with alive process (that is NOT the preferred process)
-    TaskModelTestUtils.addDeviceWithProcess(TaskModelTestUtils.createDevice("FakeDevice", "123", 456, Common.Device.State.ONLINE, "12", 30),
-                                            TaskModelTestUtils.createProcess(20, "not.preferred.process", Common.Process.State.ALIVE, 456,
-                                                                             Common.Process.ExposureLevel.PROFILEABLE), myTransportService,
-                                            myTimer)
+    TaskModelTestUtils.addDeviceWithProcess(
+      TaskModelTestUtils.createDevice("FakeDevice", "123", 456, Common.Device.State.ONLINE, "12", 30),
+      TaskModelTestUtils.createProcess(
+        20,
+        "not.preferred.process",
+        Common.Process.State.ALIVE,
+        456,
+        Common.Process.ExposureLevel.PROFILEABLE,
+      ),
+      myTransportService,
+      myTimer,
+    )
     taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, false, "123"))
     // Make sure device selection is also registered in data model.
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
@@ -237,9 +232,7 @@ class TaskHomeTabTest {
 
   @Test
   fun `test selecting dead preferred process and non startup capable task`() {
-    composeTestRule.setContent {
-      TaskHomeTab(taskHomeTabModel, myComponents)
-    }
+    composeTestRule.setContent { TaskHomeTab(taskHomeTabModel, myComponents) }
 
     // Select the offline device
     taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, false, false, ""))
@@ -270,9 +263,7 @@ class TaskHomeTabTest {
 
   @Test
   fun `test selecting alive, profileable preferred process and non startup capable task`() {
-    composeTestRule.setContent {
-      TaskHomeTab(taskHomeTabModel, myComponents)
-    }
+    composeTestRule.setContent { TaskHomeTab(taskHomeTabModel, myComponents) }
 
     // Set the preferred process to a non-empty/null name so the dead/static entry is allowed to be added
     myProfilers.preferredProcessName = "com.foo.bar"
@@ -281,7 +272,9 @@ class TaskHomeTabTest {
     TaskModelTestUtils.addDeviceWithProcess(
       TaskModelTestUtils.createDevice("FakeDevice", "123", 456, Common.Device.State.ONLINE, "12", 30),
       TaskModelTestUtils.createProcess(20, "com.foo.bar", Common.Process.State.ALIVE, 456, Common.Process.ExposureLevel.PROFILEABLE),
-      myTransportService, myTimer)
+      myTransportService,
+      myTimer,
+    )
     taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, false, "123"))
     // Make sure device selection is also registered in data model.
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
@@ -307,17 +300,23 @@ class TaskHomeTabTest {
 
   @Test
   fun `test selecting alive, debuggable preferred process and non startup capable task`() {
-    composeTestRule.setContent {
-      TaskHomeTab(taskHomeTabModel, myComponents)
-    }
+    composeTestRule.setContent { TaskHomeTab(taskHomeTabModel, myComponents) }
 
     // Populate the device.
     val device = TaskModelTestUtils.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 30)
     // Populate the processes for the selected device.
-    TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(20, "FakeProcess", Common.Process.State.ALIVE,
-                                                                                     device.deviceId,
-                                                                                     Common.Process.ExposureLevel.DEBUGGABLE),
-                                              myTransportService, myTimer)
+    TaskModelTestUtils.addDeviceWithProcess(
+      device,
+      TaskModelTestUtils.createProcess(
+        20,
+        "FakeProcess",
+        Common.Process.State.ALIVE,
+        device.deviceId,
+        Common.Process.ExposureLevel.DEBUGGABLE,
+      ),
+      myTransportService,
+      myTimer,
+    )
     // Select the device
     taskHomeTabModel.processListModel.onDeviceSelection(device)
 
@@ -352,17 +351,23 @@ class TaskHomeTabTest {
 
   @Test
   fun `test selecting profileable process and debuggable only task`() {
-    composeTestRule.setContent {
-      TaskHomeTab(taskHomeTabModel, myComponents)
-    }
+    composeTestRule.setContent { TaskHomeTab(taskHomeTabModel, myComponents) }
 
     // Populate the device.
     val device = TaskModelTestUtils.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 30)
     // Populate the processes for the selected device.
-    TaskModelTestUtils.addDeviceWithProcess(device,
-                                            TaskModelTestUtils.createProcess(20, "FakeProcess", Common.Process.State.ALIVE, device.deviceId,
-                                                                             Common.Process.ExposureLevel.PROFILEABLE), myTransportService,
-                                            myTimer)
+    TaskModelTestUtils.addDeviceWithProcess(
+      device,
+      TaskModelTestUtils.createProcess(
+        20,
+        "FakeProcess",
+        Common.Process.State.ALIVE,
+        device.deviceId,
+        Common.Process.ExposureLevel.PROFILEABLE,
+      ),
+      myTransportService,
+      myTimer,
+    )
     // Select the device
     taskHomeTabModel.processListModel.onDeviceSelection(device)
 
@@ -397,9 +402,7 @@ class TaskHomeTabTest {
 
   @Test
   fun `test selecting dead preferred process and startup-capable task enables profiler task start button`() {
-    composeTestRule.setContent {
-      TaskHomeTab(taskHomeTabModel, myComponents)
-    }
+    composeTestRule.setContent { TaskHomeTab(taskHomeTabModel, myComponents) }
 
     // Select the offline device
     taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, false, false, ""))
@@ -431,9 +434,7 @@ class TaskHomeTabTest {
 
   @Test
   fun `test selecting alive preferred process and startup capable task`() {
-    composeTestRule.setContent {
-      TaskHomeTab(taskHomeTabModel, myComponents)
-    }
+    composeTestRule.setContent { TaskHomeTab(taskHomeTabModel, myComponents) }
 
     // Set the preferred process to a non-empty/null name so the dead/static entry is allowed to be added
     myProfilers.preferredProcessName = "com.foo.bar"
@@ -442,7 +443,9 @@ class TaskHomeTabTest {
     TaskModelTestUtils.addDeviceWithProcess(
       TaskModelTestUtils.createDevice("FakeDevice", "123", 456, Common.Device.State.ONLINE, "12", 30),
       TaskModelTestUtils.createProcess(20, "com.foo.bar", Common.Process.State.ALIVE, 456, Common.Process.ExposureLevel.PROFILEABLE),
-      myTransportService, myTimer)
+      myTransportService,
+      myTimer,
+    )
     taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, false, "123"))
     // Make sure device selection is also registered in data model.
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
@@ -477,7 +480,7 @@ class TaskHomeTabTest {
     composeTestRule.onNodeWithText(taskType.description).performClick()
   }
 
-  private fun verifyAndSelectNow() = withVerifyingStartingPointDropdown{
+  private fun verifyAndSelectNow() = withVerifyingStartingPointDropdown {
     val nowDropdownOption = composeTestRule.onAllNodesWithTag("TaskStartingPointOption", useUnmergedTree = true).onFirst()
     nowDropdownOption.onChildAt(0).assertTextContains("Now").onParent()
     nowDropdownOption.onChildAt(1).assertTextContains("(attaches to selected process)").onParent()
@@ -488,8 +491,10 @@ class TaskHomeTabTest {
   private fun verifyAndSelectProcessStart(isSelectedProcessAlive: Boolean) = withVerifyingStartingPointDropdown {
     val processStartDropdownOption = composeTestRule.onAllNodesWithTag("TaskStartingPointOption", useUnmergedTree = true).onLast()
     processStartDropdownOption.onChildAt(0).assertTextContains("Process start").onParent()
-    processStartDropdownOption.onChildAt(1).assertTextContains(
-      "(${if (isSelectedProcessAlive) "restarts" else "starts"} process)").onParent()
+    processStartDropdownOption
+      .onChildAt(1)
+      .assertTextContains("(${if (isSelectedProcessAlive) "restarts" else "starts"} process)")
+      .onParent()
     processStartDropdownOption.onParent().assertIsEnabled()
     processStartDropdownOption.onParent().performClick()
   }
@@ -504,9 +509,7 @@ class TaskHomeTabTest {
 
   @Test
   fun `test recording type dropdown appears for applicable tasks only`() {
-    composeTestRule.setContent {
-      TaskHomeTab(taskHomeTabModel, myComponents)
-    }
+    composeTestRule.setContent { TaskHomeTab(taskHomeTabModel, myComponents) }
     composeTestRule.onNodeWithTag("TaskRecordingTypeDropdown").assertDoesNotExist()
     // Selecting a task that has recording types should now show the recording type dropdown
     verifyTaskExistsAndSelect(ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING)

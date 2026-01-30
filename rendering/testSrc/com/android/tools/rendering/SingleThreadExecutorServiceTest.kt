@@ -16,13 +16,13 @@
 package com.android.tools.rendering
 
 import com.android.testutils.VirtualTimeScheduler
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import org.junit.Assert
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 class SingleThreadExecutorServiceTest {
   @Test
@@ -33,13 +33,7 @@ class SingleThreadExecutorServiceTest {
       SingleThreadExecutorService.create(
         "Test thread",
         threadProfileSettings =
-          ThreadProfileSettings(
-            1000,
-            500,
-            3,
-            scheduledExecutorService = scheduledExecutor,
-            onSlowThread = { slowThreadCounter++ },
-          ),
+          ThreadProfileSettings(1000, 500, 3, scheduledExecutorService = scheduledExecutor, onSlowThread = { slowThreadCounter++ }),
       )
 
     val executing = CountDownLatch(1)
@@ -71,11 +65,7 @@ class SingleThreadExecutorServiceTest {
 
   @Test
   fun testHasSpawnedCurrentThread() {
-    val executor =
-      SingleThreadExecutorService.create(
-        "Test thread",
-        threadProfileSettings = ThreadProfileSettings.disabled,
-      )
+    val executor = SingleThreadExecutorService.create("Test thread", threadProfileSettings = ThreadProfileSettings.disabled)
 
     var exception: Throwable? = null
     executor

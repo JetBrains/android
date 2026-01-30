@@ -120,11 +120,7 @@ class GridTest {
   @Test
   fun grid2x2WithSpacing() {
     composeTestRule.setContent {
-      Grid(
-        Modifier.testTag("G"),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
-      ) {
+      Grid(Modifier.testTag("G"), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
         GridRow {
           Box(Modifier.size(50.dp).testTag("TL"))
           Box(Modifier.size(100.dp).testTag("TR"))
@@ -171,11 +167,7 @@ class GridTest {
   @Test
   fun grid2x2WithDefaultCenterAlignment() {
     composeTestRule.setContent {
-      Grid(
-        Modifier.testTag("G"),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
+      Grid(Modifier.testTag("G"), horizontalAlignment = Alignment.CenterHorizontally, verticalAlignment = Alignment.CenterVertically) {
         GridRow {
           Box(Modifier.size(50.dp).testTag("TL"))
           Box(Modifier.size(100.dp).testTag("TR"))
@@ -197,11 +189,7 @@ class GridTest {
   @Test
   fun grid2x2WithCellAlignmentModifiers() {
     composeTestRule.setContent {
-      Grid(
-        Modifier.testTag("G"),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
+      Grid(Modifier.testTag("G"), horizontalAlignment = Alignment.CenterHorizontally, verticalAlignment = Alignment.CenterVertically) {
         GridRow {
           Box(Modifier.size(50.dp).testTag("TL").align(Alignment.Bottom).align(Alignment.End))
           Box(Modifier.size(100.dp).testTag("TR").align(Alignment.Bottom).align(Alignment.Start))
@@ -266,9 +254,7 @@ class GridTest {
       composeTestRule.onNodeWithTag("2-$i").assertPositionInRootIsEqualTo((55 + i * 10).dp, 0.dp)
     }
     for (i in 10 until 20) {
-      composeTestRule
-        .onNodeWithTag("2-$i")
-        .assertPositionInRootIsEqualTo((55 + (i - 10) * 10).dp, 10.dp)
+      composeTestRule.onNodeWithTag("2-$i").assertPositionInRootIsEqualTo((55 + (i - 10) * 10).dp, 10.dp)
     }
   }
 
@@ -286,24 +272,14 @@ class GridTest {
 
     composeTestRule.onNodeWithTag("1").assertIsDisplayed().assertTopPositionInRootIsEqualTo(0.dp)
     composeTestRule.onNodeWithTag("2").assertIsDisplayed().assertTopPositionInRootIsEqualTo(100.dp)
-    composeTestRule
-      .onNodeWithTag("3")
-      .assertIsNotDisplayed()
-      .assertTopPositionInRootIsEqualTo(200.dp)
-    composeTestRule
-      .onNodeWithTag("4")
-      .assertIsNotDisplayed()
-      .assertTopPositionInRootIsEqualTo(300.dp)
+    composeTestRule.onNodeWithTag("3").assertIsNotDisplayed().assertTopPositionInRootIsEqualTo(200.dp)
+    composeTestRule.onNodeWithTag("4").assertIsNotDisplayed().assertTopPositionInRootIsEqualTo(300.dp)
   }
 
   @Composable
   fun FakeText(baseline: Int, modifier: Modifier) {
     Layout(modifier) { measurables, constraints ->
-      layout(
-        constraints.minWidth,
-        constraints.minHeight,
-        alignmentLines = mapOf(FirstBaseline to baseline, LastBaseline to baseline),
-      ) {}
+      layout(constraints.minWidth, constraints.minHeight, alignmentLines = mapOf(FirstBaseline to baseline, LastBaseline to baseline)) {}
     }
   }
 
@@ -340,17 +316,9 @@ class GridTest {
     composeTestRule.setContent {
       Grid(Modifier.width(100.dp)) {
         GridRow {
-          Text(
-            "A long text string that will need to wrap across several lines",
-            Modifier.width(50.dp).testTag("T1").align(Alignment.End),
-          )
+          Text("A long text string that will need to wrap across several lines", Modifier.width(50.dp).testTag("T1").align(Alignment.End))
         }
-        GridRow {
-          Text(
-            "A long text string that will need to wrap across several lines",
-            Modifier.testTag("T2"),
-          )
-        }
+        GridRow { Text("A long text string that will need to wrap across several lines", Modifier.testTag("T2")) }
       }
     }
 

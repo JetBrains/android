@@ -20,13 +20,16 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 
 object TaskLoggingUtils {
 
-  fun buildStartTaskLogMessage(taskType: ProfilerTaskType,
-                               profilingProcessStartingPoint: ProfilingProcessStartingPoint,
-                               isProcessProfileable: Boolean): String {
+  fun buildStartTaskLogMessage(
+    taskType: ProfilerTaskType,
+    profilingProcessStartingPoint: ProfilingProcessStartingPoint,
+    isProcessProfileable: Boolean,
+  ): String {
     val message = StringBuilder()
     message.append(
       "Attempting to start the '${taskType.description}' task " +
-      "from ${if (profilingProcessStartingPoint == ProfilingProcessStartingPoint.NOW) "now (non-startup)" else "process start (startup)"}")
+        "from ${if (profilingProcessStartingPoint == ProfilingProcessStartingPoint.NOW) "now (non-startup)" else "process start (startup)"}"
+    )
 
     if (profilingProcessStartingPoint == ProfilingProcessStartingPoint.PROCESS_START) {
       message.append(".")

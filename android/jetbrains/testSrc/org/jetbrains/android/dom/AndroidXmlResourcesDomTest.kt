@@ -24,12 +24,10 @@ import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiPackage
 import com.intellij.util.ArrayUtil
-import org.jetbrains.android.refactoring.setAndroidxProperties
 import java.util.Arrays
+import org.jetbrains.android.refactoring.setAndroidxProperties
 
-/**
- * Tests for code editor features when working with resources under res/xml.
- */
+/** Tests for code editor features when working with resources under res/xml. */
 class AndroidXmlResourcesDomTest : AndroidDomTestCase("dom/xml") {
 
   override fun providesCustomManifest(): Boolean {
@@ -86,9 +84,19 @@ class AndroidXmlResourcesDomTest : AndroidDomTestCase("dom/xml") {
   }
 
   fun testPoliciesCompletion() {
-    doTestCompletionVariantsContains("deviceAdmin4.xml", "limit-password", "watch-login", "reset-password", "force-lock", "wipe-data",
-                                     "set-global-proxy", "expire-password", "encrypted-storage", "disable-camera",
-                                     "disable-keyguard-features")
+    doTestCompletionVariantsContains(
+      "deviceAdmin4.xml",
+      "limit-password",
+      "watch-login",
+      "reset-password",
+      "force-lock",
+      "wipe-data",
+      "set-global-proxy",
+      "expire-password",
+      "encrypted-storage",
+      "disable-camera",
+      "disable-keyguard-features",
+    )
   }
 
   fun testAccountAuthenticator() {
@@ -162,7 +170,6 @@ abstract class AndroidPreferenceXmlDomBase : AndroidDomTestCase("dom/xml") {
     super.setUp()
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML)
   }
-
 
   fun testPreferenceRootCompletion() {
     toTestCompletion("pref1.xml", "pref1_after.xml")
@@ -244,28 +251,46 @@ class FrameworkPreferenceXmlDomTest : AndroidPreferenceXmlDomBase() {
   }
 
   fun testReferenceUnqualifiedRoot() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preference.xml",
-      """<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"></PreferenceScree<caret>n>""").virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/xml/preference.xml",
+          """<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"></PreferenceScree<caret>n>""",
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat((myFixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("android.preference.PreferenceScreen")
   }
 
   fun testReferenceQualifiedFrameworkRoot() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preference.xml",
-      """<android.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-        |</android.preference.PreferenceScree<caret>n>""".trimMargin()).virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/xml/preference.xml",
+          """
+          |<android.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+          |</android.preference.PreferenceScree<caret>n>
+          """
+            .trimMargin(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat((myFixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("android.preference.PreferenceScreen")
   }
 
   fun testNestedUnqualifiedTagFramework() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preference.xml",
-      """<android.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-        |<CheckBoxP<caret>reference/>
-        |</android.preference.PreferenceScreen>""".trimMargin()).virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/xml/preference.xml",
+          """
+          |<android.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+          |<CheckBoxP<caret>reference/>
+          |</android.preference.PreferenceScreen>
+          """
+            .trimMargin(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat((myFixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("android.preference.CheckBoxPreference")
   }
@@ -302,20 +327,25 @@ abstract class AndroidXPreferenceXmlDomTest : AndroidPreferenceXmlDomBase() {
         <attr name='android:key' />
       </declare-styleable>
       </resources>
-      """
+      """,
     )
   }
 
   fun testIntentTagClassAndPackageAttribute() {
-    val file = myFixture.addFileToProject("res/xml/preferences.xml", """
-      <PreferenceCategory xmlns:android="http://schemas.android.com/apk/res/android">
-        <intent android:action="android.intent.action.VIEW"
-                android:targetClass="androidx.preference.Preference"
-                android:targetPackage="androidx.preference"
-                android:data="data"
-                />
-      </PreferenceCategory>
-    """.trimIndent())
+    val file =
+      myFixture.addFileToProject(
+        "res/xml/preferences.xml",
+        """
+        <PreferenceCategory xmlns:android="http://schemas.android.com/apk/res/android">
+          <intent android:action="android.intent.action.VIEW"
+                  android:targetClass="androidx.preference.Preference"
+                  android:targetPackage="androidx.preference"
+                  android:data="data"
+                  />
+        </PreferenceCategory>
+        """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
     myFixture.checkHighlighting()
@@ -343,7 +373,6 @@ abstract class AndroidXPreferenceXmlDomTest : AndroidPreferenceXmlDomBase() {
     assertThat(lookupElementStrings).doesNotContain("androidx.preference.PreferenceGroup")
     assertThat(lookupElementStrings).doesNotContain("PreferenceGroup")
   }
-
 
   fun testPreferenceAttributeNamesCompletion_androidX() {
     val file = copyFileToProject("pref3_androidx.xml")
@@ -387,47 +416,79 @@ abstract class AndroidXPreferenceXmlDomTest : AndroidPreferenceXmlDomBase() {
   }
 
   fun testReferenceUnqualifiedRoot() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preference.xml",
-      """<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"></PreferenceScree<caret>n>""").virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/xml/preference.xml",
+          """<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"></PreferenceScree<caret>n>""",
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat((myFixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("androidx.preference.PreferenceScreen")
   }
 
   fun testReferenceQualifiedAndroidXRoot() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preference.xml",
-      """<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-        |</androidx.preference.PreferenceScree<caret>n>""".trimMargin()).virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/xml/preference.xml",
+          """
+          |<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+          |</androidx.preference.PreferenceScree<caret>n>
+          """
+            .trimMargin(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat((myFixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("androidx.preference.PreferenceScreen")
   }
 
   fun testReferenceQualifiedFrameworkRoot() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preference.xml",
-      """<android.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-        |</android.preference.PreferenceScree<caret>n>""".trimMargin()).virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/xml/preference.xml",
+          """
+          |<android.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+          |</android.preference.PreferenceScree<caret>n>
+          """
+            .trimMargin(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat((myFixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("android.preference.PreferenceScreen")
   }
 
   fun testNestedUnqualifiedTagAndroidX() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preference.xml",
-      """<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-        |<CheckBoxP<caret>reference/>
-        |</androidx.preference.PreferenceScreen>""".trimMargin()).virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/xml/preference.xml",
+          """
+          |<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+          |<CheckBoxP<caret>reference/>
+          |</androidx.preference.PreferenceScreen>
+          """
+            .trimMargin(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat((myFixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("androidx.preference.CheckBoxPreference")
   }
 
   fun testNestedUnqualifiedTagFramework() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preference.xml",
-      """<android.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-        |<CheckBoxP<caret>reference/>
-        |</android.preference.PreferenceScreen>""".trimMargin()).virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/xml/preference.xml",
+          """
+          |<android.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+          |<CheckBoxP<caret>reference/>
+          |</android.preference.PreferenceScreen>
+          """
+            .trimMargin(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat((myFixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("android.preference.CheckBoxPreference")
   }
@@ -444,68 +505,112 @@ class SupportLibraryPreferenceDomTest : AndroidPreferenceXmlDomBase() {
     myFixture.addClass("package android.support.v7.preference; public class CheckBoxPreference extends Preference {}")
     myFixture.addClass("package android.support.v7.preference; public class PreferenceCategory extends PreferenceGroup {}")
     myFixture.addClass(
-      "package android.support.v14.preference; public class SwitchPreference extends android.support.v7.preference.Preference {}")
+      "package android.support.v14.preference; public class SwitchPreference extends android.support.v7.preference.Preference {}"
+    )
   }
 
   fun testReferenceUnqualifiedRootv7() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preference.xml",
-      """<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"></PreferenceScree<caret>n>""").virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/xml/preference.xml",
+          """<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"></PreferenceScree<caret>n>""",
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat((myFixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("android.support.v7.preference.PreferenceScreen")
   }
 
   fun testReferenceQualifiedSupportLibraryRootv7() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preference.xml",
-      """<android.support.v7.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-        |</android.support.v7.preference.PreferenceScree<caret>n>""".trimMargin()).virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/xml/preference.xml",
+          """
+          |<android.support.v7.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+          |</android.support.v7.preference.PreferenceScree<caret>n>
+          """
+            .trimMargin(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat((myFixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("android.support.v7.preference.PreferenceScreen")
   }
 
   fun testReferenceUnqualifiedRootv14() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preference.xml",
-      """<SwitchPreference xmlns:android="http://schemas.android.com/apk/res/android"></SwitchPreferenc<caret>e>""").virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/xml/preference.xml",
+          """<SwitchPreference xmlns:android="http://schemas.android.com/apk/res/android"></SwitchPreferenc<caret>e>""",
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat((myFixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("android.support.v14.preference.SwitchPreference")
   }
 
   fun testReferenceQualifiedSupportLibraryRootv14() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preference.xml",
-      """<android.support.v14.preference.SwitchPreference xmlns:android="http://schemas.android.com/apk/res/android">
-        |</android.support.v14.preference.SwitchPreferenc<caret>e>""".trimMargin()).virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/xml/preference.xml",
+          """
+          |<android.support.v14.preference.SwitchPreference xmlns:android="http://schemas.android.com/apk/res/android">
+          |</android.support.v14.preference.SwitchPreferenc<caret>e>
+          """
+            .trimMargin(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat((myFixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("android.support.v14.preference.SwitchPreference")
   }
 
   fun testReferenceQualifiedFrameworkRoot() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preference.xml",
-      """<android.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-        |</android.preference.PreferenceScree<caret>n>""".trimMargin()).virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/xml/preference.xml",
+          """
+          |<android.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+          |</android.preference.PreferenceScree<caret>n>
+          """
+            .trimMargin(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat((myFixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("android.preference.PreferenceScreen")
   }
 
   fun testNestedUnqualifiedTagSupportLibrary() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preference.xml",
-      """<android.support.v7.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-        |<CheckBoxP<caret>reference/>
-        |</android.support.v7.preference.PreferenceScreen>""".trimMargin()).virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/xml/preference.xml",
+          """
+          |<android.support.v7.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+          |<CheckBoxP<caret>reference/>
+          |</android.support.v7.preference.PreferenceScreen>
+          """
+            .trimMargin(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat((myFixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("android.support.v7.preference.CheckBoxPreference")
   }
 
   fun testNestedUnqualifiedTagFramework() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preference.xml",
-      """<android.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-        |<CheckBoxP<caret>reference/>
-        |</android.preference.PreferenceScreen>""".trimMargin()).virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/xml/preference.xml",
+          """
+          |<android.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+          |<CheckBoxP<caret>reference/>
+          |</android.preference.PreferenceScreen>
+          """
+            .trimMargin(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat((myFixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("android.preference.CheckBoxPreference")
   }

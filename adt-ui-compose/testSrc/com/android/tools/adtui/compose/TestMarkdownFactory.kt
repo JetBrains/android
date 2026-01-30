@@ -48,16 +48,11 @@ class TestMarkdownFactory(private val isDark: Boolean) : MarkdownFactory {
     thematicBreak: MarkdownStyling.ThematicBreak?,
     htmlBlock: MarkdownStyling.HtmlBlock?,
   ): MarkdownStyling {
-    val defaults =
-      createDefaultStyling(defaultTextStyle = baseTextStyle, editorTextStyle = editorTextStyle)
+    val defaults = createDefaultStyling(defaultTextStyle = baseTextStyle, editorTextStyle = editorTextStyle)
 
     val defaultInlinesStyling = defaults.paragraph.inlinesStyling
     val defaultTextSize = defaultInlinesStyling.textStyle.fontSize
-    val defaultEditorTextStyle =
-      JewelTheme.createEditorTextStyle(
-        fontSize = defaultTextSize,
-        lineHeight = defaultTextSize * 1.2,
-      )
+    val defaultEditorTextStyle = JewelTheme.createEditorTextStyle(fontSize = defaultTextSize, lineHeight = defaultTextSize * 1.2)
 
     return if (isDark) {
       MarkdownStyling.dark(
@@ -110,21 +105,14 @@ class TestMarkdownFactory(private val isDark: Boolean) : MarkdownFactory {
     )
   }
 
-  override fun createDefaultStyling(
-    defaultTextStyle: TextStyle,
-    editorTextStyle: TextStyle,
-  ): MarkdownStyling =
+  override fun createDefaultStyling(defaultTextStyle: TextStyle, editorTextStyle: TextStyle): MarkdownStyling =
     if (isDark) {
       MarkdownStyling.dark(baseTextStyle = defaultTextStyle, editorTextStyle = editorTextStyle)
     } else {
       MarkdownStyling.light(baseTextStyle = defaultTextStyle, editorTextStyle = editorTextStyle)
     }
 
-  override fun createUndecoratedCodeStyling(
-    editorTextStyle: TextStyle,
-    padding: PaddingValues,
-    background: Color,
-  ): MarkdownStyling.Code =
+  override fun createUndecoratedCodeStyling(editorTextStyle: TextStyle, padding: PaddingValues, background: Color): MarkdownStyling.Code =
     if (isDark) {
       MarkdownStyling.Code.dark(
         editorTextStyle,

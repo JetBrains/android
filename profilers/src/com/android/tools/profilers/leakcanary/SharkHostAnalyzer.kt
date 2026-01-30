@@ -27,7 +27,6 @@ import shark.HprofHeapGraph.Companion.openHeapGraph
 import shark.KeyedWeakReferenceFinder
 import shark.OnAnalysisProgressListener
 
-
 class SharkHostAnalyzer {
 
   companion object {
@@ -49,24 +48,25 @@ class SharkHostAnalyzer {
         logger.info(step.toString())
         onProgress(getProgressPercentage(step))
       }
-      analysisResult = analyzer.analyze(
-        heapDumpFile = hprofFile,
-        graph = hprofFile.openHeapGraph(),
-        leakingObjectFinder = KeyedWeakReferenceFinder,
-        referenceMatchers = AndroidReferenceMatchers.Companion.appDefaults,
-        computeRetainedHeapSize = true,
-        objectInspectors = AndroidObjectInspectors.Companion.appDefaults,
-      )
+      analysisResult =
+        analyzer.analyze(
+          heapDumpFile = hprofFile,
+          graph = hprofFile.openHeapGraph(),
+          leakingObjectFinder = KeyedWeakReferenceFinder,
+          referenceMatchers = AndroidReferenceMatchers.Companion.appDefaults,
+          computeRetainedHeapSize = true,
+          objectInspectors = AndroidObjectInspectors.Companion.appDefaults,
+        )
       logger.info("Leak analysis complete : $analysisResult")
-    }
-    catch (e: Throwable) {
+    } catch (e: Throwable) {
       logger.warn("Heap analysis failed for ${hprofFile.name}", e)
-      analysisResult = HeapAnalysisFailure(
-        heapDumpFile = hprofFile,
-        createdAtTimeMillis = System.currentTimeMillis(),
-        analysisDurationMillis = 0, // Analysis didn't run
-        exception = HeapAnalysisException(e)
-      )
+      analysisResult =
+        HeapAnalysisFailure(
+          heapDumpFile = hprofFile,
+          createdAtTimeMillis = System.currentTimeMillis(),
+          analysisDurationMillis = 0, // Analysis didn't run
+          exception = HeapAnalysisException(e),
+        )
     }
     return analysisResult
   }

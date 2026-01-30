@@ -21,8 +21,8 @@ interface ClassBinaryCache {
    * Return class binary data or null if unknown.
    *
    * @param fqcn FQCN for the class
-   * @param transformationId it represents the transformations applied to the class. The same FQCN
-   *   can be stored more than once with different transformations applied.
+   * @param transformationId it represents the transformations applied to the class. The same FQCN can be stored more than once with
+   *   different transformations applied.
    */
   fun get(fqcn: String, transformationId: String): ByteArray?
 
@@ -48,12 +48,7 @@ interface ClassBinaryCache {
       object : ClassBinaryCache {
         override fun get(fqcn: String, transformationId: String): ByteArray? = null
 
-        override fun put(
-          fqcn: String,
-          transformationId: String,
-          libraryPath: String,
-          data: ByteArray,
-        ) {}
+        override fun put(fqcn: String, transformationId: String, libraryPath: String, data: ByteArray) {}
 
         override fun setDependencies(paths: Collection<String>) {}
       }

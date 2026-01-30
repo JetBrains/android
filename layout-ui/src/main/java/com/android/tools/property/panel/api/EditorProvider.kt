@@ -29,8 +29,7 @@ enum class EditorContext {
 /**
  * Provider of an editor component with a corresponding model for a property.
  *
- * A client can either provide a custom editor provider or use the default implementation by calling
- * [EditorProvider.create].
+ * A client can either provide a custom editor provider or use the default implementation by calling [EditorProvider.create].
  *
  * @param P a client defined property class
  */
@@ -39,22 +38,17 @@ interface EditorProvider<in P : PropertyItem> {
   /**
    * Create an editor for a [property] optionally [asTableCellEditor].
    *
-   * The editor created may be different if it is supposed to be used as a cell editor in a table.
-   * We may choose to either hide or make the border different inside a table.
+   * The editor created may be different if it is supposed to be used as a cell editor in a table. We may choose to either hide or make the
+   * border different inside a table.
    */
-  fun createEditor(
-    property: P,
-    context: EditorContext = EditorContext.STAND_ALONE_EDITOR,
-  ): Pair<PropertyEditorModel, JComponent>
+  fun createEditor(property: P, context: EditorContext = EditorContext.STAND_ALONE_EDITOR): Pair<PropertyEditorModel, JComponent>
 
   companion object {
     /**
      * Create a default [EditorProvider] for editing property values.
      *
-     * @param enumSupportProvider must be specified for creating [EnumSupport] for a given property
-     *   [P].
-     * @param controlTypeProvider must be specified for determining the [ControlType] for the given
-     *   property [P].
+     * @param enumSupportProvider must be specified for creating [EnumSupport] for a given property [P].
+     * @param controlTypeProvider must be specified for determining the [ControlType] for the given property [P].
      */
     fun <P : PropertyItem> create(
       enumSupportProvider: EnumSupportProvider<P>,
@@ -73,8 +67,8 @@ interface EditorProvider<in P : PropertyItem> {
 /**
  * Provider of a [EnumSupport] for a property.
  *
- * Some properties may be best edited in a ComboBox or a DropDown. There is builtin support for this
- * by supplying an [EnumSupport] for those properties.
+ * Some properties may be best edited in a ComboBox or a DropDown. There is builtin support for this by supplying an [EnumSupport] for those
+ * properties.
  *
  * @param P a client defined property class that must implement the interface: [PropertyItem]
  */
@@ -83,8 +77,8 @@ interface EnumSupportProvider<in P : PropertyItem> : (P) -> EnumSupport?
 /**
  * Provider of a [ControlType] for given property.
  *
- * The default [EditorProvider] uses a [ControlTypeProvider] to determine the [ControlType] for
- * properties. For a custom implementation of [EditorProvider] this interface may not be required.
+ * The default [EditorProvider] uses a [ControlTypeProvider] to determine the [ControlType] for properties. For a custom implementation of
+ * [EditorProvider] this interface may not be required.
  *
  * @param P a client defined property class that must implement the interface: [PropertyItem]
  */

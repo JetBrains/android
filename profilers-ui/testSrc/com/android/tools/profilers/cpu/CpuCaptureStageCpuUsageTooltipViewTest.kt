@@ -28,27 +28,22 @@ import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class CpuCaptureStageCpuUsageTooltipViewTest {
   private val timer = FakeTimer()
 
   private val myIdeServices = FakeIdeProfilerServices()
 
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("CaptureCpuUsageTooltipTest", FakeTransportService(timer))
+  @get:Rule val grpcChannel = FakeGrpcChannel("CaptureCpuUsageTooltipTest", FakeTransportService(timer))
 
-  /**
-   * For initializing [com.intellij.ide.HelpTooltip].
-   */
-  @get:Rule
-  val appRule = ApplicationRule()
+  /** For initializing [com.intellij.ide.HelpTooltip]. */
+  @get:Rule val appRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var captureStage: CpuCaptureStage
   private lateinit var tooltipView: FakeCaptureCpuUsageTooltipView
@@ -58,13 +53,17 @@ class CpuCaptureStageCpuUsageTooltipViewTest {
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), myIdeServices, timer)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     val profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
-    captureStage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                          resolveWorkspacePath(CpuProfilerUITestUtils.VALID_TRACE_PATH).toFile(), 123L)
+    captureStage =
+      CpuCaptureStage.create(
+        profilers,
+        ProfilersTestData.DEFAULT_CONFIG,
+        resolveWorkspacePath(CpuProfilerUITestUtils.VALID_TRACE_PATH).toFile(),
+        123L,
+      )
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     profilers.stage = captureStage
     val stageView = profilersView.stageView as CpuCaptureStageView
-    val tooltip = CpuCaptureStageCpuUsageTooltip(captureStage.minimapModel.cpuUsage,
-                                                 captureStage.captureTimeline.tooltipRange)
+    val tooltip = CpuCaptureStageCpuUsageTooltip(captureStage.minimapModel.cpuUsage, captureStage.captureTimeline.tooltipRange)
     tooltipView = FakeCaptureCpuUsageTooltipView(stageView, tooltip)
   }
 
@@ -75,8 +74,8 @@ class CpuCaptureStageCpuUsageTooltipViewTest {
     assertThat(tooltipView.headingText).isEqualTo("00:10.000")
   }
 
-  private class FakeCaptureCpuUsageTooltipView(parent: CpuCaptureStageView, tooltip: CpuCaptureStageCpuUsageTooltip)
-    : CpuCaptureStageCpuUsageTooltipView(parent, tooltip) {
+  private class FakeCaptureCpuUsageTooltipView(parent: CpuCaptureStageView, tooltip: CpuCaptureStageCpuUsageTooltip) :
+    CpuCaptureStageCpuUsageTooltipView(parent, tooltip) {
     init {
       createComponent()
     }

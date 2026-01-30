@@ -21,15 +21,13 @@ import java.util.WeakHashMap
 private val allocations = WeakHashMap<RenderTask, StackTraceCapture>()
 private val scheduledDispose = WeakHashMap<RenderTask, StackTraceCapture>()
 
-data class AllocationStackTrace(override val stackTrace: List<StackTraceElement>) :
-  StackTraceCapture() {
+data class AllocationStackTrace(override val stackTrace: List<StackTraceElement>) : StackTraceCapture() {
   override fun bind(renderTask: RenderTask) {
     synchronized(allocations) { allocations[renderTask] = this }
   }
 }
 
-data class DisposeStackTrace(override val stackTrace: List<StackTraceElement>) :
-  StackTraceCapture() {
+data class DisposeStackTrace(override val stackTrace: List<StackTraceElement>) : StackTraceCapture() {
   override fun bind(renderTask: RenderTask) {
     // Remove the task from allocations and move to scheduledDispose
     synchronized(scheduledDispose) { scheduledDispose[renderTask] = this }
@@ -37,10 +35,7 @@ data class DisposeStackTrace(override val stackTrace: List<StackTraceElement>) :
   }
 }
 
-/**
- * Singleton empty stack trace used when allocation tracking is disabled to avoid unnecessary
- * allocations.
- */
+/** Singleton empty stack trace used when allocation tracking is disabled to avoid unnecessary allocations. */
 private val NULL_STACK_TRACE =
   object : StackTraceCapture() {
     override val stackTrace: List<StackTraceElement> = listOf()
@@ -61,8 +56,7 @@ fun notDisposedRenderTasks(): Sequence<Pair<RenderTask, StackTraceCapture>> {
     .map { (task, trace) -> task to trace }
 }
 
-class RenderTaskAllocationTrackerImpl(private val shouldTrackAllocations: Boolean) :
-  RenderTaskAllocationTracker {
+class RenderTaskAllocationTrackerImpl(private val shouldTrackAllocations: Boolean) : RenderTaskAllocationTracker {
   override fun captureDisposeStackTrace(): StackTraceCapture =
     if (shouldTrackAllocations) {
       // Capture the current stack trace dropping the dispose point stack frame, one for

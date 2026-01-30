@@ -36,141 +36,176 @@ import perfetto.protos.PerfettoConfig
 
 object SessionArtifactUtils {
 
-  fun createCpuCaptureSessionArtifactWithConfig(profilers: StudioProfilers,
-                                                session: Common.Session,
-                                                sessionId: Long,
-                                                traceId: Long,
-                                                config: TraceConfiguration) = createCpuCaptureSessionArtifactWithConfig(profilers,
-                                                                                                                        session,
-                                                                                                                        sessionId,
-                                                                                                                        traceId, 0, 0,
-                                                                                                                        config)
+  fun createCpuCaptureSessionArtifactWithConfig(
+    profilers: StudioProfilers,
+    session: Common.Session,
+    sessionId: Long,
+    traceId: Long,
+    config: TraceConfiguration,
+  ) = createCpuCaptureSessionArtifactWithConfig(profilers, session, sessionId, traceId, 0, 0, config)
 
-  /**
-   * Overload of createCpuCaptureSessionArtifactWithConfig that takes in from and end timestamps.
-   */
-  fun createCpuCaptureSessionArtifactWithConfig(profilers: StudioProfilers,
-                                                session: Common.Session,
-                                                sessionId: Long,
-                                                traceId: Long,
-                                                fromTimestamp: Long,
-                                                toTimestamp: Long,
-                                                config: TraceConfiguration): CpuCaptureSessionArtifact {
+  /** Overload of createCpuCaptureSessionArtifactWithConfig that takes in from and end timestamps. */
+  fun createCpuCaptureSessionArtifactWithConfig(
+    profilers: StudioProfilers,
+    session: Common.Session,
+    sessionId: Long,
+    traceId: Long,
+    fromTimestamp: Long,
+    toTimestamp: Long,
+    config: TraceConfiguration,
+  ): CpuCaptureSessionArtifact {
     val sessionMetadata = Common.SessionMetaData.newBuilder().setSessionId(sessionId).build()
-    val info = TraceInfo.newBuilder().setFromTimestamp(fromTimestamp).setToTimestamp(toTimestamp).setTraceId(
-      traceId).setConfiguration(config.toBuilder()).build()
+    val info =
+      TraceInfo.newBuilder()
+        .setFromTimestamp(fromTimestamp)
+        .setToTimestamp(toTimestamp)
+        .setTraceId(traceId)
+        .setConfiguration(config.toBuilder())
+        .build()
     return CpuCaptureSessionArtifact(profilers, session, sessionMetadata, info)
   }
 
-  fun createCpuCaptureSessionArtifact(profilers: StudioProfilers,
-                                      session: Common.Session,
-                                      sessionId: Long,
-                                      traceId: Long) = createCpuCaptureSessionArtifactWithConfig(profilers, session, sessionId, traceId,
-                                                                                                 TraceConfiguration.getDefaultInstance())
+  fun createCpuCaptureSessionArtifact(profilers: StudioProfilers, session: Common.Session, sessionId: Long, traceId: Long) =
+    createCpuCaptureSessionArtifactWithConfig(profilers, session, sessionId, traceId, TraceConfiguration.getDefaultInstance())
 
-  fun createHprofSessionArtifact(profilers: StudioProfilers, session: Common.Session,
-                                 startTimestamp: Long,
-                                 endTimestamp: Long): HprofSessionArtifact {
+  fun createHprofSessionArtifact(
+    profilers: StudioProfilers,
+    session: Common.Session,
+    startTimestamp: Long,
+    endTimestamp: Long,
+  ): HprofSessionArtifact {
     val sessionMetadata = Common.SessionMetaData.getDefaultInstance()
     val info = Memory.HeapDumpInfo.newBuilder().setStartTime(startTimestamp).setEndTime(endTimestamp).build()
     return HprofSessionArtifact(profilers, session, sessionMetadata, info)
   }
 
-  fun createHeapProfdSessionArtifact(profilers: StudioProfilers, session: Common.Session,
-                                     fromTimestamp: Long,
-                                     toTimestamp: Long): HeapProfdSessionArtifact {
+  fun createHeapProfdSessionArtifact(
+    profilers: StudioProfilers,
+    session: Common.Session,
+    fromTimestamp: Long,
+    toTimestamp: Long,
+  ): HeapProfdSessionArtifact {
     val sessionMetadata = Common.SessionMetaData.getDefaultInstance()
     val info = TraceInfo.newBuilder().setFromTimestamp(fromTimestamp).setToTimestamp(toTimestamp).build()
     return HeapProfdSessionArtifact(profilers, session, sessionMetadata, info)
   }
 
-  fun createLeakCanarySessionArtifact(profilers: StudioProfilers, session: Common.Session,
-                                      infoEvent: LeakCanary.LeakCanaryAnalysisStatus): LeakCanarySessionArtifact {
+  fun createLeakCanarySessionArtifact(
+    profilers: StudioProfilers,
+    session: Common.Session,
+    infoEvent: LeakCanary.LeakCanaryAnalysisStatus,
+  ): LeakCanarySessionArtifact {
     val sessionMetadata = Common.SessionMetaData.getDefaultInstance()
     return LeakCanarySessionArtifact(profilers, session, sessionMetadata, infoEvent.analysisEnded)
   }
 
-  fun createAllocationSessionArtifact(profilers: StudioProfilers, session: Common.Session,
-                                      startTimestamp: Long,
-                                      endTimestamp: Long): AllocationSessionArtifact {
+  fun createAllocationSessionArtifact(
+    profilers: StudioProfilers,
+    session: Common.Session,
+    startTimestamp: Long,
+    endTimestamp: Long,
+  ): AllocationSessionArtifact {
     val sessionMetadata = Common.SessionMetaData.getDefaultInstance()
     val info = Memory.AllocationsInfo.newBuilder().setStartTime(startTimestamp).setEndTime(endTimestamp).build()
     return AllocationSessionArtifact(profilers, session, sessionMetadata, info, startTimestamp.toDouble(), endTimestamp.toDouble())
   }
 
-  fun createLegacyAllocationsSessionArtifact(profilers: StudioProfilers, session: Common.Session,
-                                             startTimestamp: Long,
-                                             endTimestamp: Long): LegacyAllocationsSessionArtifact {
+  fun createLegacyAllocationsSessionArtifact(
+    profilers: StudioProfilers,
+    session: Common.Session,
+    startTimestamp: Long,
+    endTimestamp: Long,
+  ): LegacyAllocationsSessionArtifact {
     val sessionMetadata = Common.SessionMetaData.getDefaultInstance()
     val info = Memory.AllocationsInfo.newBuilder().setStartTime(startTimestamp).setEndTime(endTimestamp).build()
     return LegacyAllocationsSessionArtifact(profilers, session, sessionMetadata, info)
   }
 
-  fun createSessionItem(profilers: StudioProfilers,
-                        initialSession: Common.Session,
-                        sessionId: Long,
-                        childArtifacts: List<SessionArtifact<*>>): SessionItem {
+  fun createSessionItem(
+    profilers: StudioProfilers,
+    initialSession: Common.Session,
+    sessionId: Long,
+    childArtifacts: List<SessionArtifact<*>>,
+  ): SessionItem {
     return createSessionItem(profilers, initialSession, sessionId, ProfilerTaskType.UNSPECIFIED, childArtifacts)
   }
 
-  fun createSessionItem(profilers: StudioProfilers,
-                        sessionId: Long,
-                        sessionName: String,
-                        childArtifacts: List<SessionArtifact<*>>): SessionItem {
+  fun createSessionItem(
+    profilers: StudioProfilers,
+    sessionId: Long,
+    sessionName: String,
+    childArtifacts: List<SessionArtifact<*>>,
+  ): SessionItem {
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
     return createSessionItem(profilers, session, sessionId, sessionName, ProfilerTaskType.UNSPECIFIED, childArtifacts)
   }
 
-  fun createSessionItem(profilers: StudioProfilers,
-                        initialSession: Common.Session,
-                        sessionId: Long,
-                        taskType: ProfilerTaskType,
-                        childArtifacts: List<SessionArtifact<*>>): SessionItem {
+  fun createSessionItem(
+    profilers: StudioProfilers,
+    initialSession: Common.Session,
+    sessionId: Long,
+    taskType: ProfilerTaskType,
+    childArtifacts: List<SessionArtifact<*>>,
+  ): SessionItem {
     return createSessionItem(profilers, initialSession, sessionId, "", taskType, childArtifacts)
   }
 
-  fun createSessionItem(profilers: StudioProfilers,
-                        initialSession: Common.Session,
-                        sessionId: Long,
-                        sessionName: String,
-                        taskType: ProfilerTaskType,
-                        childArtifacts: List<SessionArtifact<*>>): SessionItem {
-    val sessionMetadata = Common.SessionMetaData.newBuilder().setSessionId(sessionId).setSessionName(sessionName).setTaskType(
-      TaskTypeMappingUtils.convertTaskType(taskType)).build()
-    return SessionItem(profilers, initialSession, sessionMetadata).apply {
-      setChildArtifacts(childArtifacts)
-    }
+  fun createSessionItem(
+    profilers: StudioProfilers,
+    initialSession: Common.Session,
+    sessionId: Long,
+    sessionName: String,
+    taskType: ProfilerTaskType,
+    childArtifacts: List<SessionArtifact<*>>,
+  ): SessionItem {
+    val sessionMetadata =
+      Common.SessionMetaData.newBuilder()
+        .setSessionId(sessionId)
+        .setSessionName(sessionName)
+        .setTaskType(TaskTypeMappingUtils.convertTaskType(taskType))
+        .build()
+    return SessionItem(profilers, initialSession, sessionMetadata).apply { setChildArtifacts(childArtifacts) }
   }
 
   fun createSessionItemWithSystemTraceArtifact(name: String, sessionId: Long, traceId: Long, profilers: StudioProfilers): SessionItem {
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
-    val systemTraceArtifact = createCpuCaptureSessionArtifactWithConfig(profilers, session, sessionId, traceId,
-                                                                        TraceConfiguration.newBuilder().setPerfettoOptions(
-                                                                          PerfettoConfig.TraceConfig.getDefaultInstance()).build())
+    val systemTraceArtifact =
+      createCpuCaptureSessionArtifactWithConfig(
+        profilers,
+        session,
+        sessionId,
+        traceId,
+        TraceConfiguration.newBuilder().setPerfettoOptions(PerfettoConfig.TraceConfig.getDefaultInstance()).build(),
+      )
     return createSessionItem(profilers, session, sessionId, name, ProfilerTaskType.SYSTEM_TRACE, listOf(systemTraceArtifact))
   }
 
   /**
    * Generates the session start and stop events in the transport pipeline to simulate a real live task recording.
    *
-   * Note: A live task recording is a completed session (start and stop session events) with a `LIVE_VIEW_STATUS` event, but no
-   * other underlying recording artifact.
+   * Note: A live task recording is a completed session (start and stop session events) with a `LIVE_VIEW_STATUS` event, but no other
+   * underlying recording artifact.
    *
    * @param transportService The [FakeTransportService] to add the event to. This is needed to mimic the behavior of
-   * SessionsManager::BeginSession in tools/base.
+   *   SessionsManager::BeginSession in tools/base.
    */
   fun generateLiveTaskRecording(sessionsManager: SessionsManager, transportService: FakeTransportService) {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process = Utils.debuggableProcess { pid = 10; deviceId = 1 }
+    val process =
+      Utils.debuggableProcess {
+        pid = 10
+        deviceId = 1
+      }
     sessionsManager.beginSession(1, device, process, Common.ProfilerTaskType.LIVE_VIEW, false)
     sessionsManager.update()
     val session = sessionsManager.selectedSession
-    val liveViewEvent = Common.Event.newBuilder()
-      .setKind(Common.Event.Kind.LIVE_VIEW_STATUS)
-      .setGroupId(session.sessionId)
-      .setPid(session.pid)
-      .setTimestamp(session.startTimestamp)
-      .build()
+    val liveViewEvent =
+      Common.Event.newBuilder()
+        .setKind(Common.Event.Kind.LIVE_VIEW_STATUS)
+        .setGroupId(session.sessionId)
+        .setPid(session.pid)
+        .setTimestamp(session.startTimestamp)
+        .build()
     transportService.addEventToStream(session.streamId, liveViewEvent)
     sessionsManager.endCurrentSession()
     sessionsManager.update()

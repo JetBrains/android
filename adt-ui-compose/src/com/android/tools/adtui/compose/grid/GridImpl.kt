@@ -31,8 +31,7 @@ internal interface GridCellAlignment {
     get() = false
 
   /**
-   * Returns the alignment line position relative to the left/top of the space or `null` if this
-   * alignment doesn't rely on alignment lines.
+   * Returns the alignment line position relative to the left/top of the space or `null` if this alignment doesn't rely on alignment lines.
    */
   fun calculateAlignmentLinePosition(placeable: Placeable): Int? = null
 
@@ -47,8 +46,7 @@ internal class VerticalGridCellAlignment(val vertical: Alignment.Vertical) : Gri
 }
 
 /** A vertical alignment that is based on alignment lines. */
-internal class VerticalGridCellAlignmentLineAlignment(val alignmentLine: AlignmentLine) :
-  GridCellAlignment {
+internal class VerticalGridCellAlignmentLineAlignment(val alignmentLine: AlignmentLine) : GridCellAlignment {
   override val isRelative: Boolean
     get() = true
 
@@ -105,8 +103,7 @@ internal sealed class SiblingsAlignedNode : ParentDataModifierNode, Modifier.Nod
   }
 }
 
-internal class HorizontalAlignElement(val alignment: Alignment.Horizontal) :
-  ModifierNodeElement<HorizontalAlignNode>() {
+internal class HorizontalAlignElement(val alignment: Alignment.Horizontal) : ModifierNodeElement<HorizontalAlignNode>() {
   override fun create(): HorizontalAlignNode {
     return HorizontalAlignNode(alignment)
   }
@@ -129,17 +126,13 @@ internal class HorizontalAlignElement(val alignment: Alignment.Horizontal) :
   }
 }
 
-internal class HorizontalAlignNode(var alignment: Alignment.Horizontal) :
-  ParentDataModifierNode, Modifier.Node() {
+internal class HorizontalAlignNode(var alignment: Alignment.Horizontal) : ParentDataModifierNode, Modifier.Node() {
   override fun Density.modifyParentData(parentData: Any?): GridCellParentData {
-    return ((parentData as? GridCellParentData) ?: GridCellParentData()).also {
-      it.horizontalAlignment = alignment
-    }
+    return ((parentData as? GridCellParentData) ?: GridCellParentData()).also { it.horizontalAlignment = alignment }
   }
 }
 
-internal class VerticalAlignElement(val alignment: Alignment.Vertical) :
-  ModifierNodeElement<VerticalAlignNode>() {
+internal class VerticalAlignElement(val alignment: Alignment.Vertical) : ModifierNodeElement<VerticalAlignNode>() {
   override fun create(): VerticalAlignNode {
     return VerticalAlignNode(alignment)
   }
@@ -162,8 +155,7 @@ internal class VerticalAlignElement(val alignment: Alignment.Vertical) :
   }
 }
 
-internal class VerticalAlignNode(var alignment: Alignment.Vertical) :
-  ParentDataModifierNode, Modifier.Node() {
+internal class VerticalAlignNode(var alignment: Alignment.Vertical) : ParentDataModifierNode, Modifier.Node() {
   override fun Density.modifyParentData(parentData: Any?): GridCellParentData {
     return ((parentData as? GridCellParentData) ?: GridCellParentData()).also {
       it.verticalAlignment = VerticalGridCellAlignment(alignment)

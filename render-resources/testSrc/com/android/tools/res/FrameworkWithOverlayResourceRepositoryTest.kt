@@ -33,7 +33,8 @@ class FrameworkWithOverlayResourceRepositoryTest {
     val folderConfig = FolderConfiguration.createDefault()
     val baseRepo = FrameworkResourceRepository.create(frameworkResJar, null, null, true)
     val overlay1 = FrameworkResourceRepository.createForOverlay(frameworkResJar, FrameworkOverlay.NAV_GESTURE.overlayName, null, null, true)
-    val overlay2 = FrameworkResourceRepository.createForOverlay(frameworkResJar, FrameworkOverlay.NAV_3_BUTTONS.overlayName, null, null, true)
+    val overlay2 =
+      FrameworkResourceRepository.createForOverlay(frameworkResJar, FrameworkOverlay.NAV_3_BUTTONS.overlayName, null, null, true)
     val basePlusOverlay1 = FrameworkWithOverlaysResourceRepository(baseRepo, listOf(overlay1))
     val basePlusBothOverlays = FrameworkWithOverlaysResourceRepository(baseRepo, listOf(overlay2, overlay1))
 
@@ -51,7 +52,8 @@ class FrameworkWithOverlayResourceRepositoryTest {
       val overlay1Value = overlay1.getConfiguredResources(ANDROID, STRING, folderConfig)["navigation_bar_mode_title"]
       val overlay2Value = overlay2.getConfiguredResources(ANDROID, STRING, folderConfig)["navigation_bar_mode_title"]
       val basePlusOverlay1Value = basePlusOverlay1.getConfiguredResources(ANDROID, STRING, folderConfig)["navigation_bar_mode_title"]
-      val basePlusBothOverlaysValue = basePlusBothOverlays.getConfiguredResources(ANDROID, STRING, folderConfig)["navigation_bar_mode_title"]
+      val basePlusBothOverlaysValue =
+        basePlusBothOverlays.getConfiguredResources(ANDROID, STRING, folderConfig)["navigation_bar_mode_title"]
 
       assertThat(overlay1Value).isNotEqualTo(baseValue)
       assertThat(overlay2Value).isNotEqualTo(baseValue)

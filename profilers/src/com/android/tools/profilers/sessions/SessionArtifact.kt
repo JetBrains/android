@@ -26,94 +26,70 @@ import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import java.io.OutputStream
 
 /**
- * A SessionArtifact is any session-related entity that should show up in the sessions panel as its own row. (e.g. A session, a memory
- * heap dump, a CPU capture, etc).
+ * A SessionArtifact is any session-related entity that should show up in the sessions panel as its own row. (e.g. A session, a memory heap
+ * dump, a CPU capture, etc).
  */
 interface SessionArtifact<T : GeneratedMessageV3> : Updatable {
-  /**
-   * @return the [StudioProfilers] instance.
-   */
+  /** @return the [StudioProfilers] instance. */
   val profilers: StudioProfilers
 
-  /**
-   * @return the [Common.Session] instance that this artifact belongs to.
-   */
+  /** @return the [Common.Session] instance that this artifact belongs to. */
   val session: Common.Session
 
   /**
-   * @return the proto object that backs this artifact. Note - the mapping between a proto and its [SessionArtifact] is 1:1, so we
-   * can use this object to check if the artifact itself is up to date.
+   * @return the proto object that backs this artifact. Note - the mapping between a proto and its [SessionArtifact] is 1:1, so we can use
+   *   this object to check if the artifact itself is up to date.
    */
   val artifactProto: T
 
-  /**
-   * @return the [Common.Session] instance that this artifact belongs to.
-   */
+  /** @return the [Common.Session] instance that this artifact belongs to. */
   val sessionMetaData: SessionMetaData
 
-  /**
-   * @return the name used for display.
-   */
+  /** @return the name used for display. */
   val name: String
 
-  /**
-   * @return the timestamp relative to the session's start time when this artifact was created/took place.
-   */
+  /** @return the timestamp relative to the session's start time when this artifact was created/took place. */
   val timestampNs: Long
 
-  /**
-   * @return whether the artifact is still in progress.
-   */
+  /** @return whether the artifact is still in progress. */
   val isOngoing: Boolean
 
-  /**
-   * @return whether the artifact can be exported to disk for later use.
-   */
+  /** @return whether the artifact can be exported to disk for later use. */
   val canExport: Boolean
 
   /**
-   * The [SessionArtifact] has been selected. Check if it's a reselection, if so, ignore selection.
-   * If not, continue to do the respective on selection behavior.
+   * The [SessionArtifact] has been selected. Check if it's a reselection, if so, ignore selection. If not, continue to do the respective on
+   * selection behavior.
    */
   fun onSelect() {
     if (isTopLevelArtifact()) {
       profilers.sessionsManager.registerSelectedArtifactProto(this.artifactProto)
-    }
-    else if (!profilers.sessionsManager.selectArtifactProto(this.artifactProto)) {
-      return;
+    } else if (!profilers.sessionsManager.selectArtifactProto(this.artifactProto)) {
+      return
     }
 
     doSelect()
   }
 
-  /**
-   * Perform the corresponding navigation and selection change in the model.
-   */
+  /** Perform the corresponding navigation and selection change in the model. */
   fun doSelect()
 
-  /**
-   * Export operation to the given outputStream.
-   */
+  /** Export operation to the given outputStream. */
   fun export(outputStream: OutputStream) {}
 
   override fun update(elapsedNs: Long) {}
 
-  /**
-   * Differentiate between parent session artifacts and their respective child artifacts
-   * as both are of type [SessionArtifact].
-   */
+  /** Differentiate between parent session artifacts and their respective child artifacts as both are of type [SessionArtifact]. */
   fun isTopLevelArtifact(): Boolean {
     return this is SessionItem
   }
 
-  /**
-   * Detects whether the artifact was generated using the tracing api.
-   */
+  /** Detects whether the artifact was generated using the tracing api. */
   fun isInitiatedByApi(): Boolean {
     // Only CPU traces can be initialed via api
     return this is CpuCaptureSessionArtifact &&
-           this.artifactProto.hasConfiguration() &&
-           this.artifactProto.configuration.initiationType == Trace.TraceInitiationType.INITIATED_BY_API
+      this.artifactProto.hasConfiguration() &&
+      this.artifactProto.configuration.initiationType == Trace.TraceInitiationType.INITIATED_BY_API
   }
 
   companion object {

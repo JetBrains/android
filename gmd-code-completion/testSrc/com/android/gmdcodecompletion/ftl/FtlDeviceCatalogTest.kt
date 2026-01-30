@@ -51,12 +51,7 @@ class FtlDeviceCatalogTest {
       val mockCloudAuthenticator = mock<CloudAuthenticator>()
       whenever(mockCloudAuthenticator.androidDeviceCatalog).thenReturn(deviceCatalog)
 
-      ApplicationManager.getApplication()
-        .replaceService(
-          CloudAuthenticator::class.java,
-          mockCloudAuthenticator,
-          disposableRule.disposable,
-        )
+      ApplicationManager.getApplication().replaceService(CloudAuthenticator::class.java, mockCloudAuthenticator, disposableRule.disposable)
       try {
         testCallback()
       } catch (e: Exception) {
@@ -87,10 +82,7 @@ class FtlDeviceCatalogTest {
   @Test
   fun testNullModelsInAndroidDeviceCatalog() {
     val testAndroidDeviceCatalog = AndroidDeviceCatalog().setVersions(listOf(AndroidVersion()))
-    ftlDeviceCatalogTestHelper(
-      testAndroidDeviceCatalog,
-      "FtlDeviceCatalog fails to handle null AndroidModel in AndroidDeviceCatalog",
-    ) {
+    ftlDeviceCatalogTestHelper(testAndroidDeviceCatalog, "FtlDeviceCatalog fails to handle null AndroidModel in AndroidDeviceCatalog") {
       val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
       assertTrue(testFtlDeviceCatalog.isEmptyCatalog)
     }
@@ -100,10 +92,7 @@ class FtlDeviceCatalogTest {
   fun testEmptyAndroidModelId() {
     val emptyModelId = AndroidModel().setSupportedVersionIds(listOf("33"))
     val emptyModelIdDeviceCatalog = AndroidDeviceCatalog().setModels(listOf(emptyModelId))
-    ftlDeviceCatalogTestHelper(
-      emptyModelIdDeviceCatalog,
-      "FtlDeviceCatalog fails to handle null model id AndroidModel",
-    ) {
+    ftlDeviceCatalogTestHelper(emptyModelIdDeviceCatalog, "FtlDeviceCatalog fails to handle null model id AndroidModel") {
       val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
       assertTrue(testFtlDeviceCatalog.devices.isEmpty())
       assertTrue(testFtlDeviceCatalog.isEmptyCatalog)
@@ -114,10 +103,7 @@ class FtlDeviceCatalogTest {
   fun testEmptyAndroidModelVersionId() {
     val emptyVersionId = AndroidModel().setId("test")
     val emptyVersionIdDeviceCatalog = AndroidDeviceCatalog().setModels(listOf(emptyVersionId))
-    ftlDeviceCatalogTestHelper(
-      emptyVersionIdDeviceCatalog,
-      "FtlDeviceCatalog fails to handle null supported version id in AndroidModel",
-    ) {
+    ftlDeviceCatalogTestHelper(emptyVersionIdDeviceCatalog, "FtlDeviceCatalog fails to handle null supported version id in AndroidModel") {
       val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
       assertTrue(testFtlDeviceCatalog.devices.isEmpty())
       assertTrue(testFtlDeviceCatalog.isEmptyCatalog)
@@ -128,10 +114,7 @@ class FtlDeviceCatalogTest {
   fun testEmptyApiLevelAndroidDeviceCatalog() {
     val testAndroidVersion = AndroidVersion()
     val testAndroidDeviceCatalog = AndroidDeviceCatalog().setVersions(listOf(testAndroidVersion))
-    ftlDeviceCatalogTestHelper(
-      testAndroidDeviceCatalog,
-      "FtlDeviceCatalog fails to handle empty AndroidVersion",
-    ) {
+    ftlDeviceCatalogTestHelper(testAndroidDeviceCatalog, "FtlDeviceCatalog fails to handle empty AndroidVersion") {
       val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
       assertTrue(testFtlDeviceCatalog.apiLevels.isEmpty())
       assertTrue(testFtlDeviceCatalog.isEmptyCatalog)
@@ -141,12 +124,8 @@ class FtlDeviceCatalogTest {
   @Test
   fun testEmptyAndroidRuntimeConfiguration() {
     val testRunConfiguration = AndroidRuntimeConfiguration()
-    val testAndroidDeviceCatalog =
-      AndroidDeviceCatalog().setRuntimeConfiguration(testRunConfiguration)
-    ftlDeviceCatalogTestHelper(
-      testAndroidDeviceCatalog,
-      "FtlDeviceCatalog fails to handle empty AndroidRuntimeConfiguration",
-    ) {
+    val testAndroidDeviceCatalog = AndroidDeviceCatalog().setRuntimeConfiguration(testRunConfiguration)
+    ftlDeviceCatalogTestHelper(testAndroidDeviceCatalog, "FtlDeviceCatalog fails to handle empty AndroidRuntimeConfiguration") {
       val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
       assertTrue(testFtlDeviceCatalog.orientation.isEmpty())
       assertTrue(testFtlDeviceCatalog.locale.isEmpty())
@@ -157,8 +136,7 @@ class FtlDeviceCatalogTest {
   @Test
   fun testEmptyOrientation() {
     val testRunConfiguration = AndroidRuntimeConfiguration().setOrientations(listOf(Orientation()))
-    val testAndroidDeviceCatalog =
-      AndroidDeviceCatalog().setRuntimeConfiguration(testRunConfiguration)
+    val testAndroidDeviceCatalog = AndroidDeviceCatalog().setRuntimeConfiguration(testRunConfiguration)
     ftlDeviceCatalogTestHelper(
       testAndroidDeviceCatalog,
       "FtlDeviceCatalog fails to handle empty Orientation in AndroidRuntimeConfiguration",
@@ -172,12 +150,8 @@ class FtlDeviceCatalogTest {
   @Test
   fun testEmptyLocale() {
     val testRunConfiguration = AndroidRuntimeConfiguration().setLocales(listOf(Locale()))
-    val testAndroidDeviceCatalog =
-      AndroidDeviceCatalog().setRuntimeConfiguration(testRunConfiguration)
-    ftlDeviceCatalogTestHelper(
-      testAndroidDeviceCatalog,
-      "FtlDeviceCatalog fails to handle empty Locale in AndroidRuntimeConfiguration",
-    ) {
+    val testAndroidDeviceCatalog = AndroidDeviceCatalog().setRuntimeConfiguration(testRunConfiguration)
+    ftlDeviceCatalogTestHelper(testAndroidDeviceCatalog, "FtlDeviceCatalog fails to handle empty Locale in AndroidRuntimeConfiguration") {
       val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
       assertTrue(testFtlDeviceCatalog.locale.isEmpty())
       assertTrue(testFtlDeviceCatalog.isEmptyCatalog)
@@ -198,10 +172,7 @@ class FtlDeviceCatalogTest {
 
   @Test
   fun testSyncFtlDeviceCatalogFailed() {
-    ftlDeviceCatalogTestHelper(
-      null,
-      "FtlDeviceCatalog fails to handle null AndroidDeviceCatalog from CloudAuthenticator",
-    ) {
+    ftlDeviceCatalogTestHelper(null, "FtlDeviceCatalog fails to handle null AndroidDeviceCatalog from CloudAuthenticator") {
       val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
       assertTrue(testFtlDeviceCatalog.isEmptyCatalog)
     }

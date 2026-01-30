@@ -51,9 +51,8 @@ import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
 
 /**
- * List of the definitions of reference devices in `Device.kt` in the `ui-tooling` library. The
- * devices do not have a consistent device id used in their definitions so this patches the device
- * id so it shows correctly in our metrics.
+ * List of the definitions of reference devices in `Device.kt` in the `ui-tooling` library. The devices do not have a consistent device id
+ * used in their definitions so this patches the device id so it shows correctly in our metrics.
  *
  * Remember to update the keys in case Devices.kt is changes in future versions
  */
@@ -66,16 +65,12 @@ val referenceDeviceIds =
   )
 
 /**
- * Defines some hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using
- * [DeviceConfig.toDeviceConfigOrNull].
+ * Defines some hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using [DeviceConfig.toDeviceConfigOrNull].
  *
  * @param deviceId The device ID if any.
- * @param dimUnit Determines the unit of the given [width] and [height]. Ie: For [DimUnit.px] they
- *   will be considered as pixels.
- * @param shape Shape of the device screen, may affect how the screen behaves, or it may add a
- *   cutout (like with wearables).
- * @param chinSize For round devices only, defines the height of the flat surface on a screen,
- *   measured from the bottom.
+ * @param dimUnit Determines the unit of the given [width] and [height]. Ie: For [DimUnit.px] they will be considered as pixels.
+ * @param shape Shape of the device screen, may affect how the screen behaves, or it may add a cutout (like with wearables).
+ * @param chinSize For round devices only, defines the height of the flat surface on a screen, measured from the bottom.
  * @param parentDeviceId ID of the parent device used as template for this configuration.
  */
 open class DeviceConfig(
@@ -130,11 +125,7 @@ open class DeviceConfig(
           return referenceString
         }
     }
-    if (
-      parentDeviceId != null &&
-        orientation == getDeviceDefaultOrientation() &&
-        navigation == DEFAULT_NAVIGATION
-    ) {
+    if (parentDeviceId != null && orientation == getDeviceDefaultOrientation() && navigation == DEFAULT_NAVIGATION) {
       // If the spec value has a parent but none of orientation and navigation are different from
       // default value, return id:<device-id>
       return "$DEVICE_BY_ID_PREFIX$parentDeviceId"
@@ -181,8 +172,8 @@ open class DeviceConfig(
   }
 
   /**
-   * Adds the Orientation parameter if it's relevant. That means, that the orientation value doesn't
-   * match the implicit orientation from the width and height.
+   * Adds the Orientation parameter if it's relevant. That means, that the orientation value doesn't match the implicit orientation from the
+   * width and height.
    */
   private fun StringBuilder.addOrientationIfNeeded() {
     if (orientation != getDeviceDefaultOrientation()) {
@@ -199,19 +190,7 @@ open class DeviceConfig(
   }
 
   override fun hashCode(): Int {
-    return Objects.hashCode(
-      width,
-      height,
-      dpi,
-      shape,
-      dimUnit,
-      chinSize,
-      isRound,
-      orientation,
-      cutout,
-      navigation,
-      parentDeviceId,
-    )
+    return Objects.hashCode(width, height, dpi, shape, dimUnit, chinSize, isRound, orientation, cutout, navigation, parentDeviceId)
   }
 
   private fun getDeviceDefaultOrientation(): Orientation {
@@ -224,30 +203,22 @@ open class DeviceConfig(
 
   companion object {
     /**
-     * Parses [serialized] into a mutable [DeviceConfig] instance. It may specify a custom Device by
-     * its properties, such as Width and Height, or it may specify an existing Device with a slight
-     * modification, in which case, [availableDevices] should not be empty.
+     * Parses [serialized] into a mutable [DeviceConfig] instance. It may specify a custom Device by its properties, such as Width and
+     * Height, or it may specify an existing Device with a slight modification, in which case, [availableDevices] should not be empty.
      *
      * @see [DeviceConfig.deviceSpec]
      */
-    fun toMutableDeviceConfigOrNull(
-      serialized: String?,
-      availableDevices: Collection<Device>,
-    ): MutableDeviceConfig? {
+    fun toMutableDeviceConfigOrNull(serialized: String?, availableDevices: Collection<Device>): MutableDeviceConfig? {
       return toDeviceConfigOrNull(serialized, availableDevices)?.toMutableConfig()
     }
 
     /**
-     * Parses [serialized] into a [DeviceConfig] instance. It may specify a custom Device by its
-     * properties, such as Width and Height, or it may specify an existing Device with a slight
-     * modification, in which case, [availableDevices] should not be empty.
+     * Parses [serialized] into a [DeviceConfig] instance. It may specify a custom Device by its properties, such as Width and Height, or it
+     * may specify an existing Device with a slight modification, in which case, [availableDevices] should not be empty.
      *
      * @see [DeviceConfig.deviceSpec]
      */
-    fun toDeviceConfigOrNull(
-      serialized: String?,
-      availableDevices: Collection<Device>,
-    ): DeviceConfig? {
+    fun toDeviceConfigOrNull(serialized: String?, availableDevices: Collection<Device>): DeviceConfig? {
       if (serialized == null || !serialized.startsWith(DEVICE_BY_SPEC_PREFIX)) return null
       val configString = serialized.substringAfter(DEVICE_BY_SPEC_PREFIX)
       // Find if the given spec belongs to a reference device and if it does, use that as device id.
@@ -258,12 +229,7 @@ open class DeviceConfig(
           configString
             .split(SEPARATOR)
             .filter { it.length >= 3 && it.contains(OPERATOR) }
-            .associate { paramString ->
-              Pair(
-                paramString.substringBefore(OPERATOR).trim(),
-                paramString.substringAfter(OPERATOR).trim(),
-              )
-            }
+            .associate { paramString -> Pair(paramString.substringBefore(OPERATOR).trim(), paramString.substringAfter(OPERATOR).trim()) }
       return parseDeviceSpecLanguage(paramsMap, availableDevices)
     }
 
@@ -271,22 +237,16 @@ open class DeviceConfig(
      * Parse the DeviceSpec as defined by the DeviceSpec Language.
      *
      * There are two supported formats:
-     * - Based on an existing [Device], given by the [PARAMETER_PARENT], with an optional
-     *   [PARAMETER_ORIENTATION].
-     * - Fully custom device, requires at least [PARAMETER_WIDTH] and [PARAMETER_HEIGHT], with all
-     *   other screen related parameters being optional.
+     * - Based on an existing [Device], given by the [PARAMETER_PARENT], with an optional [PARAMETER_ORIENTATION].
+     * - Fully custom device, requires at least [PARAMETER_WIDTH] and [PARAMETER_HEIGHT], with all other screen related parameters being
+     *   optional.
      *
-     * May return null if the required parameters aren't found or if there's an issue parsing any
-     * found parameter.
+     * May return null if the required parameters aren't found or if there's an issue parsing any found parameter.
      *
      * @param params Name-value map of the parameters to parse
-     * @param availableDevices Collection used to find the [Device] referenced by [PARAMETER_PARENT]
-     *   (if it's present)
+     * @param availableDevices Collection used to find the [Device] referenced by [PARAMETER_PARENT] (if it's present)
      */
-    private fun parseDeviceSpecLanguage(
-      params: Map<String, String>,
-      availableDevices: Collection<Device>,
-    ): DeviceConfig? {
+    private fun parseDeviceSpecLanguage(params: Map<String, String>, availableDevices: Collection<Device>): DeviceConfig? {
       val parentId = params[PARAMETER_PARENT]
       if (parentId != null) {
         val matchingDevice = availableDevices.firstOrNull { it.id == parentId } ?: return null
@@ -296,23 +256,18 @@ open class DeviceConfig(
       }
     }
 
-    private fun parseFromExistingDeviceWithDeviceSpecLanguage(
-      device: Device,
-      params: Map<String, String>,
-    ): DeviceConfig? {
+    private fun parseFromExistingDeviceWithDeviceSpecLanguage(device: Device, params: Map<String, String>): DeviceConfig? {
       val initialConfig = device.toDeviceConfig()
       val orientation =
         if (params[PARAMETER_ORIENTATION] != null) {
-          enumValueOfOrNull<Orientation>(params.getOrDefault(PARAMETER_ORIENTATION, ""))
-            ?: return null
+          enumValueOfOrNull<Orientation>(params.getOrDefault(PARAMETER_ORIENTATION, "")) ?: return null
         } else {
           null
         }
 
       val navigation =
         if (params[PARAMETER_NAVIGATION] != null) {
-          enumValueOfOrNull<Navigation>(params.getOrDefault(PARAMETER_NAVIGATION, ""))
-            ?: return null
+          enumValueOfOrNull<Navigation>(params.getOrDefault(PARAMETER_NAVIGATION, "")) ?: return null
         } else {
           null
         }
@@ -337,9 +292,7 @@ open class DeviceConfig(
       if (width.unit != height.unit) {
         // We currently require the units of all dimensions to match
         return null
-      } else if (
-        params[PARAMETER_CHIN_SIZE] != null && (chinSize == null || chinSize.unit != width.unit)
-      ) {
+      } else if (params[PARAMETER_CHIN_SIZE] != null && (chinSize == null || chinSize.unit != width.unit)) {
         // If chinSize is present, but parsing failed (chinSize == null) or it doesn't match the
         // width & height unit
         return null
@@ -373,8 +326,7 @@ open class DeviceConfig(
 
       val orientation =
         if (params[PARAMETER_ORIENTATION] != null) {
-          enumValueOfOrNull<Orientation>(params.getOrDefault(PARAMETER_ORIENTATION, ""))
-            ?: return null
+          enumValueOfOrNull<Orientation>(params.getOrDefault(PARAMETER_ORIENTATION, "")) ?: return null
         } else {
           if (width.value > height.value) {
             Orientation.landscape
@@ -392,8 +344,7 @@ open class DeviceConfig(
 
       val navigation =
         if (params[PARAMETER_NAVIGATION] != null) {
-          enumValueOfOrNull<Navigation>(params.getOrDefault(PARAMETER_NAVIGATION, ""))
-            ?: return null
+          enumValueOfOrNull<Navigation>(params.getOrDefault(PARAMETER_NAVIGATION, "")) ?: return null
         } else {
           DEFAULT_NAVIGATION
         }
@@ -408,8 +359,7 @@ open class DeviceConfig(
         orientation = orientation,
         cutout = cutout,
         navigation = navigation,
-        parentDeviceId =
-          null, // Not supported when explicitly declaring width, height, dpi, chinSize
+        parentDeviceId = null, // Not supported when explicitly declaring width, height, dpi, chinSize
       )
     }
   }
@@ -418,8 +368,7 @@ open class DeviceConfig(
 /**
  * Mutable equivalent of [DeviceConfig].
  *
- * Note that modifying [MutableDeviceConfig.dimUnit] or [MutableDeviceConfig.orientation] will also
- * change the width and height values.
+ * Note that modifying [MutableDeviceConfig.dimUnit] or [MutableDeviceConfig.orientation] will also change the width and height values.
  */
 class MutableDeviceConfig(
   id: String = "",
@@ -460,10 +409,7 @@ class MutableDeviceConfig(
   /** Changes to this property nullifies [parentDeviceId]. */
   override var cutout: Cutout by invalidateIdOnPropertyChangeDelegate(initialCutout)
 
-  /**
-   * Defines the unit in which [width] and [height] should be considered. Modifying this property
-   * also changes [width] and [height].
-   */
+  /** Defines the unit in which [width] and [height] should be considered. Modifying this property also changes [width] and [height]. */
   override var dimUnit: DimUnit = initialDimUnit
     set(newValue) {
       if (newValue != field) {
@@ -484,10 +430,7 @@ class MutableDeviceConfig(
 
   override var navigation: Navigation = initialNavigation
 
-  /**
-   * Returns a property delegate that nullifies the [parentDeviceId] whenever the property sees a
-   * different value.
-   */
+  /** Returns a property delegate that nullifies the [parentDeviceId] whenever the property sees a different value. */
   private fun <T> invalidateIdOnPropertyChangeDelegate(initialValue: T) =
     object : ObservableProperty<T>(initialValue) {
       override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) {
@@ -538,8 +481,7 @@ private fun parseAndroidNumberOrNull(text: String?): AndroidDimension? {
   return AndroidDimension(value = value, unit = dimUnit)
 }
 
-private fun StringBuilder.appendParamValue(parameterName: String, value: String): StringBuilder =
-  append("$parameterName$OPERATOR$value")
+private fun StringBuilder.appendParamValue(parameterName: String, value: String): StringBuilder = append("$parameterName$OPERATOR$value")
 
 private fun StringBuilder.appendSeparator(): StringBuilder = append(SEPARATOR)
 

@@ -21,8 +21,9 @@ import java.io.Serializable
 
 data class AdditionalClassifierArtifactsModelImpl(
   private val artifacts: Collection<AdditionalClassifierArtifacts>,
-  private val message: String?
+  private val message: String?,
 ) : AdditionalClassifierArtifactsModel, Serializable {
   override fun getArtifacts() = artifacts
+
   override fun getErrorMessage() = message
 }

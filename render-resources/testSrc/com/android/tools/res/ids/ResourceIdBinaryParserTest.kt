@@ -36,10 +36,7 @@ class ResourceIdBinaryParserTest {
                   ResourceClass.Field.IntArray(
                     name = "Styleable1",
                     isStatic = true,
-                    value =
-                      listOf(
-                        ResourceClass.Field.Int(name = "[0]", isStatic = false, value = 0x7f030001)
-                      ),
+                    value = listOf(ResourceClass.Field.Int(name = "[0]", isStatic = false, value = 0x7f030001)),
                   ),
                   ResourceClass.Field.IntArray(
                     name = "Styleable2",
@@ -50,11 +47,7 @@ class ResourceIdBinaryParserTest {
                         ResourceClass.Field.Int(name = "[1]", isStatic = false, value = 0x7f030004),
                       ),
                   ),
-                  ResourceClass.Field.IntArray(
-                    name = "Styleable3",
-                    isStatic = true,
-                    value = emptyList(),
-                  ),
+                  ResourceClass.Field.IntArray(name = "Styleable3", isStatic = true, value = emptyList()),
                 ),
             ),
             ResourceClass(
@@ -95,28 +88,28 @@ class ResourceIdBinaryParserTest {
       ResourceClass(
         name = "FakeRClassWithIconsts",
         declaredClasses =
-        listOf(
-          ResourceClass(
-            name = "styleable",
-            declaredFields =
-            listOf(
-              ResourceClass.Field.IntArray(
-                name = "Styleable1",
-                isStatic = true,
-                value =
+          listOf(
+            ResourceClass(
+              name = "styleable",
+              declaredFields =
                 listOf(
-                  ResourceClass.Field.Int(name = "[0]", isStatic = false, value = -1),
-                  ResourceClass.Field.Int(name = "[1]", isStatic = false, value = 0),
-                  ResourceClass.Field.Int(name = "[2]", isStatic = false, value = 1),
-                  ResourceClass.Field.Int(name = "[3]", isStatic = false, value = 2),
-                  ResourceClass.Field.Int(name = "[4]", isStatic = false, value = 3),
-                  ResourceClass.Field.Int(name = "[5]", isStatic = false, value = 4),
-                  ResourceClass.Field.Int(name = "[6]", isStatic = false, value = 5),
+                  ResourceClass.Field.IntArray(
+                    name = "Styleable1",
+                    isStatic = true,
+                    value =
+                      listOf(
+                        ResourceClass.Field.Int(name = "[0]", isStatic = false, value = -1),
+                        ResourceClass.Field.Int(name = "[1]", isStatic = false, value = 0),
+                        ResourceClass.Field.Int(name = "[2]", isStatic = false, value = 1),
+                        ResourceClass.Field.Int(name = "[3]", isStatic = false, value = 2),
+                        ResourceClass.Field.Int(name = "[4]", isStatic = false, value = 3),
+                        ResourceClass.Field.Int(name = "[5]", isStatic = false, value = 4),
+                        ResourceClass.Field.Int(name = "[6]", isStatic = false, value = 5),
+                      ),
+                  )
                 ),
-              ),
-            ),
+            )
           ),
-        )
       )
     assertEquals(testResourceClass, resourceIdClassBinaryParser(FakeRClassWithIconsts::class.java))
   }

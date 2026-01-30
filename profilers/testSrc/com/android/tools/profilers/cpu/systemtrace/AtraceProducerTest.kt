@@ -17,14 +17,15 @@ package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
-import org.junit.Test
 import java.io.FileInputStream
 import java.io.InputStreamReader
+import org.junit.Before
+import org.junit.Test
 
 class AtraceProducerTest {
 
   private lateinit var myProducer: AtraceProducer
+
   @Before
   fun setup() {
     val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
@@ -50,8 +51,7 @@ class AtraceProducerTest {
       // 1023 characters are expected + 1 for the \n. This is needed to prevent a bug in trebuchet
       // see (b/77846431)
       assertThat(slice.endIndex - slice.startIndex).isLessThan(1023 + 1)
-    }
-    while (i != lines.size)
+    } while (i != lines.size)
   }
 
   @Test
@@ -84,8 +84,7 @@ class AtraceProducerTest {
     do {
       // Read each line until we hit the end of stream.
       val line = myProducer.nextLine
-    }
-    while (line != null)
+    } while (line != null)
     // Validate that next returns null to indicate end of stream.
     assertThat(myProducer.next()).isNull()
   }
@@ -98,24 +97,24 @@ class AtraceProducerTest {
     do {
       // Read each line until we hit the end of stream.
       val line = producer.nextLine
-    }
-    while (line != null)
+    } while (line != null)
   }
 
   // Adding a kotlin property fopr AtraceProducer to assist with iterating lines.
   val AtraceProducer.lines: Iterator<String>
-    get() = object : Iterator<String> {
-      var line = this@lines.nextLine
-      override fun next(): String {
-        if (line == null)
-          throw NoSuchElementException()
-        val result = line!!
-        line = this@lines.nextLine
-        return result
-      }
+    get() =
+      object : Iterator<String> {
+        var line = this@lines.nextLine
 
-      override fun hasNext() = line != null
-    }
+        override fun next(): String {
+          if (line == null) throw NoSuchElementException()
+          val result = line!!
+          line = this@lines.nextLine
+          return result
+        }
+
+        override fun hasNext() = line != null
+      }
 
   companion object {
     // Setting const for atrace file in one location so if we update file we can update const in one location.

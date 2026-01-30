@@ -32,10 +32,7 @@ class ZoomActualAction private constructor() : SetZoomAction(ZoomType.ACTUAL) {
       return ActionManager.getInstance().getAction("Adtui.ZoomToActualAction") as ZoomActualAction
     }
 
-    /**
-     * Create [ZoomActualAction] instance if the test environment doesn't load adt-ui.xml. Do not
-     * use this function in production code.
-     */
+    /** Create [ZoomActualAction] instance if the test environment doesn't load adt-ui.xml. Do not use this function in production code. */
     @TestOnly @JvmStatic fun createInstance(): ZoomActualAction = ZoomActualAction()
   }
 }

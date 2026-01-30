@@ -28,12 +28,7 @@ class InstructionsRendererTest {
     // Fake a list of instructions.
     // Row height should be 100, and total size should be {150, 210}
     val instructions =
-      Arrays.asList(
-        FakeRenderInstructions(100, 100),
-        FakeRenderInstructions(50, 90),
-        NewRowInstruction(10),
-        FakeRenderInstructions(50, 70),
-      )
+      Arrays.asList(FakeRenderInstructions(100, 100), FakeRenderInstructions(50, 90), NewRowInstruction(10), FakeRenderInstructions(50, 70))
 
     val context = InstructionsRenderer(instructions, InstructionsRenderer.HorizontalAlignment.LEFT)
 
@@ -45,12 +40,7 @@ class InstructionsRendererTest {
   fun testLeftAlignStartX() {
     // Fake a list of instructions.
     val instructions =
-      Arrays.asList(
-        FakeRenderInstructions(100, 100),
-        FakeRenderInstructions(50, 90),
-        NewRowInstruction(10),
-        FakeRenderInstructions(50, 70),
-      )
+      Arrays.asList(FakeRenderInstructions(100, 100), FakeRenderInstructions(50, 90), NewRowInstruction(10), FakeRenderInstructions(50, 70))
 
     val context = InstructionsRenderer(instructions, InstructionsRenderer.HorizontalAlignment.LEFT)
 
@@ -66,15 +56,9 @@ class InstructionsRendererTest {
   fun testCenterAlignStartX() {
     // Fake a list of instructions.
     val instructions =
-      Arrays.asList(
-        FakeRenderInstructions(100, 100),
-        FakeRenderInstructions(50, 90),
-        NewRowInstruction(10),
-        FakeRenderInstructions(50, 70),
-      )
+      Arrays.asList(FakeRenderInstructions(100, 100), FakeRenderInstructions(50, 90), NewRowInstruction(10), FakeRenderInstructions(50, 70))
 
-    val context =
-      InstructionsRenderer(instructions, InstructionsRenderer.HorizontalAlignment.CENTER)
+    val context = InstructionsRenderer(instructions, InstructionsRenderer.HorizontalAlignment.CENTER)
 
     // Start X for an invalid row should be zero.
     Truth.assertThat(context.getStartX(50)).isEqualTo(0)
@@ -88,12 +72,7 @@ class InstructionsRendererTest {
   fun testRightAlignStartX() {
     // Fake a list of instructions.
     val instructions =
-      Arrays.asList(
-        FakeRenderInstructions(100, 100),
-        FakeRenderInstructions(50, 90),
-        NewRowInstruction(10),
-        FakeRenderInstructions(50, 70),
-      )
+      Arrays.asList(FakeRenderInstructions(100, 100), FakeRenderInstructions(50, 90), NewRowInstruction(10), FakeRenderInstructions(50, 70))
 
     val context = InstructionsRenderer(instructions, InstructionsRenderer.HorizontalAlignment.RIGHT)
 
@@ -105,8 +84,7 @@ class InstructionsRendererTest {
     Truth.assertThat(context.getStartX(110)).isEqualTo(100)
   }
 
-  private class FakeRenderInstructions(private val myWidth: Int, private val myHeight: Int) :
-    RenderInstruction() {
+  private class FakeRenderInstructions(private val myWidth: Int, private val myHeight: Int) : RenderInstruction() {
 
     override fun getSize(): Dimension {
       return Dimension(myWidth, myHeight)

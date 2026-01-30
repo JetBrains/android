@@ -66,20 +66,16 @@ object AndroidXmlResourcesUtil {
   fun getPossibleRoots(facet: AndroidFacet): List<String> {
     val module = facet.module
     val javaPsiFacade = JavaPsiFacade.getInstance(module.project)
-    fun JavaPsiFacade.hasClass(className: String) =
-      findClass(className, module.moduleWithLibrariesScope) != null
+    fun JavaPsiFacade.hasClass(className: String) = findClass(className, module.moduleWithLibrariesScope) != null
 
     val preferenceSource =
       when {
-        javaPsiFacade.hasClass(PreferenceSource.ANDROIDX.qualifiedBaseClass) ->
-          PreferenceSource.ANDROIDX
-        javaPsiFacade.hasClass(PreferenceSource.SUPPORT.qualifiedBaseClass) ->
-          PreferenceSource.SUPPORT
+        javaPsiFacade.hasClass(PreferenceSource.ANDROIDX.qualifiedBaseClass) -> PreferenceSource.ANDROIDX
+        javaPsiFacade.hasClass(PreferenceSource.SUPPORT.qualifiedBaseClass) -> PreferenceSource.SUPPORT
         else -> PreferenceSource.FRAMEWORK
       }
 
-    val classMap =
-      TagToClassMapper.getInstance(module).getClassMap(preferenceSource.qualifiedBaseClass)
+    val classMap = TagToClassMapper.getInstance(module).getClassMap(preferenceSource.qualifiedBaseClass)
 
     return buildList {
       addAll(AndroidDomUtil.removeUnambiguousNames(classMap))
@@ -94,14 +90,8 @@ object AndroidXmlResourcesUtil {
   }
 
   enum class PreferenceSource(val qualifiedBaseClass: String, val qualifiedGroupClass: String) {
-    ANDROIDX(
-      PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX.newName(),
-      PreferenceAndroidX.CLASS_PREFERENCE_GROUP_ANDROIDX.newName(),
-    ),
-    SUPPORT(
-      PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX.oldName(),
-      PreferenceAndroidX.CLASS_PREFERENCE_GROUP_ANDROIDX.oldName(),
-    ),
+    ANDROIDX(PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX.newName(), PreferenceAndroidX.CLASS_PREFERENCE_GROUP_ANDROIDX.newName()),
+    SUPPORT(PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX.oldName(), PreferenceAndroidX.CLASS_PREFERENCE_GROUP_ANDROIDX.oldName()),
     FRAMEWORK(PreferenceClasses.CLASS_PREFERENCE, PreferenceClasses.CLASS_PREFERENCE_GROUP);
 
     companion object {
@@ -112,10 +102,7 @@ object AndroidXmlResourcesUtil {
         val rootTagName = rootTag.name
         if (rootTagName.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX)) return ANDROIDX
 
-        if (
-          rootTagName.startsWith("android.support.v") &&
-            StringUtil.getPackageName(rootTagName).endsWith("preference")
-        ) {
+        if (rootTagName.startsWith("android.support.v") && StringUtil.getPackageName(rootTagName).endsWith("preference")) {
           return SUPPORT
         }
 

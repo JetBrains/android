@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 package com.android.tools.profilers
-/**
- * Interface to be implemented by stages used for tasks.
- */
+/** Interface to be implemented by stages used for tasks. */
 interface TaskStage

@@ -21,15 +21,15 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.intellij.openapi.module.Module
 import java.io.File
 
-class NdkSymbolSource(module: Module): ModuleSymbolSource(module) {
+class NdkSymbolSource(module: Module) : ModuleSymbolSource(module) {
   override fun getDirsFor(abi: Abi, module: Module): Collection<File> {
     val ndkFacet = NdkFacet.getInstance(module) ?: return emptySet()
     val ndkModuleModel = NdkModuleModel.get(module) ?: return emptySet()
     val selectedAbi = ndkFacet.selectedVariantAbi ?: return emptySet()
 
     return ndkModuleModel.symbolFolders
-        .filter { it.key.abi == abi.toString() && it.key.variant == selectedAbi.variant}
-        .flatMapTo(mutableSetOf()) { it.value }
+      .filter { it.key.abi == abi.toString() && it.key.variant == selectedAbi.variant }
+      .flatMapTo(mutableSetOf()) { it.value }
   }
 }
 

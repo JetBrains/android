@@ -19,7 +19,6 @@ import com.android.tools.compose.debug.render.ComposeStateObjectClassRenderer.Co
 import com.intellij.debugger.DebuggerContext
 import com.intellij.debugger.engine.DebugProcess
 import com.intellij.debugger.engine.DebugProcessImpl
-import org.jetbrains.kotlin.idea.debugger.core.isInKotlinSources
 import com.intellij.debugger.engine.evaluation.CodeFragmentKind
 import com.intellij.debugger.engine.evaluation.EvaluateException
 import com.intellij.debugger.engine.evaluation.EvaluateExceptionUtil
@@ -49,27 +48,24 @@ import com.sun.jdi.Type
 import com.sun.jdi.Value
 import java.util.concurrent.CompletableFuture
 import org.jetbrains.kotlin.idea.debugger.KotlinClassRenderer
+import org.jetbrains.kotlin.idea.debugger.core.isInKotlinSources
 
 /**
  * Renderer for a given compose `StateObject` type object.
  *
- * Basically, for a given compose state object, its underlying value (by invoking
- * [DEBUGGER_DISPLAY_VALUE_METHOD_NAME]) determines how it's rendered in the "Variables" pane. This
- * is to provide an auto-unboxing experience while debugging, that users can identify the data by a
+ * Basically, for a given compose state object, its underlying value (by invoking [DEBUGGER_DISPLAY_VALUE_METHOD_NAME]) determines how it's
+ * rendered in the "Variables" pane. This is to provide an auto-unboxing experience while debugging, that users can identify the data by a
  * glance at this more readable data view.
  *
  * E.g.
  * 1) if the underlying value is an integer `1`, the label is rendered `1`.
- * 2) if the underlying value is a list, then the given object is rendered by a `List` renderer
- *    instead of the original `Kotlin class` renderer. That is, "size = xx" is the label, and the
- *    `ArrayRenderer` is the children renderer in this case.
- * 3) if the underlying value is a map, then the given object is rendered by a `Map` renderer
- *    instead of the original `Kotlin class` renderer. That is, "size = xx" is the label, and the
- *    `ArrayRenderer` is the children renderer in this case. When expanding, each of the entry is
- *    rendered by the `Map.Entry` renderer.
+ * 2) if the underlying value is a list, then the given object is rendered by a `List` renderer instead of the original `Kotlin class`
+ *    renderer. That is, "size = xx" is the label, and the `ArrayRenderer` is the children renderer in this case.
+ * 3) if the underlying value is a map, then the given object is rendered by a `Map` renderer instead of the original `Kotlin class`
+ *    renderer. That is, "size = xx" is the label, and the `ArrayRenderer` is the children renderer in this case. When expanding, each of
+ *    the entry is rendered by the `Map.Entry` renderer.
  *
- * @param fqcn the fully qualified class name of the Compose State Object to apply this custom
- *   renderer to.
+ * @param fqcn the fully qualified class name of the Compose State Object to apply this custom renderer to.
  */
 class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer() {
   // We fallback to [KotlinClassRenderer] when the following exception is thrown:
@@ -88,8 +84,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
 
   init {
     setIsApplicableChecker { type: Type? ->
-      if (type !is ClassType || !type.isInKotlinSources())
-        return@setIsApplicableChecker CompletableFuture.completedFuture(false)
+      if (type !is ClassType || !type.isInKotlinSources()) return@setIsApplicableChecker CompletableFuture.completedFuture(false)
 
       DebuggerUtilsAsync.instanceOf(type, fqcn)
     }
@@ -104,11 +99,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
     private const val DEBUGGER_DISPLAY_VALUE_METHOD_NAME = "getDebuggerDisplayValue"
   }
 
-  override fun buildChildren(
-    value: Value,
-    builder: ChildrenBuilder,
-    evaluationContext: EvaluationContext,
-  ) {
+  override fun buildChildren(value: Value, builder: ChildrenBuilder, evaluationContext: EvaluationContext) {
     val debuggerDisplayValueDescriptor =
       try {
         getDebuggerDisplayValueDescriptor(value, evaluationContext, null)
@@ -120,20 +111,14 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
         throw evaluateException
       }
 
-    getDelegatedRendererAsync(evaluationContext.debugProcess, debuggerDisplayValueDescriptor)
-      .thenAccept { renderer ->
-        builder.parentDescriptor.putUserData(NODE_RENDERER_KEY, renderer)
-        renderer.buildChildren(debuggerDisplayValueDescriptor.value, builder, evaluationContext)
-      }
+    getDelegatedRendererAsync(evaluationContext.debugProcess, debuggerDisplayValueDescriptor).thenAccept { renderer ->
+      builder.parentDescriptor.putUserData(NODE_RENDERER_KEY, renderer)
+      renderer.buildChildren(debuggerDisplayValueDescriptor.value, builder, evaluationContext)
+    }
   }
 
-  override fun getChildValueExpression(
-    node: DebuggerTreeNode,
-    context: DebuggerContext,
-  ): PsiElement? {
-    return node.parent.descriptor
-      .getUserData(NODE_RENDERER_KEY)
-      ?.getChildValueExpression(node, context)
+  override fun getChildValueExpression(node: DebuggerTreeNode, context: DebuggerContext): PsiElement? {
+    return node.parent.descriptor.getUserData(NODE_RENDERER_KEY)?.getChildValueExpression(node, context)
   }
 
   override fun isExpandableAsync(
@@ -152,20 +137,14 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
         return CompletableFuture.failedFuture(evaluateException)
       }
 
-    return getDelegatedRendererAsync(evaluationContext.debugProcess, debuggerDisplayValueDescriptor)
-      .thenCompose { renderer ->
-        renderer.isExpandableAsync(
-          debuggerDisplayValueDescriptor.value,
-          evaluationContext,
-          debuggerDisplayValueDescriptor,
-        )
-      }
+    return getDelegatedRendererAsync(evaluationContext.debugProcess, debuggerDisplayValueDescriptor).thenCompose { renderer ->
+      renderer.isExpandableAsync(debuggerDisplayValueDescriptor.value, evaluationContext, debuggerDisplayValueDescriptor)
+    }
   }
 
   /**
-   * Returns a [ValueDescriptor] for the underlying "debugger display value", which is evaluated by
-   * invoking the [DEBUGGER_DISPLAY_VALUE_METHOD_NAME] method of the Compose `StateObject` type
-   * object: [value].
+   * Returns a [ValueDescriptor] for the underlying "debugger display value", which is evaluated by invoking the
+   * [DEBUGGER_DISPLAY_VALUE_METHOD_NAME] method of the Compose `StateObject` type object: [value].
    */
   private fun getDebuggerDisplayValueDescriptor(
     value: Value,
@@ -177,14 +156,12 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
     if (!debugProcess.isAttached) throw EvaluateExceptionUtil.PROCESS_EXITED
 
     val thisEvaluationContext = evaluationContext.createEvaluationContext(value)
-    val debuggerDisplayValue =
-      debuggerDisplayValueEvaluator.evaluate(debugProcess.project, thisEvaluationContext)
+    val debuggerDisplayValue = debuggerDisplayValueEvaluator.evaluate(debugProcess.project, thisEvaluationContext)
 
     return object : ValueDescriptorImpl(evaluationContext.project, debuggerDisplayValue) {
       override fun getDescriptorEvaluation(context: DebuggerContext): PsiExpression? = null
 
-      override fun calcValue(evaluationContext: EvaluationContextImpl?): Value =
-        debuggerDisplayValue
+      override fun calcValue(evaluationContext: EvaluationContextImpl?): Value = debuggerDisplayValue
 
       override fun calcValueName(): String = "value"
 
@@ -195,18 +172,13 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
   }
 
   /**
-   * Return an ID of this renderer class, used by the IntelliJ platform to identify our renderer
-   * among all active renderers in the system.
+   * Return an ID of this renderer class, used by the IntelliJ platform to identify our renderer among all active renderers in the system.
    */
   override fun getUniqueId(): String {
     return fqcn
   }
 
-  override fun calcLabel(
-    descriptor: ValueDescriptor,
-    evaluationContext: EvaluationContext,
-    listener: DescriptorLabelListener,
-  ): String {
+  override fun calcLabel(descriptor: ValueDescriptor, evaluationContext: EvaluationContext, listener: DescriptorLabelListener): String {
     val debuggerDisplayValueDescriptor: ValueDescriptor =
       try {
         getDebuggerDisplayValueDescriptor(descriptor.value, evaluationContext, descriptor)
@@ -218,8 +190,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
         throw evaluateException
       }
 
-    val renderer =
-      getDelegatedRendererAsync(evaluationContext.debugProcess, debuggerDisplayValueDescriptor)
+    val renderer = getDelegatedRendererAsync(evaluationContext.debugProcess, debuggerDisplayValueDescriptor)
     return calcLabelAsync(renderer, debuggerDisplayValueDescriptor, evaluationContext, listener)
       .getNow(XDebuggerUIConstants.getCollectingDataMessage())
   }
@@ -244,37 +215,24 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
     }
   }
 
-  /**
-   * Returns a [CompletableFuture] of the first applicable renderer for the given [valueDescriptor].
-   */
-  private fun getDelegatedRendererAsync(
-    debugProcess: DebugProcess,
-    valueDescriptor: ValueDescriptor,
-  ): CompletableFuture<NodeRenderer> {
+  /** Returns a [CompletableFuture] of the first applicable renderer for the given [valueDescriptor]. */
+  private fun getDelegatedRendererAsync(debugProcess: DebugProcess, valueDescriptor: ValueDescriptor): CompletableFuture<NodeRenderer> {
     val type = valueDescriptor.type
-    return DebuggerUtilsImpl.getApplicableRenderers(prioritizedCollectionRenderers, type)
-      .thenCompose { renderers ->
-        // Return any applicable renderer of [prioritizedCollectionRenderers]. This is to
-        // de-prioritize `Kotlin class` renderer.
-        // Or fallback to the default renderer.
-        val found =
-          renderers.firstOrNull()
-          ?: return@thenCompose (debugProcess as DebugProcessImpl).getAutoRendererAsync(type)
+    return DebuggerUtilsImpl.getApplicableRenderers(prioritizedCollectionRenderers, type).thenCompose { renderers ->
+      // Return any applicable renderer of [prioritizedCollectionRenderers]. This is to
+      // de-prioritize `Kotlin class` renderer.
+      // Or fallback to the default renderer.
+      val found = renderers.firstOrNull() ?: return@thenCompose (debugProcess as DebugProcessImpl).getAutoRendererAsync(type)
 
-        CompletableFuture.completedFuture(found)
-      }
+      CompletableFuture.completedFuture(found)
+    }
   }
 
   /** [CachedEvaluator] used to invoke the [DEBUGGER_DISPLAY_VALUE_METHOD_NAME] method. */
   private class DebuggerDisplayValueEvaluator(private val fqcn: String) : CachedEvaluator() {
     init {
       referenceExpression =
-        TextWithImportsImpl(
-          CodeFragmentKind.EXPRESSION,
-          "this.$DEBUGGER_DISPLAY_VALUE_METHOD_NAME()",
-          "",
-          JavaFileType.INSTANCE,
-        )
+        TextWithImportsImpl(CodeFragmentKind.EXPRESSION, "this.$DEBUGGER_DISPLAY_VALUE_METHOD_NAME()", "", JavaFileType.INSTANCE)
     }
 
     override fun getClassName(): String {

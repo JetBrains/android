@@ -27,5 +27,4 @@ internal fun transformPluginData(pluginData: PluginData): BuildAnalysisResultsMe
 internal fun transformPluginType(pluginType: PluginData.PluginType): BuildAnalysisResultsMessage.PluginData.PluginType =
   PairEnumFinder.aToB(pluginType)
 
-internal fun constructPluginType(type: BuildAnalysisResultsMessage.PluginData.PluginType): PluginData.PluginType =
-  PairEnumFinder.bToA(type)
+internal fun constructPluginType(type: BuildAnalysisResultsMessage.PluginData.PluginType): PluginData.PluginType = PairEnumFinder.bToA(type)

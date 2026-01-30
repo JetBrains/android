@@ -37,7 +37,7 @@ fun TaskPastRecordingsTab(pastRecordingsTabModel: PastRecordingsTabModel, idePro
   Column(
     modifier = Modifier.fillMaxWidth().fillMaxHeight(),
     verticalArrangement = Arrangement.Center,
-    horizontalAlignment = Alignment.CenterHorizontally
+    horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     val recordingListModel = pastRecordingsTabModel.recordingListModel
     val isBannerClosed by pastRecordingsTabModel.isBannerClosed.collectAsState()
@@ -50,6 +50,5 @@ fun TaskPastRecordingsTab(pastRecordingsTabModel: PastRecordingsTabModel, idePro
   }
 }
 
-class TaskPastRecordingsTabComponent(pastRecordingsTabModel: PastRecordingsTabModel,
-                                     ideProfilerComponents: IdeProfilerComponents) : TaskTabComponent(
-  { TaskPastRecordingsTab(pastRecordingsTabModel, ideProfilerComponents) })
+class TaskPastRecordingsTabComponent(pastRecordingsTabModel: PastRecordingsTabModel, ideProfilerComponents: IdeProfilerComponents) :
+  TaskTabComponent({ TaskPastRecordingsTab(pastRecordingsTabModel, ideProfilerComponents) })

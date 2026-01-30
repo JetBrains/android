@@ -19,22 +19,16 @@ private const val REPLACE_SWITCH_WITH_IF = "Replace 'switch' with 'if'"
 
 @RunWith(JUnit4::class)
 class AndroidIntentionsTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   private val fixture by lazy {
-    projectRule.fixture.apply {
-      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
-    }
+    projectRule.fixture.apply { testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString() }
   }
   private val facet by lazy { requireNotNull(fixture.module.androidFacet) }
 
   @Before
   fun setUp() {
-    fixture.copyFileToProject(
-      SdkConstants.FN_ANDROID_MANIFEST_XML,
-      SdkConstants.FN_ANDROID_MANIFEST_XML,
-    )
+    fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML)
     fixture.addFileToProject(
       "res/values/drawables.xml",
       // language=XML
@@ -115,8 +109,7 @@ class AndroidIntentionsTest {
         fixture.launchAction(quickFix)
         fixture.checkResultByFile("$BASE_PATH/$afterFileName")
       }
-    }
-    else {
+    } else {
       assertThat(quickFix).isNull()
     }
   }

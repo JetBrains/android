@@ -42,16 +42,13 @@ import org.junit.Test
  */
 @RunsInEdt
 class AndroidManifestPlaceholderDomTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
   val project by lazy { projectRule.project }
   val fixture by lazy { projectRule.fixture }
 
   @Before
   fun setup() {
-    projectRule.loadProject(TestProjectPaths.BASIC) { root ->
-    modifyGradleFiles(root, "[hostName:\"www.example.com\"]")
-    }
+    projectRule.loadProject(TestProjectPaths.BASIC) { root -> modifyGradleFiles(root, "[hostName:\"www.example.com\"]") }
     fixture.allowTreeAccessForAllFiles()
   }
 
@@ -64,8 +61,7 @@ class AndroidManifestPlaceholderDomTest {
     val virtualFile = project.guessProjectDir()!!.findFileByRelativePath("src/main/AndroidManifest.xml")
     fixture.configureFromExistingVirtualFile(virtualFile!!)
     fixture.moveCaret("<intent-filter>|")
-    fixture.type("\n" +
-                   "<data\n android:host=\"\${}\"\n android:pathPrefix=\"/transfer\"\n android:scheme=\"myapp\" />")
+    fixture.type("\n" + "<data\n android:host=\"\${}\"\n android:pathPrefix=\"/transfer\"\n android:scheme=\"myapp\" />")
     fixture.moveCaret("android:host=\"\${|}\"")
 
     fixture.completeBasic()
@@ -88,8 +84,7 @@ class AndroidManifestPlaceholderDomTest {
     val virtualFile = project.guessProjectDir()!!.findFileByRelativePath("src/main/AndroidManifest.xml")
     fixture.configureFromExistingVirtualFile(virtualFile!!)
     fixture.moveCaret("<intent-filter>|")
-    fixture.type("\n" +
-                   "<data\n android:host=\"\${${data}}\"\n android:pathPrefix=\"/transfer\"\n android:scheme=\"myapp\" />")
+    fixture.type("\n" + "<data\n android:host=\"\${${data}}\"\n android:pathPrefix=\"/transfer\"\n android:scheme=\"myapp\" />")
   }
 
   private fun modifyGradleFiles(root: File, manifestPlaceholderText: String) {
@@ -97,8 +92,6 @@ class AndroidManifestPlaceholderDomTest {
     val text = VfsUtil.loadText(virtualFile)
     val position = Regex("defaultConfig \\{").find(text)!!.range.endExclusive
     val newText = text.substring(0, position) + "\n        manifestPlaceholders = $manifestPlaceholderText" + text.substring(position)
-    runWriteAction {
-      VfsUtil.saveText(virtualFile, newText)
-    }
+    runWriteAction { VfsUtil.saveText(virtualFile, newText) }
   }
 }

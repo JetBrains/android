@@ -42,12 +42,12 @@ class PropertyValueConverterTest {
         SdkConstants.ANDROID_MANIFEST_XML,
         // language=XML
         """
-         <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-           <application>
-             <property android:name="com.google.wear.watchface.format.version" android:value="" />
-           </application>
-         </manifest>
-       """
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+          <application>
+            <property android:name="com.google.wear.watchface.format.version" android:value="" />
+          </application>
+        </manifest>
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -58,8 +58,7 @@ class PropertyValueConverterTest {
     val propertyValue = property?.getValue()
     assertThat(propertyValue?.converter).isInstanceOf(PropertyValueConverter::class.java)
     val propertyValueConverter = propertyValue?.converter as PropertyValueConverter
-    assertThat(propertyValueConverter.getConverter(propertyValue))
-      .isInstanceOf(IntegerConverter::class.java)
+    assertThat(propertyValueConverter.getConverter(propertyValue)).isInstanceOf(IntegerConverter::class.java)
   }
 
   @Test
@@ -69,35 +68,29 @@ class PropertyValueConverterTest {
         SdkConstants.ANDROID_MANIFEST_XML,
         // language=XML
         """
-         <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-           <application>
-             <property android:name="some.other.property" android:value="" />
-             <property android:name="" android:value="" />
-             <property android:value="" />
-           </application>
-         </manifest>
-       """
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+          <application>
+            <property android:name="some.other.property" android:value="" />
+            <property android:name="" android:value="" />
+            <property android:value="" />
+          </application>
+        </manifest>
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     val tagTexts =
-      listOf(
-        "<property android:name=\"some.other.property\"",
-        "<property android:name=\"\"",
-        "<property android:value=\"\" />",
-      )
+      listOf("<property android:name=\"some.other.property\"", "<property android:name=\"\"", "<property android:value=\"\" />")
 
     for (tagText in tagTexts) {
       val xmlTag = fixture.findElementByText(tagText, XmlTag::class.java)
-      val property =
-        DomManager.getDomManager(projectRule.project).getDomElement(xmlTag) as? Property
+      val property = DomManager.getDomManager(projectRule.project).getDomElement(xmlTag) as? Property
       assertThat(property).isNotNull()
       val propertyValue = property?.getValue()
       assertThat(propertyValue?.converter).isInstanceOf(PropertyValueConverter::class.java)
       val propertyValueConverter = propertyValue?.converter as PropertyValueConverter
-      assertThat(propertyValueConverter.getConverter(propertyValue))
-        .isInstanceOf(ResourceReferenceConverter::class.java)
+      assertThat(propertyValueConverter.getConverter(propertyValue)).isInstanceOf(ResourceReferenceConverter::class.java)
     }
   }
 }

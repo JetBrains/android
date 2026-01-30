@@ -67,64 +67,65 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 
-/**
- * A collapsible panel which lets users see the list of and interact with their profiling sessions.
- */
+/** A collapsible panel which lets users see the list of and interact with their profiling sessions. */
 class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: IdeProfilerComponents) : AspectObserver() {
   private val sessionsManager = profilers.sessionsManager
   val component: JComponent = JPanel(BorderLayout()).apply { border = AdtUiUtils.DEFAULT_RIGHT_BORDER }
 
-  @VisibleForTesting val expandButton: JButton =
-    collapseButton(StudioIcons.Profiler.Toolbar.EXPAND_SESSION, "Expand the Sessions panel.", false)
-  @VisibleForTesting val collapseButton: JButton =
-    collapseButton(StudioIcons.Profiler.Toolbar.COLLAPSE_SESSION, "Collapse the Sessions panel.", true)
-  @VisibleForTesting val stopProfilingButton =
+  @VisibleForTesting
+  val expandButton: JButton = collapseButton(StudioIcons.Profiler.Toolbar.EXPAND_SESSION, "Expand the Sessions panel.", false)
+  @VisibleForTesting
+  val collapseButton: JButton = collapseButton(StudioIcons.Profiler.Toolbar.COLLAPSE_SESSION, "Collapse the Sessions panel.", true)
+  @VisibleForTesting
+  val stopProfilingButton =
     toolbarButton(StudioIcons.Profiler.Toolbar.STOP_SESSION, "Stop the current profiling session.").apply {
       disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_SESSION)
       isEnabled = false
-      addActionListener {
-        if (confirm(HIDE_STOP_PROMPT, CONFIRM_END_TITLE, CONFIRM_END_MESSAGE)) stopProfilingSession()
-      }
+      addActionListener { if (confirm(HIDE_STOP_PROMPT, CONFIRM_END_TITLE, CONFIRM_END_MESSAGE)) stopProfilingSession() }
     }
-  @VisibleForTesting val processSelectionAction = CommonAction("", AllIcons.General.Add).apply {
-    setAction { profilers.ideServices.featureTracker.trackSessionDropdownClicked() }
-  }
+  @VisibleForTesting
+  val processSelectionAction =
+    CommonAction("", AllIcons.General.Add).apply { setAction { profilers.ideServices.featureTracker.trackSessionDropdownClicked() } }
 
-  private val processSelectionDropDown = CommonDropDownButton(processSelectionAction).apply {
-    setUpToolbarButton("Start a new profiling session.")
-  }
+  private val processSelectionDropDown =
+    CommonDropDownButton(processSelectionAction).apply { setUpToolbarButton("Start a new profiling session.") }
 
   // Sessions artifacts are vertically stacked in a single column.
   // We are using a scrollable JPanel instead of an JList because JList's cell renderer are not designed to support the animation and
   // interaction we want to support within each list item (e.g. spinning icons, nested buttons, etc)
-  val sessionsPanel = JPanel().apply {
-    layout = TabularLayout("*")
-    isOpaque = false
-  }
+  val sessionsPanel =
+    JPanel().apply {
+      layout = TabularLayout("*")
+      isOpaque = false
+    }
 
-  val scrollPane = JBScrollPane(sessionsPanel).apply {
-    viewport.isOpaque = false
-    isOpaque = false
-    border = BorderFactory.createEmptyBorder()
-    horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
-    verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
-  }
+  val scrollPane =
+    JBScrollPane(sessionsPanel).apply {
+      viewport.isOpaque = false
+      isOpaque = false
+      border = BorderFactory.createEmptyBorder()
+      horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+      verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
+    }
 
-  private var sessionArtifactViewBinder = ViewBinder<ArtifactDrawInfo, SessionArtifact<*>, SessionArtifactView<*>>().apply {
-    bind(SessionItem::class.java, ::SessionItemView)
-    bind(HprofSessionArtifact::class.java, ::HprofArtifactView)
-    bind(HeapProfdSessionArtifact::class.java, ::HeapProfdArtifactView)
-    bind(LegacyAllocationsSessionArtifact::class.java, ::LegacyAllocationsArtifactView)
-    bind(CpuCaptureSessionArtifact::class.java, ::CpuCaptureArtifactView)
-    bind(AllocationSessionArtifact::class.java, ::AllocationArtifactView)
-  }
+  private var sessionArtifactViewBinder =
+    ViewBinder<ArtifactDrawInfo, SessionArtifact<*>, SessionArtifactView<*>>().apply {
+      bind(SessionItem::class.java, ::SessionItemView)
+      bind(HprofSessionArtifact::class.java, ::HprofArtifactView)
+      bind(HeapProfdSessionArtifact::class.java, ::HeapProfdArtifactView)
+      bind(LegacyAllocationsSessionArtifact::class.java, ::LegacyAllocationsArtifactView)
+      bind(CpuCaptureSessionArtifact::class.java, ::CpuCaptureArtifactView)
+      bind(AllocationSessionArtifact::class.java, ::AllocationArtifactView)
+    }
 
-  @VisibleForTesting val collapsed get() = expandButton.isVisible
+  @VisibleForTesting
+  val collapsed
+    get() = expandButton.isVisible
 
   init {
-    profilers.addDependency(this)
-      .onChange(ProfilerAspect.PROCESSES) { refreshProcessDropdown() }
-    sessionsManager.addDependency(this)
+    profilers.addDependency(this).onChange(ProfilerAspect.PROCESSES) { refreshProcessDropdown() }
+    sessionsManager
+      .addDependency(this)
       .onChange(SessionAspect.SESSIONS) { refreshSessions() }
       .onChange(SessionAspect.PROFILING_SESSION) {
         stopProfilingButton.isEnabled = Common.Session.getDefaultInstance() != sessionsManager.profilingSession
@@ -133,79 +134,82 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
     refreshProcessDropdown()
   }
 
-  /**
-   * @param listener Listener for when the sessions panel is expanded.
-   */
+  /** @param listener Listener for when the sessions panel is expanded. */
   fun addExpandListener(listener: ActionListener) = expandButton.addActionListener(listener)
 
-  /**
-   * @param listener Listener for when the sessions panel is collapsed.
-   */
+  /** @param listener Listener for when the sessions panel is collapsed. */
   fun addCollapseListener(listener: ActionListener) = collapseButton.addActionListener(listener)
 
-  private fun initializeUI(collapsed: Boolean) = with (component) {
-    removeAll()
-    if (collapsed) {
-      // We only need the toolbar when collapsed
-      add(collapsedToolbar(), BorderLayout.CENTER)
-    } else {
-      add(expandedToolbar(), BorderLayout.NORTH)
-      add(scrollPane, BorderLayout.CENTER)
+  private fun initializeUI(collapsed: Boolean) =
+    with(component) {
+      removeAll()
+      if (collapsed) {
+        // We only need the toolbar when collapsed
+        add(collapsedToolbar(), BorderLayout.CENTER)
+      } else {
+        add(expandedToolbar(), BorderLayout.NORTH)
+        add(scrollPane, BorderLayout.CENTER)
+      }
+      revalidate()
+      repaint()
     }
-    revalidate()
-    repaint()
-  }
 
-  private fun collapsedToolbar() = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    minimumSize = Dimension(sessionsCollapsedMinWidth, 0)
-    add(expandButton.apply { isVisible = true })
-    // Note - if we simply remove the collapse button after it is clicked, next time we add it back it will
-    // maintain its hovered/clicked state until it is hovered again. Adding it here so it has a chance to
-    // render and update its state even though it is hidden.
-    add(collapseButton.apply { isVisible = false }, TabularLayout.Constraint(1, 0, 1, 3))
-    add(stopProfilingButton)
-    add(processSelectionDropDown)
-  }
-
-  private fun expandedToolbar() = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.X_AXIS)
-    border = AdtUiUtils.DEFAULT_BOTTOM_BORDER
-    minimumSize = Dimension(sessionsExpandedMinWidth, ProfilerLayout.TOOLBAR_HEIGHT)
-    preferredSize = Dimension(sessionsExpandedMinWidth, ProfilerLayout.TOOLBAR_HEIGHT)
-    add(JLabel("SESSIONS").apply {
-      alignmentY = Component.CENTER_ALIGNMENT
-      border = ProfilerLayout.TOOLBAR_LABEL_BORDER
-      font = ProfilerFonts.SMALL_FONT
-      foreground = StandardColors.TEXT_COLOR
-    })
-    add(Box.createHorizontalGlue())
-    add(processSelectionDropDown)
-    add(stopProfilingButton)
-    add(collapseButton.apply { isVisible = true })
-    // Note - if we simply remove the expand button after it is clicked, next time we add it back it will
-    // maintain its hovered/clicked state until it is hovered again. Adding it here so it has a chance to
-    // render and update its state even though it is hidden.
-    add(expandButton.apply { isVisible = false })
-  }
-
-  private fun refreshSessions() = with (sessionsPanel) {
-    removeAll()
-    sessionsManager.sessionArtifacts.forEachIndexed { i, item ->
-      add(sessionArtifactViewBinder.build(ArtifactDrawInfo(this@SessionsView, i), item), TabularLayout.Constraint(i, 0))
+  private fun collapsedToolbar() =
+    JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+      minimumSize = Dimension(sessionsCollapsedMinWidth, 0)
+      add(expandButton.apply { isVisible = true })
+      // Note - if we simply remove the collapse button after it is clicked, next time we add it back it will
+      // maintain its hovered/clicked state until it is hovered again. Adding it here so it has a chance to
+      // render and update its state even though it is hidden.
+      add(collapseButton.apply { isVisible = false }, TabularLayout.Constraint(1, 0, 1, 3))
+      add(stopProfilingButton)
+      add(processSelectionDropDown)
     }
-    revalidate()
-    repaint()
-  }
 
-  fun stopProfilingSession() = with (profilers) {
-    // We should not start auto-profiling other things if the user manually stops a session.
-    autoProfilingEnabled = false
-    // Unselect the device and process which stops the session. This also avoids them from appearing to be selected in the process
-    // selection dropdown even after the session has stopped.
-    setProcess(null, null)
-    ideServices.featureTracker.trackStopSession()
-  }
+  private fun expandedToolbar() =
+    JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.X_AXIS)
+      border = AdtUiUtils.DEFAULT_BOTTOM_BORDER
+      minimumSize = Dimension(sessionsExpandedMinWidth, ProfilerLayout.TOOLBAR_HEIGHT)
+      preferredSize = Dimension(sessionsExpandedMinWidth, ProfilerLayout.TOOLBAR_HEIGHT)
+      add(
+        JLabel("SESSIONS").apply {
+          alignmentY = Component.CENTER_ALIGNMENT
+          border = ProfilerLayout.TOOLBAR_LABEL_BORDER
+          font = ProfilerFonts.SMALL_FONT
+          foreground = StandardColors.TEXT_COLOR
+        }
+      )
+      add(Box.createHorizontalGlue())
+      add(processSelectionDropDown)
+      add(stopProfilingButton)
+      add(collapseButton.apply { isVisible = true })
+      // Note - if we simply remove the expand button after it is clicked, next time we add it back it will
+      // maintain its hovered/clicked state until it is hovered again. Adding it here so it has a chance to
+      // render and update its state even though it is hidden.
+      add(expandButton.apply { isVisible = false })
+    }
+
+  private fun refreshSessions() =
+    with(sessionsPanel) {
+      removeAll()
+      sessionsManager.sessionArtifacts.forEachIndexed { i, item ->
+        add(sessionArtifactViewBinder.build(ArtifactDrawInfo(this@SessionsView, i), item), TabularLayout.Constraint(i, 0))
+      }
+      revalidate()
+      repaint()
+    }
+
+  fun stopProfilingSession() =
+    with(profilers) {
+      // We should not start auto-profiling other things if the user manually stops a session.
+      autoProfilingEnabled = false
+      // Unselect the device and process which stops the session. This also avoids them from appearing to be selected in the process
+      // selection dropdown even after the session has stopped.
+      setProcess(null, null)
+      ideServices.featureTracker.trackStopSession()
+    }
 
   private fun refreshProcessDropdown() {
     processSelectionAction.clear()
@@ -217,80 +221,85 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
     val entries = profilers.deviceProcessMap.filterKeys { it.state == Common.Device.State.ONLINE }
     when {
       entries.isEmpty() -> processSelectionAction.addChildrenActions(disabledAction(NO_SUPPORTED_DEVICES))
-      else -> entries.forEach { (device, allProcesses) ->
-        val deviceAction = commonAction(StudioProfilers.buildDeviceName(device))
-        processSelectionAction.addChildrenActions(deviceAction)
-        val processes = allProcesses.filter { it.state == Common.Process.State.ALIVE }
-        when {
-          processes.isEmpty() -> deviceAction.addChildrenActions(
-            disabledAction(device.unsupportedReason.ifEmpty { NO_DEBUGGABLE_OR_PROFILEABLE_PROCESSES }))
-          else -> {
-            val processAction = fun (postFix: (Common.Process) -> String) = fun(process: Common.Process) =
-              commonAction("${process.name} (${process.pid})${postFix(process)}").apply {
-                setAction {
-                  // First warn and stop the currently profiling session if there is one.
-                  if (SessionsManager.isSessionAlive(profilers.sessionsManager.profilingSession)) {
-                    // Do not continue to start a new session.
-                    if (!confirm(HIDE_RESTART_PROMPT, CONFIRM_END_TITLE, CONFIRM_RESTART_MESSAGE)) return@setAction
-                    stopProfilingSession()
-                  }
-                  profilers.setProcess(device, process)
-                  profilers.ideServices.featureTracker.trackCreateSession(Common.SessionMetaData.SessionType.FULL,
-                                                                          SessionsManager.SessionCreationSource.MANUAL)
+      else ->
+        entries.forEach { (device, allProcesses) ->
+          val deviceAction = commonAction(StudioProfilers.buildDeviceName(device))
+          processSelectionAction.addChildrenActions(deviceAction)
+          val processes = allProcesses.filter { it.state == Common.Process.State.ALIVE }
+          when {
+            processes.isEmpty() ->
+              deviceAction.addChildrenActions(disabledAction(device.unsupportedReason.ifEmpty { NO_DEBUGGABLE_OR_PROFILEABLE_PROCESSES }))
+            else -> {
+              val processAction =
+                fun(postFix: (Common.Process) -> String) =
+                  fun(process: Common.Process) =
+                    commonAction("${process.name} (${process.pid})${postFix(process)}").apply {
+                      setAction {
+                        // First warn and stop the currently profiling session if there is one.
+                        if (SessionsManager.isSessionAlive(profilers.sessionsManager.profilingSession)) {
+                          // Do not continue to start a new session.
+                          if (!confirm(HIDE_RESTART_PROMPT, CONFIRM_END_TITLE, CONFIRM_RESTART_MESSAGE)) return@setAction
+                          stopProfilingSession()
+                        }
+                        profilers.setProcess(device, process)
+                        profilers.ideServices.featureTracker.trackCreateSession(
+                          Common.SessionMetaData.SessionType.FULL,
+                          SessionsManager.SessionCreationSource.MANUAL,
+                        )
+                      }
+                    }
+              val plainProcessAction = processAction { "" }
+              val annotatedProcessAction = processAction {
+                when (profilers.getLiveProcessSupportLevel(it.pid)) {
+                  SupportLevel.PROFILEABLE -> " (profileable)"
+                  else -> " (debuggable)"
                 }
               }
-            val plainProcessAction = processAction {""}
-            val annotatedProcessAction = processAction {
-              when (profilers.getLiveProcessSupportLevel(it.pid)) {
-                SupportLevel.PROFILEABLE -> " (profileable)"
-                else -> " (debuggable)"
-              }
-            }
 
-            val (preferredProcesses, otherProcesses) = profilers.preferredProcessName.let { preferredProcess ->
-              processes.partition { preferredProcess != null && it.name.startsWith(preferredProcess) }
-            }
-            val order = Comparator.comparing(CommonAction::getText, Ordering.natural())
+              val (preferredProcesses, otherProcesses) =
+                profilers.preferredProcessName.let { preferredProcess ->
+                  processes.partition { preferredProcess != null && it.name.startsWith(preferredProcess) }
+                }
+              val order = Comparator.comparing(CommonAction::getText, Ordering.natural())
 
-            // Add separate menu items for other debuggable processes and other profileable processes
-            fun addOtherProcessesFlyout(tag: String, actions: List<CommonAction>) = when {
-              actions.isNotEmpty() -> {
-                val title = if (IdeInfo.isGameTool()) "${tag.usLocaleCapitalize()} processes" else "Other $tag processes"
-                val otherProcessesFlyout = CommonAction(title, null)
-                otherProcessesFlyout.addChildrenActions(actions)
-                deviceAction.addChildrenActions(otherProcessesFlyout)
-              }
-              else -> {
-                val title = if (IdeInfo.isGameTool()) "No $tag processes" else "No other $tag processes"
-                deviceAction.addChildrenActions(disabledAction(title))
-              }
-            }
+              // Add separate menu items for other debuggable processes and other profileable processes
+              fun addOtherProcessesFlyout(tag: String, actions: List<CommonAction>) =
+                when {
+                  actions.isNotEmpty() -> {
+                    val title = if (IdeInfo.isGameTool()) "${tag.usLocaleCapitalize()} processes" else "Other $tag processes"
+                    val otherProcessesFlyout = CommonAction(title, null)
+                    otherProcessesFlyout.addChildrenActions(actions)
+                    deviceAction.addChildrenActions(otherProcessesFlyout)
+                  }
+                  else -> {
+                    val title = if (IdeInfo.isGameTool()) "No $tag processes" else "No other $tag processes"
+                    deviceAction.addChildrenActions(disabledAction(title))
+                  }
+                }
 
-            val preferredProcessActions = preferredProcesses.map(annotatedProcessAction).sortedWith(order)
-            if (preferredProcessActions.isNotEmpty()) deviceAction.addChildrenActions(preferredProcessActions)
-            // Only add the separator if there are preferred processes added.
-            if (otherProcesses.isNotEmpty() && deviceAction.childrenActionCount != 0) deviceAction.addChildrenActions(SeparatorAction())
-            val (debuggables, profileables) = otherProcesses.partition {
-              profilers.getLiveProcessSupportLevel(it.pid) == SupportLevel.DEBUGGABLE
+              val preferredProcessActions = preferredProcesses.map(annotatedProcessAction).sortedWith(order)
+              if (preferredProcessActions.isNotEmpty()) deviceAction.addChildrenActions(preferredProcessActions)
+              // Only add the separator if there are preferred processes added.
+              if (otherProcesses.isNotEmpty() && deviceAction.childrenActionCount != 0) deviceAction.addChildrenActions(SeparatorAction())
+              val (debuggables, profileables) =
+                otherProcesses.partition { profilers.getLiveProcessSupportLevel(it.pid) == SupportLevel.DEBUGGABLE }
+              addOtherProcessesFlyout("debuggable", debuggables.map(plainProcessAction).sortedWith(order))
+              addOtherProcessesFlyout("profileable", profileables.map(plainProcessAction).sortedWith(order))
             }
-            addOtherProcessesFlyout("debuggable", debuggables.map(plainProcessAction).sortedWith(order))
-            addOtherProcessesFlyout("profileable", profileables.map(plainProcessAction).sortedWith(order))
           }
         }
+    }
+  }
+
+  private fun collapseButton(icon: Icon, tooltip: String, collapse: Boolean) =
+    toolbarButton(icon, tooltip).apply {
+      addActionListener {
+        initializeUI(collapse)
+        profilers.ideServices.persistentProfilerPreferences.setBoolean(SESSION_IS_COLLAPSED, collapse)
       }
     }
-  }
 
-  private fun collapseButton(icon: Icon, tooltip: String, collapse: Boolean) = toolbarButton(icon, tooltip).apply {
-    addActionListener {
-      initializeUI(collapse)
-      profilers.ideServices.persistentProfilerPreferences.setBoolean(SESSION_IS_COLLAPSED, collapse)
-    }
-  }
-
-  private fun toolbarButton(icon: Icon, tooltip: String) = CommonButton(icon).apply {
-    setUpToolbarButton(tooltip)
-  }
+  private fun toolbarButton(icon: Icon, tooltip: String) = CommonButton(icon).apply { setUpToolbarButton(tooltip) }
 
   private fun AbstractButton.setUpToolbarButton(tooltip: String) {
     alignmentX = Component.CENTER_ALIGNMENT
@@ -300,15 +309,15 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
   }
 
   private fun commonAction(text: String) = CommonAction(text, null)
+
   private fun disabledAction(text: String) = commonAction(text).apply { isEnabled = false }
-  private fun importAction() = commonAction("Load from file...").apply {
-    setAction(getImportAction(ideProfilerComponents, profilers, component))
-  }
+
+  private fun importAction() =
+    commonAction("Load from file...").apply { setAction(getImportAction(ideProfilerComponents, profilers, component)) }
 
   private fun confirm(prefKey: String, title: String, msg: String): Boolean =
     profilers.ideServices.persistentProfilerPreferences.getBoolean(prefKey, false) ||
-    ideProfilerComponents.createUiMessageHandler()
-      .displayOkCancelMessage(title, msg, CONFIRM_BUTTON_TEXT, CANCEL_BUTTON_TEXT, null) {
+      ideProfilerComponents.createUiMessageHandler().displayOkCancelMessage(title, msg, CONFIRM_BUTTON_TEXT, CANCEL_BUTTON_TEXT, null) {
         profilers.ideServices.persistentProfilerPreferences.setBoolean(prefKey, it)
       }
 
@@ -322,31 +331,24 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
     private const val CONFIRM_BUTTON_TEXT = "Yes"
     private const val CANCEL_BUTTON_TEXT = "Cancel"
 
-    /**
-     * Preference string for whether the sessions UI is collapsed (bool).
-     */
+    /** Preference string for whether the sessions UI is collapsed (bool). */
     const val SESSION_IS_COLLAPSED = "SESSION_IS_COLLAPSED"
 
-    /**
-     * Preference string for the last known width (int) of the sessions UI when it was expanded.
-     */
+    /** Preference string for the last known width (int) of the sessions UI when it was expanded. */
     const val SESSION_EXPANDED_WIDTH = "SESSION_EXPANDED_WIDTH"
 
-    /**
-     * String to display in the dropdown when no devices are detected.
-     */
-    @VisibleForTesting
-    val NO_SUPPORTED_DEVICES = "No supported devices"
+    /** String to display in the dropdown when no devices are detected. */
+    @VisibleForTesting val NO_SUPPORTED_DEVICES = "No supported devices"
 
-    /**
-     * String to display in the dropdown when no debuggable processes are detected.
-     */
-    @VisibleForTesting
-    val NO_DEBUGGABLE_OR_PROFILEABLE_PROCESSES = "No debuggable or profileable processes"
+    /** String to display in the dropdown when no debuggable processes are detected. */
+    @VisibleForTesting val NO_DEBUGGABLE_OR_PROFILEABLE_PROCESSES = "No debuggable or profileable processes"
 
     // Collapsed width should essentially look like a toolbar.
-    private val sessionsCollapsedMinWidth get() = JBUI.scale(32)
-    private val sessionsExpandedMinWidth get() = JBUI.scale(200)
+    private val sessionsCollapsedMinWidth
+      get() = JBUI.scale(32)
+
+    private val sessionsExpandedMinWidth
+      get() = JBUI.scale(200)
 
     @JvmStatic
     fun getComponentMinimizeSize(isExpanded: Boolean) =
@@ -357,8 +359,9 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
         val supportedExtensions = listOf("trace", "pftrace", "perfetto-trace", "perfetto", "alloc", "hprof", "heapprofd", "asdb")
         ideProfilerComponents.createImportDialog().open({ "Open" }, supportedExtensions) { file ->
           if (!profilers.sessionsManager.importSessionFromFile(File(file.path))) {
-            ideProfilerComponents.createUiMessageHandler()
-              .displayErrorMessage(component, "File Open Error", "Unknown file type: ${file.path}" )
+            ideProfilerComponents
+              .createUiMessageHandler()
+              .displayErrorMessage(component, "File Open Error", "Unknown file type: ${file.path}")
           }
         }
       }

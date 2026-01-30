@@ -36,24 +36,20 @@ import com.android.tools.profilers.cpu.capturedetails.CpuTreeNodeTest.TopDownTes
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import java.util.concurrent.TimeUnit
+import javax.swing.JTree
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
-import javax.swing.JTree
 
 class TopDownDetailsViewTest {
   private val timer = FakeTimer()
 
-  @JvmField
-  @Rule
-  val grpcChannel = FakeGrpcChannel("TopDownDetailsViewTest", FakeTransportService(timer))
+  @JvmField @Rule val grpcChannel = FakeGrpcChannel("TopDownDetailsViewTest", FakeTransportService(timer))
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var profilersView: StudioProfilersView
   private lateinit var capture: CpuCapture
@@ -62,33 +58,40 @@ class TopDownDetailsViewTest {
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
     profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
-    capture =  CpuProfilerUITestUtils.validCapture(profilers)
+    capture = CpuProfilerUITestUtils.validCapture(profilers)
   }
 
   @Test
   fun showsNoDataForThreadMessageWhenNodeIsEmpty() {
-    val topDown = CaptureDetails.Type.TOP_DOWN.build(ClockType.GLOBAL, Range(), emptyList(), capture, Utils::runOnUi)
-      as CaptureDetails.TopDown
+    val topDown =
+      CaptureDetails.Type.TOP_DOWN.build(ClockType.GLOBAL, Range(), emptyList(), capture, Utils::runOnUi) as CaptureDetails.TopDown
     val topDownView = TreeDetailsView.TopDownDetailsView(profilersView, topDown)
 
-    val noDataInstructions = TreeWalker(topDownView.component).descendants().filterIsInstance<InstructionsPanel>().first {
-      val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
-      textInstruction.text == CaptureDetailsView.NO_DATA_FOR_THREAD_MESSAGE
-    }
+    val noDataInstructions =
+      TreeWalker(topDownView.component).descendants().filterIsInstance<InstructionsPanel>().first {
+        val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
+        textInstruction.text == CaptureDetailsView.NO_DATA_FOR_THREAD_MESSAGE
+      }
     assertThat(noDataInstructions.isVisible).isTrue()
   }
 
   @Test
   fun showsContentWhenNodeIsNotNull() {
-    val topDown = CaptureDetails.Type.TOP_DOWN.build(ClockType.GLOBAL, Range(),
-                                                     listOf(capture.getCaptureNode(capture.mainThreadId)!!),
-                                                     capture, Utils::runOnUi) as CaptureDetails.TopDown
+    val topDown =
+      CaptureDetails.Type.TOP_DOWN.build(
+        ClockType.GLOBAL,
+        Range(),
+        listOf(capture.getCaptureNode(capture.mainThreadId)!!),
+        capture,
+        Utils::runOnUi,
+      ) as CaptureDetails.TopDown
     val topDownView = TreeDetailsView.TopDownDetailsView(profilersView, topDown)
 
-    val noDataInstructionsList = TreeWalker(topDownView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
-      val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
-      textInstruction.text == CaptureDetailsView.NO_DATA_FOR_THREAD_MESSAGE
-    }
+    val noDataInstructionsList =
+      TreeWalker(topDownView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
+        val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
+        textInstruction.text == CaptureDetailsView.NO_DATA_FOR_THREAD_MESSAGE
+      }
     assertThat(noDataInstructionsList).isEmpty()
 
     val tree = TreeWalker(topDownView.component).descendants().filterIsInstance<JTree>().first()
@@ -99,23 +102,30 @@ class TopDownDetailsViewTest {
   fun showsNoDataForRangeMessage() {
     // Select a range where we don't have trace data
     val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
-    val topDown = CaptureDetails.Type.TOP_DOWN.build(ClockType.GLOBAL, range,
-                                                     listOf(capture.getCaptureNode(capture.mainThreadId)!!),
-                                                     capture, Utils::runOnUi) as CaptureDetails.TopDown
+    val topDown =
+      CaptureDetails.Type.TOP_DOWN.build(
+        ClockType.GLOBAL,
+        range,
+        listOf(capture.getCaptureNode(capture.mainThreadId)!!),
+        capture,
+        Utils::runOnUi,
+      ) as CaptureDetails.TopDown
     val topDownView = TreeDetailsView.TopDownDetailsView(profilersView, topDown)
 
-    val noDataInstructions = TreeWalker(topDownView.component).descendants().filterIsInstance<InstructionsPanel>().first {
-      val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
-      textInstruction.text == CaptureDetailsView.NO_DATA_FOR_RANGE_MESSAGE
-    }
+    val noDataInstructions =
+      TreeWalker(topDownView.component).descendants().filterIsInstance<InstructionsPanel>().first {
+        val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
+        textInstruction.text == CaptureDetailsView.NO_DATA_FOR_RANGE_MESSAGE
+      }
     assertThat(noDataInstructions.isVisible).isTrue()
   }
 
   @Test
   fun rootIsHiddenOnInvalidNodeId() {
     val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
-    val topDown = CaptureDetails.Type.TOP_DOWN.build(ClockType.GLOBAL, range,
-                                                     listOf(newNode("", 0, 10)), capture, Utils::runOnUi) as CaptureDetails.TopDown
+    val topDown =
+      CaptureDetails.Type.TOP_DOWN.build(ClockType.GLOBAL, range, listOf(newNode("", 0, 10)), capture, Utils::runOnUi)
+        as CaptureDetails.TopDown
     val topDownView = TreeDetailsView.TopDownDetailsView(profilersView, topDown)
     val tree = TreeWalker(topDownView.component).descendants().filterIsInstance<JTree>().first()
     assertThat(tree.isRootVisible).isFalse()
@@ -124,9 +134,14 @@ class TopDownDetailsViewTest {
   @Test
   fun maintainsExpandedStateWhenRangeChanges() {
     val range = Range(capture.range)
-    val topDown = CaptureDetails.Type.TOP_DOWN.build(ClockType.GLOBAL, range,
-                                                     listOf(capture.getCaptureNode(capture.mainThreadId)!!),
-                                                     capture, Utils::runOnUi) as CaptureDetails.TopDown
+    val topDown =
+      CaptureDetails.Type.TOP_DOWN.build(
+        ClockType.GLOBAL,
+        range,
+        listOf(capture.getCaptureNode(capture.mainThreadId)!!),
+        capture,
+        Utils::runOnUi,
+      ) as CaptureDetails.TopDown
     val topDownView = TreeDetailsView.TopDownDetailsView(profilersView, topDown)
     val tree = TreeWalker(topDownView.component).descendants().filterIsInstance<JTree>().first()
     assertThat(tree.isVisible).isTrue()

@@ -15,19 +15,18 @@
  */
 package com.android.tools.asdriver.tests.integration
 
+// Android Studio Merge: ignore vendor dependencies
+// import com.google.services.firebase.directaccess.client.DirectAccessConnectionManager
+// import com.google.services.firebase.directaccess.client.DirectAccessReservationManager
+// Android Studio Merge: ignore vendor dependencies
 import com.android.adblib.AdbSession
 import com.android.adblib.AdbSessionHost
-import com.android.tools.testlib.TestLogger
-import com.google.common.util.concurrent.MoreExecutors
-import com.google.gson.JsonParser
-// Android Studio Merge: ignore vendor dependencies
-//import com.google.services.firebase.directaccess.client.DirectAccessConnectionManager
-//import com.google.services.firebase.directaccess.client.DirectAccessReservationManager
-import com.intellij.openapi.util.SystemInfo
-// Android Studio Merge: ignore vendor dependencies
 import com.android.tools.idea.io.grpc.ManagedChannel
 import com.android.tools.idea.io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import com.android.tools.idea.io.grpc.netty.shaded.io.netty.channel.ChannelOption
+import com.android.tools.testlib.TestLogger
+import com.google.common.util.concurrent.MoreExecutors
+import com.google.gson.JsonParser
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -38,28 +37,19 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 
-class RemoteDeviceManager constructor(deviceModel: String, apiLevel: String): AutoCloseable {
+class RemoteDeviceManager constructor(deviceModel: String, apiLevel: String) : AutoCloseable {
 
   private val deviceStreamingAPIEndpoint = "dns:///devicestreaming.googleapis.com"
-  private val metadataServerEndpoint =
-    "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token"
+  private val metadataServerEndpoint = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token"
   private val cloudProjectId = "adt-device-testing"
   // Android Studio Merge: ignore vendor dependencies
   // private val directAccessReservationManager: DirectAccessReservationManager
-  private val scope: CoroutineScope =
-    CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
+  private val scope: CoroutineScope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
   private val channel: ManagedChannel =
-    NettyChannelBuilder.forTarget(deviceStreamingAPIEndpoint)
-      .withOption(ChannelOption.TCP_NODELAY, true)
-      .build()
+    NettyChannelBuilder.forTarget(deviceStreamingAPIEndpoint).withOption(ChannelOption.TCP_NODELAY, true).build()
   private val oAuthTokenFetcher: () -> String = {
     val client = HttpClient.newHttpClient()
-    val request =
-      HttpRequest.newBuilder()
-        .uri(URI.create(metadataServerEndpoint))
-        .GET()
-        .header("Metadata-Flavor", "Google")
-        .build()
+    val request = HttpRequest.newBuilder().uri(URI.create(metadataServerEndpoint)).GET().header("Metadata-Flavor", "Google").build()
     val response = client.send(request, HttpResponse.BodyHandlers.ofString())
     val authResponse = JsonParser.parseString(response.body()).getAsJsonObject()
     authResponse.get("access_token").asString
@@ -73,11 +63,11 @@ class RemoteDeviceManager constructor(deviceModel: String, apiLevel: String): Au
 
   init {
     // Android Studio Merge: ignore vendor dependencies
-    //directAccessReservationManager =
+    // directAccessReservationManager =
     //  DirectAccessReservationManager(cloudProjectId, scope, true, channel, oAuthTokenFetcher)
     adbSession = AdbSession.create(AdbSessionHost())
     // Android Studio Merge: ignore vendor dependencies
-    //directAccessConnectionManager =
+    // directAccessConnectionManager =
     //  DirectAccessConnectionManager(
     //    scope,
     //    adbSession,
@@ -91,13 +81,13 @@ class RemoteDeviceManager constructor(deviceModel: String, apiLevel: String): Au
   }
 
   fun reserveDevice(model: String, apiLevel: String): String {
-    assert(false) {"Android Studio Merge: ignore vendor dependencies"}
+    assert(false) { "Android Studio Merge: ignore vendor dependencies" }
     // remoteDeviceName = directAccessReservationManager.createReservation(model, apiLevel).name
     return remoteDeviceName
   }
 
   fun connectToDevice(deviceName: String) = runBlocking {
-    assert(false) {"Android Studio Merge: ignore vendor dependencies"}
+    assert(false) { "Android Studio Merge: ignore vendor dependencies" }
     // val connection = directAccessConnectionManager.create(deviceName)
     // connection.connect()
   }

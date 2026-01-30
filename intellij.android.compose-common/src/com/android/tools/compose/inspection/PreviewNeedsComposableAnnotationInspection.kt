@@ -24,36 +24,20 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-/**
- * Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, is
- * also annotated with `@Composable`.
- */
+/** Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, is also annotated with `@Composable`. */
 open class PreviewNeedsComposableAnnotationInspection(
   private val description: String,
   groupDisplayName: String,
   previewAnnotationChecker: PreviewAnnotationChecker,
 ) : BasePreviewAnnotationInspection(groupDisplayName, previewAnnotationChecker) {
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
-    val nonComposable =
-      function.annotationEntries.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) }
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, function: KtNamedFunction, previewAnnotation: KtAnnotationEntry) {
+    val nonComposable = function.annotationEntries.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) }
     if (nonComposable) {
-      holder.registerProblem(
-        previewAnnotation.psiOrParent as PsiElement,
-        description,
-        ProblemHighlightType.ERROR,
-      )
+      holder.registerProblem(previewAnnotation.psiOrParent as PsiElement, description, ProblemHighlightType.ERROR)
     }
   }
 
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, annotationClass: KtClass, previewAnnotation: KtAnnotationEntry) {
     // This inspection only applies for functions, not for Annotation classes
     return
   }

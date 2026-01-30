@@ -51,12 +51,11 @@ internal val Container.componentList: List<Component>
       override fun get(index: Int): Component = getComponent(index)
     }
 
-internal fun Component.heightRequirements() =
-  SizeRequirements(minimumSize.height, preferredSize.height, maximumSize.height, alignmentY)
+internal fun Component.heightRequirements() = SizeRequirements(minimumSize.height, preferredSize.height, maximumSize.height, alignmentY)
 
 /**
- * Forwards a MouseEvent received by [from] to [to]. This allows a mouse event to be processed by
- * more than one component, if the [from] component cooperates by forwarding it.
+ * Forwards a MouseEvent received by [from] to [to]. This allows a mouse event to be processed by more than one component, if the [from]
+ * component cooperates by forwarding it.
  */
 internal fun MouseEvent.forward(from: Component, to: Component) {
   to.dispatchEvent(SwingUtilities.convertMouseEvent(from, this, to))
@@ -77,9 +76,8 @@ fun Component.constrainSize(size: Dimension) {
 }
 
 /**
- * Adds a focus listener using a single lambda, rather than the redundant two-method FocusListener
- * interface. (Whether focus is gained or lost can be checked by comparing [FocusEvent.id] to
- * [FocusEvent.FOCUS_GAINED], or by calling [Component.isFocusOwner].)
+ * Adds a focus listener using a single lambda, rather than the redundant two-method FocusListener interface. (Whether focus is gained or
+ * lost can be checked by comparing [FocusEvent.id] to [FocusEvent.FOCUS_GAINED], or by calling [Component.isFocusOwner].)
  */
 internal fun JComponent.addFocusListener(listener: (FocusEvent) -> Unit) {
   addFocusListener(

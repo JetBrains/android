@@ -68,9 +68,7 @@ import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.util.AndroidBuildCommonUtils.PNG_EXTENSION
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
-/**
- * Custom Rename processor that accepts ResourceReferencePsiElement and renames all corresponding references to that resource.
- */
+/** Custom Rename processor that accepts ResourceReferencePsiElement and renames all corresponding references to that resource. */
 class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
 
   override fun canProcessElement(element: PsiElement): Boolean {
@@ -81,11 +79,12 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
     if (element !is ResourceReferencePsiElement) {
       return super.findExistingNameConflicts(element, newName, conflicts)
     }
-    val contextElement = element.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)
-                         ?: return super.findExistingNameConflicts(element, newName, conflicts)
+    val contextElement =
+      element.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT) ?: return super.findExistingNameConflicts(element, newName, conflicts)
     val oldResourceReference = element.resourceReference
-    val repository = StudioResourceRepositoryManager.getInstance(contextElement)?.getResourcesForNamespace(oldResourceReference.namespace)
-                     ?: return super.findExistingNameConflicts(element, newName, conflicts)
+    val repository =
+      StudioResourceRepositoryManager.getInstance(contextElement)?.getResourcesForNamespace(oldResourceReference.namespace)
+        ?: return super.findExistingNameConflicts(element, newName, conflicts)
     if (repository.hasResources(oldResourceReference.namespace, oldResourceReference.resourceType, newName)) {
       val newReference = ResourceReference(oldResourceReference.namespace, oldResourceReference.resourceType, newName)
       // Find all of the existing resource declarations for which this new name clashes
@@ -112,9 +111,11 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
       // don't need to rename those elements.
       if (usage.reference !is BindablePsiReference) {
         val language = usage.element?.language
-        if (language != null &&
+        if (
+          language != null &&
             (language == KotlinLanguage.INSTANCE || language == JavaLanguage.INSTANCE) &&
-            element is ResourceReferencePsiElement) {
+            element is ResourceReferencePsiElement
+        ) {
           // Java and Kotlin Fields can require custom newName strings as do not control their references and so cannot provide custom
           // implementation there.
           renameAndroidLightField(element, usage, newName)
@@ -129,30 +130,29 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
     val resolvedValue = usage.reference?.resolve()
     if (resolvedValue is ResourceLightField) {
       RenameUtil.rename(usage, newName)
-    }
-    else if (resolvedValue is StyleableAttrLightField) {
+    } else if (resolvedValue is StyleableAttrLightField) {
       val fieldUrl = resolvedValue.styleableAttrFieldUrl
       val resourceReference = (element as? ResourceReferencePsiElement)?.resourceReference ?: return
       when (resourceReference.resourceType) {
         ResourceType.ATTR -> {
-          val newAttrName = StyleableAttrFieldUrl(fieldUrl.styleable, ResourceReference(
-            fieldUrl.attr.namespace, ResourceType.ATTR, newName)).toFieldName()
+          val newAttrName =
+            StyleableAttrFieldUrl(fieldUrl.styleable, ResourceReference(fieldUrl.attr.namespace, ResourceType.ATTR, newName)).toFieldName()
           RenameUtil.rename(usage, newAttrName)
         }
         ResourceType.STYLEABLE -> {
-          val newStyleableName = StyleableAttrFieldUrl(ResourceReference(
-            fieldUrl.styleable.namespace, ResourceType.STYLEABLE, newName), fieldUrl.attr).toFieldName()
+          val newStyleableName =
+            StyleableAttrFieldUrl(ResourceReference(fieldUrl.styleable.namespace, ResourceType.STYLEABLE, newName), fieldUrl.attr)
+              .toFieldName()
           RenameUtil.rename(usage, newStyleableName)
         }
         else -> {
-          //Cannot rename a styleable attr field any other ResourceType
+          // Cannot rename a styleable attr field any other ResourceType
           if (LOG.isDebugEnabled) {
             LOG.debug("Trying to rename styleable attr field from incorrect resource type: ${resourceReference.resourceType.displayName}")
           }
         }
       }
-    }
-    else {
+    } else {
       // Attempt to rename a synthetic element related to the resource
       RenameUtil.rename(usage, newName)
     }
@@ -162,12 +162,13 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
   override fun findReferences(
     element: PsiElement,
     searchScope: SearchScope,
-    searchInCommentsAndStrings: Boolean
+    searchInCommentsAndStrings: Boolean,
   ): Collection<PsiReference> {
-    val resourceElement = (element as? ResourceReferencePsiElement)
-                          ?: return super.findReferences(element, searchScope, searchInCommentsAndStrings)
-    val contextElement = resourceElement.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)
-                         ?: return super.findReferences(element, searchScope, searchInCommentsAndStrings)
+    val resourceElement =
+      (element as? ResourceReferencePsiElement) ?: return super.findReferences(element, searchScope, searchInCommentsAndStrings)
+    val contextElement =
+      resourceElement.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)
+        ?: return super.findReferences(element, searchScope, searchInCommentsAndStrings)
     val resourceScope = ResourceRepositoryToPsiResolver.getResourceSearchScope(resourceElement.resourceReference, contextElement)
     val found = super.findReferences(element, searchScope.intersectWith(resourceScope), searchInCommentsAndStrings).toMutableList()
 
@@ -181,11 +182,15 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
     when (resourceElement.resourceReference.resourceType) {
       ResourceType.ATTR -> {
         val fields = findStyleableAttrFieldsForAttr(androidFacet, resourceElement.resourceReference.name)
-        found.addAll(fields.map { super.findReferences(it, searchScope, searchInCommentsAndStrings) }.flatten())}
+        found.addAll(fields.map { super.findReferences(it, searchScope, searchInCommentsAndStrings) }.flatten())
+      }
       ResourceType.STYLEABLE -> {
         val fields = findStyleableAttrFieldsForStyleable(androidFacet, resourceElement.resourceReference.name)
-        found.addAll(fields.map { super.findReferences(it, searchScope, searchInCommentsAndStrings) }.flatten())}
-      else -> { /* Fields for other types are found in the references search */}
+        found.addAll(fields.map { super.findReferences(it, searchScope, searchInCommentsAndStrings) }.flatten())
+      }
+      else -> {
+        /* Fields for other types are found in the references search */
+      }
     }
     return found
   }
@@ -205,8 +210,7 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
           val extension = FileUtilRt.getExtension(originalName)
           if (nameWithoutExtension.endsWith(".9") && FileUtilRt.extensionEquals(originalName, PNG_EXTENSION)) {
             myFile.name = "$newElementName.9.$extension"
-          }
-          else {
+          } else {
             myFile.name = "$newElementName.$extension"
           }
         }
@@ -215,19 +219,23 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
     }
 
     override fun getElement() = myFile
+
     override fun getRangeInElement(): TextRange = TextRange.EMPTY_RANGE
+
     override fun resolve() = myFile
+
     override fun getCanonicalText() = myFile.name
+
     override fun bindToElement(element: PsiElement): PsiElement = myFile
+
     override fun isReferenceTo(element: PsiElement): Boolean = false
+
     override fun isSoft(): Boolean = true
   }
 
   override fun getPostRenameCallback(element: PsiElement, newName: String, elementListener: RefactoringElementListener): Runnable? {
     val psiManager = (element as? ResourceReferencePsiElement)?.manager ?: return null
-    return Runnable {
-      scheduleNewResolutionAndHighlighting(psiManager)
-    }
+    return Runnable { scheduleNewResolutionAndHighlighting(psiManager) }
   }
 
   companion object {
@@ -241,16 +249,14 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
  */
 val NEW_NAME_RESOURCE: DataKey<String> = DataKey.create(::NEW_NAME_RESOURCE.qualifiedName<ResourceRenameHandler>())
 
-/**
- * [RenameHandler] for Android Resources, in Java, XML, and PsiFiles.
- */
+/** [RenameHandler] for Android Resources, in Java, XML, and PsiFiles. */
 open class ResourceRenameHandler : RenameHandler, TitledHandler {
   override fun isAvailableOnDataContext(dataContext: DataContext): Boolean {
     val file = CommonDataKeys.PSI_FILE.getData(dataContext) ?: return false
     return isAvailableInFile(file) && getWritableResourceReferenceElement(dataContext) != null
   }
 
-  open fun isAvailableInFile(file: PsiFile) : Boolean {
+  open fun isAvailableInFile(file: PsiFile): Boolean {
     return file.language != KotlinLanguage.INSTANCE
   }
 
@@ -259,8 +265,7 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
     val resourceReferenceElement = ResourceReferencePsiElement.create(element)?.toWritableResourceReferencePsiElement()
     if (resourceReferenceElement != null) {
       return resourceReferenceElement
-    }
-    else {
+    } else {
       // The user has selected an element that does not resolve to a resource, check whether they have selected something nearby and if we
       // can assume the correct resource if any. The allowed matches are:
       // XmlValue of a values resource if it is not a reference to another resource. eg. <color name="foo">#12${caret}3456</color>
@@ -302,15 +307,13 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
     return "Rename Android Resource"
   }
 
-  /**
-   * Custom [RenameDialog] for renaming Android resources.
-   */
+  /** Custom [RenameDialog] for renaming Android resources. */
   private class ResourceRenameDialog(
     project: Project,
     resourceReferenceElement: ResourceReferencePsiElement,
     nameSuggestionContext: PsiElement?,
     editor: Editor?,
-    providedName: String?
+    providedName: String?,
   ) : RenameDialog(project, resourceReferenceElement, nameSuggestionContext, editor) {
 
     private var nameValidator: InputValidatorEx? = null
@@ -326,8 +329,7 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
         val newTestingName = NEW_NAME_RESOURCE.getData(dataContext) ?: PsiElementRenameHandler.DEFAULT_NAME.getData(dataContext) ?: return
         performRename(newTestingName)
         close(DialogWrapper.OK_EXIT_CODE)
-      }
-      else {
+      } else {
         super.show()
       }
     }
@@ -345,14 +347,14 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
       var validator = nameValidator
       if (validator == null) {
         val resourceReference = (psiElement as ResourceReferencePsiElement).resourceReference
-        validator = if (isFileBased(resourceReference, psiElement)) {
-          // Guaranteed to be not null for a file based resource type.
-          val resourceFolderType = FolderTypeRelationship.getNonValuesRelatedFolder(resourceReference.resourceType)!!
-          IdeResourceNameValidator.forFilename(resourceFolderType)
-        }
-        else {
-          IdeResourceNameValidator.forResourceName(resourceReference.resourceType)
-        }
+        validator =
+          if (isFileBased(resourceReference, psiElement)) {
+            // Guaranteed to be not null for a file based resource type.
+            val resourceFolderType = FolderTypeRelationship.getNonValuesRelatedFolder(resourceReference.resourceType)!!
+            IdeResourceNameValidator.forFilename(resourceFolderType)
+          } else {
+            IdeResourceNameValidator.forResourceName(resourceReference.resourceType)
+          }
         nameValidator = validator
       }
       return validator
@@ -360,11 +362,9 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
   }
 }
 
-/**
- * [RenameHandler] for Android Resources, in Kotlin.
- */
+/** [RenameHandler] for Android Resources, in Kotlin. */
 class KotlinResourceRenameHandler : ResourceRenameHandler() {
-  override fun isAvailableInFile(file: PsiFile) : Boolean {
+  override fun isAvailableInFile(file: PsiFile): Boolean {
     return file.language == KotlinLanguage.INSTANCE
   }
 }
@@ -386,11 +386,11 @@ internal fun isFileBased(resourceReference: ResourceReference, context: PsiEleme
       // method should return false anyway.
       false
 
-    ResourceType.COLOR, ResourceType.DRAWABLE ->
+    ResourceType.COLOR,
+    ResourceType.DRAWABLE ->
       // These resources can be either file-based or not, and we have to resolve the reference to figure it out.
       AndroidResourceToPsiResolver.getInstance().getGotoDeclarationFileBasedTargets(resourceReference, context).any()
 
-    else ->
-      FolderTypeRelationship.getRelatedFolders(resourceType).any { it != ResourceFolderType.VALUES }
+    else -> FolderTypeRelationship.getRelatedFolders(resourceType).any { it != ResourceFolderType.VALUES }
   }
 }

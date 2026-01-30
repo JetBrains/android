@@ -15,22 +15,13 @@
  */
 package com.android.tools.profilers.cpu.systemtrace
 
-/**
- * Represents a trace event in the Surfaceflinger process.
- */
-data class SurfaceflingerEvent(val start: Long,
-                               val end: Long,
-                               val type: Type,
-                               val name: String = "") {
+/** Represents a trace event in the Surfaceflinger process. */
+data class SurfaceflingerEvent(val start: Long, val end: Long, val type: Type, val name: String = "") {
   enum class Type(val displayName: String) {
-    /**
-     * Represents the state when there are no trace events in the Surfaceflinger process.
-     */
+    /** Represents the state when there are no trace events in the Surfaceflinger process. */
     IDLE("Idle"),
 
-    /**
-     * Represents the state when there are any trace event in the Surfaceflinger process.
-     */
-    PROCESSING("Processing");
+    /** Represents the state when there are any trace event in the Surfaceflinger process. */
+    PROCESSING("Processing"),
   }
 }

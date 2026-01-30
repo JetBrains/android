@@ -24,9 +24,9 @@ class CallstackSampleTaskHandler(sessionsManager: SessionsManager) : CpuTaskHand
   override fun getCpuRecordingConfig() = SimpleperfConfiguration(getTaskName())
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?) =
-    artifact is CpuCaptureSessionArtifact
-    && artifact.artifactProto.hasConfiguration()
-    && artifact.artifactProto.configuration.hasSimpleperfOptions()
+    artifact is CpuCaptureSessionArtifact &&
+      artifact.artifactProto.hasConfiguration() &&
+      artifact.artifactProto.configuration.hasSimpleperfOptions()
 
   override fun getTaskName() = "Callstack Sample"
 }

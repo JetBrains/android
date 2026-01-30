@@ -22,20 +22,14 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import java.util.EnumMap
 
-/**
- * Keeps a bidirectional mapping between type+name and a numeric id, for a known namespace.
- */
+/** Keeps a bidirectional mapping between type+name and a numeric id, for a known namespace. */
 internal class SingleNamespaceIdMapping(private val namespace: ResourceNamespace) {
   var toIdMap = EnumMap<ResourceType, Object2IntOpenHashMap<String>>(ResourceType::class.java)
   var fromIdMap = Int2ObjectOpenHashMap<Pair<ResourceType, String>>()
 
-  /**
-   * Returns the id of the given resource or 0 if not known.
-   */
+  /** Returns the id of the given resource or 0 if not known. */
   fun getId(resourceReference: ResourceReference): Int = toIdMap[resourceReference.resourceType]?.get(resourceReference.name) ?: 0
 
-  /**
-   * Returns the [ResourceReference] for the given id, if known.
-   */
+  /** Returns the [ResourceReference] for the given id, if known. */
   fun findById(id: Int): ResourceReference? = fromIdMap[id]?.let { (type, name) -> ResourceReference(namespace, type, name) }
 }

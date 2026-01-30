@@ -27,12 +27,12 @@ class AssetRepositoryBase(private val assetFileOpener: AssetFileOpener) : AssetR
   override fun isFileResource(path: String): Boolean = isResourceFile(path)
 
   /**
-   * It takes an absolute path that does not point to an asset and opens the file. Currently, the access
-   * is restricted to files under the resources directories and the downloadable font cache directory.
+   * It takes an absolute path that does not point to an asset and opens the file. Currently, the access is restricted to files under the
+   * resources directories and the downloadable font cache directory.
    *
    * @param cookie ignored
-   * @param url the path pointing to a file on disk, or to a ZIP file entry. In the latter case the path
-   *     has the following format: "apk:<i>path_to_zip_file</i>!/<i>path_to_zip_entry</i>
+   * @param url the path pointing to a file on disk, or to a ZIP file entry. In the latter case the path has the following format:
+   *   "apk:<i>path_to_zip_file</i>!/<i>path_to_zip_entry</i>
    * @param mode ignored
    */
   override fun openNonAsset(cookie: Int, path: String, mode: Int): InputStream? {

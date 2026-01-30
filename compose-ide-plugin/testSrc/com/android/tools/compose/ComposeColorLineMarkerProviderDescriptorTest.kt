@@ -60,29 +60,23 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         "src/com/android/test/A.kt",
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(0xFFC20029)
-        fun () {
-          val primary = Color(0xA84A8A7B)
-          val secondary = Color(0xFF4A8A7B)
-          val primaryVariant = Color(color = 0xFF57AD28)
-          val secondaryVariant = Color(color = 0x8057AD28)
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        class A {
+          val other = Color(0xFFC20029)
+          fun () {
+            val primary = Color(0xA84A8A7B)
+            val secondary = Color(0xFF4A8A7B)
+            val primaryVariant = Color(color = 0xFF57AD28)
+            val secondaryVariant = Color(color = 0x8057AD28)
+          }
         }
-      }
-      """
+        """
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     checkGutterIconInfos(
-      listOf(
-        Color(194, 0, 41, 255),
-        Color(74, 138, 123, 168),
-        Color(74, 138, 123, 255),
-        Color(87, 173, 40, 255),
-        Color(87, 173, 40, 128),
-      )
+      listOf(Color(194, 0, 41, 255), Color(74, 138, 123, 168), Color(74, 138, 123, 255), Color(87, 173, 40, 255), Color(87, 173, 40, 128))
     )
     setNewColor("Co|lor(0xFF4A8A7B)", Color(0xFFAABBCC.toInt()))
     setNewColor("Co|lor(color = 0xFF57AD28)", Color(0xFFAABBCC.toInt()))
@@ -90,18 +84,18 @@ class ComposeColorLineMarkerProviderDescriptorTest {
       .isEqualTo(
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(0xFFC20029)
-        fun () {
-          val primary = Color(0xA84A8A7B)
-          val secondary = Color(0xFFAABBCC)
-          val primaryVariant = Color(color = 0xFFAABBCC)
-          val secondaryVariant = Color(color = 0x8057AD28)
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        class A {
+          val other = Color(0xFFC20029)
+          fun () {
+            val primary = Color(0xA84A8A7B)
+            val secondary = Color(0xFFAABBCC)
+            val primaryVariant = Color(color = 0xFFAABBCC)
+            val secondaryVariant = Color(color = 0x8057AD28)
+          }
         }
-      }
-      """
+        """
           .trimIndent()
       )
   }
@@ -113,12 +107,12 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         "src/com/android/test/A.kt",
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(0xFFFF0000)
-      }
-      """
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        class A {
+          val other = Color(0xFFFF0000)
+        }
+        """
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
@@ -128,12 +122,12 @@ class ComposeColorLineMarkerProviderDescriptorTest {
       .isEqualTo(
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(0x0DFF0000)
-      }
-      """
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        class A {
+          val other = Color(0x0DFF0000)
+        }
+        """
           .trimIndent()
       )
   }
@@ -145,29 +139,23 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         "src/com/android/test/A.kt",
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(0xC20029)
-        fun () {
-          val primary = Color(0x4A8A7B)
-          val secondary = Color(0x804A8A7B)
-          val primaryVariant = Color(color = 0x57AD28)
-          val secondaryVariant = Color(color = 0x4057AD28)
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        class A {
+          val other = Color(0xC20029)
+          fun () {
+            val primary = Color(0x4A8A7B)
+            val secondary = Color(0x804A8A7B)
+            val primaryVariant = Color(color = 0x57AD28)
+            val secondaryVariant = Color(color = 0x4057AD28)
+          }
         }
-      }
-      """
+        """
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     checkGutterIconInfos(
-      listOf(
-        Color(194, 0, 41, 0),
-        Color(74, 138, 123, 0),
-        Color(74, 138, 123, 128),
-        Color(87, 173, 40, 0),
-        Color(87, 173, 40, 64),
-      )
+      listOf(Color(194, 0, 41, 0), Color(74, 138, 123, 0), Color(74, 138, 123, 128), Color(87, 173, 40, 0), Color(87, 173, 40, 64))
     )
     setNewColor("Co|lor(0x4A8A7B)", Color(0xFFAABBCC.toInt()))
     setNewColor("Co|lor(color = 0x57AD28)", Color(0xFFAABBCC.toInt()))
@@ -175,18 +163,18 @@ class ComposeColorLineMarkerProviderDescriptorTest {
       .isEqualTo(
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(0xC20029)
-        fun () {
-          val primary = Color(0xFFAABBCC)
-          val secondary = Color(0x804A8A7B)
-          val primaryVariant = Color(color = 0xFFAABBCC)
-          val secondaryVariant = Color(color = 0x4057AD28)
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        class A {
+          val other = Color(0xC20029)
+          fun () {
+            val primary = Color(0xFFAABBCC)
+            val secondary = Color(0x804A8A7B)
+            val primaryVariant = Color(color = 0xFFAABBCC)
+            val secondaryVariant = Color(color = 0x4057AD28)
+          }
         }
-      }
-      """
+        """
           .trimIndent()
       )
   }
@@ -198,30 +186,22 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         "src/com/android/test/A.kt",
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(0xC2, 0x00, 0x29)
-        fun () {
-          val primary = Color(0x4A, 0x8A, 0x7B)
-          val secondary = Color(170, 187, 204)
-          val primaryVariant = Color(red = 0x57, green = 0xAD, blue = 0x28)
-          val secondaryVariant = Color(green = 200, red = 180, blue = 120)
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        class A {
+          val other = Color(0xC2, 0x00, 0x29)
+          fun () {
+            val primary = Color(0x4A, 0x8A, 0x7B)
+            val secondary = Color(170, 187, 204)
+            val primaryVariant = Color(red = 0x57, green = 0xAD, blue = 0x28)
+            val secondaryVariant = Color(green = 200, red = 180, blue = 120)
+          }
         }
-      }
-      """
+        """
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
-    checkGutterIconInfos(
-      listOf(
-        Color(194, 0, 41),
-        Color(74, 138, 123),
-        Color(170, 187, 204),
-        Color(87, 173, 40),
-        Color(180, 200, 120),
-      )
-    )
+    checkGutterIconInfos(listOf(Color(194, 0, 41), Color(74, 138, 123), Color(170, 187, 204), Color(87, 173, 40), Color(180, 200, 120)))
     setNewColor("Co|lor(0x4A, 0x8A, 0x7B)", Color(0xFFAABBCC.toInt()))
     setNewColor("Co|lor(170, 187, 204)", Color(0xFF406080.toInt()))
     setNewColor("Co|lor(red = 0x57, green = 0xAD, blue = 0x28)", Color(0xFFAABBCC.toInt()))
@@ -230,18 +210,18 @@ class ComposeColorLineMarkerProviderDescriptorTest {
       .isEqualTo(
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(0xC2, 0x00, 0x29)
-        fun () {
-          val primary = Color(0xAA, 0xBB, 0xCC, 0xFF)
-          val secondary = Color(64, 96, 128, 255)
-          val primaryVariant = Color(red = 0xAA, green = 0xBB, blue = 0xCC, alpha = 0xFF)
-          val secondaryVariant = Color(red = 17, green = 34, blue = 51, alpha = 255)
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        class A {
+          val other = Color(0xC2, 0x00, 0x29)
+          fun () {
+            val primary = Color(0xAA, 0xBB, 0xCC, 0xFF)
+            val secondary = Color(64, 96, 128, 255)
+            val primaryVariant = Color(red = 0xAA, green = 0xBB, blue = 0xCC, alpha = 0xFF)
+            val secondaryVariant = Color(red = 17, green = 34, blue = 51, alpha = 255)
+          }
         }
-      }
-      """
+        """
           .trimIndent()
       )
   }
@@ -253,48 +233,40 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         "src/com/android/test/A.kt",
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(0xC2, 0x00, 0x29, 0xFF)
-        fun () {
-          val primary = Color(0x4A, 0x8A, 0x7B, 0xFF)
-          val secondary = Color(170, 187, 204, 255)
-          val primaryVariant = Color(red = 0x57, green = 0xAD, blue = 0x28, alpha = 0xFF)
-          val secondaryVariant = Color(green = 120, red = 64, alpha = 255, blue = 192)
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        class A {
+          val other = Color(0xC2, 0x00, 0x29, 0xFF)
+          fun () {
+            val primary = Color(0x4A, 0x8A, 0x7B, 0xFF)
+            val secondary = Color(170, 187, 204, 255)
+            val primaryVariant = Color(red = 0x57, green = 0xAD, blue = 0x28, alpha = 0xFF)
+            val secondaryVariant = Color(green = 120, red = 64, alpha = 255, blue = 192)
+          }
         }
-      }
-      """
+        """
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
-    checkGutterIconInfos(
-      listOf(
-        Color(194, 0, 41),
-        Color(74, 138, 123),
-        Color(170, 187, 204),
-        Color(87, 173, 40),
-        Color(64, 120, 192),
-      )
-    )
+    checkGutterIconInfos(listOf(Color(194, 0, 41), Color(74, 138, 123), Color(170, 187, 204), Color(87, 173, 40), Color(64, 120, 192)))
     setNewColor("Co|lor(0x4A, 0x8A, 0x7B, 0xFF)", Color(0xFFAABBCC.toInt()))
     setNewColor("Co|lor(green = 120, red = 64, alpha = 255, blue = 192)", Color(0xFFAABBCC.toInt()))
     assertThat(myFixture.editor.document.text)
       .isEqualTo(
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(0xC2, 0x00, 0x29, 0xFF)
-        fun () {
-          val primary = Color(0xAA, 0xBB, 0xCC, 0xFF)
-          val secondary = Color(170, 187, 204, 255)
-          val primaryVariant = Color(red = 0x57, green = 0xAD, blue = 0x28, alpha = 0xFF)
-          val secondaryVariant = Color(red = 170, green = 187, blue = 204, alpha = 255)
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        class A {
+          val other = Color(0xC2, 0x00, 0x29, 0xFF)
+          fun () {
+            val primary = Color(0xAA, 0xBB, 0xCC, 0xFF)
+            val secondary = Color(170, 187, 204, 255)
+            val primaryVariant = Color(red = 0x57, green = 0xAD, blue = 0x28, alpha = 0xFF)
+            val secondaryVariant = Color(red = 170, green = 187, blue = 204, alpha = 255)
+          }
         }
-      }
-      """
+        """
           .trimIndent()
       )
   }
@@ -306,48 +278,40 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         "src/com/android/test/A.kt",
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(0.14f, 0.0f, 0.16f)
-        fun () {
-          val primary = Color(0.3f, 0.54f, 0.48f)
-          val primary = Color(0.3f, 0.54f, 0.48f)
-          val primaryVariant = Color(red = 0.34f, green = 0.68f, blue = 0.15f)
-          val primaryVariant = Color(green = 0.68f, red = 0.34f, blue = 0.15f)
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        class A {
+          val other = Color(0.14f, 0.0f, 0.16f)
+          fun () {
+            val primary = Color(0.3f, 0.54f, 0.48f)
+            val primary = Color(0.3f, 0.54f, 0.48f)
+            val primaryVariant = Color(red = 0.34f, green = 0.68f, blue = 0.15f)
+            val primaryVariant = Color(green = 0.68f, red = 0.34f, blue = 0.15f)
+          }
         }
-      }
-      """
+        """
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
-    checkGutterIconInfos(
-      listOf(
-        Color(36, 0, 41),
-        Color(77, 138, 122),
-        Color(77, 138, 122),
-        Color(87, 173, 38),
-        Color(87, 173, 38),
-      )
-    )
+    checkGutterIconInfos(listOf(Color(36, 0, 41), Color(77, 138, 122), Color(77, 138, 122), Color(87, 173, 38), Color(87, 173, 38)))
     setNewColor("Co|lor(0.3f, 0.54f, 0.48f)", Color(0xFFAABBCC.toInt()))
     setNewColor("Co|lor(green = 0.68f, red = 0.34f, blue = 0.15f)", Color(0xFFAABBCC.toInt()))
     assertThat(myFixture.editor.document.text)
       .isEqualTo(
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(0.14f, 0.0f, 0.16f)
-        fun () {
-          val primary = Color(0.667f, 0.733f, 0.8f, 1.0f)
-          val primary = Color(0.3f, 0.54f, 0.48f)
-          val primaryVariant = Color(red = 0.34f, green = 0.68f, blue = 0.15f)
-          val primaryVariant = Color(red = 0.667f, green = 0.733f, blue = 0.8f, alpha = 1.0f)
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        class A {
+          val other = Color(0.14f, 0.0f, 0.16f)
+          fun () {
+            val primary = Color(0.667f, 0.733f, 0.8f, 1.0f)
+            val primary = Color(0.3f, 0.54f, 0.48f)
+            val primaryVariant = Color(red = 0.34f, green = 0.68f, blue = 0.15f)
+            val primaryVariant = Color(red = 0.667f, green = 0.733f, blue = 0.8f, alpha = 1.0f)
+          }
         }
-      }
-      """
+        """
           .trimIndent()
       )
   }
@@ -359,51 +323,42 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         "src/com/android/test/A.kt",
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(0.194f, 0f, 0.41f, 0.5f)
-        fun () {
-          val primary = Color(0.74f, 0.138f, 0.3f, 0.845f)
-          val primary = Color(0.74f, 0.138f, 0.3f, 0.845f)
-          val primaryVariant = Color(red = 0.87f, green = 0.173f, blue = 0.4f, alpha = 0.25f)
-          val primaryVariant = Color(alpha = 0.25f, green = 0.173f, blue = 0.4f, red = 0.87f)
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        class A {
+          val other = Color(0.194f, 0f, 0.41f, 0.5f)
+          fun () {
+            val primary = Color(0.74f, 0.138f, 0.3f, 0.845f)
+            val primary = Color(0.74f, 0.138f, 0.3f, 0.845f)
+            val primaryVariant = Color(red = 0.87f, green = 0.173f, blue = 0.4f, alpha = 0.25f)
+            val primaryVariant = Color(alpha = 0.25f, green = 0.173f, blue = 0.4f, red = 0.87f)
+          }
         }
-      }
-      """
+        """
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     checkGutterIconInfos(
-      listOf(
-        Color(49, 0, 105, 128),
-        Color(189, 35, 77, 215),
-        Color(189, 35, 77, 215),
-        Color(222, 44, 102, 64),
-        Color(222, 44, 102, 64),
-      )
+      listOf(Color(49, 0, 105, 128), Color(189, 35, 77, 215), Color(189, 35, 77, 215), Color(222, 44, 102, 64), Color(222, 44, 102, 64))
     )
     setNewColor("Co|lor(0.74f, 0.138f, 0.3f, 0.845f)", Color(0xFFAABBCC.toInt()))
-    setNewColor(
-      "Co|lor(alpha = 0.25f, green = 0.173f, blue = 0.4f, red = 0.87f)",
-      Color(0xFFAABBCC.toInt()),
-    )
+    setNewColor("Co|lor(alpha = 0.25f, green = 0.173f, blue = 0.4f, red = 0.87f)", Color(0xFFAABBCC.toInt()))
     assertThat(myFixture.editor.document.text)
       .isEqualTo(
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(0.194f, 0f, 0.41f, 0.5f)
-        fun () {
-          val primary = Color(0.667f, 0.733f, 0.8f, 1.0f)
-          val primary = Color(0.74f, 0.138f, 0.3f, 0.845f)
-          val primaryVariant = Color(red = 0.87f, green = 0.173f, blue = 0.4f, alpha = 0.25f)
-          val primaryVariant = Color(red = 0.667f, green = 0.733f, blue = 0.8f, alpha = 1.0f)
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        class A {
+          val other = Color(0.194f, 0f, 0.41f, 0.5f)
+          fun () {
+            val primary = Color(0.667f, 0.733f, 0.8f, 1.0f)
+            val primary = Color(0.74f, 0.138f, 0.3f, 0.845f)
+            val primaryVariant = Color(red = 0.87f, green = 0.173f, blue = 0.4f, alpha = 0.25f)
+            val primaryVariant = Color(red = 0.667f, green = 0.733f, blue = 0.8f, alpha = 1.0f)
+          }
         }
-      }
-      """
+        """
           .trimIndent()
       )
   }
@@ -417,19 +372,19 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         "src/com/android/test/A.kt",
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      import androidx.compose.ui.graphics.colorspace.ColorSpaces
-      class A {
-        val other = Color(0.194f, 0f, 0.41f, 0.5f, ColorSpaces.LinearSrgb)
-        fun () {
-          val primary = Color(0.74f, 0.138f, 0.3f, 0.845f, ColorSpaces.LinearSrgb)
-          val primary = Color(0f, 0f, 0f, 0f, ColorSpaces.LinearSrgb)
-          val primaryVariant = Color(red = 0.87f, green = 0.173f, blue = 0.4f, alpha = 0.25f, colorSpace = ColorSpaces.LinearSrgb)
-          val primaryVariant = Color(red = 1.0f, green = 1.0f, blue = 1.0f, alpha = 1.0f, colorSpace = ColorSpaces.LinearSrgb)
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        import androidx.compose.ui.graphics.colorspace.ColorSpaces
+        class A {
+          val other = Color(0.194f, 0f, 0.41f, 0.5f, ColorSpaces.LinearSrgb)
+          fun () {
+            val primary = Color(0.74f, 0.138f, 0.3f, 0.845f, ColorSpaces.LinearSrgb)
+            val primary = Color(0f, 0f, 0f, 0f, ColorSpaces.LinearSrgb)
+            val primaryVariant = Color(red = 0.87f, green = 0.173f, blue = 0.4f, alpha = 0.25f, colorSpace = ColorSpaces.LinearSrgb)
+            val primaryVariant = Color(red = 1.0f, green = 1.0f, blue = 1.0f, alpha = 1.0f, colorSpace = ColorSpaces.LinearSrgb)
+          }
         }
-      }
-      """
+        """
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
@@ -444,17 +399,17 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         "src/com/android/test/A.kt",
         // language=kotlin
         """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      import androidx.compose.ui.graphics.colorspace.ColorSpaces
-      class A {
-        private val other = Color(0xFFC20029)
-        fun () {
-          val reference = other
-          val indirect = reference
+        package com.android.test
+        import androidx.compose.ui.graphics.Color
+        import androidx.compose.ui.graphics.colorspace.ColorSpaces
+        class A {
+          private val other = Color(0xFFC20029)
+          fun () {
+            val reference = other
+            val indirect = reference
+          }
         }
-      }
-      """
+        """
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
@@ -467,23 +422,15 @@ class ComposeColorLineMarkerProviderDescriptorTest {
 
     myFixture.doHighlighting()
     val highlightInfo = runReadAction {
-      DaemonCodeAnalyzerImpl.getLineMarkers(myFixture.editor.document, myFixture.project).single {
-        lineMarkerInfo ->
+      DaemonCodeAnalyzerImpl.getLineMarkers(myFixture.editor.document, myFixture.project).single { lineMarkerInfo ->
         lineMarkerInfo.navigationHandler is ColorIconRenderer && lineMarkerInfo.element == element
       }
     }
 
     runInEdtAndWait {
       val project = myFixture.project
-      val setColorTask =
-        (highlightInfo.navigationHandler as ColorIconRenderer).getSetColorTask()
-          ?: return@runInEdtAndWait
-      WriteCommandAction.runWriteCommandAction(
-        project,
-        "Change Color",
-        null,
-        { setColorTask.invoke(newColor) },
-      )
+      val setColorTask = (highlightInfo.navigationHandler as ColorIconRenderer).getSetColorTask() ?: return@runInEdtAndWait
+      WriteCommandAction.runWriteCommandAction(project, "Change Color", null, { setColorTask.invoke(newColor) })
     }
   }
 
@@ -501,8 +448,7 @@ class ComposeColorLineMarkerProviderDescriptorTest {
       assertThat(it.navigationHandler).isNotNull()
     }
 
-    assertThat(highlightInfos.map { (it.navigationHandler as ColorIconRenderer).color })
-      .containsExactlyElementsIn(expectedColorIcons)
+    assertThat(highlightInfos.map { (it.navigationHandler as ColorIconRenderer).color }).containsExactlyElementsIn(expectedColorIcons)
   }
 }
 
@@ -512,9 +458,7 @@ class ComposeColorReferenceAnnotatorTest {
 
   @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
-  private val myFixture: JavaCodeInsightTestFixture by lazy {
-    projectRule.fixture as JavaCodeInsightTestFixture
-  }
+  private val myFixture: JavaCodeInsightTestFixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
 
   @Before
   fun setUp() {
@@ -522,10 +466,7 @@ class ComposeColorReferenceAnnotatorTest {
     myFixture.addComposeRuntimeDep()
     myFixture.testDataPath = getComposePluginTestDataPath()
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors.xml")
-    myFixture.copyFileToProject(
-      "annotator/AndroidManifest.xml",
-      SdkConstants.FN_ANDROID_MANIFEST_XML,
-    )
+    myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML)
   }
 
   // Regression test for https://issuetracker.google.com/144560843
@@ -539,7 +480,7 @@ class ComposeColorReferenceAnnotatorTest {
       package p1.p2
 
       import androidx.compose.runtime.Composable
-      
+
       @Composable
       fun Foobar(required: Int) {
         val drawable = R.drawable.ic_tick
@@ -551,7 +492,6 @@ class ComposeColorReferenceAnnotatorTest {
 
     val icons = myFixture.findAllGutters()
     val colorGutterIconRenderer = icons.first { it is AndroidAnnotatorUtil.ColorRenderer }
-    assertThat((colorGutterIconRenderer.icon as MultipleColorIcon).colors)
-      .containsExactlyElementsIn(arrayOf(Color(63, 81, 181)))
+    assertThat((colorGutterIconRenderer.icon as MultipleColorIcon).colors).containsExactlyElementsIn(arrayOf(Color(63, 81, 181)))
   }
 }

@@ -28,10 +28,7 @@ import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.psiUtil.getLastParentOfTypeInRowWithSelf
 
-/**
- * Wraps Modifier(androidx.compose.ui.Modifier) chain that is two modifiers or longer, in one
- * modifier per line.
- */
+/** Wraps Modifier(androidx.compose.ui.Modifier) chain that is two modifiers or longer, in one modifier per line. */
 class ComposeWrapModifiersAction : IntentionAction {
   private companion object {
     val NO_NEW_LINE_BEFORE_DOT = Regex("[^.\\n\\s]\\.")
@@ -48,23 +45,17 @@ class ComposeWrapModifiersAction : IntentionAction {
       file == null || editor == null -> false
       !file.isWritable || file !is KtFile -> false
       else -> {
-        val elementAtCaret =
-          file.findElementAt(editor.caretModel.offset)?.parentOfType<KtDotQualifiedExpression>()
-        val topLevelExpression =
-          elementAtCaret?.getLastParentOfTypeInRowWithSelf<KtDotQualifiedExpression>()
-            ?: return false
-        isModifierChainLongerThanTwo(topLevelExpression) &&
-          NO_NEW_LINE_BEFORE_DOT.containsMatchIn(topLevelExpression.text)
+        val elementAtCaret = file.findElementAt(editor.caretModel.offset)?.parentOfType<KtDotQualifiedExpression>()
+        val topLevelExpression = elementAtCaret?.getLastParentOfTypeInRowWithSelf<KtDotQualifiedExpression>() ?: return false
+        isModifierChainLongerThanTwo(topLevelExpression) && NO_NEW_LINE_BEFORE_DOT.containsMatchIn(topLevelExpression.text)
       }
     }
   }
 
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
     if (file == null || editor == null) return
-    val elementAtCaret =
-      file.findElementAt(editor.caretModel.offset)?.parentOfType<KtDotQualifiedExpression>()
-    val topLevelExpression =
-      elementAtCaret?.getLastParentOfTypeInRowWithSelf<KtDotQualifiedExpression>() ?: return
+    val elementAtCaret = file.findElementAt(editor.caretModel.offset)?.parentOfType<KtDotQualifiedExpression>()
+    val topLevelExpression = elementAtCaret?.getLastParentOfTypeInRowWithSelf<KtDotQualifiedExpression>() ?: return
     wrapModifierChain(topLevelExpression, CodeStyle.getSettings(file))
   }
 }

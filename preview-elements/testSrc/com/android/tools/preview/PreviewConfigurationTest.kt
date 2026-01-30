@@ -60,15 +60,7 @@ class PreviewConfigurationTest {
     )
 
     Assert.assertEquals(
-      PreviewConfiguration.cleanAndGet(
-        9000,
-        MAX_DIMENSION_DP,
-        MAX_DIMENSION_DP,
-        null,
-        null,
-        null,
-        "id:device",
-      ),
+      PreviewConfiguration.cleanAndGet(9000, MAX_DIMENSION_DP, MAX_DIMENSION_DP, null, null, null, "id:device"),
       PreviewConfiguration.cleanAndGet(9000, 500000, 500000, null, 1f, 0, "id:device"),
     )
 
@@ -149,16 +141,14 @@ class PreviewConfigurationTest {
     val devicePhone = createDevice(tagId = null)
     val deviceNull: Device? = null
 
-    val configuration =
-      Configuration.create(TestConfigurationSettingsImpl(), FolderConfiguration.createDefault())
+    val configuration = Configuration.create(TestConfigurationSettingsImpl(), FolderConfiguration.createDefault())
 
     // Test with Wear device
     PreviewConfiguration.cleanAndGet(device = deviceWear.id)
       .applyConfigurationForTest(configuration, { null }, { emptyList() }, { deviceWear })
     Assert.assertEquals(UiMode.WATCH, configuration.uiMode)
     // Test with TV device
-    PreviewConfiguration.cleanAndGet(device = deviceTv.id)
-      .applyConfigurationForTest(configuration, { null }, { emptyList() }, { deviceTv })
+    PreviewConfiguration.cleanAndGet(device = deviceTv.id).applyConfigurationForTest(configuration, { null }, { emptyList() }, { deviceTv })
     Assert.assertEquals(UiMode.TELEVISION, configuration.uiMode)
 
     // Test with Automotive device
@@ -172,8 +162,7 @@ class PreviewConfigurationTest {
     Assert.assertEquals(UiMode.DESK, configuration.uiMode)
 
     // Test with XR device
-    PreviewConfiguration.cleanAndGet(device = deviceXr.id)
-      .applyConfigurationForTest(configuration, { null }, { emptyList() }, { deviceXr })
+    PreviewConfiguration.cleanAndGet(device = deviceXr.id).applyConfigurationForTest(configuration, { null }, { emptyList() }, { deviceXr })
     Assert.assertEquals(UiMode.VR_HEADSET, configuration.uiMode)
 
     // Test with Things device
@@ -187,8 +176,7 @@ class PreviewConfigurationTest {
     Assert.assertEquals(UiMode.NORMAL, configuration.uiMode)
 
     // Test with null device
-    PreviewConfiguration.cleanAndGet(device = null)
-      .applyConfigurationForTest(configuration, { null }, { emptyList() }, { deviceNull })
+    PreviewConfiguration.cleanAndGet(device = null).applyConfigurationForTest(configuration, { null }, { emptyList() }, { deviceNull })
     Assert.assertEquals(UiMode.NORMAL, configuration.uiMode)
   }
 
@@ -219,11 +207,7 @@ class TestThemeInfoProvider : ThemeInfoProvider {
     return "ActivityTheme"
   }
 
-  override fun getDeviceDefaultTheme(
-    renderingTarget: IAndroidTarget?,
-    screenSize: ScreenSize?,
-    device: Device?,
-  ): String {
+  override fun getDeviceDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String {
     return "theme"
   }
 
@@ -283,9 +267,7 @@ class TestConfigurationModelModule : ConfigurationModelModule {
 }
 
 /** Test implementation of [ConfigurationSettings]. */
-class TestConfigurationSettingsImpl(
-  override var devices: ImmutableList<Device> = ImmutableList.of()
-) : ConfigurationSettings {
+class TestConfigurationSettingsImpl(override var devices: ImmutableList<Device> = ImmutableList.of()) : ConfigurationSettings {
 
   override var defaultDevice: Device? = null
   override var locale: Locale = Locale.ANY

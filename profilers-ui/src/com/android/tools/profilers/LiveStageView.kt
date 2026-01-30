@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers
 
-import com.android.tools.adtui.model.DurationDataModel
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.model.ViewBinder
@@ -37,43 +36,33 @@ import java.awt.FlowLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
-  StageView<LiveStage>(profilersView, liveStage) {
+class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) : StageView<LiveStage>(profilersView, liveStage) {
 
   val binder: ViewBinder<StudioProfilersView, LiveDataModel, LiveDataView<out LiveDataModel>> = ViewBinder()
   private val stopRecordingButton: CommonButton
   private val liveStageToolbarItems: MutableList<JComponent>
 
   init {
-    binder.bind(
-      LiveMemoryFootprintModel::class.java) { view: StudioProfilersView, model
-      -> LiveMemoryFootprintView(view, model)
-    }
-    binder.bind(LiveCpuUsageModel::class.java) { view: StudioProfilersView, model
-      -> LiveCpuUsageView(view, model)
-    }
+    binder.bind(LiveMemoryFootprintModel::class.java) { view: StudioProfilersView, model -> LiveMemoryFootprintView(view, model) }
+    binder.bind(LiveCpuUsageModel::class.java) { view: StudioProfilersView, model -> LiveCpuUsageView(view, model) }
 
     val liveViewLayout = TabularLayout("*")
     val liveViews = JPanel(liveViewLayout)
     liveViews.background = ProfilerColors.DEFAULT_BACKGROUND
 
-    tooltipBinder.bind(LifecycleTooltip::class.java) { stageView: LiveStageView, tooltip
-      -> LifecycleTooltipView(stageView.component, tooltip)
+    tooltipBinder.bind(LifecycleTooltip::class.java) { stageView: LiveStageView, tooltip ->
+      LifecycleTooltipView(stageView.component, tooltip)
     }
-    tooltipBinder.bind(UserEventTooltip::class.java) { stageView: LiveStageView, tooltip
-      -> UserEventTooltipView(stageView.component, tooltip)
+    tooltipBinder.bind(UserEventTooltip::class.java) { stageView: LiveStageView, tooltip ->
+      UserEventTooltipView(stageView.component, tooltip)
     }
 
     stopRecordingButton = createStopRecordingButton()
-    liveStageToolbarItems =  createLiveStageToolbarItems()
+    liveStageToolbarItems = createLiveStageToolbarItems()
 
     tooltipPanel.layout = FlowLayout(FlowLayout.LEFT, 0, 0)
-    val myTooltipComponent = RangeTooltipComponent(
-      stage.timeline,
-      tooltipPanel,
-      profilersView.component,
-      this::shouldShowTooltipSeekComponent
-    )
+    val myTooltipComponent =
+      RangeTooltipComponent(stage.timeline, tooltipPanel, profilersView.component, this::shouldShowTooltipSeekComponent)
 
     val topPanelLayout = TabularLayout("*", "*,Fit-")
     val topPanel = JPanel(topPanelLayout)
@@ -121,31 +110,31 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
     stage.liveModels.filterIsInstance<LiveMemoryFootprintModel>().firstOrNull()?.refreshModels()
   }
 
-  private val isLiveRecordingOngoing get() = stage.studioProfilers.sessionsManager.isSessionAlive
+  private val isLiveRecordingOngoing
+    get() = stage.studioProfilers.sessionsManager.isSessionAlive
 
   private fun onStopRecordingClick() {
     stage.stopTask.invoke()
     stopRecordingButton.isVisible = false
 
     // Live model icons in toolbar is set to invisible on stop recording button click
-    liveStageToolbarItems.forEach{ it.isVisible = false }
+    liveStageToolbarItems.forEach { it.isVisible = false }
   }
 
   private fun createStopRecordingButton(): CommonButton {
-    val button = CommonButton(
-      if (profilersView.studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
-        StudioIcons.Profiler.Toolbar.STOP_SESSION
-      }
-      else {
-        StudioIcons.Profiler.Toolbar.STOP_RECORDING
-      }
-    ).apply {
-      toolTipText = Companion.stopRecordingTooltip
-      addActionListener {
-        onStopRecordingClick()
-      }
-      putClientProperty(DarculaButtonUI.DEFAULT_STYLE_KEY, true)
-    }
+    val button =
+      CommonButton(
+          if (profilersView.studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+            StudioIcons.Profiler.Toolbar.STOP_SESSION
+          } else {
+            StudioIcons.Profiler.Toolbar.STOP_RECORDING
+          }
+        )
+        .apply {
+          toolTipText = Companion.stopRecordingTooltip
+          addActionListener { onStopRecordingClick() }
+          putClientProperty(DarculaButtonUI.DEFAULT_STYLE_KEY, true)
+        }
     button.isVisible = isLiveRecordingOngoing
     return button
   }
@@ -171,7 +160,7 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
     val panel = JPanel(BorderLayout())
     val toolbar = JPanel(ProfilerLayout.createToolbarLayout())
     toolbar.removeAll()
-    liveStageToolbarItems.forEach{toolbar.add(it)}
+    liveStageToolbarItems.forEach { toolbar.add(it) }
     toolbar.add(stopRecordingButton)
     panel.add(toolbar, BorderLayout.WEST)
     return panel
@@ -181,18 +170,24 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
     private const val showDebuggableMessage = "debuggable.monitor.message"
     private const val showProfileableMessage = "profileable.monitor.message"
     private const val stopRecordingTooltip = "Stop Recording"
+
     fun getMessage(studioProfiler: StudioProfilers): JComponent {
       return when (studioProfiler.selectedSessionSupportLevel) {
-        SupportLevel.DEBUGGABLE -> DismissibleMessage.of(studioProfiler,
-                                                         showDebuggableMessage,
-                                                         "Profiling as debuggable. This does not represent app performance in production." +
-                                                         " Consider profiling as profileable.",
-                                                         SupportLevel.DOC_LINK)
+        SupportLevel.DEBUGGABLE ->
+          DismissibleMessage.of(
+            studioProfiler,
+            showDebuggableMessage,
+            "Profiling as debuggable. This does not represent app performance in production." + " Consider profiling as profileable.",
+            SupportLevel.DOC_LINK,
+          )
 
-        SupportLevel.PROFILEABLE -> DismissibleMessage.of(studioProfiler,
-                                                          showProfileableMessage,
-                                                          "Profiling as profileable. Certain profiler features will be unavailable in this mode.",
-                                                          SupportLevel.DOC_LINK)
+        SupportLevel.PROFILEABLE ->
+          DismissibleMessage.of(
+            studioProfiler,
+            showProfileableMessage,
+            "Profiling as profileable. Certain profiler features will be unavailable in this mode.",
+            SupportLevel.DOC_LINK,
+          )
 
         else -> {
           JPanel()

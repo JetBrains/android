@@ -19,9 +19,7 @@ import com.android.tools.profilers.ProfilerColors
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-/**
- * Test that the UserCounterStateChartFactory returns the correct color for the corresponding number of user counters occurring.
- */
+/** Test that the UserCounterStateChartFactory returns the correct color for the corresponding number of user counters occurring. */
 class UserCounterStateChartFactoryTest {
 
   private val colorProvider = UserCounterStateChartFactory.getDurationStateColorProvider()
@@ -50,4 +48,3 @@ class UserCounterStateChartFactoryTest {
     assertThat(colorProvider.getColor(true, 50)).isEqualTo(ProfilerColors.USER_COUNTER_EVENT_DARK)
   }
 }
-

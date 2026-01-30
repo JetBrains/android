@@ -32,23 +32,21 @@ import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 import javax.swing.ListSelectionModel
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 @RunsInEdt
 class CpuThreadsViewTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuThreadsViewTest", transportService)
+  @get:Rule var grpcChannel = FakeGrpcChannel("CpuThreadsViewTest", transportService)
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private lateinit var stage: CpuProfilerStage
   private lateinit var ideServices: FakeIdeProfilerServices
@@ -140,10 +138,8 @@ class CpuThreadsViewTest {
     assertThat(getThreadsList(threadsView).background).isEqualTo(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
   }
 
-  private fun getThreadsList(threadsView: CpuThreadsView) = TreeWalker(threadsView.component)
-    .descendants()
-    .filterIsInstance<DragAndDropList<CpuThreadsModel.RangedCpuThread>>()
-    .first()
+  private fun getThreadsList(threadsView: CpuThreadsView) =
+    TreeWalker(threadsView.component).descendants().filterIsInstance<DragAndDropList<CpuThreadsModel.RangedCpuThread>>().first()
 
   private fun populateThreads() {
     transportService.addEventToStream(
@@ -155,6 +151,7 @@ class CpuThreadsViewTest {
         .setGroupId(1)
         .setIsEnded(false)
         .setCpuThread(Cpu.CpuThreadData.newBuilder().setTid(1).setName("Test").setState(Cpu.CpuThreadData.State.SLEEPING))
-        .build())
+        .build(),
+    )
   }
 }

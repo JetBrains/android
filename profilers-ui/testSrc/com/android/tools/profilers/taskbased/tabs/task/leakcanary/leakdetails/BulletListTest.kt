@@ -24,27 +24,20 @@ import org.junit.Rule
 import org.junit.Test
 
 class BulletListTest {
-  @get:Rule
-  val composeTestRule = StudioComposeTestRule.createStudioComposeTestRule()
+  @get:Rule val composeTestRule = StudioComposeTestRule.createStudioComposeTestRule()
 
   @Test
   fun `test bullet list in more info displays items correctly`() {
     val items = listOf("Item 1", "Item 2", "Item 3")
-    composeTestRule.setContent{
-      BulletList(items = items)
-    }
-    items.forEach {
-      composeTestRule.onNodeWithText(it).assertIsDisplayed()
-    }
+    composeTestRule.setContent { BulletList(items = items) }
+    items.forEach { composeTestRule.onNodeWithText(it).assertIsDisplayed() }
     // Verify bullet is displayed for each item
     composeTestRule.onAllNodesWithText("•").assertCountEquals(items.size)
   }
 
   @Test
   fun `test empty bullet list displays nothing`() {
-    composeTestRule.setContent {
-      BulletList(items = emptyList())
-    }
+    composeTestRule.setContent { BulletList(items = emptyList()) }
     // Verify bullet is displayed for each item
     composeTestRule.onAllNodesWithText("•").assertCountEquals(0)
   }

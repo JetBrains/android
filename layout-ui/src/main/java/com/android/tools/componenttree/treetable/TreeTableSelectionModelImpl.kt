@@ -24,13 +24,9 @@ import com.intellij.util.ui.tree.TreeUtil
 import javax.swing.tree.DefaultTreeSelectionModel
 import javax.swing.tree.TreePath
 
-/**
- * A [DefaultTreeSelectionModel] where a selection is treated as a list of nodes rather than tree
- * paths.
- */
+/** A [DefaultTreeSelectionModel] where a selection is treated as a list of nodes rather than tree paths. */
 class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentTreeSelectionModel {
-  private val selectionListeners: MutableList<(List<Any>) -> Unit> =
-    ContainerUtil.createConcurrentList()
+  private val selectionListeners: MutableList<(List<Any>) -> Unit> = ContainerUtil.createConcurrentList()
   private val autoScrollListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
   private var isUpdating = false
 
@@ -60,17 +56,14 @@ class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentT
 
           // Then set the selection in the table
           table.selectionModel.clearSelection()
-          paths
-            .map { table.tree.getRowForPath(it) }
-            .forEach { table.selectionModel.addSelectionInterval(it, it) }
+          paths.map { table.tree.getRowForPath(it) }.forEach { table.selectionModel.addSelectionInterval(it, it) }
           fireAutoScroll()
         }
       }
     }
 
   fun keepSelectionDuring(operation: () -> Unit) {
-    val oldSelection =
-      table.selectionModel.selectedIndices.map { table.getValueAt(it, 0) }.filterNotNull()
+    val oldSelection = table.selectionModel.selectedIndices.map { table.getValueAt(it, 0) }.filterNotNull()
     update(operation)
 
     // Tricky:

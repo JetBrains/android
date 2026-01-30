@@ -18,7 +18,6 @@ package com.android.tools.profilers.performance
 import com.android.tools.datastore.database.EventsTable
 import com.android.tools.profiler.proto.EventProfiler
 import com.android.tools.profiler.proto.Interaction
-
 import java.sql.Connection
 
 class EventsGenerator(connection: Connection) : DataGenerator(connection) {
@@ -40,36 +39,30 @@ class EventsGenerator(connection: Connection) : DataGenerator(connection) {
   }
 
   private fun generateSystemData(timestamp: Long, properties: GeneratorProperties) {
-    val system = EventProfiler.SystemData.newBuilder()
-      .setActionId(random.nextInt())
-      .setType(Interaction.InteractionData.Type.TOUCH)
-      .setStartTimestamp(timestamp)
-      .setEndTimestamp(timestamp)
-      .setEventId(random.nextInt().toLong())
-      .setEventData("")
-      .build()
+    val system =
+      EventProfiler.SystemData.newBuilder()
+        .setActionId(random.nextInt())
+        .setType(Interaction.InteractionData.Type.TOUCH)
+        .setStartTimestamp(timestamp)
+        .setEndTimestamp(timestamp)
+        .setEventId(random.nextInt().toLong())
+        .setEventData("")
+        .build()
     myTable.insertOrReplace(system.eventId, properties.session, system)
   }
 
   private fun generateActivityData(timestamp: Long, properties: GeneratorProperties) {
     // Since activities don't change that frequently reduce the generation rate.
     if (myCurrentActivity == null || isWithinProbability(.25)) {
-      myCurrentActivity = EventProfiler.ActivityData.newBuilder()
-        .setName(random.nextLong().toString())
-        .setHash(random.nextLong())
-        .build()
+      myCurrentActivity = EventProfiler.ActivityData.newBuilder().setName(random.nextLong().toString()).setHash(random.nextLong()).build()
       myGenerateResumeState = true
     }
-    val state =
-      if (myGenerateResumeState)
-        Interaction.ViewData.State.RESUMED
-      else
-        Interaction.ViewData.State.PAUSED
-    myCurrentActivity = myCurrentActivity!!.toBuilder().addStateChanges(EventProfiler.ActivityStateData.newBuilder()
-                                                                          .setTimestamp(timestamp)
-                                                                          .setState(state)
-                                                                          .build())
-      .build()
+    val state = if (myGenerateResumeState) Interaction.ViewData.State.RESUMED else Interaction.ViewData.State.PAUSED
+    myCurrentActivity =
+      myCurrentActivity!!
+        .toBuilder()
+        .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setTimestamp(timestamp).setState(state).build())
+        .build()
     myTable.insertOrReplace(myCurrentActivity!!.hash, properties.session, myCurrentActivity)
     myGenerateResumeState = !myGenerateResumeState
   }

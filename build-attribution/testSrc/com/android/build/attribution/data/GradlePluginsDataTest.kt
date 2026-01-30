@@ -23,103 +23,112 @@ class GradlePluginsDataTest {
 
   @Test
   fun testJsonV1Parsed() {
-    val fileContent = """
-    {"pluginsInfo":[{
-      "name": "MyPlugin",
-      "pluginClasses": ["my.plugin.pluginA","my.plugin.pluginB"],
-      "pluginArtifact": "org.my:gradle-plugin",
-      "configurationCachingCompatibleFrom": "1.0.0"
-    }]}
-    """.trimIndent()
+    val fileContent =
+      """
+      {"pluginsInfo":[{
+        "name": "MyPlugin",
+        "pluginClasses": ["my.plugin.pluginA","my.plugin.pluginB"],
+        "pluginArtifact": "org.my:gradle-plugin",
+        "configurationCachingCompatibleFrom": "1.0.0"
+      }]}
+      """
+        .trimIndent()
 
     val parsedData = GradlePluginsData.loadFromJson(fileContent)
 
-    Truth.assertThat(parsedData).isEqualTo(
-      GradlePluginsData(
-        listOf(
-          GradlePluginsData.PluginInfo(
-            pluginClasses = listOf("my.plugin.pluginA", "my.plugin.pluginB"),
-            name = "MyPlugin",
-            pluginArtifact = GradlePluginsData.DependencyCoordinates("org.my", "gradle-plugin"),
-            configurationCachingCompatibleFrom = Version.parse("1.0.0")
+    Truth.assertThat(parsedData)
+      .isEqualTo(
+        GradlePluginsData(
+          listOf(
+            GradlePluginsData.PluginInfo(
+              pluginClasses = listOf("my.plugin.pluginA", "my.plugin.pluginB"),
+              name = "MyPlugin",
+              pluginArtifact = GradlePluginsData.DependencyCoordinates("org.my", "gradle-plugin"),
+              configurationCachingCompatibleFrom = Version.parse("1.0.0"),
+            )
           )
         )
       )
-    )
   }
 
   @Test
   fun testJsonParsedWithoutSomeFields() {
-    val fileContent = """
-    {"pluginsInfo":[{
-      "pluginClasses": ["my.plugin.pluginA","my.plugin.pluginB"],
-      "name": "MyPlugin"
-    }]}
-    """.trimIndent()
+    val fileContent =
+      """
+      {"pluginsInfo":[{
+        "pluginClasses": ["my.plugin.pluginA","my.plugin.pluginB"],
+        "name": "MyPlugin"
+      }]}
+      """
+        .trimIndent()
 
     val parsedData = GradlePluginsData.loadFromJson(fileContent)
 
-    Truth.assertThat(parsedData).isEqualTo(
-      GradlePluginsData(
-        listOf(
-          GradlePluginsData.PluginInfo(
-            pluginClasses = listOf("my.plugin.pluginA", "my.plugin.pluginB"),
-            name = "MyPlugin"
-          )
+    Truth.assertThat(parsedData)
+      .isEqualTo(
+        GradlePluginsData(
+          listOf(GradlePluginsData.PluginInfo(pluginClasses = listOf("my.plugin.pluginA", "my.plugin.pluginB"), name = "MyPlugin"))
         )
       )
-    )
   }
 
   @Test
   fun testJsonParsedWithExtraFields() {
-    val fileContent = """
-    { "pluginsInfo": [{
-        "name": "MyPlugin",
-        "pluginClasses": ["my.plugin.pluginA","my.plugin.pluginB"],
-        "pluginArtifact": "org.my:gradle-plugin",
-        "configurationCachingCompatibleFrom": "1.0.0",
-        "newField": "newValue"
-      }]}
-    """.trimIndent()
-
+    val fileContent =
+      """
+      { "pluginsInfo": [{
+          "name": "MyPlugin",
+          "pluginClasses": ["my.plugin.pluginA","my.plugin.pluginB"],
+          "pluginArtifact": "org.my:gradle-plugin",
+          "configurationCachingCompatibleFrom": "1.0.0",
+          "newField": "newValue"
+        }]}
+      """
+        .trimIndent()
 
     val parsedData = GradlePluginsData.loadFromJson(fileContent)
 
-    Truth.assertThat(parsedData).isEqualTo(
-      GradlePluginsData(
-        listOf(
-          GradlePluginsData.PluginInfo(
-            pluginClasses = listOf("my.plugin.pluginA", "my.plugin.pluginB"),
-            name = "MyPlugin",
-            pluginArtifact = GradlePluginsData.DependencyCoordinates("org.my", "gradle-plugin"),
-            configurationCachingCompatibleFrom = Version.parse("1.0.0")
+    Truth.assertThat(parsedData)
+      .isEqualTo(
+        GradlePluginsData(
+          listOf(
+            GradlePluginsData.PluginInfo(
+              pluginClasses = listOf("my.plugin.pluginA", "my.plugin.pluginB"),
+              name = "MyPlugin",
+              pluginArtifact = GradlePluginsData.DependencyCoordinates("org.my", "gradle-plugin"),
+              configurationCachingCompatibleFrom = Version.parse("1.0.0"),
+            )
           )
         )
       )
-    )
   }
 
   @Test
   fun testJsonParsedWithWrongVersionFormat() {
-    val fileContent = """
-    { "pluginsInfo": [{
-        "name": "MyPlugin",
-        "pluginClasses": ["my.plugin.pluginA","my.plugin.pluginB"],
-        "pluginArtifact": "org.my:gradle-plugin",
-        "configurationCachingCompatibleFrom": "N/A"
-      }]}
-    """.trimIndent()
-
+    val fileContent =
+      """
+      { "pluginsInfo": [{
+          "name": "MyPlugin",
+          "pluginClasses": ["my.plugin.pluginA","my.plugin.pluginB"],
+          "pluginArtifact": "org.my:gradle-plugin",
+          "configurationCachingCompatibleFrom": "N/A"
+        }]}
+      """
+        .trimIndent()
 
     val parsedData = GradlePluginsData.loadFromJson(fileContent)
-    Truth.assertThat(parsedData).isEqualTo(GradlePluginsData(listOf(
-      GradlePluginsData.PluginInfo(
-        pluginClasses = listOf("my.plugin.pluginA", "my.plugin.pluginB"),
-        name = "MyPlugin",
-        pluginArtifact = GradlePluginsData.DependencyCoordinates("org.my", "gradle-plugin"),
-        configurationCachingCompatibleFrom = null
+    Truth.assertThat(parsedData)
+      .isEqualTo(
+        GradlePluginsData(
+          listOf(
+            GradlePluginsData.PluginInfo(
+              pluginClasses = listOf("my.plugin.pluginA", "my.plugin.pluginB"),
+              name = "MyPlugin",
+              pluginArtifact = GradlePluginsData.DependencyCoordinates("org.my", "gradle-plugin"),
+              configurationCachingCompatibleFrom = null,
+            )
+          )
+        )
       )
-    )))
   }
 }

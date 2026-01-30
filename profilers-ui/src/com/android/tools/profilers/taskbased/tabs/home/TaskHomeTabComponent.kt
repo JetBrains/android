@@ -39,7 +39,5 @@ fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdePr
   )
 }
 
-class TaskHomeTabComponent(
-  taskHomeTabModel: TaskHomeTabModel,
-  ideProfilerComponents: IdeProfilerComponents,
-) : TaskTabComponent({ TaskHomeTab(taskHomeTabModel, ideProfilerComponents) })
+class TaskHomeTabComponent(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) :
+  TaskTabComponent({ TaskHomeTab(taskHomeTabModel, ideProfilerComponents) })

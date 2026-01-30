@@ -17,13 +17,13 @@ package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.cpu.ThreadState
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
+import java.util.concurrent.TimeUnit
 import trebuchet.model.CpuProcessSlice
 import trebuchet.model.Model
 import trebuchet.model.SchedSlice
 import trebuchet.model.SchedulingState
 import trebuchet.model.base.SliceGroup
-import java.util.concurrent.TimeUnit
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 
 class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: TraceType) : SystemTraceModelAdapter {
 
@@ -52,23 +52,28 @@ class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Trace
   private val batteryDrain: List<CounterModel> = emptyList()
 
   override fun getCaptureStartTimestampUs() = convertToUserTimeUs(beginTimestampSeconds)
+
   override fun getCaptureEndTimestampUs() = convertToUserTimeUs(endTimestampSeconds)
 
   override fun getProcessById(id: Int): ProcessModel? = processById[id]
+
   override fun getProcesses(): List<ProcessModel> = processById.values.toList()
+
   override fun getDanglingThread(tid: Int): ThreadModel? = null
 
   override fun getCpuCores(): List<CpuCoreModel> = cores
 
   override fun getSystemTraceTechnology() = technology
+
   override fun getPowerRails(): List<CounterModel> = powerRails
+
   override fun getBatteryDrain(): List<CounterModel> = batteryDrain
+
   override fun isCapturePossibleCorrupted() = possibleCorruption
 
-  /**
-   * Android frame events are not supported in Trebuchet.
-   */
+  /** Android frame events are not supported in Trebuchet. */
   override fun getAndroidFrameLayers() = emptyList<TraceProcessor.AndroidFrameEventsResult.Layer>()
+
   override fun getAndroidFrameTimelineEvents() = emptyList<AndroidFrameTimelineEvent>()
 
   init {
@@ -76,8 +81,7 @@ class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Trace
     // In the case it is 0, we use the first timestamp of our capture as a reference point.
     if (trebuchetModel.parentTimestamp.compareTo(0.0) == 0) {
       timeShiftFromBeginningSeconds = 0.0
-    }
-    else {
+    } else {
       timeShiftFromBeginningSeconds = trebuchetModel.parentTimestamp - trebuchetModel.parentTimestampBootTime
     }
 
@@ -91,57 +95,63 @@ class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Trace
 
       val counterMap = mutableMapOf<String, CounterModel>()
       for (counter in process.counters) {
-        counterMap[counter.name] = CounterModel(counter.name,
-                                                counter.events
-                                                  .associate { convertToUserTimeUs(it.timestamp) to it.count.toDouble() }
-                                                  .toSortedMap())
+        counterMap[counter.name] =
+          CounterModel(counter.name, counter.events.associate { convertToUserTimeUs(it.timestamp) to it.count.toDouble() }.toSortedMap())
       }
       processById[process.id] = ProcessModel(process.id, process.name, threadMap, counterMap)
     }
 
     // TODO(b/162354761): implement counters for Trebuchet.
-    cores = trebuchetModel.cpus
-      .map { cpu -> CpuCoreModel(cpu.id, mapCpuProcessSliceToSchedEvent(cpu.slices, cpu.id), emptyMap()) }
-      .sortedBy { core -> core.id }
+    cores =
+      trebuchetModel.cpus
+        .map { cpu -> CpuCoreModel(cpu.id, mapCpuProcessSliceToSchedEvent(cpu.slices, cpu.id), emptyMap()) }
+        .sortedBy { core -> core.id }
   }
 
-  private fun mapSlicesToTraceEvents(slices: List<SliceGroup>): List<TraceEventModel> = slices.map {
-    TraceEventModel(
-      it.name,
-      convertToUserTimeUs(it.startTime),
-      convertToUserTimeUs(it.endTime),
-      convertSecondsToUs(it.cpuTime),
-      mapSlicesToTraceEvents(it.children))
-  }
+  private fun mapSlicesToTraceEvents(slices: List<SliceGroup>): List<TraceEventModel> =
+    slices.map {
+      TraceEventModel(
+        it.name,
+        convertToUserTimeUs(it.startTime),
+        convertToUserTimeUs(it.endTime),
+        convertSecondsToUs(it.cpuTime),
+        mapSlicesToTraceEvents(it.children),
+      )
+    }
 
-  private fun mapSchedSliceToSchedEvent(slices: List<SchedSlice>, pid: Int, tid: Int): List<SchedulingEventModel> = slices.map {
-    SchedulingEventModel(
-      convertSchedulingState(it),
-      convertToUserTimeUs(it.startTime),
-      convertToUserTimeUs(it.endTime),
-      convertSecondsToUs(it.duration),
-      convertSecondsToUs(it.cpuTime),
-      pid,
-      tid,
-      0)
-  }
+  private fun mapSchedSliceToSchedEvent(slices: List<SchedSlice>, pid: Int, tid: Int): List<SchedulingEventModel> =
+    slices.map {
+      SchedulingEventModel(
+        convertSchedulingState(it),
+        convertToUserTimeUs(it.startTime),
+        convertToUserTimeUs(it.endTime),
+        convertSecondsToUs(it.duration),
+        convertSecondsToUs(it.cpuTime),
+        pid,
+        tid,
+        0,
+      )
+    }
 
-  private fun mapCpuProcessSliceToSchedEvent(slices: List<CpuProcessSlice>, core: Int): List<SchedulingEventModel> = slices.map {
-    SchedulingEventModel(
-      ThreadState.RUNNING_CAPTURED,
-      convertToUserTimeUs(it.startTime),
-      convertToUserTimeUs(it.endTime),
-      convertSecondsToUs(it.duration),
-      convertSecondsToUs(it.cpuTime),
-      it.id,
-      it.threadId,
-      core)
-  }
+  private fun mapCpuProcessSliceToSchedEvent(slices: List<CpuProcessSlice>, core: Int): List<SchedulingEventModel> =
+    slices.map {
+      SchedulingEventModel(
+        ThreadState.RUNNING_CAPTURED,
+        convertToUserTimeUs(it.startTime),
+        convertToUserTimeUs(it.endTime),
+        convertSecondsToUs(it.duration),
+        convertSecondsToUs(it.cpuTime),
+        it.id,
+        it.threadId,
+        core,
+      )
+    }
 
   private fun convertSchedulingState(slice: SchedSlice): ThreadState {
     return when (slice.state) {
       SchedulingState.RUNNING -> ThreadState.RUNNING_CAPTURED
-      SchedulingState.WAKING, SchedulingState.RUNNABLE -> ThreadState.RUNNABLE_CAPTURED
+      SchedulingState.WAKING,
+      SchedulingState.RUNNABLE -> ThreadState.RUNNABLE_CAPTURED
       SchedulingState.EXIT_DEAD -> ThreadState.DEAD_CAPTURED
       SchedulingState.SLEEPING -> ThreadState.SLEEPING_CAPTURED
       SchedulingState.UNINTR_SLEEP -> ThreadState.WAITING_CAPTURED

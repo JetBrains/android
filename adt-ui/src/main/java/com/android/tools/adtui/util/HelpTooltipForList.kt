@@ -29,9 +29,9 @@ class HelpTooltipForList<E> : HelpTooltip() {
   private var currentHoveredIndex = -1
 
   /**
-   * @param callback Is called with the current mouse over list item index. Use this index to return
-   *   the list element data, and then configure the supplied [HelpTooltip]. Return `true` to enable
-   *   the tooltip for the requested index, `false` when the index has no tooltip.
+   * @param callback Is called with the current mouse over list item index. Use this index to return the list element data, and then
+   *   configure the supplied [HelpTooltip]. Return `true` to enable the tooltip for the requested index, `false` when the index has no
+   *   tooltip.
    */
   fun installOnList(
     parentDisposable: Disposable,
@@ -50,18 +50,12 @@ class HelpTooltipForList<E> : HelpTooltip() {
     list.addMouseListener(mouseListener)
     list.addMouseMotionListener(mouseListener)
     installOn(list)
-    setMasterPopupOpenCondition(list) {
-      isTooltipEnabled.get()
-    } // Needs to be called after installOn()
+    setMasterPopupOpenCondition(list) { isTooltipEnabled.get() } // Needs to be called after installOn()
     Disposer.register(parentDisposable) { dispose(list) }
     return this
   }
 
-  private fun processMouse(
-    e: MouseEvent,
-    list: JList<E>,
-    callback: (index: Int, helpTooltip: HelpTooltip) -> Boolean,
-  ) {
+  private fun processMouse(e: MouseEvent, list: JList<E>, callback: (index: Int, helpTooltip: HelpTooltip) -> Boolean) {
     var index = list.locationToIndex(e.point)
     if (index < 0 || list.getCellBounds(index, index)?.contains(e.point) != true) {
       index = -1 // Mouse is over the list, but not over any cell

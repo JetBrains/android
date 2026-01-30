@@ -50,21 +50,23 @@ class AndroidLightOrGeneratedClassIntentionActionFilterTest : AndroidTestCase() 
       permission.name.value = "existing_permission"
     }
 
-    val psiClass = myFixture.addClass(
-      """
-      package p1.p2;
+    val psiClass =
+      myFixture.addClass(
+        """
+        package p1.p2;
 
-      class NewClass {
-        void f() {
-          int id1 = NewClass.normalField;
-          int id2 = R.rField;
-          int id3 = R.string.rStringField;
-          String id4 = Manifest.manifestField;
-          String id5 = Manifest.permission.manifestField;
+        class NewClass {
+          void f() {
+            int id1 = NewClass.normalField;
+            int id2 = R.rField;
+            int id3 = R.string.rStringField;
+            String id4 = Manifest.manifestField;
+            String id5 = Manifest.permission.manifestField;
+          }
         }
-      }
-      """.trimIndent()
-    )
+        """
+          .trimIndent()
+      )
 
     // Sanity checks:
     val rClass = myFixture.findClass("p1.p2.R", psiClass)
@@ -98,25 +100,28 @@ class AndroidLightOrGeneratedClassIntentionActionFilterTest : AndroidTestCase() 
       package p1.p2;
 
       public class BuildConfig {}
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     val genSrc = project.guessProjectDir()!!.findChild("genSrc")!!
     val properties = JpsJavaExtensionService.getInstance().createSourceRootProperties("", true)
     PsiTestUtil.addSourceRoot(myModule, genSrc, JavaSourceRootType.SOURCE, properties)
 
-    val psiClass = myFixture.addClass(
-      """
-      package p1.p2;
+    val psiClass =
+      myFixture.addClass(
+        """
+        package p1.p2;
 
-      class NewClass {
-        void f() {
-          int x = NewClass.normalField;
-          int y = BuildConfig.buildConfigField;
+        class NewClass {
+          void f() {
+            int x = NewClass.normalField;
+            int y = BuildConfig.buildConfigField;
+          }
         }
-      }
-      """.trimIndent()
-    )
+        """
+          .trimIndent()
+      )
 
     // Sanity checks:
     val buildConfig = myFixture.findClass("p1.p2.BuildConfig")

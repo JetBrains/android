@@ -43,8 +43,6 @@ object ZoomResetAction : SetZoomAction(ZoomType.FIT), CustomComponentAction {
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
-    return ActionButtonWithText(this, presentation, place, JBUI.size(60, 0)).apply {
-      foreground = myTextColor
-    }
+    return ActionButtonWithText(this, presentation, place, JBUI.size(60, 0)).apply { foreground = myTextColor }
   }
 }

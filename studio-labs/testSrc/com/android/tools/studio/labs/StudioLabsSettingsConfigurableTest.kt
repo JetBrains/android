@@ -45,11 +45,7 @@ class StudioLabsSettingsConfigurableTest {
     application.invokeAndWait { configurable.createComponent() }
 
     assertThat(usageTrackerRule.studioLabsUsageEvents())
-      .containsExactly(
-        StudioLabsEvent.newBuilder()
-          .setPageInteraction(StudioLabsEvent.PageInteraction.OPENED)
-          .build()
-      )
+      .containsExactly(StudioLabsEvent.newBuilder().setPageInteraction(StudioLabsEvent.PageInteraction.OPENED).build())
   }
 
   @Test
@@ -58,30 +54,21 @@ class StudioLabsSettingsConfigurableTest {
     configurable.apply()
 
     assertThat(usageTrackerRule.studioLabsUsageEvents())
-      .containsExactly(
-        StudioLabsEvent.newBuilder()
-          .setPageInteraction(StudioLabsEvent.PageInteraction.APPLY_BUTTON_CLICKED)
-          .build()
-      )
+      .containsExactly(StudioLabsEvent.newBuilder().setPageInteraction(StudioLabsEvent.PageInteraction.APPLY_BUTTON_CLICKED).build())
   }
 
   @Test
   fun configurable_whenFakeFeatureEnabled_hasTestFeaturePanel() {
     STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED.override(true)
 
-    assertThat(
-        StudioLabsSettingsConfigurable().panelList.any { it is FakeStudioLabsFeaturePanelUi }
-      )
-      .isTrue()
+    assertThat(StudioLabsSettingsConfigurable().panelList.any { it is FakeStudioLabsFeaturePanelUi }).isTrue()
   }
 
   @Test
   fun configurable_whenFakeFeatureDisabled_doesNotHaveAnyTestFeaturePanels() {
     STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED.override(false)
 
-    StudioLabsSettingsConfigurable().panelList.forEach {
-      assertThat(it).isNotInstanceOf(FakeStudioLabsFeaturePanelUi::class.java)
-    }
+    StudioLabsSettingsConfigurable().panelList.forEach { assertThat(it).isNotInstanceOf(FakeStudioLabsFeaturePanelUi::class.java) }
   }
 
   private fun UsageTrackerRule.studioLabsUsageEvents(): List<StudioLabsEvent> {

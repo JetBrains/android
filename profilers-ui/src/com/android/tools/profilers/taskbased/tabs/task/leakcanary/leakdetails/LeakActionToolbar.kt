@@ -38,22 +38,16 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
-/**
- * A composable for the content of the leak action toolbar.
- */
+/** A composable for the content of the leak action toolbar. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LeakActionToolbar(
-  selectedLeak: Leak,
-  onExpandAll: () -> Unit,
-  onCollapseAll: () -> Unit
-) {
+fun LeakActionToolbar(selectedLeak: Leak, onExpandAll: () -> Unit, onCollapseAll: () -> Unit) {
   Row(
-    modifier = Modifier
-      .padding(horizontal = TaskBasedUxDimensions.TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP)
-      .fillMaxWidth()
-      .height(TaskBasedUxDimensions.TABLE_HEADER_ROW_HEIGHT_DP),
-    horizontalArrangement = Arrangement.End
+    modifier =
+      Modifier.padding(horizontal = TaskBasedUxDimensions.TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP)
+        .fillMaxWidth()
+        .height(TaskBasedUxDimensions.TABLE_HEADER_ROW_HEIGHT_DP),
+    horizontalArrangement = Arrangement.End,
   ) {
     Tooltip(
       tooltip = {
@@ -87,9 +81,7 @@ fun LeakActionToolbar(
         )
       }
     }
-    Tooltip(
-      tooltip = { Text(TaskBasedUxStrings.LEAKCANARY_COPY_TO_CLIPBOARD) }
-    ) {
+    Tooltip(tooltip = { Text(TaskBasedUxStrings.LEAKCANARY_COPY_TO_CLIPBOARD) }) {
       IconButton(onClick = { copyLeakToClipboard(selectedLeak.toString()) }) {
         Icon(
           key = AllIconsKeys.Actions.Copy,
@@ -101,9 +93,7 @@ fun LeakActionToolbar(
   }
 }
 
-/**
- * Copies a simplified text representation of the selected leak to the system clipboard.
- */
+/** Copies a simplified text representation of the selected leak to the system clipboard. */
 internal var copyLeakToClipboard: (String) -> Unit = { content ->
   val clipboard = Toolkit.getDefaultToolkit().systemClipboard
   clipboard.setContents(StringSelection(content), null)

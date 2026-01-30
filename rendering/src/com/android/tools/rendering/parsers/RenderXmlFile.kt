@@ -24,8 +24,8 @@ import java.util.function.Supplier
 /**
  * Representation of a xml file. Used in rendering pipeline.
  *
- * A [PsiFile] supplied by this xml file is used only in [RenderErrorContributor] through
- * [RenderResult], the [get] implementation can be a no-op outside of studio.
+ * A [PsiFile] supplied by this xml file is used only in [RenderErrorContributor] through [RenderResult], the [get] implementation can be a
+ * no-op outside of studio.
  */
 interface RenderXmlFile : Supplier<PsiFile> {
   val folderType: ResourceFolderType?

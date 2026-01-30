@@ -23,8 +23,8 @@ import org.junit.Test
 class ExportSignedPackageWizardUnitTest {
   @Test
   fun testApkLocationCorrect() { // This test guarantees user is taken to the folder with the selected build type outputs
-    Truth.assertThat(ExportSignedPackageWizard.getApkLocation("path/to/folder", "release").toString()).isEqualTo(
-      FileUtil.toSystemDependentName("path/to/folder/release"))
+    Truth.assertThat(ExportSignedPackageWizard.getApkLocation("path/to/folder", "release").toString())
+      .isEqualTo(FileUtil.toSystemDependentName("path/to/folder/release"))
   }
 
   @Test
@@ -35,8 +35,12 @@ class ExportSignedPackageWizardUnitTest {
 
   @Test
   fun testGetTaskNamesFromSelectedVariantWithFlavors() {
-    val tasks = ExportSignedPackageWizard.getTaskNamesFromSelectedVariant(mutableListOf("proX86Release", "freeArmRelease"), "proX86Debug",
-                                                                          ":assembleProX86Debug")
+    val tasks =
+      ExportSignedPackageWizard.getTaskNamesFromSelectedVariant(
+        mutableListOf("proX86Release", "freeArmRelease"),
+        "proX86Debug",
+        ":assembleProX86Debug",
+      )
     Truth.assertThat(tasks).containsExactly(":assembleProX86Release", ":assembleFreeArmRelease")
   }
 
@@ -48,34 +52,37 @@ class ExportSignedPackageWizardUnitTest {
 
   @Test
   fun testGetTaskNamesFromSelectedVariantWithBundleFlavors() {
-    val tasks = ExportSignedPackageWizard.getTaskNamesFromSelectedVariant(mutableListOf("proX86Release", "freeArmRelease"), "proX86Debug",
-                                                                          ":bundleProX86Debug")
+    val tasks =
+      ExportSignedPackageWizard.getTaskNamesFromSelectedVariant(
+        mutableListOf("proX86Release", "freeArmRelease"),
+        "proX86Debug",
+        ":bundleProX86Debug",
+      )
     Truth.assertThat(tasks).containsExactly(":bundleProX86Release", ":bundleFreeArmRelease")
   }
 
   @Test
   fun testReplaceVariantFromTask() {
-    Truth.assertThat(ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantName", "oldVariantName", "flavorBuildType")).isEqualTo(
-      ":flavorBuildType")
+    Truth.assertThat(ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantName", "oldVariantName", "flavorBuildType"))
+      .isEqualTo(":flavorBuildType")
   }
 
   @Test
   fun testReplaceVariantFromTaskPre() {
-    Truth.assertThat(ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantName", "oldVariantName", "flavorBuildType")).isEqualTo(
-      ":prefixFlavorBuildType")
+    Truth.assertThat(ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantName", "oldVariantName", "flavorBuildType"))
+      .isEqualTo(":prefixFlavorBuildType")
   }
 
   @Test
   fun testReplaceVariantFromTaskSuf() {
-    Truth.assertThat(ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantNameSuffix", "oldVariantName", "flavorBuildType")).isEqualTo(
-      ":flavorBuildTypeSuffix")
+    Truth.assertThat(ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantNameSuffix", "oldVariantName", "flavorBuildType"))
+      .isEqualTo(":flavorBuildTypeSuffix")
   }
 
   @Test
   fun testReplaceVariantFromTaskPreSuf() {
-    Truth.assertThat(
-      ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantNameSuffix", "oldVariantName", "flavorBuildType")).isEqualTo(
-      ":prefixFlavorBuildTypeSuffix")
+    Truth.assertThat(ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantNameSuffix", "oldVariantName", "flavorBuildType"))
+      .isEqualTo(":prefixFlavorBuildTypeSuffix")
   }
 
   @Test
@@ -85,18 +92,20 @@ class ExportSignedPackageWizardUnitTest {
 
   @Test
   fun testReplaceVariantFromTaskMissingPre() {
-    Truth.assertThat(ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantName", "NonVariantName", "flavorBuildType")).isNull()
+    Truth.assertThat(ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantName", "NonVariantName", "flavorBuildType"))
+      .isNull()
   }
 
   @Test
   fun testReplaceVariantFromTaskMissingSuf() {
-    Truth.assertThat(ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantNameSuffix", "NonVariantName", "flavorBuildType")).isNull()
+    Truth.assertThat(ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantNameSuffix", "NonVariantName", "flavorBuildType"))
+      .isNull()
   }
 
   @Test
   fun testReplaceVariantFromTaskMissingPreSuf() {
-    Truth.assertThat(
-      ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantNameSuffix", "NonVariantName", "flavorBuildType")).isNull()
+    Truth.assertThat(ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantNameSuffix", "NonVariantName", "flavorBuildType"))
+      .isNull()
   }
 
   @Test

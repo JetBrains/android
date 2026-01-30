@@ -40,11 +40,7 @@ class BitmapDuplicationAnalyzerTest {
     val otherBufferContent = byteArrayOf(9, 9, 9, 9)
 
     val nativePtrs = listOf(100L, 200L, 300L)
-    val buffers = listOf(
-      bufferContent.copyOf(),
-      otherBufferContent.copyOf(),
-      bufferContent.copyOf()
-    )
+    val buffers = listOf(bufferContent.copyOf(), otherBufferContent.copyOf(), bufferContent.copyOf())
     val dumpData = createDumpDataInstance(fakeCapture, nativePtrs, buffers)
 
     val bmp1 = createBitmapInstance(fakeCapture, 1L, 10, 10, 100L)
@@ -70,11 +66,7 @@ class BitmapDuplicationAnalyzerTest {
     // bmp1 and bmp3 have the same content but different dimensions.
     // bmp1 and bmp2 have different content and different dimensions.
     val nativePtrs = listOf(100L, 200L, 300L)
-    val buffers = listOf(
-      bufferContent1.copyOf(),
-      bufferContent2.copyOf(),
-      bufferContent1.copyOf()
-    )
+    val buffers = listOf(bufferContent1.copyOf(), bufferContent2.copyOf(), bufferContent1.copyOf())
     val dumpData = createDumpDataInstance(fakeCapture, nativePtrs, buffers)
 
     val bmp1 = createBitmapInstance(fakeCapture, 1L, 10, 10, 100L)
@@ -148,17 +140,9 @@ class BitmapDuplicationAnalyzerTest {
   }
 
   /** Creates a fake `android.graphics.Bitmap` instance for testing. */
-  private fun createBitmapInstance(
-    capture: FakeCaptureObject,
-    id: Long,
-    width: Int,
-    height: Int,
-    nativePtr: Long
-  ): FakeInstanceObject {
-    val instance = FakeInstanceObject.Builder(capture, id, BITMAP_CLASS_NAME)
-      .setFields(listOf("mWidth", "mHeight", "mNativePtr"))
-      .setDepth(1)
-      .build()
+  private fun createBitmapInstance(capture: FakeCaptureObject, id: Long, width: Int, height: Int, nativePtr: Long): FakeInstanceObject {
+    val instance =
+      FakeInstanceObject.Builder(capture, id, BITMAP_CLASS_NAME).setFields(listOf("mWidth", "mHeight", "mNativePtr")).setDepth(1).build()
     instance.setFieldValue("mWidth", ValueObject.ValueType.INT, width)
     instance.setFieldValue("mHeight", ValueObject.ValueType.INT, height)
     instance.setFieldValue("mNativePtr", ValueObject.ValueType.LONG, nativePtr)
@@ -166,40 +150,28 @@ class BitmapDuplicationAnalyzerTest {
   }
 
   /**
-   * Creates a fake `android.graphics.Bitmap$DumpData` instance which holds the
-   * mapping between native pointers and their corresponding pixel data buffers.
-   * This structure is what the analyzer inspects to find bitmap data.
+   * Creates a fake `android.graphics.Bitmap$DumpData` instance which holds the mapping between native pointers and their corresponding
+   * pixel data buffers. This structure is what the analyzer inspects to find bitmap data.
    */
-  private fun createDumpDataInstance(
-    capture: FakeCaptureObject,
-    nativePtrs: List<Long>,
-    buffers: List<ByteArray>
-  ): FakeInstanceObject {
-    val bufferInstances = buffers.mapIndexed { i, bytes ->
-      FakeInstanceObject.Builder(capture, 1000L + i, BYTE_ARRAY_CLASS_NAME)
-        .setValueType(ValueObject.ValueType.ARRAY)
-        .setArray(ValueObject.ValueType.BYTE, bytes, bytes.size)
-        .build()
-    }
+  private fun createDumpDataInstance(capture: FakeCaptureObject, nativePtrs: List<Long>, buffers: List<ByteArray>): FakeInstanceObject {
+    val bufferInstances =
+      buffers.mapIndexed { i, bytes ->
+        FakeInstanceObject.Builder(capture, 1000L + i, BYTE_ARRAY_CLASS_NAME)
+          .setValueType(ValueObject.ValueType.ARRAY)
+          .setArray(ValueObject.ValueType.BYTE, bytes, bytes.size)
+          .build()
+      }
 
-    val buffersArray = FakeInstanceObject.Builder(capture, 2000L, BYTE_ARRAY_ARRAY_CLASS_NAME)
-      .setFields(buffers.indices.map { it.toString() })
-      .build()
-    bufferInstances.forEachIndexed { i, instance ->
-      buffersArray.setFieldValue(i.toString(), ValueObject.ValueType.OBJECT, instance)
-    }
+    val buffersArray =
+      FakeInstanceObject.Builder(capture, 2000L, BYTE_ARRAY_ARRAY_CLASS_NAME).setFields(buffers.indices.map { it.toString() }).build()
+    bufferInstances.forEachIndexed { i, instance -> buffersArray.setFieldValue(i.toString(), ValueObject.ValueType.OBJECT, instance) }
 
-    val nativesArray = FakeInstanceObject.Builder(capture, 3000L, LONG_ARRAY_CLASS_NAME)
-      .setFields(nativePtrs.indices.map { it.toString() })
-      .build()
-    nativePtrs.forEachIndexed { i, ptr ->
-      nativesArray.setFieldValue(i.toString(), ValueObject.ValueType.LONG, ptr)
-    }
+    val nativesArray =
+      FakeInstanceObject.Builder(capture, 3000L, LONG_ARRAY_CLASS_NAME).setFields(nativePtrs.indices.map { it.toString() }).build()
+    nativePtrs.forEachIndexed { i, ptr -> nativesArray.setFieldValue(i.toString(), ValueObject.ValueType.LONG, ptr) }
 
-    val dumpDataInstance = FakeInstanceObject.Builder(capture, 4000L, DUMP_DATA_CLASS_NAME)
-      .setFields(listOf("buffers", "natives"))
-      .setDepth(1)
-      .build()
+    val dumpDataInstance =
+      FakeInstanceObject.Builder(capture, 4000L, DUMP_DATA_CLASS_NAME).setFields(listOf("buffers", "natives")).setDepth(1).build()
     dumpDataInstance.setFieldValue("buffers", ValueObject.ValueType.OBJECT, buffersArray)
     dumpDataInstance.setFieldValue("natives", ValueObject.ValueType.OBJECT, nativesArray)
     return dumpDataInstance

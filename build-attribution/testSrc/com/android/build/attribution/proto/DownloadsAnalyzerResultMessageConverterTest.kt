@@ -23,20 +23,21 @@ import org.junit.Test
 class DownloadsAnalyzerResultMessageConverterTest {
   @Test
   fun testDownloadsAnalyzerResult() {
-    val repoResult = DownloadsAnalyzer.RepositoryResult(
-      DownloadsAnalyzer.OtherRepository("repository"),
-      listOf(
-        DownloadsAnalyzer.DownloadResult(
-          123,
-          DownloadsAnalyzer.OtherRepository("repository"),
-          "url",
-          DownloadsAnalyzer.DownloadStatus.SUCCESS,
-          1234,
-          5678,
-          "failure"
-        )
+    val repoResult =
+      DownloadsAnalyzer.RepositoryResult(
+        DownloadsAnalyzer.OtherRepository("repository"),
+        listOf(
+          DownloadsAnalyzer.DownloadResult(
+            123,
+            DownloadsAnalyzer.OtherRepository("repository"),
+            "url",
+            DownloadsAnalyzer.DownloadStatus.SUCCESS,
+            1234,
+            5678,
+            "failure",
+          )
+        ),
       )
-    )
     val downloadResult = DownloadsAnalyzer.ActiveResult(listOf(repoResult))
     val resultMessage = DownloadsAnalyzerResultMessageConverter.transform(downloadResult)
     val resultConverted = DownloadsAnalyzerResultMessageConverter.construct(resultMessage)
@@ -45,20 +46,21 @@ class DownloadsAnalyzerResultMessageConverterTest {
 
   @Test
   fun testNullFailureMessage() {
-    val repoResult = DownloadsAnalyzer.RepositoryResult(
-      DownloadsAnalyzer.OtherRepository("repository"),
-      listOf(
-        DownloadsAnalyzer.DownloadResult(
-          123,
-          DownloadsAnalyzer.OtherRepository("repository"),
-          "url",
-          DownloadsAnalyzer.DownloadStatus.SUCCESS,
-          1234,
-          5678,
-          null
-        )
+    val repoResult =
+      DownloadsAnalyzer.RepositoryResult(
+        DownloadsAnalyzer.OtherRepository("repository"),
+        listOf(
+          DownloadsAnalyzer.DownloadResult(
+            123,
+            DownloadsAnalyzer.OtherRepository("repository"),
+            "url",
+            DownloadsAnalyzer.DownloadStatus.SUCCESS,
+            1234,
+            5678,
+            null,
+          )
+        ),
       )
-    )
     val downloadResult = DownloadsAnalyzer.ActiveResult(listOf(repoResult))
     val resultMessage = DownloadsAnalyzerResultMessageConverter.transform(downloadResult)
     val resultConverted = DownloadsAnalyzerResultMessageConverter.construct(resultMessage)

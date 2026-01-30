@@ -16,10 +16,10 @@ package com.android.tools.datastore.database
 import com.android.tools.datastore.DataStoreDatabase
 import com.android.tools.datastore.FakeLogService
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import org.junit.Test
 
 class DataStoreDatabaseTest {
 

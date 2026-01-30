@@ -21,16 +21,16 @@ import javax.swing.ListSelectionModel
 import javax.swing.table.TableCellRenderer
 
 object TableUtils {
-  inline fun<reified C: Enum<C>> JTable.setColumnRenderers(renderer: (C) -> TableCellRenderer) =
-    enumValues<C>().forEach {
-      columnModel.getColumn(it.ordinal).cellRenderer = renderer(it)
-    }
+  inline fun <reified C : Enum<C>> JTable.setColumnRenderers(renderer: (C) -> TableCellRenderer) =
+    enumValues<C>().forEach { columnModel.getColumn(it.ordinal).cellRenderer = renderer(it) }
 
-  /**
-   * Given a table whose rows have notions of "start" and "end", update the range on each row's selection.
-   */
-  fun<R> JTable.changeRangeOnSelection(model: PaginatedTableModel<R>,
-                                       getRange: () -> Range, getStart: (R) -> Double, getEnd: (R) -> Double) {
+  /** Given a table whose rows have notions of "start" and "end", update the range on each row's selection. */
+  fun <R> JTable.changeRangeOnSelection(
+    model: PaginatedTableModel<R>,
+    getRange: () -> Range,
+    getStart: (R) -> Double,
+    getEnd: (R) -> Double,
+  ) {
     assert(this.model === model) { "Supplied model must be table's model" }
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     selectionModel.addListSelectionListener {
@@ -41,5 +41,4 @@ object TableUtils {
       }
     }
   }
-
 }

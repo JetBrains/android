@@ -29,18 +29,15 @@ import java.io.File
 import java.lang.ref.WeakReference
 
 /**
- * The interface for gathering symbol directories for a given ABI. Each implementation will handle
- * collecting symbol directories from different sources.
+ * The interface for gathering symbol directories for a given ABI. Each implementation will handle collecting symbol directories from
+ * different sources.
  */
 interface SymbolSource {
   fun getDirsFor(abi: Abi): Collection<File>
 }
 
-/**
- * Combines the results of multiple SymbolSource, allowing other code to only need to handle a
- * single source instance.
- */
-class MergeSymbolSource(private val sources:Collection<SymbolSource>): SymbolSource {
+/** Combines the results of multiple SymbolSource, allowing other code to only need to handle a single source instance. */
+class MergeSymbolSource(private val sources: Collection<SymbolSource>) : SymbolSource {
   override fun getDirsFor(abi: Abi): Collection<File> {
     // Use a set in case multiple sources return the same path.
     return sources.flatMapTo(mutableSetOf()) { it.getDirsFor(abi) }
@@ -48,10 +45,10 @@ class MergeSymbolSource(private val sources:Collection<SymbolSource>): SymbolSou
 }
 
 /** Allows us to manually add/remove symbol directories programmatically. */
-class DynamicSymbolSource: SymbolSource {
+class DynamicSymbolSource : SymbolSource {
   private val dirsByAbi = HashMap<String, HashSet<File>>()
 
-  fun add(cpuArch: String, path:File): DynamicSymbolSource {
+  fun add(cpuArch: String, path: File): DynamicSymbolSource {
     dirsByAbi.computeIfAbsent(cpuArch) { HashSet() }.add(path)
     return this
   }
@@ -61,7 +58,7 @@ class DynamicSymbolSource: SymbolSource {
   }
 }
 
-abstract class ModuleSymbolSource(module: Module): SymbolSource {
+abstract class ModuleSymbolSource(module: Module) : SymbolSource {
   // Use a weak reference so that we don't keep holding onto the module after it has been disposed of. If the module has not been freed, we
   // check if it has been disposed so we stop using it.
   private val moduleRef = WeakReference(module)
@@ -84,10 +81,13 @@ interface ModuleSymbolSourceContributor {
 }
 
 /** A SymbolSource to collect native symbols from a project. */
-class ProjectSymbolSource(project: Project): SymbolSource {
-  private val source = MergeSymbolSource(ModuleManager.getInstance(project).modules.flatMap { module ->
-    ModuleSymbolSourceContributor.EP_NAME.extensions.map { contributor -> contributor.create(module) }
-  })
+class ProjectSymbolSource(project: Project) : SymbolSource {
+  private val source =
+    MergeSymbolSource(
+      ModuleManager.getInstance(project).modules.flatMap { module ->
+        ModuleSymbolSourceContributor.EP_NAME.extensions.map { contributor -> contributor.create(module) }
+      }
+    )
 
   override fun getDirsFor(abi: Abi): Collection<File> {
     return source.getDirsFor(abi)
@@ -95,7 +95,7 @@ class ProjectSymbolSource(project: Project): SymbolSource {
 }
 
 /** Gets symbol directories from an APK's debug directory. */
-class ApkSymbolSource(module: Module): ModuleSymbolSource(module) {
+class ApkSymbolSource(module: Module) : ModuleSymbolSource(module) {
   override fun getDirsFor(abi: Abi, module: Module): Collection<File> {
     val apkFacet = ApkFacet.getInstance(module) ?: return emptySet()
 
@@ -111,9 +111,13 @@ class ApkSymbolSourceContributor : ModuleSymbolSourceContributor {
 /** Gets symbol directories from a module's Gradle file. */
 class JniSymbolSource(module: Module) : ModuleSymbolSource(module) {
   override fun getDirsFor(abi: Abi, module: Module): Collection<File> {
-    return module.androidFacet?.let { SourceProviders.getInstance(it) }?.sources?.jniLibsDirectories?.map {
-      it.findChild(abi.toString())?.toIoFile()
-    }.orEmpty().filterNotNull()
+    return module.androidFacet
+      ?.let { SourceProviders.getInstance(it) }
+      ?.sources
+      ?.jniLibsDirectories
+      ?.map { it.findChild(abi.toString())?.toIoFile() }
+      .orEmpty()
+      .filterNotNull()
   }
 }
 

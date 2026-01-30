@@ -685,15 +685,15 @@ class ComposeCompletionContributorTest {
       myFixture.checkResult(
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      fun HomeScreen() {
-        FoobarOne()
-      }
-      """
+        @Composable
+        fun HomeScreen() {
+          FoobarOne()
+        }
+        """
           .trimIndent()
       )
     } finally {
@@ -762,9 +762,9 @@ class ComposeCompletionContributorTest {
   }
 
   /**
-   * Regression test for b/153769933. The Compose insertion handler adds the parameters
-   * automatically when completing the name of a Composable. This is incorrect if the insertion
-   * point is not a call statement. This ensures that the insertion is not triggered for imports.
+   * Regression test for b/153769933. The Compose insertion handler adds the parameters automatically when completing the name of a
+   * Composable. This is incorrect if the insertion point is not a call statement. This ensures that the insertion is not triggered for
+   * imports.
    */
   @Test
   fun testImportCompletionDoesNotTriggerInsertionHandler() {
@@ -820,10 +820,7 @@ class ComposeCompletionContributorTest {
     )
   }
 
-  /**
-   * Regression test for b/209672710. Ensure that completing Composables that are not top-level does
-   * not fully qualify them incorrectly.
-   */
+  /** Regression test for b/209672710. Ensure that completing Composables that are not top-level does not fully qualify them incorrectly. */
   @Test
   fun testCompletingComposablesWithinObjects() {
     myFixture.addFileToProject(
@@ -881,8 +878,8 @@ class ComposeCompletionContributorTest {
   }
 
   /**
-   * Regression test for b/209060418. Autocomplete should not treat required composable method
-   * specially if it's not the final argument (ie, there are optional arguments specified after it.
+   * Regression test for b/209060418. Autocomplete should not treat required composable method specially if it's not the final argument (ie,
+   * there are optional arguments specified after it.
    */
   @Test
   fun testSignaturesWithRequiredComposableBeforeOptionalArgs() {
@@ -952,8 +949,8 @@ class ComposeCompletionContributorTest {
   }
 
   /**
-   * Regression test for b/209060418. Autocomplete should not treat required composable method
-   * specially if it's not the final argument (ie, there are optional arguments specified after it.
+   * Regression test for b/209060418. Autocomplete should not treat required composable method specially if it's not the final argument (ie,
+   * there are optional arguments specified after it.
    */
   @Test
   fun testInsertHandlerWithRequiredComposableBeforeOptionalArgs() {
@@ -1125,10 +1122,7 @@ class ComposeCompletionContributorTest {
     )
   }
 
-  /**
-   * Regression test for b/271675885. Autocomplete changes should apply to function invocations, not
-   * function definitions.
-   */
+  /** Regression test for b/271675885. Autocomplete changes should apply to function invocations, not function definitions. */
   @Test
   fun testInsertHandler_functionDefinition() {
     // Given:
@@ -1253,8 +1247,7 @@ class ComposeCompletionContributorTest {
       .isEqualTo("images/material/icons/materialiconsoutlined/adb/outline_adb_24.xml")
 
     assertThat("androidx.compose.material.icons.unknown.Adb".resourcePathFromFqName()).isNull()
-    assertThat("androidx.compose.material.icons.filled.extrapackage.Adb".resourcePathFromFqName())
-      .isNull()
+    assertThat("androidx.compose.material.icons.filled.extrapackage.Adb".resourcePathFromFqName()).isNull()
 
     // Ensure numbers in camel case are converted as expected.
     assertThat("androidx.compose.material.icons.filled.Shop2".resourcePathFromFqName())
@@ -1361,16 +1354,8 @@ class ComposeCompletionContributorTest {
 
   @Test
   fun composeMaterialIconLookupElement_getIcon() {
-    assertThat(
-        ComposeMaterialIconLookupElement.getIcon(
-          "androidx.compose.material.icons.filled.AccountBox"
-        )
-      )
-      .isNotNull()
-    assertThat(
-        ComposeMaterialIconLookupElement.getIcon("androidx.compose.material.icons.filled.Unknown")
-      )
-      .isNull()
+    assertThat(ComposeMaterialIconLookupElement.getIcon("androidx.compose.material.icons.filled.AccountBox")).isNotNull()
+    assertThat(ComposeMaterialIconLookupElement.getIcon("androidx.compose.material.icons.filled.Unknown")).isNull()
   }
 
   private val CodeInsightTestFixture.renderedLookupElements: Collection<String>

@@ -71,8 +71,7 @@ class OptionsPanelTest {
     val provider = BoolBindingProvider()
     val walker = TreeWalker(panel)
     panel.setOption(provider, false, true)
-    val headerLabel =
-      walker.descendants().filterIsInstance(JLabel::class.java).filter { ((it.text)) == "testName" }
+    val headerLabel = walker.descendants().filterIsInstance(JLabel::class.java).filter { ((it.text)) == "testName" }
     // Header is present in taskBasedUx
     assertThat(headerLabel.size).isEqualTo(1)
   }
@@ -83,8 +82,7 @@ class OptionsPanelTest {
     val provider = IntBindingProvider()
     val walker = TreeWalker(panel)
     panel.setOption(provider, false, true)
-    val headerLabel =
-      walker.descendants().filterIsInstance(JLabel::class.java).filter { ((it.text)) == "testName" }
+    val headerLabel = walker.descendants().filterIsInstance(JLabel::class.java).filter { ((it.text)) == "testName" }
     // Header not present in taskBasedUx since it doesn't have name property
     assertThat(headerLabel.size).isEqualTo(0)
   }
@@ -186,10 +184,7 @@ class OptionsPanelTest {
     panel.setOption(provider, false, false)
     val labels = walker.descendants().filterIsInstance(JLabel::class.java)
     assertThat(labels).hasSize(1) // Group, Name,  Description, Unit
-    assertThat(labels[0].text)
-      .isEqualTo(
-        "Unknown return type (${BoolBindingProvider::class.java.name}) for property \"other\""
-      )
+    assertThat(labels[0].text).isEqualTo("Unknown return type (${BoolBindingProvider::class.java.name}) for property \"other\"")
   }
 }
 
@@ -198,26 +193,19 @@ class UnknownBindingProvider : OptionsProvider {
 }
 
 class BoolBindingProvider : OptionsProvider {
-  @OptionsProperty(name = "Name1", group = "Bool", description = "Desc", order = 0)
-  var boolTestOne = true
-  @OptionsProperty(name = "Name2", group = "Bool", description = "Desc", order = 1)
-  var boolTestTwo = true
-  @OptionsProperty(name = "Name", group = "String", description = "Name", order = 2)
-  var name = "testName"
+  @OptionsProperty(name = "Name1", group = "Bool", description = "Desc", order = 0) var boolTestOne = true
+  @OptionsProperty(name = "Name2", group = "Bool", description = "Desc", order = 1) var boolTestTwo = true
+  @OptionsProperty(name = "Name", group = "String", description = "Name", order = 2) var name = "testName"
 }
 
 class IntBindingProvider : OptionsProvider {
-  @OptionsProperty(name = "Name1", group = "Int", description = "Desc", unit = "Unit")
-  var intTestOne = 100
+  @OptionsProperty(name = "Name1", group = "Int", description = "Desc", unit = "Unit") var intTestOne = 100
 }
 
 class StringBindingProvider : OptionsProvider {
-  @OptionsProperty(name = "Name1", group = "String", description = "Desc")
-  var stringTestOne = "Test"
+  @OptionsProperty(name = "Name1", group = "String", description = "Desc") var stringTestOne = "Test"
 }
 
 class SliderBindingProvider : OptionsProvider {
-  @OptionsProperty(name = "Name1", group = "Slider", description = "Desc", unit = "Unit")
-  @Slider(0, 100, 10)
-  var sliderTest = 100
+  @OptionsProperty(name = "Name1", group = "Slider", description = "Desc", unit = "Unit") @Slider(0, 100, 10) var sliderTest = 100
 }

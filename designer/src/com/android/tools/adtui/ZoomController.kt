@@ -23,8 +23,8 @@ import java.awt.Dimension
 interface ZoomController : Zoomable {
 
   /**
-   * Id used when saving and restoring scale values associated with a ZoomController instance.
-   * Particularly needed when multiple surfaces come from the same file.
+   * Id used when saving and restoring scale values associated with a ZoomController instance. Particularly needed when multiple surfaces
+   * come from the same file.
    */
   var storeId: String?
 
@@ -37,23 +37,17 @@ interface ZoomController : Zoomable {
   /**
    * Sets the scale factor used to multiply content size.
    *
-   * @param scale The scale factor. Can be any value, but it will be capped between -1 and 10 (value
-   *   below 0 means zoom to fit).
+   * @param scale The scale factor. Can be any value, but it will be capped between -1 and 10 (value below 0 means zoom to fit).
    * @param x the horizontal coordinate to where to focus the scaling.
    * @param y the vertical coordinate to where to focus the scaling.
    * @return True if the scaling was changed, false otherwise.
    */
-  fun setScale(
-    @SurfaceScale scale: Double,
-    @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int,
-  ): Boolean
+  fun setScale(@SurfaceScale scale: Double, @SwingCoordinate x: Int, @SwingCoordinate y: Int): Boolean
 
   /**
    * Sets the scale factor used to multiply the content size.
    *
-   * @param scale The scale factor. Can be any value, but it will be capped between -1 and 10 (value
-   *   below 0 means zoom to fit)
+   * @param scale The scale factor. Can be any value, but it will be capped between -1 and 10 (value below 0 means zoom to fit)
    * @return True if the scaling was changed, false if this was a noop.
    */
   fun setScale(@SurfaceScale scale: Double): Boolean {
@@ -67,12 +61,10 @@ interface ZoomController : Zoomable {
   }
 
   /**
-   * Call this method whenever a surface changes its size or gets recreated. Notifies the
-   * [ZoomController] that the surface has changed its size. This method is used to keep consistent
-   * the calculation of the [zoomToFit] which requires an updated size.
+   * Call this method whenever a surface changes its size or gets recreated. Notifies the [ZoomController] that the surface has changed its
+   * size. This method is used to keep consistent the calculation of the [zoomToFit] which requires an updated size.
    *
-   * @param shouldWaitForResize If true, the zoom to fit will be applied after the surface has been
-   *   resized.
+   * @param shouldWaitForResize If true, the zoom to fit will be applied after the surface has been resized.
    * @param surfaceSize The current size of the surface.
    */
   fun resetZoomToFitSettings(shouldWaitForResize: Boolean = true, surfaceSize: Dimension)
@@ -80,9 +72,8 @@ interface ZoomController : Zoomable {
   /**
    * Applies zoom-to-fit safely by synchronizing with its surface to prevent race conditions.
    *
-   * This function avoids calculating an incorrect scale by ensuring the content and surface sizes
-   * are resolved before applying the zoom. Note that [resetZoomToFitSettings] must be called when
-   * the surface is resized or re-created.
+   * This function avoids calculating an incorrect scale by ensuring the content and surface sizes are resolved before applying the zoom.
+   * Note that [resetZoomToFitSettings] must be called when the surface is resized or re-created.
    *
    * @return True if the zoom-to-fit was successfully applied, false otherwise.
    */
@@ -91,9 +82,8 @@ interface ZoomController : Zoomable {
   /**
    * The scale to make the content fit the design surface.
    *
-   * This value is the result of the measure of the scale size which can fit the SceneViews into the
-   * scrollable area. It doesn't consider the legal scale range, which can be got by max scale and
-   * min scale.
+   * This value is the result of the measure of the scale size which can fit the SceneViews into the scrollable area. It doesn't consider
+   * the legal scale range, which can be got by max scale and min scale.
    */
   @SurfaceScale fun getFitScale(): Double
 }

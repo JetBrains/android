@@ -32,33 +32,33 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.JBImageIcon
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.CardLayout
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
 import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.BorderFactory
+import javax.swing.BoundedRangeModel
 import javax.swing.Box
 import javax.swing.BoxLayout
-import javax.swing.BoundedRangeModel
+import javax.swing.DefaultListModel
 import javax.swing.JComponent
+import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JSeparator
+import javax.swing.ListCellRenderer
+import javax.swing.ListSelectionModel
 import javax.swing.SwingUtilities
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
-import com.intellij.ui.components.JBList
-import java.awt.Component
-import javax.swing.DefaultListModel
-import javax.swing.JList
-import javax.swing.ListCellRenderer
-import javax.swing.ListSelectionModel
 
 // Keys for the CardLayout switching between single and multiple preview modes.
 private const val MULTIPLE_PREVIEWS_PANEL = "MULTIPLE_PREVIEWS_PANEL"
@@ -70,27 +70,26 @@ private const val TOOLBAR_ID = "ScreenshotCommonToolbar"
 private val LOG = Logger.getInstance(PreviewDetailsPanel::class.java)
 
 /**
- * A panel that displays detailed views of screenshot previews.
- * It can show a single preview with extensive details or a list of previews
+ * A panel that displays detailed views of screenshot previews. It can show a single preview with extensive details or a list of previews
  * grouped by test method.
  */
 class PreviewDetailsPanel : JPanel(CardLayout()) {
 
-  @VisibleForTesting
-  val screenshotAttributesView = ScreenshotAttributesView()
+  @VisibleForTesting val screenshotAttributesView = ScreenshotAttributesView()
   private val multiplePreviewsPanel = JPanel(BorderLayout())
   private val singlePreviewPanel = JPanel(BorderLayout())
 
   private val listModel = DefaultListModel<MethodGroup>()
   private val methodGroupRenderer = MethodGroupRenderer()
   // Use JBList for virtualization: only visible rows are rendered, which is essential for scalability.
-  private val multiplePreviewsList = JBList(listModel).apply {
-    selectionMode = ListSelectionModel.SINGLE_SELECTION
-    setBackground(UIUtil.getPanelBackground())
-    emptyText.text = "No previews to display"
-    setExpandableItemsEnabled(false) // Disable popups on hover to stay within window bounds.
-    setCellRenderer(methodGroupRenderer)
-  }
+  private val multiplePreviewsList =
+    JBList(listModel).apply {
+      selectionMode = ListSelectionModel.SINGLE_SELECTION
+      setBackground(UIUtil.getPanelBackground())
+      emptyText.text = "No previews to display"
+      setExpandableItemsEnabled(false) // Disable popups on hover to stay within window bounds.
+      setCellRenderer(methodGroupRenderer)
+    }
 
   // Panels for the "All" view (3-way split) in single preview mode.
   private val newImagePanel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = false, showTitle = true)
@@ -105,57 +104,76 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
   private val refImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.REFERENCE, showToolbar = true, showTitle = false)
 
   // Common actions for the "All" view toolbar.
-  private val commonZoomInAction = object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
-    override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.zoomIn() }
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = multiViewPanels.any { it.canZoomIn() }
-    }
-  }
+  private val commonZoomInAction =
+    object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
+      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.zoomIn() }
 
-  private val commonZoomOutAction = object : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
-    override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.zoomOut() }
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = multiViewPanels.any { it.canZoomOut() }
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = multiViewPanels.any { it.canZoomIn() }
+      }
     }
-  }
 
-  private val commonOneToOneAction = object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
-    override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.setActualSize() }
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && it.currentScale != 1.0 }
-    }
-  }
+  private val commonZoomOutAction =
+    object : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
+      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.zoomOut() }
 
-  private val commonFitToScreenAction = object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
-    override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.fitToScreen() }
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && !it.isAutoFitting }
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = multiViewPanels.any { it.canZoomOut() }
+      }
     }
-  }
 
-  private val commonToggleGridViewAction = object : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
-    override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isGridVisible() ?: false
-    override fun setSelected(e: AnActionEvent, state: Boolean) = multiViewPanels.forEach { it.setGridVisible(state) }
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
+  private val commonOneToOneAction =
+    object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
+      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.setActualSize() }
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && it.currentScale != 1.0 }
+      }
     }
-  }
+
+  private val commonFitToScreenAction =
+    object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
+      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.fitToScreen() }
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && !it.isAutoFitting }
+      }
+    }
+
+  private val commonToggleGridViewAction =
+    object : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
+      override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isGridVisible() ?: false
+
+      override fun setSelected(e: AnActionEvent, state: Boolean) = multiViewPanels.forEach { it.setGridVisible(state) }
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
+      }
+    }
 
   private val commonToggleChessboardAction =
-    object : ToggleAction("Chessboard", "Toggle Chessboard Background", IconLoader.getIcon(CHESSBOARD_ICON_PATH, PreviewDetailsPanel::class.java)) {
+    object :
+      ToggleAction(
+        "Chessboard",
+        "Toggle Chessboard Background",
+        IconLoader.getIcon(CHESSBOARD_ICON_PATH, PreviewDetailsPanel::class.java),
+      ) {
       override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isChessboardVisible() ?: false
+
       override fun setSelected(e: AnActionEvent, state: Boolean) = multiViewPanels.forEach { it.setChessboardVisible(state) }
+
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
       }
     }
 
   init {
-    val scrollPane = JBScrollPane(multiplePreviewsList).apply {
-      verticalScrollBarPolicy = JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
-      horizontalScrollBarPolicy = JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
-      border = null
-    }
+    val scrollPane =
+      JBScrollPane(multiplePreviewsList).apply {
+        verticalScrollBarPolicy = JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
+        horizontalScrollBarPolicy = JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+        border = null
+      }
     multiplePreviewsPanel.add(scrollPane, BorderLayout.CENTER)
 
     add(multiplePreviewsPanel, MULTIPLE_PREVIEWS_PANEL)
@@ -165,18 +183,13 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
   /**
    * Updates the panel to display a new set of previews.
    *
-   * This method decides whether to show the detailed single-preview UI
-   * or the multi-preview grid based on the number of previews.
+   * This method decides whether to show the detailed single-preview UI or the multi-preview grid based on the number of previews.
    *
    * @param previewsToShow The list of [PreviewDetails] to display.
    * @param viewType The current view type (e.g., New, Diff, All) to show.
    * @param previewToolbar The shared toolbar component, visible in single-preview mode.
    */
-  fun displayPreviews(
-    previewsToShow: List<PreviewDetails>,
-    viewType: ScreenshotViewType,
-    previewToolbar: ComposePanel?
-  ) {
+  fun displayPreviews(previewsToShow: List<PreviewDetails>, viewType: ScreenshotViewType, previewToolbar: ComposePanel?) {
     val cardLayout = layout as CardLayout
     if (previewsToShow.size == 1 && previewToolbar != null) {
       displaySinglePreviewDetails(previewsToShow.first(), viewType, previewToolbar)
@@ -188,34 +201,30 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
   }
 
   /**
-   * Configures and displays the detailed view for a single screenshot preview.
-   * This view includes the image(s), metadata attributes, and a toolbar.
+   * Configures and displays the detailed view for a single screenshot preview. This view includes the image(s), metadata attributes, and a
+   * toolbar.
    */
-  private fun displaySinglePreviewDetails(
-    previewData: PreviewDetails,
-    viewType: ScreenshotViewType,
-    previewToolbar: ComposePanel
-  ) {
+  private fun displaySinglePreviewDetails(previewData: PreviewDetails, viewType: ScreenshotViewType, previewToolbar: ComposePanel) {
     singlePreviewPanel.removeAll()
 
-    val topContent = JPanel().apply {
-      layout = BoxLayout(this, BoxLayout.Y_AXIS)
-      border = BorderFactory.createEmptyBorder(10, 10, 0, 10)
-      isOpaque = false
-    }
-
-    val titlePanel = JPanel().apply {
-      layout = BoxLayout(this, BoxLayout.X_AXIS)
-      alignmentX = JComponent.LEFT_ALIGNMENT
-      isOpaque = false
-      val methodNameLabel = JBLabel(previewData.methodName)
-      val previewNameLabel = JBLabel(previewData.previewName).apply {
-        foreground = UIUtil.getLabelDisabledForeground()
+    val topContent =
+      JPanel().apply {
+        layout = BoxLayout(this, BoxLayout.Y_AXIS)
+        border = BorderFactory.createEmptyBorder(10, 10, 0, 10)
+        isOpaque = false
       }
-      add(methodNameLabel)
-      add(Box.createRigidArea(Dimension(4,0)))
-      add(previewNameLabel)
-    }
+
+    val titlePanel =
+      JPanel().apply {
+        layout = BoxLayout(this, BoxLayout.X_AXIS)
+        alignmentX = JComponent.LEFT_ALIGNMENT
+        isOpaque = false
+        val methodNameLabel = JBLabel(previewData.methodName)
+        val previewNameLabel = JBLabel(previewData.previewName).apply { foreground = UIUtil.getLabelDisabledForeground() }
+        add(methodNameLabel)
+        add(Box.createRigidArea(Dimension(4, 0)))
+        add(previewNameLabel)
+      }
     topContent.add(titlePanel)
     topContent.add(Box.createRigidArea(Dimension(0, 8)))
 
@@ -224,49 +233,49 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     topContent.add(separator1)
 
     // Add the appropriate image view (either the 3-way split or the tabbed single view).
-    val imageDisplayPanel = if (viewType == ScreenshotViewType.ALL) {
-      setupAllImagesView(previewData)
-    } else {
-      setupSingleImageView(previewData, viewType)
-    }
+    val imageDisplayPanel =
+      if (viewType == ScreenshotViewType.ALL) {
+        setupAllImagesView(previewData)
+      } else {
+        setupSingleImageView(previewData, viewType)
+      }
     imageDisplayPanel.alignmentX = JComponent.LEFT_ALIGNMENT
     topContent.add(imageDisplayPanel)
 
-    val topContainerPanel = JPanel(BorderLayout()).apply {
-      minimumSize = Dimension(0, 200)
-      add(topContent, BorderLayout.CENTER)
-      add(previewToolbar, BorderLayout.SOUTH)
-    }
+    val topContainerPanel =
+      JPanel(BorderLayout()).apply {
+        minimumSize = Dimension(0, 200)
+        add(topContent, BorderLayout.CENTER)
+        add(previewToolbar, BorderLayout.SOUTH)
+      }
 
     // Setup the bottom panel with screenshot attributes.
-    val detailsPanel = screenshotAttributesView.getComponent().apply {
-      minimumSize = Dimension(0, 120)
-    }
+    val detailsPanel = screenshotAttributesView.getComponent().apply { minimumSize = Dimension(0, 120) }
     updateScreenshotAttributesView(previewData)
 
     // Combine the top and bottom panels in a splitter.
-    val splitter = OnePixelSplitter(true, 0.65f).apply {
-      firstComponent = topContainerPanel
-      secondComponent = detailsPanel
-    }
+    val splitter =
+      OnePixelSplitter(true, 0.65f).apply {
+        firstComponent = topContainerPanel
+        secondComponent = detailsPanel
+      }
     singlePreviewPanel.add(splitter, BorderLayout.CENTER)
     singlePreviewPanel.revalidate()
     singlePreviewPanel.repaint()
   }
 
-  /**
-   * Sets up the side-by-side view for New, Diff, and Reference images.
-   * This view has a common toolbar and synchronized scrolling.
-   */
+  /** Sets up the side-by-side view for New, Diff, and Reference images. This view has a common toolbar and synchronized scrolling. */
   private fun setupAllImagesView(previewData: PreviewDetails): JComponent {
-    val rightSplit = OnePixelSplitter(false, 0.5f).apply {
-      firstComponent = diffImagePanel
-      secondComponent = refImagePanel
-    }
-    val mainSplit = OnePixelSplitter(false, 0.33f).apply {
-      firstComponent = newImagePanel
-      secondComponent = rightSplit
-    }
+    val rightSplit =
+      OnePixelSplitter(false, 0.5f).apply {
+        firstComponent = diffImagePanel
+        secondComponent = refImagePanel
+      }
+    val mainSplit =
+      OnePixelSplitter(false, 0.33f).apply {
+        firstComponent = newImagePanel
+        secondComponent = rightSplit
+      }
 
     // Link scrollbars for a synchronized experience.
     val horizontalModels = multiViewPanels.map { it.scrollPane.horizontalScrollBar.model }
@@ -281,22 +290,17 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     loadImageAsync(previewData.diffImagePath, diffImagePanel, diffPlaceholder)
     loadImageAsync(previewData.destImagePath, refImagePanel, NO_REF_IMAGE_TEXT)
 
-    val allImagesPanel = JPanel(BorderLayout()).apply {
-      add(createCommonToolbar().component, BorderLayout.NORTH)
-      add(mainSplit, BorderLayout.CENTER)
-    }
+    val allImagesPanel =
+      JPanel(BorderLayout()).apply {
+        add(createCommonToolbar().component, BorderLayout.NORTH)
+        add(mainSplit, BorderLayout.CENTER)
+      }
     SwingUtilities.updateComponentTreeUI(allImagesPanel)
     return allImagesPanel
   }
 
-  /**
-   * Sets up a single image view that can be switched via a [CardLayout].
-   * Each view has its own dedicated toolbar.
-   */
-  private fun setupSingleImageView(
-    previewData: PreviewDetails,
-    viewType: ScreenshotViewType
-  ): JComponent {
+  /** Sets up a single image view that can be switched via a [CardLayout]. Each view has its own dedicated toolbar. */
+  private fun setupSingleImageView(previewData: PreviewDetails, viewType: ScreenshotViewType): JComponent {
     val imageContainer = JPanel(CardLayout())
     imageContainer.add(newImagePanelSingle, ScreenshotViewType.NEW.displayText)
     imageContainer.add(diffImagePanelSingle, ScreenshotViewType.DIFF.displayText)
@@ -306,12 +310,9 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     val diffPlaceholder = if (previewData.testResult == AndroidTestCaseResult.PASSED) NO_DIFFERENCE_TEXT else NO_DIFF_IMAGE_TEXT
 
     when (viewType) {
-      ScreenshotViewType.NEW ->
-        loadImageAsync(previewData.srcImagePath, newImagePanelSingle, NO_NEW_IMAGE_TEXT)
-      ScreenshotViewType.DIFF ->
-        loadImageAsync(previewData.diffImagePath, diffImagePanelSingle, diffPlaceholder)
-      ScreenshotViewType.REFERENCE ->
-        loadImageAsync(previewData.destImagePath, refImagePanelSingle, NO_REF_IMAGE_TEXT)
+      ScreenshotViewType.NEW -> loadImageAsync(previewData.srcImagePath, newImagePanelSingle, NO_NEW_IMAGE_TEXT)
+      ScreenshotViewType.DIFF -> loadImageAsync(previewData.diffImagePath, diffImagePanelSingle, diffPlaceholder)
+      ScreenshotViewType.REFERENCE -> loadImageAsync(previewData.destImagePath, refImagePanelSingle, NO_REF_IMAGE_TEXT)
       else -> LOG.warn("Unexpected viewType in setupSingleImageView: $viewType") // Should not happen, as ALL is handled separately.
     }
     cardLayout.show(imageContainer, viewType.displayText)
@@ -320,15 +321,16 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
   }
 
   private fun createCommonToolbar(): ActionToolbar {
-    val actionGroup = DefaultActionGroup().apply {
-      add(commonToggleChessboardAction)
-      add(commonToggleGridViewAction)
-      addSeparator()
-      add(commonZoomOutAction)
-      add(commonZoomInAction)
-      add(commonOneToOneAction)
-      add(commonFitToScreenAction)
-    }
+    val actionGroup =
+      DefaultActionGroup().apply {
+        add(commonToggleChessboardAction)
+        add(commonToggleGridViewAction)
+        addSeparator()
+        add(commonZoomOutAction)
+        add(commonZoomInAction)
+        add(commonOneToOneAction)
+        add(commonFitToScreenAction)
+      }
     return ActionManager.getInstance().createActionToolbar(TOOLBAR_ID, actionGroup, true).apply {
       targetComponent = this@PreviewDetailsPanel
     }
@@ -341,31 +343,29 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
       return
     }
     AppExecutorUtil.getAppExecutorService().submit {
-      val image = try {
-        val file = File(filePath)
-        if (file.exists()) ImageIO.read(file) else null
-      } catch (e: Exception) {
-        LOG.error("Error loading screenshot image from path: $filePath", e)
-        null // Log the error, the placeholder text will be shown.
-      }
-      UIUtil.invokeLaterIfNeeded {
-        targetPanel.setImage(image)
-      }
+      val image =
+        try {
+          val file = File(filePath)
+          if (file.exists()) ImageIO.read(file) else null
+        } catch (e: Exception) {
+          LOG.error("Error loading screenshot image from path: $filePath", e)
+          null // Log the error, the placeholder text will be shown.
+        }
+      UIUtil.invokeLaterIfNeeded { targetPanel.setImage(image) }
     }
   }
 
   private fun updateScreenshotAttributesView(previewData: PreviewDetails) {
     val diffPercent = previewData.diffPercent?.toDoubleOrNull()
-    val testMethodName = if (previewData.previewName.isNotBlank() && previewData.previewName != "()") {
-      val params = previewData.previewName.removeSurrounding("(", ")")
-      "${previewData.methodName}_($params)"
-    } else {
-      previewData.methodName
-    }
+    val testMethodName =
+      if (previewData.previewName.isNotBlank() && previewData.previewName != "()") {
+        val params = previewData.previewName.removeSurrounding("(", ")")
+        "${previewData.methodName}_($params)"
+      } else {
+        previewData.methodName
+      }
 
-    val refImagePath = previewData.destImagePath?.let {
-      if (File(it).exists()) it else null
-    }
+    val refImagePath = previewData.destImagePath?.let { if (File(it).exists()) it else null }
 
     screenshotAttributesView.updateData(
       refImagePath = refImagePath,
@@ -373,31 +373,28 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
       testMethodName = testMethodName,
       testClassName = previewData.className,
       result = previewData.testResult,
-      diffPercent = diffPercent
+      diffPercent = diffPercent,
     )
   }
 
-  /**
-   * Displays multiple screenshot previews, grouped by function, in a horizontal scrolling view.
-   */
-  private fun displayMultiplePreviews(
-    previewsToShow: List<PreviewDetails>,
-    viewType: ScreenshotViewType
-  ) {
+  /** Displays multiple screenshot previews, grouped by function, in a horizontal scrolling view. */
+  private fun displayMultiplePreviews(previewsToShow: List<PreviewDetails>, viewType: ScreenshotViewType) {
     val previewsByClassAndMethod = previewsToShow.groupBy { "${it.className}.${it.methodName}" }
     val previewsGroupedByMethodName = previewsToShow.groupBy { it.methodName }
 
-    val methodGroups = previewsByClassAndMethod.map { (_, previews) ->
-      val first = previews.first()
-      val methodName = first.methodName.ifBlank { UNNAMED_FUNCTION_TEXT }
-      val className = first.className
-      val labelText = if ((previewsGroupedByMethodName[methodName]?.size ?: 0) > previews.size) {
-        "${className.substringAfterLast('.')}.$methodName" // SimpleClassName.MethodName
-      } else {
-        methodName
+    val methodGroups =
+      previewsByClassAndMethod.map { (_, previews) ->
+        val first = previews.first()
+        val methodName = first.methodName.ifBlank { UNNAMED_FUNCTION_TEXT }
+        val className = first.className
+        val labelText =
+          if ((previewsGroupedByMethodName[methodName]?.size ?: 0) > previews.size) {
+            "${className.substringAfterLast('.')}.$methodName" // SimpleClassName.MethodName
+          } else {
+            methodName
+          }
+        MethodGroup(className, methodName, labelText, previews)
       }
-      MethodGroup(className, methodName, labelText, previews)
-    }
 
     listModel.clear()
     methodGroups.forEach { listModel.addElement(it) }
@@ -408,27 +405,29 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
   }
 
   /**
-   * A renderer for a group of previews belonging to the same test method.
-   * This renderer uses a "rubber stamp" pattern, reusing the same panel instance
-   * for all rows to optimize memory and performance.
+   * A renderer for a group of previews belonging to the same test method. This renderer uses a "rubber stamp" pattern, reusing the same
+   * panel instance for all rows to optimize memory and performance.
    */
   private class MethodGroupRenderer : JPanel(), ListCellRenderer<MethodGroup> {
     var viewType: ScreenshotViewType = ScreenshotViewType.NEW
     // Shared cache for scaled thumbnails to prevent redundant disk I/O and memory pressure.
-    private val thumbnailCache = object : LinkedHashMap<String, JBImageIcon>(200, 0.75f, true) {
-      override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, JBImageIcon>?): Boolean = size > 200
-    }
+    private val thumbnailCache =
+      object : LinkedHashMap<String, JBImageIcon>(200, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, JBImageIcon>?): Boolean = size > 200
+      }
 
-    private val functionNameLabel = JBLabel().apply {
-      font = font.deriveFont(Font.BOLD, font.size + 2f)
-      border = BorderFactory.createEmptyBorder(15, 5, 5, 5)
-      alignmentX = JComponent.LEFT_ALIGNMENT
-    }
-    private val horizontalPreviewsPanel = JPanel(FlowLayout(FlowLayout.LEFT, 10, 0)).apply {
-      border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
-      alignmentX = JComponent.LEFT_ALIGNMENT
-      isOpaque = false
-    }
+    private val functionNameLabel =
+      JBLabel().apply {
+        font = font.deriveFont(Font.BOLD, font.size + 2f)
+        border = BorderFactory.createEmptyBorder(15, 5, 5, 5)
+        alignmentX = JComponent.LEFT_ALIGNMENT
+      }
+    private val horizontalPreviewsPanel =
+      JPanel(FlowLayout(FlowLayout.LEFT, 10, 0)).apply {
+        border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        alignmentX = JComponent.LEFT_ALIGNMENT
+        isOpaque = false
+      }
     // Pool of panels to reuse across different rows, accommodating varying preview counts.
     private val previewPanelPool = mutableListOf<PreviewItemPanel>()
 
@@ -444,7 +443,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
       value: MethodGroup,
       index: Int,
       isSelected: Boolean,
-      cellHasFocus: Boolean
+      cellHasFocus: Boolean,
     ): Component {
       background = if (isSelected) UIUtil.getListSelectionBackground(cellHasFocus) else list.background
       foreground = if (isSelected) UIUtil.getListSelectionForeground(cellHasFocus) else list.foreground
@@ -466,9 +465,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
           panel.isVisible = true
           // Update the panel with the current row's data. If the image is cached, it renders immediately.
           // Otherwise, it triggers an async load and repaints the list upon completion.
-          panel.updateData(previews[i], viewType) {
-            list.repaint()
-          }
+          panel.updateData(previews[i], viewType) { list.repaint() }
         } else {
           panel.isVisible = false
         }
@@ -479,11 +476,12 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
   }
 
   /**
-   * A ChangeListener that synchronizes the scroll position of multiple BoundedRangeModels.
-   * This is used to link the scrollbars of the side-by-side image panels.
+   * A ChangeListener that synchronizes the scroll position of multiple BoundedRangeModels. This is used to link the scrollbars of the
+   * side-by-side image panels.
    */
   private class SyncListener(private val models: List<BoundedRangeModel>) : ChangeListener {
     private var isSyncing = false
+
     override fun stateChanged(e: ChangeEvent) {
       if (isSyncing) return
       try {

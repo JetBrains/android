@@ -18,27 +18,23 @@ package com.android.tools.profilers
 import com.android.tools.datastore.database.UnifiedEventsTable
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import java.io.File
 import java.sql.DriverManager
 import java.sql.SQLException
 import kotlin.test.fail
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
 
 class ImportedSessionUtilsTest {
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   @Test
   fun `getDbMetadata reads metadata correctly`() {
     // Arrange
     val dbFile = temporaryFolder.newFile("metadata.db")
-    val expectedMetadata = mapOf(
-      "task_type" to "JAVA_KOTLIN_ALLOCATIONS",
-      "start_time" to "123456789"
-    )
+    val expectedMetadata = mapOf("task_type" to "JAVA_KOTLIN_ALLOCATIONS", "start_time" to "123456789")
 
     DriverManager.getConnection("jdbc:sqlite:${dbFile.absolutePath}").use { connection ->
       connection.createStatement().use { stmt ->
@@ -75,22 +71,29 @@ class ImportedSessionUtilsTest {
     val dbFile = temporaryFolder.newFile("session_info.db")
     val expectedExposureLevel = Common.Process.ExposureLevel.PROFILEABLE
     val expectedJvmtiEnabled = true
-    val sessionStartEvent = Common.Event.newBuilder().apply {
-      kind = Common.Event.Kind.SESSION
-      session = Common.SessionData.newBuilder().apply {
-        sessionStarted = Common.SessionData.SessionStarted.newBuilder().apply {
-          exposureLevel = expectedExposureLevel
-          jvmtiEnabled = expectedJvmtiEnabled
-        }.build()
-      }.build()
-    }.build()
+    val sessionStartEvent =
+      Common.Event.newBuilder()
+        .apply {
+          kind = Common.Event.Kind.SESSION
+          session =
+            Common.SessionData.newBuilder()
+              .apply {
+                sessionStarted =
+                  Common.SessionData.SessionStarted.newBuilder()
+                    .apply {
+                      exposureLevel = expectedExposureLevel
+                      jvmtiEnabled = expectedJvmtiEnabled
+                    }
+                    .build()
+              }
+              .build()
+        }
+        .build()
 
     createDbWithEvents(dbFile, sessionStartEvent)
 
     // Act
-    val sessionData = ImportedSessionUtils.getDbConnectionFromFile(dbFile).use {
-      ImportedSessionUtils.getSessionInfoFromDb(it)
-    }
+    val sessionData = ImportedSessionUtils.getDbConnectionFromFile(dbFile).use { ImportedSessionUtils.getSessionInfoFromDb(it) }
 
     // Assert
     assertThat(sessionData).isEqualTo(sessionStartEvent.session)
@@ -104,9 +107,7 @@ class ImportedSessionUtilsTest {
     createDbWithEvents(dbFile, Common.Event.newBuilder().setKind(Common.Event.Kind.CPU_TRACE).build())
 
     // Act
-    val sessionData = ImportedSessionUtils.getDbConnectionFromFile(dbFile).use {
-      ImportedSessionUtils.getSessionInfoFromDb(it)
-    }
+    val sessionData = ImportedSessionUtils.getDbConnectionFromFile(dbFile).use { ImportedSessionUtils.getSessionInfoFromDb(it) }
 
     // Assert
     assertThat(sessionData).isNull()
@@ -122,7 +123,7 @@ class ImportedSessionUtilsTest {
       dbFile,
       Common.Event.newBuilder().setTimestamp(minTimestamp).build(),
       Common.Event.newBuilder().setTimestamp(300L).build(),
-      Common.Event.newBuilder().setTimestamp(maxTimestamp).build()
+      Common.Event.newBuilder().setTimestamp(maxTimestamp).build(),
     )
 
     // Act
@@ -158,8 +159,7 @@ class ImportedSessionUtilsTest {
         val table = UnifiedEventsTable().apply { initialize(connection) }
         events.forEach { table.insertUnifiedEvent(1L, it) }
       }
-    }
-    catch (e: SQLException) {
+    } catch (e: SQLException) {
       fail("Test setup failed to create database: ${e.message}")
     }
   }

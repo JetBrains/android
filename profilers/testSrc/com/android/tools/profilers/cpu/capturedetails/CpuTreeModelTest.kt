@@ -35,26 +35,33 @@ class CpuTreeModelTest {
     val range = Range(-Double.MAX_VALUE, Double.MAX_VALUE)
     val model = CpuTreeModel(ClockType.GLOBAL, range, topDown, Utils::runOnUi)
 
-    assertTree(id("A") and total(30.0) and childrenTotal(21.0),
-               assertTree(id("B") and total(8.0 + 7.0) and childrenTotal(11.0),
-                          assertTree(id("E") and total(2.0 + 3.0) and childrenTotal(0.0)),
-                          assertTree(id("G") and total(4.0) and childrenTotal(0.0)),
-                          assertTree(id("D") and total(2.0) and childrenTotal(0.0))),
-               assertTree(id("C") and total(6.0) and childrenTotal(2.0),
-                          assertTree(id("F") and total(2.0) and childrenTotal(0.0))))(model.root)
+    assertTree(
+      id("A") and total(30.0) and childrenTotal(21.0),
+      assertTree(
+        id("B") and total(8.0 + 7.0) and childrenTotal(11.0),
+        assertTree(id("E") and total(2.0 + 3.0) and childrenTotal(0.0)),
+        assertTree(id("G") and total(4.0) and childrenTotal(0.0)),
+        assertTree(id("D") and total(2.0) and childrenTotal(0.0)),
+      ),
+      assertTree(id("C") and total(6.0) and childrenTotal(2.0), assertTree(id("F") and total(2.0) and childrenTotal(0.0))),
+    )(model.root)
 
     range.set(0.0, 10.0)
-    assertTree(id("A") and total(10.0) and childrenTotal(8.0),
-               assertTree(id("B") and total(8.0) and childrenTotal(4.0),
-                          assertTree(id("D") and total(2.0) and childrenTotal(0.0)),
-                          assertTree(id("E") and total(2.0) and childrenTotal(0.0))))(model.root)
+    assertTree(
+      id("A") and total(10.0) and childrenTotal(8.0),
+      assertTree(
+        id("B") and total(8.0) and childrenTotal(4.0),
+        assertTree(id("D") and total(2.0) and childrenTotal(0.0)),
+        assertTree(id("E") and total(2.0) and childrenTotal(0.0)),
+      ),
+    )(model.root)
 
     range.set(8.0, 25.0)
-    assertTree(id("A") and total(17.0) and childrenTotal(10.0),
-               assertTree(id("C") and total(6.0) and childrenTotal(2.0),
-                          assertTree(id("F") and total(2.0) and childrenTotal(0.0))),
-               assertTree(id("B") and total(1.0 + 3.0) and childrenTotal(4.0),
-                          assertTree(id("E") and total(1.0 + 3.0) and childrenTotal(0.0))))(model.root)
+    assertTree(
+      id("A") and total(17.0) and childrenTotal(10.0),
+      assertTree(id("C") and total(6.0) and childrenTotal(2.0), assertTree(id("F") and total(2.0) and childrenTotal(0.0))),
+      assertTree(id("B") and total(1.0 + 3.0) and childrenTotal(4.0), assertTree(id("E") and total(1.0 + 3.0) and childrenTotal(0.0))),
+    )(model.root)
   }
 
   @Test
@@ -83,14 +90,17 @@ class CpuTreeModelTest {
   }
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
 
-    infix fun<T> Assertion<T>.and(that: Assertion<T>): Assertion<T> = { this(it); that(it) }
+    infix fun <T> Assertion<T>.and(that: Assertion<T>): Assertion<T> = {
+      this(it)
+      that(it)
+    }
 
     private fun id(id: String): Assertion<CpuTreeNode<*>> = { assertThat(it.base.id).isEqualTo(id) }
+
     private fun total(t: Double): Assertion<CpuTreeNode<*>> = { assertThat(it.total).isWithin(0.0).of(t) }
+
     private fun childrenTotal(t: Double): Assertion<CpuTreeNode<*>> = { assertThat(it.childrenTotal).isWithin(0.0).of(t) }
 
     private fun assertTree(onNode: Assertion<CpuTreeNode<*>>, vararg onChildren: Assertion<CpuTreeNode<*>>): Assertion<CpuTreeNode<*>> = {

@@ -86,22 +86,14 @@ private constructor(
     psiManager,
     modifiers,
     null,
-    containingFileProvider
-      .build(psiManager.project, moduleInfo)
-      .getContainingFile(psiManager.project),
+    containingFileProvider.build(psiManager.project, moduleInfo).getContainingFile(psiManager.project),
     moduleInfo,
   )
 
   protected constructor(
     containingLightClass: AndroidLightClassBase,
     modifiers: Iterable<String>,
-  ) : this(
-    containingLightClass.manager,
-    modifiers,
-    containingLightClass,
-    containingLightClass.backingFile,
-    containingLightClass.moduleInfo,
-  )
+  ) : this(containingLightClass.manager, modifiers, containingLightClass, containingLightClass.backingFile, containingLightClass.moduleInfo)
 
   private val psiModifierList: LightModifierList =
     LightModifierList(psiManager).apply {
@@ -168,16 +160,11 @@ private constructor(
 
   override fun getAllInnerClasses(): Array<PsiClass> = getInnerClasses()
 
-  override fun findFieldByName(name: @NonNls String, checkBases: Boolean): PsiField? =
-    fields.firstOrNull { it.name == name }
+  override fun findFieldByName(name: @NonNls String, checkBases: Boolean): PsiField? = fields.firstOrNull { it.name == name }
 
-  override fun findMethodBySignature(patternMethod: PsiMethod, checkBases: Boolean): PsiMethod? =
-    null
+  override fun findMethodBySignature(patternMethod: PsiMethod, checkBases: Boolean): PsiMethod? = null
 
-  override fun findMethodsBySignature(
-    patternMethod: PsiMethod,
-    checkBases: Boolean,
-  ): Array<PsiMethod> = PsiMethod.EMPTY_ARRAY
+  override fun findMethodsBySignature(patternMethod: PsiMethod, checkBases: Boolean): Array<PsiMethod> = PsiMethod.EMPTY_ARRAY
 
   override fun findMethodsByName(name: @NonNls String, checkBases: Boolean): Array<PsiMethod> =
     methods.filter { it.name == name }.toTypedArray()
@@ -187,11 +174,9 @@ private constructor(
     checkBases: Boolean,
   ): MutableList<Pair<PsiMethod, PsiSubstitutor>> = mutableListOf()
 
-  override fun getAllMethodsAndTheirSubstitutors(): MutableList<Pair<PsiMethod?, PsiSubstitutor>> =
-    mutableListOf()
+  override fun getAllMethodsAndTheirSubstitutors(): MutableList<Pair<PsiMethod?, PsiSubstitutor>> = mutableListOf()
 
-  override fun findInnerClassByName(name: @NonNls String, checkBases: Boolean): PsiClass? =
-    innerClasses.firstOrNull { it.name == name }
+  override fun findInnerClassByName(name: @NonNls String, checkBases: Boolean): PsiClass? = innerClasses.firstOrNull { it.name == name }
 
   override fun getLBrace(): PsiElement? = null
 
@@ -201,14 +186,12 @@ private constructor(
 
   override fun getScope(): PsiElement? = null
 
-  override fun isInheritor(baseClass: PsiClass, checkDeep: Boolean) =
-    InheritanceImplUtil.isInheritor(this, baseClass, checkDeep)
+  override fun isInheritor(baseClass: PsiClass, checkDeep: Boolean) = InheritanceImplUtil.isInheritor(this, baseClass, checkDeep)
 
   override fun isInheritorDeep(baseClass: PsiClass, classToByPass: PsiClass?) =
     InheritanceImplUtil.isInheritorDeep(this, baseClass, classToByPass)
 
-  override fun getVisibleSignatures(): MutableCollection<HierarchicalMethodSignature> =
-    mutableListOf()
+  override fun getVisibleSignatures(): MutableCollection<HierarchicalMethodSignature> = mutableListOf()
 
   override fun setName(name: @NonNls String): PsiElement {
     throw IncorrectOperationException("Cannot change the name of $qualifiedName class")
@@ -220,23 +203,19 @@ private constructor(
 
   override fun hasTypeParameters() = false
 
-  override fun getTypeParameterList(): PsiTypeParameterList =
-    LightTypeParameterListBuilder(myManager, language)
+  override fun getTypeParameterList(): PsiTypeParameterList = LightTypeParameterListBuilder(myManager, language)
 
   override fun getTypeParameters(): Array<PsiTypeParameter> = PsiTypeParameter.EMPTY_ARRAY
 
   final override fun getModifierList(): PsiModifierList = psiModifierList
 
-  override fun hasModifierProperty(@PsiModifier.ModifierConstant name: @NonNls String) =
-    psiModifierList.hasModifierProperty(name)
+  override fun hasModifierProperty(@PsiModifier.ModifierConstant name: @NonNls String) = psiModifierList.hasModifierProperty(name)
 
   override fun isVisibilitySupported() = true
 
-  override fun getElementIcon(@Iconable.IconFlags flags: Int): Icon =
-    PsiClassImplUtil.getClassIcon(flags, this)
+  override fun getElementIcon(@Iconable.IconFlags flags: Int): Icon = PsiClassImplUtil.getClassIcon(flags, this)
 
-  override fun isEquivalentTo(another: PsiElement?) =
-    PsiClassImplUtil.isClassEquivalentTo(this, another)
+  override fun isEquivalentTo(another: PsiElement?) = PsiClassImplUtil.isClassEquivalentTo(this, another)
 
   override fun getUseScope(): SearchScope {
     // For the common case of a public light class, getMemberUseScope below cannot determine the
@@ -273,31 +252,16 @@ private constructor(
 
   override fun getTextRange(): TextRange = TextRange.EMPTY_RANGE
 
-  override fun processDeclarations(
-    processor: PsiScopeProcessor,
-    state: ResolveState,
-    lastParent: PsiElement?,
-    place: PsiElement,
-  ) =
-    PsiClassImplUtil.processDeclarationsInClass(
-      this,
-      processor,
-      state,
-      null,
-      lastParent,
-      place,
-      PsiUtil.getLanguageLevel(place),
-      false,
-    )
+  override fun processDeclarations(processor: PsiScopeProcessor, state: ResolveState, lastParent: PsiElement?, place: PsiElement) =
+    PsiClassImplUtil.processDeclarationsInClass(this, processor, state, null, lastParent, place, PsiUtil.getLanguageLevel(place), false)
 
   override fun toString(): String {
     return MoreObjects.toStringHelper(this).addValue(qualifiedName).toString()
   }
 
   /**
-   * For light classes that need a backing in-memory file (ie, any non-inner files that can't use
-   * the containing class's containingFile), this provider builds a backing Java file with name and
-   * package information appropriately set.
+   * For light classes that need a backing in-memory file (ie, any non-inner files that can't use the containing class's containingFile),
+   * this provider builds a backing Java file with name and package information appropriately set.
    */
   protected sealed interface ContainingFileProvider {
     fun getContainingFile(project: Project): PsiFile
@@ -306,10 +270,7 @@ private constructor(
 
       constructor(
         fullyQualifiedName: String
-      ) : this(
-        fullyQualifiedName.substringBeforeLast('.', ""),
-        fullyQualifiedName.substringAfterLast('.', ""),
-      )
+      ) : this(fullyQualifiedName.substringBeforeLast('.', ""), fullyQualifiedName.substringAfterLast('.', ""))
 
       init {
         require(packageName.isNotEmpty()) { "Package name \"$packageName\" must not be empty." }
@@ -325,8 +286,7 @@ private constructor(
 
       fun build(project: Project, moduleInfo: AndroidLightClassModuleInfo): ContainingFileProvider {
         val javaFile =
-          PsiFileFactory.getInstance(project)
-            .createFileFromText("$shortName.java", JavaFileType.INSTANCE, contents) as PsiJavaFile
+          PsiFileFactory.getInstance(project).createFileFromText("$shortName.java", JavaFileType.INSTANCE, contents) as PsiJavaFile
 
         javaFile.packageName = packageName
         moduleInfo.setInfoOnContainingFile(javaFile)
@@ -335,8 +295,7 @@ private constructor(
       }
     }
 
-    private class ContainingFileProviderImpl(private val psiFile: PsiJavaFile) :
-      ContainingFileProvider {
+    private class ContainingFileProviderImpl(private val psiFile: PsiJavaFile) : ContainingFileProvider {
       override fun getContainingFile(project: Project): PsiFile = psiFile
     }
   }
@@ -355,11 +314,10 @@ private constructor(
     abstract fun getKaModule(project: Project): KaModule?
 
     /**
-     * Sets the forced [AndroidLightClassModuleInfo] of the containing [PsiFile] to point to the
-     * given [Module], so that the Kotlin IDE plugin knows how to handle this light class.
+     * Sets the forced [AndroidLightClassModuleInfo] of the containing [PsiFile] to point to the given [Module], so that the Kotlin IDE
+     * plugin knows how to handle this light class.
      */
-    private class FromModule(private val module: Module, private val isTest: Boolean) :
-      AndroidLightClassModuleInfo() {
+    private class FromModule(private val module: Module, private val isTest: Boolean) : AndroidLightClassModuleInfo() {
 
       override fun setInfoOnUserData(lightClassUserData: UserDataHolder) {
         lightClassUserData.putUserData(ModuleUtilCore.KEY_MODULE, module)
@@ -377,8 +335,8 @@ private constructor(
     }
 
     /**
-     * Sets the forced [AndroidLightClassModuleInfo] of the containing [PsiFile] to point to the
-     * given [Library], so that the Kotlin IDE plugin knows how to handle this light class.
+     * Sets the forced [AndroidLightClassModuleInfo] of the containing [PsiFile] to point to the given [Library], so that the Kotlin IDE
+     * plugin knows how to handle this light class.
      */
     private class FromLibrary(private val library: Library) : AndroidLightClassModuleInfo() {
 
@@ -390,13 +348,12 @@ private constructor(
         containingFile.customLibrary = library
       }
 
-      override fun getKaModule(project: Project): KaModule? =
-        library.toKaLibraryModules(project).firstOrNull()
+      override fun getKaModule(project: Project): KaModule? = library.toKaLibraryModules(project).firstOrNull()
     }
 
     /**
-     * Sets the forced [AndroidLightClassModuleInfo] of the containing [PsiFile] to point to the
-     * given [Sdk], so that the Kotlin IDE plugin knows how to handle this light class.
+     * Sets the forced [AndroidLightClassModuleInfo] of the containing [PsiFile] to point to the given [Sdk], so that the Kotlin IDE plugin
+     * knows how to handle this light class.
      */
     private class FromSdk(private val sdk: Sdk) : AndroidLightClassModuleInfo() {
       override fun setInfoOnUserData(lightClassUserData: UserDataHolder) {}
@@ -405,15 +362,11 @@ private constructor(
         containingFile.customSdk = sdk
       }
 
-      override fun getKaModule(project: Project): KaModule? =
-        sdk.toKaLibraryModule(project)
+      override fun getKaModule(project: Project): KaModule? = sdk.toKaLibraryModule(project)
     }
 
     companion object {
-      @JvmStatic
-      @JvmOverloads
-      fun from(module: Module, isTest: Boolean = false): AndroidLightClassModuleInfo =
-        FromModule(module, isTest)
+      @JvmStatic @JvmOverloads fun from(module: Module, isTest: Boolean = false): AndroidLightClassModuleInfo = FromModule(module, isTest)
 
       fun from(library: Library): AndroidLightClassModuleInfo = FromLibrary(library)
 
@@ -435,11 +388,9 @@ private constructor(
   }
 
   companion object {
-    private val LIBRARY =
-      Key.create<Library>(AndroidLightClassBase::class.java.getName() + ".LIBRARY")
+    private val LIBRARY = Key.create<Library>(AndroidLightClassBase::class.java.getName() + ".LIBRARY")
 
-    private val KA_MODULE =
-      Key.create<KaModule>(AndroidLightClassBase::class.java.getName() + ".KA_MODULE")
+    private val KA_MODULE = Key.create<KaModule>(AndroidLightClassBase::class.java.getName() + ".KA_MODULE")
   }
 
   // Hacky fix for b/412606827. Ideally, support for overriding KaModule based on a PsiFile

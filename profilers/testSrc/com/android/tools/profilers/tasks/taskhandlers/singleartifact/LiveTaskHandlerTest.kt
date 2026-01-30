@@ -21,8 +21,8 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.LiveViewSessionArtifact
 import com.android.tools.profilers.LiveStage
+import com.android.tools.profilers.LiveViewSessionArtifact
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils.createHeapProfdSessionArtifact
 import com.android.tools.profilers.SessionArtifactUtils.createHprofSessionArtifact
@@ -36,6 +36,7 @@ import com.android.tools.profilers.tasks.args.singleartifact.memory.HeapDumpTask
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.google.common.truth.Truth.assertThat
+import kotlin.test.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
@@ -43,17 +44,13 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
-import kotlin.test.assertNull
 
 class LiveTaskHandlerTest {
   private val myTimer = FakeTimer()
-  private val ideProfilerServices = FakeIdeProfilerServices().apply {
-    enableTaskBasedUx(true)
-  }
+  private val ideProfilerServices = FakeIdeProfilerServices().apply { enableTaskBasedUx(true) }
   private val myTransportService = FakeTransportService(myTimer, false, ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("LiveTaskHandlerTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("LiveTaskHandlerTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -62,11 +59,7 @@ class LiveTaskHandlerTest {
   @Before
   fun setup() {
     ideProfilerServices.enableTaskBasedUx(true)
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     liveTaskHandler = LiveTaskHandler(myManager)
     assertThat(myManager.sessionArtifacts).isEmpty()
@@ -103,20 +96,29 @@ class LiveTaskHandlerTest {
   fun `test startTask called on enter`() {
     val liveViewHandlerSpy = Mockito.spy(liveTaskHandler)
     val mockArgs = mock<TaskArgs>()
-    TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
-                                      myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.LIVE_VIEW)
+    TaskHandlerTestUtils.startSession(
+      Common.Process.ExposureLevel.DEBUGGABLE,
+      myProfilers,
+      myTransportService,
+      myTimer,
+      Common.ProfilerTaskType.LIVE_VIEW,
+    )
     liveViewHandlerSpy.enter(mockArgs)
 
     // Verify that the setupStage method is only invoked once on enter.
     Mockito.verify(liveViewHandlerSpy, Mockito.times(1)).startTask(mockArgs)
   }
 
-
   @Test
   fun `test enter stage sets the Stage to LiveView`() {
     val mockArgs = mock<TaskArgs>()
-    TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
-                                      myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.LIVE_VIEW)
+    TaskHandlerTestUtils.startSession(
+      Common.Process.ExposureLevel.DEBUGGABLE,
+      myProfilers,
+      myTransportService,
+      myTimer,
+      Common.ProfilerTaskType.LIVE_VIEW,
+    )
     liveTaskHandler.enter(mockArgs)
 
     // Enter stage sets the stage to LiveView stage.
@@ -126,8 +128,13 @@ class LiveTaskHandlerTest {
   @Test(expected = Throwable::class)
   fun `test enter stage throw error when the task type is not mentioned in the session`() {
     val mockArgs = mock<TaskArgs>()
-    TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
-                                      myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.UNSPECIFIED_TASK)
+    TaskHandlerTestUtils.startSession(
+      Common.Process.ExposureLevel.DEBUGGABLE,
+      myProfilers,
+      myTransportService,
+      myTimer,
+      Common.ProfilerTaskType.UNSPECIFIED_TASK,
+    )
     liveTaskHandler.enter(mockArgs)
   }
 
@@ -143,8 +150,13 @@ class LiveTaskHandlerTest {
   @Test
   fun `test stopTask ends the current session`() {
     // Start the live task.
-    TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
-                                      myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.LIVE_VIEW)
+    TaskHandlerTestUtils.startSession(
+      Common.Process.ExposureLevel.DEBUGGABLE,
+      myProfilers,
+      myTransportService,
+      myTimer,
+      Common.ProfilerTaskType.LIVE_VIEW,
+    )
     // Make sure the session started is alive.
     assertThat(myManager.isSessionAlive).isTrue()
 
@@ -156,8 +168,8 @@ class LiveTaskHandlerTest {
 
   @Test
   fun `test supportsArtifact when its SessionItem`() {
-    val liveViewSessionArtifact = LiveViewSessionArtifact(myProfilers, Common.Session.getDefaultInstance(),
-                                                          Common.SessionMetaData.getDefaultInstance())
+    val liveViewSessionArtifact =
+      LiveViewSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), Common.SessionMetaData.getDefaultInstance())
     assertThat(liveTaskHandler.supportsArtifact(liveViewSessionArtifact)).isTrue()
   }
 
@@ -170,14 +182,21 @@ class LiveTaskHandlerTest {
   @Test
   fun testCreateArgsSuccessfully() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
-    val liveViewArtifact = LiveViewSessionArtifact(myProfilers, selectedSession,
-                                                   Common.SessionMetaData.newBuilder().setType(Common.SessionMetaData.SessionType.FULL).build())
-    val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1, listOf(liveViewArtifact)),
-    )
+    val liveViewArtifact =
+      LiveViewSessionArtifact(
+        myProfilers,
+        selectedSession,
+        Common.SessionMetaData.newBuilder().setType(Common.SessionMetaData.SessionType.FULL).build(),
+      )
+    val sessionIdToSessionItems = mapOf(1L to createSessionItem(myProfilers, selectedSession, 1, listOf(liveViewArtifact)))
     // Begin live view session
-    TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
-                                      myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.LIVE_VIEW)
+    TaskHandlerTestUtils.startSession(
+      Common.Process.ExposureLevel.DEBUGGABLE,
+      myProfilers,
+      myTransportService,
+      myTimer,
+      Common.ProfilerTaskType.LIVE_VIEW,
+    )
 
     val liveTaskHandlerCreateArgs = liveTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(liveTaskHandlerCreateArgs).isNotNull()
@@ -188,30 +207,32 @@ class LiveTaskHandlerTest {
   @Test
   fun testCreateArgsFailsToFindArtifactDueToMismatchedSessionIds() {
     val selectedSession = Common.Session.newBuilder().setSessionId(0).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1, listOf()),
-    )
+    val sessionIdToSessionItems = mapOf(1L to createSessionItem(myProfilers, selectedSession, 1, listOf()))
     // Begin live view session
-    TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
-                                      myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.LIVE_VIEW)
-    assertThrows(IllegalStateException::class.java) {
-      liveTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
-    }
+    TaskHandlerTestUtils.startSession(
+      Common.Process.ExposureLevel.DEBUGGABLE,
+      myProfilers,
+      myTransportService,
+      myTimer,
+      Common.ProfilerTaskType.LIVE_VIEW,
+    )
+    assertThrows(IllegalStateException::class.java) { liveTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession) }
   }
 
   @Test
   fun testCreateArgsFailsToFindArtifactDueToNotLiveViewTaskType() {
     val selectedSession = Common.Session.newBuilder().setSessionId(0).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1, listOf()),
-    )
+    val sessionIdToSessionItems = mapOf(1L to createSessionItem(myProfilers, selectedSession, 1, listOf()))
     // Begin non-live view session
-    TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
-                                      myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING)
+    TaskHandlerTestUtils.startSession(
+      Common.Process.ExposureLevel.DEBUGGABLE,
+      myProfilers,
+      myTransportService,
+      myTimer,
+      Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING,
+    )
 
-    assertThrows(IllegalStateException::class.java) {
-      liveTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
-    }
+    assertThrows(IllegalStateException::class.java) { liveTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession) }
   }
 
   @Test
@@ -223,8 +244,8 @@ class LiveTaskHandlerTest {
 
   @Test
   fun testLoadArgsWithValidArgs() {
-    val liveViewArtifact = spy(LiveViewSessionArtifact(myProfilers, Common.Session.getDefaultInstance(),
-                                                       Common.SessionMetaData.getDefaultInstance()))
+    val liveViewArtifact =
+      spy(LiveViewSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), Common.SessionMetaData.getDefaultInstance()))
     Mockito.doAnswer { myProfilers.stage = LiveStage(myProfilers) }.`when`(liveViewArtifact).doSelect()
 
     val result = liveTaskHandler.loadTask(LiveTaskArgs(artifact = liveViewArtifact))

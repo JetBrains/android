@@ -26,16 +26,12 @@ import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
 
-/**
- * Unit tests for [TaskOutputLineProcessor].
- */
+/** Unit tests for [TaskOutputLineProcessor]. */
 @RunWith(JUnit4::class)
 class TaskOutputLineProcessorTest {
-  @get:Rule
-  val rule: MockitoRule = MockitoJUnit.rule()
+  @get:Rule val rule: MockitoRule = MockitoJUnit.rule()
 
-  @Mock
-  lateinit var mockLineProcessor: TaskOutputLineProcessor.LineProcessor
+  @Mock lateinit var mockLineProcessor: TaskOutputLineProcessor.LineProcessor
 
   @Test
   fun testAppendOneLineOfText() {

@@ -63,11 +63,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   private var lastAddedLine: InspectorLineModel? = null
   private var lastTitleLine: CollapsibleLabelModel? = null
   @VisibleForTesting
-  val nameColumnFraction =
-    ColumnFraction(
-      PropertiesComponent.getInstance().getFloat(LEFT_FRACTION_KEY, 0.4f),
-      resizeSupported = true,
-    )
+  val nameColumnFraction = ColumnFraction(PropertiesComponent.getInstance().getFloat(LEFT_FRACTION_KEY, 0.4f), resizeSupported = true)
   private val inspector = InspectorPanelImpl(inspectorModel, nameColumnFraction, parentDisposable)
   private val scrollPane = createScrollPane(inspector)
   private var previousTableEditor: TableEditor? = null
@@ -80,8 +76,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
         inspector.invalidate()
         inspector.validate()
         inspector.repaint()
-        PropertiesComponent.getInstance()
-          .setValue(LEFT_FRACTION_KEY, nameColumnFraction.value, 0.4f)
+        PropertiesComponent.getInstance().setValue(LEFT_FRACTION_KEY, nameColumnFraction.value, 0.4f)
       }
     )
     inspector.afterLayout = { scrollToFocusEditorOffset() }
@@ -135,9 +130,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     lastFocusedEditor = if (lastFocusedEditorOffset != null) focusOwner else null
   }
 
-  /**
-   * Scroll to the offset of the last focused editor (if still focused) the editors have changed.
-   */
+  /** Scroll to the offset of the last focused editor (if still focused) the editors have changed. */
   private fun scrollToFocusEditorOffset() {
     val focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
     val lastOffset = lastFocusedEditorOffset
@@ -187,8 +180,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
           // - Windows seem to scroll faster
           // - Unix about half speed of Windows
           // - Mac doesn't seem to use this value
-          scrollPane.verticalScrollBar.unitIncrement =
-            JBUI.scale(16) * (if (SystemInfo.isWindows) 1 else 2)
+          scrollPane.verticalScrollBar.unitIncrement = JBUI.scale(16) * (if (SystemInfo.isWindows) 1 else 2)
 
           // blockIncrement affects the page down speed, when clicking above/under the scroll thumb
           scrollPane.verticalScrollBar.blockIncrement = scrollPane.height
@@ -201,16 +193,11 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   override fun addTitle(title: String, actions: List<AnAction>): InspectorLineModel {
     addSeparatorBeforeTitle()
     val model = TitleLineModel(title)
-    val label =
-      CollapsibleLabelPanel(model, UIUtil.FontSize.NORMAL, Font.BOLD, actions, nameColumnFraction)
+    val label = CollapsibleLabelPanel(model, UIUtil.FontSize.NORMAL, Font.BOLD, actions, nameColumnFraction)
     label.isOpaque = true
     label.innerBorder = JBUI.Borders.empty(TITLE_SEPARATOR_HEIGHT, 0)
     label.border =
-      JBUI.Borders.merge(
-        JBUI.Borders.emptyLeft(LEFT_HORIZONTAL_CONTENT_BORDER_SIZE),
-        SideBorder(JBColor.border(), SideBorder.BOTTOM),
-        true,
-      )
+      JBUI.Borders.merge(JBUI.Borders.emptyLeft(LEFT_HORIZONTAL_CONTENT_BORDER_SIZE), SideBorder(JBColor.border(), SideBorder.BOTTOM), true)
     addLine(model, null)
     inspector.addLineElement(label)
     label.background = UIUtil.getPanelBackground()
@@ -218,22 +205,14 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     return model
   }
 
-  override fun addSubTitle(
-    title: String,
-    initiallyExpanded: Boolean,
-    parent: InspectorLineModel?,
-  ): InspectorLineModel {
+  override fun addSubTitle(title: String, initiallyExpanded: Boolean, parent: InspectorLineModel?): InspectorLineModel {
     addSeparatorBeforeTitle()
     val model = TitleLineModel(title)
     val label = CollapsibleLabelPanel(model, UIUtil.FontSize.NORMAL, Font.BOLD)
     label.isOpaque = true
     label.innerBorder = JBUI.Borders.empty(SUBTITLE_SEPARATOR_HEIGHT, 0)
     label.border =
-      JBUI.Borders.merge(
-        JBUI.Borders.emptyLeft(LEFT_HORIZONTAL_CONTENT_BORDER_SIZE),
-        SideBorder(JBColor.border(), SideBorder.BOTTOM),
-        true,
-      )
+      JBUI.Borders.merge(JBUI.Borders.emptyLeft(LEFT_HORIZONTAL_CONTENT_BORDER_SIZE), SideBorder(JBColor.border(), SideBorder.BOTTOM), true)
     addLine(model, parent)
     inspector.addLineElement(label)
     lastTitleLine = model
@@ -241,11 +220,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     return model
   }
 
-  override fun addCustomEditor(
-    editorModel: PropertyEditorModel,
-    editor: JComponent,
-    parent: InspectorLineModel?,
-  ): InspectorLineModel {
+  override fun addCustomEditor(editorModel: PropertyEditorModel, editor: JComponent, parent: InspectorLineModel?): InspectorLineModel {
     addSeparatorAfterTitle(parent)
     val model = CollapsibleLabelModel(editorModel.property.name, editorModel)
     val label = CollapsibleLabelPanel(model, UIUtil.FontSize.SMALL, Font.PLAIN)
@@ -266,14 +241,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     // Do NOT call addSeparatorAfterTitle since tables should not be preceded with spacing after a
     // title
     val model = TableLineModelImpl(tableModel, searchable)
-    val editor =
-      TableEditor(
-        model,
-        tableUI.tableCellRendererProvider,
-        tableUI.tableCellEditorProvider,
-        actions,
-        nameColumnFraction,
-      )
+    val editor = TableEditor(model, tableUI.tableCellRendererProvider, tableUI.tableCellEditorProvider, actions, nameColumnFraction)
     editor.setPreviousTableEditor(previousTableEditor)
     previousTableEditor?.setNextTableEditor(editor)
     previousTableEditor = editor
@@ -282,10 +250,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     return model
   }
 
-  override fun addComponent(
-    component: JComponent,
-    parent: InspectorLineModel?,
-  ): InspectorLineModel {
+  override fun addComponent(component: JComponent, parent: InspectorLineModel?): InspectorLineModel {
     addSeparatorAfterTitle(parent)
     val model = GenericInspectorLineModel()
     val wrapper = GenericLinePanel(component, model)
@@ -309,9 +274,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   }
 
   private fun addSeparatorBeforeTitle() {
-    if (
-      lastAddedLine == null || lastAddedLine == lastTitleLine || lastAddedLine is TableLineModel
-    ) {
+    if (lastAddedLine == null || lastAddedLine == lastTitleLine || lastAddedLine is TableLineModel) {
       return
     }
     addSeparator(bottomDivider = true, parent = topParent(lastAddedLine))
@@ -341,15 +304,11 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     return topParent as? TitleLineModel
   }
 
-  private fun addSeparator(
-    bottomDivider: Boolean,
-    parent: InspectorLineModel? = null,
-  ): GenericInspectorLineModel {
+  private fun addSeparator(bottomDivider: Boolean, parent: InspectorLineModel? = null): GenericInspectorLineModel {
     val component = JPanel()
     component.preferredSize = JBDimension(0, TITLE_SEPARATOR_HEIGHT)
     component.background = inspector.background
-    component.border =
-      if (bottomDivider) SideBorder(JBColor.border(), SideBorder.BOTTOM) else JBUI.Borders.empty()
+    component.border = if (bottomDivider) SideBorder(JBColor.border(), SideBorder.BOTTOM) else JBUI.Borders.empty()
     val model = SeparatorLineModel()
     val wrapper = GenericLinePanel(component, model)
     addLine(model, parent)

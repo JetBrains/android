@@ -32,61 +32,55 @@ import org.mockito.kotlin.whenever
 class CpuAnalysisEventsTabModelTest {
   @Test
   fun getThreadEvents() {
-    val timeline = DefaultTimeline().apply {
-      dataRange.set(0.0, 100.0)
-    }
-    val capture = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(getCaptureNode(123)).thenReturn(ROOT)
-    }
-    val cpuThreadTrackModel = CpuThreadTrackModel(
-      capture,
-      CpuThreadInfo(123, "foo"),
-      timeline,
-      MultiSelectionModel(),
-      Utils::runOnUi)
-    val model = CpuThreadAnalysisEventsTabModel(timeline.dataRange).apply {
-      dataSeries.add(cpuThreadTrackModel)
-    }
+    val timeline = DefaultTimeline().apply { dataRange.set(0.0, 100.0) }
+    val capture = Mockito.mock(CpuCapture::class.java).apply { whenever(getCaptureNode(123)).thenReturn(ROOT) }
+    val cpuThreadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(123, "foo"), timeline, MultiSelectionModel(), Utils::runOnUi)
+    val model = CpuThreadAnalysisEventsTabModel(timeline.dataRange).apply { dataSeries.add(cpuThreadTrackModel) }
     assertThat(model.getNodes().map { it.data.name }).containsExactly("1", "2", "3", "1")
   }
 
   @Test
   fun getCaptureNodeEvents() {
-    val capture = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(this.range).thenReturn(Range())
-    }
+    val capture = Mockito.mock(CpuCapture::class.java).apply { whenever(this.range).thenReturn(Range()) }
     val captureNodeModel = CaptureNodeAnalysisModel(ROOT.children[0], capture, Utils::runOnUi)
-    val model = CaptureNodeAnalysisEventsTabModel(Range(0.0, 100.0)).apply {
-      dataSeries.add(captureNodeModel)
-    }
+    val model = CaptureNodeAnalysisEventsTabModel(Range(0.0, 100.0)).apply { dataSeries.add(captureNodeModel) }
     assertThat(model.getNodes().map { it.data.name }).containsExactly("1", "1")
   }
 
   companion object {
-    val ROOT = CaptureNode(SingleNameModel("Root")).apply {
-      startGlobal = 0
-      endGlobal = 100
-      depth = 0
-      addChild(CaptureNode(SingleNameModel("1")).apply {
+    val ROOT =
+      CaptureNode(SingleNameModel("Root")).apply {
         startGlobal = 0
-        endGlobal = 30
-        depth = 1
-      })
-      addChild(CaptureNode(SingleNameModel("2")).apply {
-        startGlobal = 2
-        endGlobal = 5
-        depth = 1
-      })
-      addChild(CaptureNode(SingleNameModel("3")).apply {
-        startGlobal = 15
-        endGlobal = 50
-        depth = 1
-      })
-      addChild(CaptureNode(SingleNameModel("1")).apply {
-        startGlobal = 60
-        endGlobal = 90
-        depth = 1
-      })
-    }
+        endGlobal = 100
+        depth = 0
+        addChild(
+          CaptureNode(SingleNameModel("1")).apply {
+            startGlobal = 0
+            endGlobal = 30
+            depth = 1
+          }
+        )
+        addChild(
+          CaptureNode(SingleNameModel("2")).apply {
+            startGlobal = 2
+            endGlobal = 5
+            depth = 1
+          }
+        )
+        addChild(
+          CaptureNode(SingleNameModel("3")).apply {
+            startGlobal = 15
+            endGlobal = 50
+            depth = 1
+          }
+        )
+        addChild(
+          CaptureNode(SingleNameModel("1")).apply {
+            startGlobal = 60
+            endGlobal = 90
+            depth = 1
+          }
+        )
+      }
   }
 }

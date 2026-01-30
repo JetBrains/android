@@ -42,12 +42,7 @@ object PropertyTooltip {
     }
   }
 
-  private fun createToolTip(
-    component: JComponent,
-    property: PropertyItem,
-    forValue: Boolean,
-    currentText: String,
-  ) {
+  private fun createToolTip(component: JComponent, property: PropertyItem, forValue: Boolean, currentText: String) {
     if (!forValue) {
       val text = property.tooltipForName.nullize()
       setToolTip(component, text)
@@ -59,9 +54,7 @@ object PropertyTooltip {
       when (validation.first) {
         EditingErrorCategory.ERROR -> Pair("Error", validation.second)
         EditingErrorCategory.WARNING -> Pair("Warning", validation.second)
-        else ->
-          property.tooltipForValue.nullize()?.let { Pair(null, it) }
-            ?: return hideTooltip(component)
+        else -> property.tooltipForValue.nullize()?.let { Pair(null, it) } ?: return hideTooltip(component)
       }
     createTooltipWithContent(component, text, title)
   }
@@ -71,9 +64,7 @@ object PropertyTooltip {
   }
 
   private fun createTooltipWithContent(component: JComponent, text: String, title: String? = null) {
-    val truncatedText =
-      if (text.length > MAX_TOOLTIP_TEXT_LENGTH) text.substring(0, MAX_TOOLTIP_TEXT_LENGTH) + "..."
-      else text
+    val truncatedText = if (text.length > MAX_TOOLTIP_TEXT_LENGTH) text.substring(0, MAX_TOOLTIP_TEXT_LENGTH) + "..." else text
     HelpTooltip().setTitle(title).setDescription(truncatedText).installOn(component)
   }
 }

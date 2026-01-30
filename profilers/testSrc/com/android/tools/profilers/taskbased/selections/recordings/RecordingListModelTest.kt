@@ -43,8 +43,7 @@ class RecordingListModelTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("RecordingListModelTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("RecordingListModelTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -54,11 +53,7 @@ class RecordingListModelTest {
   @Before
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myManager)
     taskHandlers.forEach { myProfilers.addTaskHandler(it.key, it.value) }
@@ -97,16 +92,21 @@ class RecordingListModelTest {
     startAndStopSession(device, process2, Common.ProfilerTaskType.NATIVE_ALLOCATIONS, myManager)
     val session2 = myManager.selectedSession
     val nativeTraceTimestamp = 20L
-    val nativeTraceInfo = Trace.TraceInfo.newBuilder().setFromTimestamp(nativeTraceTimestamp).setToTimestamp(
-      nativeTraceTimestamp + 1).setConfiguration(
-      Trace.TraceConfiguration.newBuilder().setPerfettoOptions(PerfettoConfig.TraceConfig.getDefaultInstance())).build()
-    val memoryTrace = Common.Event.newBuilder()
-      .setGroupId(session1Timestamp + nativeTraceTimestamp)
-      .setKind(Common.Event.Kind.MEMORY_TRACE)
-      .setTimestamp(session1Timestamp)
-      .setIsEnded(true)
-      .setTraceData(Trace.TraceData.newBuilder()
-                      .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(nativeTraceInfo).build()))
+    val nativeTraceInfo =
+      Trace.TraceInfo.newBuilder()
+        .setFromTimestamp(nativeTraceTimestamp)
+        .setToTimestamp(nativeTraceTimestamp + 1)
+        .setConfiguration(Trace.TraceConfiguration.newBuilder().setPerfettoOptions(PerfettoConfig.TraceConfig.getDefaultInstance()))
+        .build()
+    val memoryTrace =
+      Common.Event.newBuilder()
+        .setGroupId(session1Timestamp + nativeTraceTimestamp)
+        .setKind(Common.Event.Kind.MEMORY_TRACE)
+        .setTimestamp(session1Timestamp)
+        .setIsEnded(true)
+        .setTraceData(
+          Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(nativeTraceInfo).build())
+        )
     myTransportService.addEventToStream(device.deviceId, memoryTrace.setPid(session2.pid).build())
     myManager.update()
 
@@ -167,8 +167,14 @@ class RecordingListModelTest {
   fun `recording with one non-exportable artifact is not exportable`() {
     val sessionId = 1L
     val session = Common.Session.newBuilder().setSessionId(sessionId).setEndTimestamp(1).build()
-    val nonExportableArtifact = FakeSessionArtifact(myProfilers, session, Common.SessionMetaData.getDefaultInstance(),
-                                                    Trace.TraceInfo.getDefaultInstance(), canExportArtifact = false)
+    val nonExportableArtifact =
+      FakeSessionArtifact(
+        myProfilers,
+        session,
+        Common.SessionMetaData.getDefaultInstance(),
+        Trace.TraceInfo.getDefaultInstance(),
+        canExportArtifact = false,
+      )
 
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(nonExportableArtifact))
     recordingListModel.onRecordingSelection(sessionItem)
@@ -243,19 +249,23 @@ class RecordingListModelTest {
   }
 
   companion object {
-    fun startAndStopSession(device: Common.Device,
-                            process: Common.Process,
-                            taskType: Common.ProfilerTaskType,
-                            sessionsManager: SessionsManager) {
+    fun startAndStopSession(
+      device: Common.Device,
+      process: Common.Process,
+      taskType: Common.ProfilerTaskType,
+      sessionsManager: SessionsManager,
+    ) {
       startSession(device, process, taskType, sessionsManager)
       sessionsManager.endCurrentSession()
       sessionsManager.update()
     }
 
-    private fun startSession(device: Common.Device,
-                             process: Common.Process,
-                             taskType: Common.ProfilerTaskType,
-                             sessionsManager: SessionsManager) {
+    private fun startSession(
+      device: Common.Device,
+      process: Common.Process,
+      taskType: Common.ProfilerTaskType,
+      sessionsManager: SessionsManager,
+    ) {
       sessionsManager.beginSession(1, device, process, taskType, false)
       sessionsManager.update()
     }

@@ -55,11 +55,10 @@ class ManagedVirtualDeviceCatalogServiceTest : LightPlatform4TestCase() {
     val pkg =
       FakePackage.FakeRemotePackage("system-images;android-23;default;armeabi-v7a").apply {
         typeDetails =
-          AndroidSdkHandler.sysImgModule.createLatestFactory().createSysImgDetailsType()
-            .apply {
-              apiLevel = 23
-              abis.add("armeabi-v7a")
-            } as TypeDetails
+          AndroidSdkHandler.sysImgModule.createLatestFactory().createSysImgDetailsType().apply {
+            apiLevel = 23
+            abis.add("armeabi-v7a")
+          } as TypeDetails
       }
     packages.setRemotePkgInfos(listOf(pkg))
     repoManager = spy(FakeRepoManager(packages))
@@ -67,23 +66,18 @@ class ManagedVirtualDeviceCatalogServiceTest : LightPlatform4TestCase() {
   }
 
   private fun managedVirtualDeviceCatalogTestHelperWrapper(callback: () -> Unit) =
-    ProgressManager.getInstance()
-      .runProcessWithProgressSynchronously({ callback() }, "", false, null)
+    ProgressManager.getInstance().runProcessWithProgressSynchronously({ callback() }, "", false, null)
 
   @Test
   fun testObtainAndroidDeviceCatalog() {
     managedVirtualDeviceCatalogTestHelperWrapper {
       val managedVirtualDeviceCatalogService = ManagedVirtualDeviceCatalogService()
       assertFalse(managedVirtualDeviceCatalogService.state.isCacheFresh())
-      managedVirtualDeviceCatalogService.updateDeviceCatalogTaskAction(
-        mockProject,
-        mockProgressIndicator,
-      )
+      managedVirtualDeviceCatalogService.updateDeviceCatalogTaskAction(mockProject, mockProgressIndicator)
       assertTrue(managedVirtualDeviceCatalogService.state.isCacheFresh())
       val deviceCatalog = managedVirtualDeviceCatalogService.state.myDeviceCatalog
       assertThat(deviceCatalog.devices.values).isNotEmpty()
-      assertThat(deviceCatalog.apiLevels)
-        .containsExactly(ManagedVirtualDeviceCatalog.ApiVersionInfo(23, imageSource = "google"))
+      assertThat(deviceCatalog.apiLevels).containsExactly(ManagedVirtualDeviceCatalog.ApiVersionInfo(23, imageSource = "google"))
       assertThat(deviceCatalog.devices.values.first().supportedApis).containsExactly(23)
     }
   }
@@ -95,17 +89,11 @@ class ManagedVirtualDeviceCatalogServiceTest : LightPlatform4TestCase() {
       calendar.add(Calendar.DATE, 1)
       val managedVirtualDeviceCatalogService = ManagedVirtualDeviceCatalogService()
       managedVirtualDeviceCatalogService.loadState(
-        ManagedVirtualDeviceCatalogState(
-          calendar.time,
-          ManagedVirtualDeviceCatalogService.syncDeviceCatalog(),
-        )
+        ManagedVirtualDeviceCatalogState(calendar.time, ManagedVirtualDeviceCatalogService.syncDeviceCatalog())
       )
       val state = managedVirtualDeviceCatalogService.state
       assertTrue(state.isCacheFresh())
-      managedVirtualDeviceCatalogService.updateDeviceCatalogTaskAction(
-        mockProject,
-        mockProgressIndicator,
-      )
+      managedVirtualDeviceCatalogService.updateDeviceCatalogTaskAction(mockProject, mockProgressIndicator)
       // We should not have updated the state with a new instance since the cache is fresh
       assertThat(managedVirtualDeviceCatalogService.state).isSameAs(state)
     }

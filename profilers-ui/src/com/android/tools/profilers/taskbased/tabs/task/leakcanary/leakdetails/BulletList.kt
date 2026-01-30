@@ -21,32 +21,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.LEAKCANARY_MORE_INFO_TITLE_PADDING
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.LEAKCANARY_MORE_INFO_TEXT_PADDING
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.LEAKCANARY_MORE_INFO_TITLE_PADDING
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_BULLET_UNICODE
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
-fun BulletList(
-  items: List<String>
-) {
+fun BulletList(items: List<String>) {
   Column(modifier = Modifier.padding(start = LEAKCANARY_MORE_INFO_TITLE_PADDING)) {
-    items.forEachIndexed { _, item ->
-      BulletListItem(item)
-    }
+    items.forEachIndexed { _, item -> BulletListItem(item) }
   }
 }
 
 @Composable
-fun BulletListItem(
-  text: String
-) {
+fun BulletListItem(text: String) {
   val bulletStyle = Modifier.padding(end = LEAKCANARY_MORE_INFO_TEXT_PADDING)
   Row(verticalAlignment = Alignment.CenterVertically) {
-    Text(
-      text = LEAKCANARY_BULLET_UNICODE,
-      modifier = bulletStyle,
-    )
+    Text(text = LEAKCANARY_BULLET_UNICODE, modifier = bulletStyle)
     Text(text = text)
   }
 }

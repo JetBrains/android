@@ -17,9 +17,9 @@ package com.android.tools.profilers.integration.taskbased
 
 import com.android.tools.profilers.integration.ProfilersTestBase
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.io.File
 import kotlin.io.path.name
+import org.junit.Test
 
 class ImportAndExportTraceTest : ProfilersTestBase() {
 
@@ -27,21 +27,21 @@ class ImportAndExportTraceTest : ProfilersTestBase() {
    * Validate Importing trace files are working along with opening a recording from recordings tab.
    *
    * Test Steps:
-   *  1. Import "minApp" from the testData directory of this module.
-   *  2. Open Profiler tool window and set hide new task prompt to true.
-   *  3. Open a CPU recording.
-   *  4. Open a memory recording.
-   *  5. Open recordings tab.
-   *  6. Open the last recording from the past recordings list.
-   *  7. Export the last recording.
+   * 1. Import "minApp" from the testData directory of this module.
+   * 2. Open Profiler tool window and set hide new task prompt to true.
+   * 3. Open a CPU recording.
+   * 4. Open a memory recording.
+   * 5. Open recordings tab.
+   * 6. Open the last recording from the past recordings list.
+   * 7. Export the last recording.
    *
    * Test Verifications:
-   *  1. Verify if the profiler tool window is opened.
-   *  2. Verify if the CPU trace is opened.
-   *  3. Verify if the memory trace is opened.
-   *  4. Verify if the trace can be opened from the past recordings list.
-   *  5. Verify if the recording is exported.
-   *  6. Verify that the exported and imported trace file sizes are the same.
+   * 1. Verify if the profiler tool window is opened.
+   * 2. Verify if the CPU trace is opened.
+   * 3. Verify if the memory trace is opened.
+   * 4. Verify if the trace can be opened from the past recordings list.
+   * 5. Verify if the recording is exported.
+   * 6. Verify that the exported and imported trace file sizes are the same.
    */
   @Test
   fun test() {

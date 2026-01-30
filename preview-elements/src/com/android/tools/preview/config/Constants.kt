@@ -91,8 +91,8 @@ object Preview {
     val DEFAULT_IS_ROUND: Boolean = ReferencePhoneConfig.isRound
 
     /**
-     * Returns whether the given [parameterName] matches to a known DeviceSpec parameter that takes
-     * an Android dimension value (with a dp/px suffix).
+     * Returns whether the given [parameterName] matches to a known DeviceSpec parameter that takes an Android dimension value (with a dp/px
+     * suffix).
      */
     fun isDimensionParameter(parameterName: String): Boolean =
       when (parameterName) {

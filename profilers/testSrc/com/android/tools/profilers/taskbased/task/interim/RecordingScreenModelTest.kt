@@ -37,8 +37,7 @@ class RecordingScreenModelTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("RecordingListModelTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("RecordingListModelTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -52,14 +51,10 @@ class RecordingScreenModelTest {
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
     ideProfilerServices.enableTaskBasedUx(true)
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myManager)
-    taskHandlers.forEach {  myProfilers.addTaskHandler(it.key, it.value)  }
+    taskHandlers.forEach { myProfilers.addTaskHandler(it.key, it.value) }
     cpuProfilerStage = CpuProfilerStage(myProfilers)
     cpuRecordingScreenModel = cpuProfilerStage.recordingScreenModel!!
     memoryProfilerStage = MainMemoryProfilerStage(myProfilers)
@@ -120,8 +115,8 @@ class RecordingScreenModelTest {
 
   companion object {
     /**
-     * Creates a "valid" (see: RecordingOptionsModel#isValid) RecordingOption, selects it, and then sets isRecording is true, fulfilling
-     * all conditions for RecordingOptionsModel#canStop to return true.
+     * Creates a "valid" (see: RecordingOptionsModel#isValid) RecordingOption, selects it, and then sets isRecording is true, fulfilling all
+     * conditions for RecordingOptionsModel#canStop to return true.
      */
     fun startFakeRecording(recordingModel: RecordingOptionsModel) {
       val recordingOption = RecordingOption("", "", {}, {})

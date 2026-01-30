@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 @file:JvmName("ResourceFiles")
+
 package com.android.tools.res
 
 import java.io.File
 
 /**
- * Checks if the given path points to a file resource. The resource path can point
- * to either file on disk, or a ZIP file entry. If the candidate path contains
- * "file:" or "apk:" scheme prefix, the method returns true without doing any I/O.
- * Otherwise, the local file system is checked for existence of the file.
+ * Checks if the given path points to a file resource. The resource path can point to either file on disk, or a ZIP file entry. If the
+ * candidate path contains "file:" or "apk:" scheme prefix, the method returns true without doing any I/O. Otherwise, the local file system
+ * is checked for existence of the file.
  */
 fun isResourceFile(candidatePath: String): Boolean =
-  candidatePath.startsWith("file:") || candidatePath.startsWith("apk:") || candidatePath.startsWith("jar:") ||
-  File(candidatePath).isFile
+  candidatePath.startsWith("file:") || candidatePath.startsWith("apk:") || candidatePath.startsWith("jar:") || File(candidatePath).isFile

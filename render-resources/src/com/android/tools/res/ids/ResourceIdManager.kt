@@ -18,13 +18,9 @@ package com.android.tools.res.ids
 import com.android.ide.common.rendering.api.ResourceReference
 import java.util.function.Consumer
 
-/**
- * Module service responsible for tracking the numeric resource ids we assign to resources, in an attempt to emulate aapt.
- */
+/** Module service responsible for tracking the numeric resource ids we assign to resources, in an attempt to emulate aapt. */
 interface ResourceIdManager : ResourceClassGenerator.NumericIdProvider {
-  /**
-   * Whether R classes with final ids are used for compiling custom views.
-   */
+  /** Whether R classes with final ids are used for compiling custom views. */
   val finalIdsUsed: Boolean
 
   fun getCompiledId(resource: ResourceReference): Int?

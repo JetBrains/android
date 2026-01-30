@@ -42,17 +42,10 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * A renderer is a function performing arbitrary drawing on the graphics. Other parameters such as
- * boundary and defaultFontMetrics meant to be read-only.
+ * A renderer is a function performing arbitrary drawing on the graphics. Other parameters such as boundary and defaultFontMetrics meant to
+ * be read-only.
  */
-typealias Renderer<T> =
-  (
-    g: Graphics2D,
-    boundary: Rectangle2D.Float,
-    defaultFontMetrics: FontMetrics,
-    hoverred: Boolean,
-    value: T,
-  ) -> Unit
+typealias Renderer<T> = (g: Graphics2D, boundary: Rectangle2D.Float, defaultFontMetrics: FontMetrics, hoverred: Boolean, value: T) -> Unit
 
 /** A chart component that renders series of state change events as rectangles. */
 class StateChart<T : Any>(
@@ -71,9 +64,8 @@ class StateChart<T : Any>(
   /**
    * For each series, cache a pair of:
    * - List of rectangles for the events in the current range, and
-   * - List of values for the events in the current range The lists are parallel and should always
-   *   have the same size. We maintain 2 lists just for compatibility with the code from other
-   *   places.
+   * - List of values for the events in the current range The lists are parallel and should always have the same size. We maintain 2 lists
+   *   just for compatibility with the code from other places.
    */
   private var rectangleCache = listOf<Pair<List<Rectangle2D.Float>, List<T>>>()
   private var rowPoint: Point? = null
@@ -100,13 +92,10 @@ class StateChart<T : Any>(
       needsTransformToViewSpace = true
       opaqueRepaint()
     }
-    model
-      .addDependency(myAspectObserver)
-      .onChange(StateChartModel.Aspect.MODEL_CHANGED, ::modelChanged)
+    model.addDependency(myAspectObserver).onChange(StateChartModel.Aspect.MODEL_CHANGED, ::modelChanged)
     modelChanged()
     registerMouseEvents()
-    preferredSize =
-      Dimension(preferredSize.width, JBUI.scale(PREFERRED_ROW_HEIGHT) * model.series.size)
+    preferredSize = Dimension(preferredSize.width, JBUI.scale(PREFERRED_ROW_HEIGHT) * model.series.size)
   }
 
   @JvmOverloads
@@ -233,8 +222,7 @@ class StateChart<T : Any>(
 
       val startIndexInclusive =
         when {
-          clipRect != null && clipRect.x != 0 ->
-            rectangles.searchByX(clipRect.x / scaleX, 0f).let { if (it < 0) -(it + 1) else it }
+          clipRect != null && clipRect.x != 0 -> rectangles.searchByX(clipRect.x / scaleX, 0f).let { if (it < 0) -(it + 1) else it }
           else -> 0
         }
       val endIndexExclusive =
@@ -245,10 +233,7 @@ class StateChart<T : Any>(
             }
           else -> rectangles.size
         }
-      val transformedValues =
-        rectangleValues.subList(startIndexInclusive, endIndexExclusive).mapTo(mutableListOf()) {
-          it
-        }
+      val transformedValues = rectangleValues.subList(startIndexInclusive, endIndexExclusive).mapTo(mutableListOf()) { it }
       val transformedShapes =
         rectangles.subList(startIndexInclusive, endIndexExclusive).mapTo(mutableListOf()) {
           // Manually scaling the rectangle results in ~6x performance improvement over calling
@@ -290,12 +275,7 @@ class StateChart<T : Any>(
 
     val drawTime = stopwatch.elapsedSinceLastDeltaNs
     addDebugInfo("XS ms: %.2fms, %.2fms", transformTime / 1000000f, scalingTime / 1000000f)
-    addDebugInfo(
-      "RDT ms: %.2f, %.2f, %.2f",
-      reducerTime / 1000000f,
-      drawTime / 1000000f,
-      (scalingTime + reducerTime + drawTime) / 1000000f,
-    )
+    addDebugInfo("RDT ms: %.2f, %.2f, %.2f", reducerTime / 1000000f, drawTime / 1000000f, (scalingTime + reducerTime + drawTime) / 1000000f)
     addDebugInfo("# of drawn rects: %d", transformedShapesCount)
   }
 
@@ -309,13 +289,11 @@ class StateChart<T : Any>(
 
   private fun registerMouseEvents() {
     /**
-     * In some cases, StateChart is delegated to by a parent containing component (e.g. a JList or a
-     * table). In order to preform some painting optimizations, we need access to that source
-     * component.
+     * In some cases, StateChart is delegated to by a parent containing component (e.g. a JList or a table). In order to preform some
+     * painting optimizations, we need access to that source component.
      *
-     * TODO(b/116747281): It seems like we shouldn't have to know about this. Otherwise, almost
-     *   every component would need special-case logic like this. We should revisit how this class
-     *   is being used by CpuCellRenderer.
+     * TODO(b/116747281): It seems like we shouldn't have to know about this. Otherwise, almost every component would need special-case
+     *   logic like this. We should revisit how this class is being used by CpuCellRenderer.
      */
     var mouseEventSource: Any? = null
     var mousePoint: Point? = null
@@ -325,9 +303,7 @@ class StateChart<T : Any>(
       object : MouseEventHandler() {
         override fun handle(event: MouseEvent) {
           if (event.id == MouseEvent.MOUSE_CLICKED) {
-            itemAtMouse(event.point)?.let {
-              itemClickedListeners.forEach { handler -> handler.accept(it) }
-            }
+            itemAtMouse(event.point)?.let { itemClickedListeners.forEach { handler -> handler.accept(it) } }
             return
           }
 
@@ -388,17 +364,14 @@ class StateChart<T : Any>(
 
   @VisibleForTesting
   fun itemAtMouse(point: Point): T? =
-    seriesIndexAtMouse(point)?.let { (seriesIndex, i) ->
-      model.series[seriesIndex].series.getOrNull(i)?.value
-    }
+    seriesIndexAtMouse(point)?.let { (seriesIndex, i) -> model.series[seriesIndex].series.getOrNull(i)?.value }
 
   /**
    * Find the item index in the model that corresponds to the mouse position.
    *
    * @return - null if the mouse isn't on any series, or
-   *     - a pair of the series index, and the item index within the series. The item index
-   *       corresponds to the right-most edge that's to the mouse's left, or (-1) if the mouse is to
-   *       the left of all items
+   *     - a pair of the series index, and the item index within the series. The item index corresponds to the right-most edge that's to the
+   *       mouse's left, or (-1) if the mouse is to the left of all items
    */
   @VisibleForTesting
   fun seriesIndexAtMouse(point: Point): Pair<Int, Int>? {
@@ -478,12 +451,7 @@ class StateChart<T : Any>(
       val screenYBottom = ceil(scaleY - seriesIndex * scaleY / seriesSize)
       val screenWidth = screenXRight - screenXLeft
       val screenHeight = screenYBottom - screenYTop
-      Rectangle2D.Float(
-        screenXLeft.toFloat(),
-        screenYTop.toFloat(),
-        screenWidth.toFloat(),
-        screenHeight.toFloat(),
-      )
+      Rectangle2D.Float(screenXLeft.toFloat(), screenYTop.toFloat(), screenWidth.toFloat(), screenHeight.toFloat())
     }
 
   companion object {
@@ -495,11 +463,10 @@ class StateChart<T : Any>(
 
     @JvmStatic fun <T> defaultTextConverter() = StateChartTextConverter<T>(Any?::toString)
 
-    private fun <T : Any> fillRectRenderer(colorProvider: StateChartColorProvider<T>): Renderer<T> =
-      { g, rect, _, hovered, value ->
-        g.color = colorProvider.getColor(hovered, value)
-        g.fill(rect)
-      }
+    private fun <T : Any> fillRectRenderer(colorProvider: StateChartColorProvider<T>): Renderer<T> = { g, rect, _, hovered, value ->
+      g.color = colorProvider.getColor(hovered, value)
+      g.fill(rect)
+    }
 
     private fun <T : Any> fillRectAndTextRenderer(
       colorProvider: StateChartColorProvider<T>,
@@ -508,16 +475,10 @@ class StateChart<T : Any>(
       fillRectRenderer(colorProvider).let { fillRect ->
         { g, rect, fontMetrics, hovered, value ->
           fillRect(g, rect, fontMetrics, hovered, value)
-          val text =
-            shrinkToFit(
-              textConverter.convertToString(value),
-              fontMetrics,
-              rect.width - TEXT_PADDING * 2,
-            )
+          val text = shrinkToFit(textConverter.convertToString(value), fontMetrics, rect.width - TEXT_PADDING * 2)
           if (text.isNotEmpty()) {
             g.color = colorProvider.getFontColor(hovered, value)
-            val textOffset =
-              rect.y + (rect.height - fontMetrics.height) * 0.5f + fontMetrics.ascent.toFloat()
+            val textOffset = rect.y + (rect.height - fontMetrics.height) * 0.5f + fontMetrics.ascent.toFloat()
             g.drawString(text, rect.x + TEXT_PADDING, textOffset)
           }
         }

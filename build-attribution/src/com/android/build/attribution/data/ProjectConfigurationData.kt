@@ -17,30 +17,30 @@ package com.android.build.attribution.data
 
 import org.gradle.tooling.events.OperationDescriptor
 
-data class ProjectConfigurationData(val projectPath: String,
-                                    val totalConfigurationTimeMs: Long,
-                                    val pluginsConfigurationData: List<PluginConfigurationData>,
-                                    val configurationSteps: List<ConfigurationStep>) {
+data class ProjectConfigurationData(
+  val projectPath: String,
+  val totalConfigurationTimeMs: Long,
+  val pluginsConfigurationData: List<PluginConfigurationData>,
+  val configurationSteps: List<ConfigurationStep>,
+) {
 
-  /**
-   * Represent project configuration steps that are not plugins configuration
-   */
+  /** Represent project configuration steps that are not plugins configuration */
   class ConfigurationStep(val type: Type, val configurationTimeMs: Long) {
     enum class Type {
       NOTIFYING_BUILD_LISTENERS {
-        override fun isDescriptorOfType(descriptor: OperationDescriptor) = descriptor.name.startsWith("Notify beforeEvaluate listeners") ||
-                                                                           descriptor.name.startsWith("Notify afterEvaluate listeners")
+        override fun isDescriptorOfType(descriptor: OperationDescriptor) =
+          descriptor.name.startsWith("Notify beforeEvaluate listeners") || descriptor.name.startsWith("Notify afterEvaluate listeners")
       },
       RESOLVING_DEPENDENCIES {
-        override fun isDescriptorOfType(descriptor: OperationDescriptor) = descriptor.name.startsWith("Resolve dependencies of") ||
-                                                                           descriptor.name.startsWith("Resolve files of")
+        override fun isDescriptorOfType(descriptor: OperationDescriptor) =
+          descriptor.name.startsWith("Resolve dependencies of") || descriptor.name.startsWith("Resolve files of")
       },
       COMPILING_BUILD_SCRIPTS {
         override fun isDescriptorOfType(descriptor: OperationDescriptor) = descriptor.name.startsWith("Compile script")
       },
       EXECUTING_BUILD_SCRIPT_BLOCKS {
-        override fun isDescriptorOfType(descriptor: OperationDescriptor) = descriptor.displayName.startsWith("Execute '") &&
-                                                                           descriptor.displayName.endsWith("' action")
+        override fun isDescriptorOfType(descriptor: OperationDescriptor) =
+          descriptor.displayName.startsWith("Execute '") && descriptor.displayName.endsWith("' action")
       },
       OTHER {
         override fun isDescriptorOfType(descriptor: OperationDescriptor): Boolean = false
@@ -86,26 +86,31 @@ data class ProjectConfigurationData(val projectPath: String,
     }
 
     private fun getConfigurationSteps(totalConfigurationTimeMs: Long): List<ConfigurationStep> {
-      val unaccountedConfigurationTime = totalConfigurationTimeMs -
-                                         notifyingBuildListenersTimeMs -
-                                         resolvingDependenciesTimeMs -
-                                         compilingBuildScriptsTimeMs -
-                                         executingBuildScriptsBlocksTimeMs -
-                                         pluginsConfigurationData.sumOf { it.configurationTimeMs }
+      val unaccountedConfigurationTime =
+        totalConfigurationTimeMs -
+          notifyingBuildListenersTimeMs -
+          resolvingDependenciesTimeMs -
+          compilingBuildScriptsTimeMs -
+          executingBuildScriptsBlocksTimeMs -
+          pluginsConfigurationData.sumOf { it.configurationTimeMs }
 
-      return listOf(ConfigurationStep(ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS, notifyingBuildListenersTimeMs),
-                    ConfigurationStep(ConfigurationStep.Type.RESOLVING_DEPENDENCIES, resolvingDependenciesTimeMs),
-                    ConfigurationStep(ConfigurationStep.Type.COMPILING_BUILD_SCRIPTS, compilingBuildScriptsTimeMs),
-                    ConfigurationStep(ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS, executingBuildScriptsBlocksTimeMs),
-                    ConfigurationStep(ConfigurationStep.Type.OTHER, unaccountedConfigurationTime))
+      return listOf(
+          ConfigurationStep(ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS, notifyingBuildListenersTimeMs),
+          ConfigurationStep(ConfigurationStep.Type.RESOLVING_DEPENDENCIES, resolvingDependenciesTimeMs),
+          ConfigurationStep(ConfigurationStep.Type.COMPILING_BUILD_SCRIPTS, compilingBuildScriptsTimeMs),
+          ConfigurationStep(ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS, executingBuildScriptsBlocksTimeMs),
+          ConfigurationStep(ConfigurationStep.Type.OTHER, unaccountedConfigurationTime),
+        )
         .filter { it.configurationTimeMs != 0L }
     }
 
     fun build(totalConfigurationTimeMs: Long): ProjectConfigurationData {
-      return ProjectConfigurationData(projectPath,
-                                      totalConfigurationTimeMs,
-                                      pluginsConfigurationData,
-                                      getConfigurationSteps(totalConfigurationTimeMs))
+      return ProjectConfigurationData(
+        projectPath,
+        totalConfigurationTimeMs,
+        pluginsConfigurationData,
+        getConfigurationSteps(totalConfigurationTimeMs),
+      )
     }
   }
 }

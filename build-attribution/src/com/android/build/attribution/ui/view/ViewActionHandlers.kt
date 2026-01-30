@@ -31,27 +31,19 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.ui.awt.RelativePoint
 import java.util.function.Supplier
 
-/**
- * Handlers that are called by the view on the corresponding action from the user.
- */
+/** Handlers that are called by the view on the corresponding action from the user. */
 interface ViewActionHandlers {
 
-  /**
-   * Called when selection in data set combo box is changed by the user.
-   */
+  /** Called when selection in data set combo box is changed by the user. */
   fun dataSetComboBoxSelectionUpdated(newSelectedData: BuildAnalyzerViewModel.DataSet)
 
   /**
-   * Called when navigation link clicked targeting to show tasks.
-   * Used in Overview and view empty states.
-   * If [targetGrouping] is null, current default is used.
+   * Called when navigation link clicked targeting to show tasks. Used in Overview and view empty states. If [targetGrouping] is null,
+   * current default is used.
    */
   fun changeViewToTasksLinkClicked(targetGrouping: TasksDataPageModel.Grouping?)
 
-  /**
-   * Called when navigation link clicked targeting to show warnings.
-   * Used in Overview and view empty states.
-   */
+  /** Called when navigation link clicked targeting to show warnings. Used in Overview and view empty states. */
   fun changeViewToWarningsLinkClicked()
 
   fun changeViewToDownloadsLinkClicked()
@@ -91,13 +83,22 @@ interface ViewActionHandlers {
 
   /** Called when user clicks on configuration cache link on build overview page. */
   fun openConfigurationCacheWarnings()
+
   fun runAgpUpgrade()
+
   fun runTestConfigurationCachingBuild()
+
   fun turnConfigurationCachingOnInProperties(isFeatureConsideredStable: Boolean)
+
   fun updatePluginClicked(pluginWarningData: IncompatiblePluginWarning)
+
   fun runCheckJetifierTask()
+
   fun turnJetifierOffInProperties(sourceRelativePointSupplier: Supplier<RelativePoint>)
-  fun createFindSelectedLibVersionDeclarationAction(selectionSupplier: Supplier<JetifierWarningDetailsView.DirectDependencyDescriptor?>): AnAction
+
+  fun createFindSelectedLibVersionDeclarationAction(
+    selectionSupplier: Supplier<JetifierWarningDetailsView.DirectDependencyDescriptor?>
+  ): AnAction
 
   fun migrateToNonTransitiveRClass()
 
@@ -108,6 +109,8 @@ interface ViewActionHandlers {
 
 interface WindowsDefenderPageHandler {
   fun runAutoExclusionScript(callback: (Boolean) -> Unit)
+
   fun ignoreCheckForProject()
+
   fun trackShowingManualInstructions()
 }

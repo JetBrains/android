@@ -21,13 +21,11 @@ import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.model.TooltipModel
 
-class BufferQueueTooltip(val timeline: Timeline,
-                         private val bufferQueueValues: RangedSeries<Long>) : TooltipModel, AspectModel<BufferQueueTooltip.Aspect>() {
+class BufferQueueTooltip(val timeline: Timeline, private val bufferQueueValues: RangedSeries<Long>) :
+  TooltipModel, AspectModel<BufferQueueTooltip.Aspect>() {
   enum class Aspect {
-    /**
-     * The hovering BufferQueue value changed.
-     */
-    VALUE_CHANGED,
+    /** The hovering BufferQueue value changed. */
+    VALUE_CHANGED
   }
 
   var activeBufferQueueValue = 0L

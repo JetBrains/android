@@ -20,9 +20,9 @@ import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerEvent
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
+import org.junit.Test
 
 class SurfaceflingerTooltipViewTest {
   @Test
@@ -47,10 +47,13 @@ class SurfaceflingerTooltipViewTest {
 
   companion object {
     val MICROS_IN_MILLIS = TimeUnit.MILLISECONDS.toMicros(1)
-    val SF_EVENTS = listOf(
-      SeriesData(0, SurfaceflingerEvent(0, MICROS_IN_MILLIS, SurfaceflingerEvent.Type.IDLE)),
-      SeriesData(MICROS_IN_MILLIS,
-                 SurfaceflingerEvent(MICROS_IN_MILLIS, MICROS_IN_MILLIS * 3, SurfaceflingerEvent.Type.PROCESSING, "onMessageReceived"))
-    )
+    val SF_EVENTS =
+      listOf(
+        SeriesData(0, SurfaceflingerEvent(0, MICROS_IN_MILLIS, SurfaceflingerEvent.Type.IDLE)),
+        SeriesData(
+          MICROS_IN_MILLIS,
+          SurfaceflingerEvent(MICROS_IN_MILLIS, MICROS_IN_MILLIS * 3, SurfaceflingerEvent.Type.PROCESSING, "onMessageReceived"),
+        ),
+      )
   }
 }

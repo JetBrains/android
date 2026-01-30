@@ -19,9 +19,8 @@ import com.google.common.collect.HashMultimap
 
 object ClassesTracker {
   /**
-   * Keeps track of used classes. Since [ClassesTracker] is a global object we need a way to
-   * distinguish usage of classes in different classloaders. The key allows to do that given every
-   * classloader passes a unique reference value as a key.
+   * Keeps track of used classes. Since [ClassesTracker] is a global object we need a way to distinguish usage of classes in different
+   * classloaders. The key allows to do that given every classloader passes a unique reference value as a key.
    */
   private val refToClasses = HashMultimap.create<String, String>()
 

@@ -30,8 +30,7 @@ import org.junit.Rule
 
 class ChooseClassDialogTest : AndroidTestCase() {
 
-  @get:Rule
-  val runInEdt = EdtRule()
+  @get:Rule val runInEdt = EdtRule()
 
   fun testIsPublicAndUnRestricted() {
     @Language("JAVA")
@@ -121,16 +120,12 @@ class ChooseClassDialogTest : AndroidTestCase() {
     val userDefinedClass2 = myFixture.addClass("package com.example; public class AnotherClass {}")
 
     val libraryClass1 = myFixture.addClass("package android.widget; public class TextView {}")
-    val libraryClass2 =
-      myFixture.addClass(
-        "package com.google.android.material; public class FloatingActionButton {}"
-      )
+    val libraryClass2 = myFixture.addClass("package com.google.android.material; public class FloatingActionButton {}")
 
     val userDefinedClasses = listOf(userDefinedClass1, userDefinedClass2)
     val nonUserDefinedClasses = listOf(libraryClass1, libraryClass2)
 
-    val dialog =
-      ChooseClassDialog(myModule, "Test Dialog", userDefinedClasses, nonUserDefinedClasses)
+    val dialog = ChooseClassDialog(myModule, "Test Dialog", userDefinedClasses, nonUserDefinedClasses)
 
     // Show the dialog to ensure the UI is initialized
     dialog.show()
@@ -141,8 +136,7 @@ class ChooseClassDialogTest : AndroidTestCase() {
     fakeUi.layoutAndDispatchEvents()
 
     // Get the checkbox component from the FakeUi
-    val checkbox =
-      fakeUi.findComponent(JBCheckBox::class.java) { it.text == "Show library classes" }!!
+    val checkbox = fakeUi.findComponent(JBCheckBox::class.java) { it.text == "Show library classes" }!!
 
     // Get the list items' text using FakeUi
     val initialItems = list((mainPanel.getComponent(1) as JBScrollPane).viewport.view!!)
@@ -184,6 +178,5 @@ class ChooseClassDialogTest : AndroidTestCase() {
   }
 
   private fun list(viewportView: Component) =
-    (((viewportView as JBList<*>).model as DefaultListModel).elements().toList() as List<PsiClass>)
-      .map { it.qualifiedName }
+    (((viewportView as JBList<*>).model as DefaultListModel).elements().toList() as List<PsiClass>).map { it.qualifiedName }
 }

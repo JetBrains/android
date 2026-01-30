@@ -17,17 +17,15 @@ package com.android.emulator
 
 import com.android.emulator.snapshot.SnapshotOuterClass.Image
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import java.io.FileOutputStream
 import java.nio.file.Path
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
 
-/**
- * Unit tests for [SnapshotProtoParser].
- */
+/** Unit tests for [SnapshotProtoParser]. */
 class SnapshotProtoParserTest {
   @get:Rule // Tell JUnit that this property's getter function is a public rule
   val temporaryFolder = TemporaryFolder()
@@ -40,9 +38,7 @@ class SnapshotProtoParserTest {
     val snapLogicalName = "snap_logical_name"
     val arbitraryDateTime = 1_500_000_000L // (In July 2017)
     // Try to read a non-existing protobuf
-    assertFailsWith(SnapshotProtoException::class) {
-      SnapshotProtoParser(Path.of("bogus_name"), "base_name")
-    }
+    assertFailsWith(SnapshotProtoException::class) { SnapshotProtoParser(Path.of("bogus_name"), "base_name") }
 
     // Create a snapshot protobuf without any images
     val builder = Snapshot.newBuilder()
@@ -53,9 +49,7 @@ class SnapshotProtoParserTest {
     protoBuf.writeTo(oStreamNoImage)
 
     // Try to read the protobuf with no images
-    assertFailsWith(SnapshotProtoException::class) {
-      SnapshotProtoParser(noImageFile.toPath(), "base_name")
-    }
+    assertFailsWith(SnapshotProtoException::class) { SnapshotProtoParser(noImageFile.toPath(), "base_name") }
 
     // Add an image to the protobuf--then it should be valid
     val imageBuilder = Image.newBuilder()

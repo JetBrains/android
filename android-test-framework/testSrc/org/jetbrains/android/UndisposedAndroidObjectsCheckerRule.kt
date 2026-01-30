@@ -49,18 +49,14 @@ class UndisposedAndroidObjectsCheckerRule : NamedExternalResource() {
             disposable.javaClass.name.startsWith("com.android.tools.analytics.HighlightingStats") ||
             disposable is ProjectEx && (disposable.isDefault || disposable.isLight) ||
             disposable.toString().startsWith("services of ") ||
-            (disposable is ModuleComponentManager &&
-              disposable.getModuleName() == LightProjectDescriptor.TEST_MODULE_NAME) ||
+            (disposable is ModuleComponentManager && disposable.getModuleName() == LightProjectDescriptor.TEST_MODULE_NAME) ||
             disposable is PsiReferenceContributor
         ) {
           // Ignore application services and light projects and modules that are not disposed by
           // tearDown.
           return@visitTree DisposerExplorer.VisitResult.SKIP_CHILDREN
         }
-        if (
-          disposable.javaClass.name.startsWith("com.android.") ||
-            disposable.javaClass.name.startsWith("org.jetbrains.android.")
-        ) {
+        if (disposable.javaClass.name.startsWith("com.android.") || disposable.javaClass.name.startsWith("org.jetbrains.android.")) {
           firstLeak.setIfNull(disposable)
           allLeakedDisposables.add(disposable)
         }
@@ -69,17 +65,14 @@ class UndisposedAndroidObjectsCheckerRule : NamedExternalResource() {
       if (!firstLeak.isNull) {
         val disposable = firstLeak.get()
         val parent = DisposerExplorer.getParent(disposable)
-        val baseMsg =
-          "Undisposed object '" + disposable + "' of type '" + disposable.javaClass.name + "'"
+        val baseMsg = "Undisposed object '" + disposable + "' of type '" + disposable.javaClass.name + "'"
         if (parent == null) {
           throw RuntimeException(
             "$baseMsg, registered as a root disposable (see cause for creation trace)",
             DisposerExplorer.getTrace(disposable),
           )
         } else {
-          throw RuntimeException(
-            baseMsg + ", with parent '" + parent + "' of type '" + parent.javaClass.name + "'"
-          )
+          throw RuntimeException(baseMsg + ", with parent '" + parent + "' of type '" + parent.javaClass.name + "'")
         }
       }
     }

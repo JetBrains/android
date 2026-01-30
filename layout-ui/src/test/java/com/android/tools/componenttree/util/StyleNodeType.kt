@@ -34,8 +34,7 @@ class StyleNodeType : NodeType<Style> {
 
   override fun createRenderer(): TreeCellRenderer = StyleRenderer()
 
-  override fun createTransferable(node: Style): Transferable =
-    TextTransferable(StringBuffer("style:${node.name}"))
+  override fun createTransferable(node: Style): Transferable = TextTransferable(StringBuffer("style:${node.name}"))
 }
 
 class StyleRenderer : TreeCellRenderer {

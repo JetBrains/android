@@ -22,33 +22,31 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
-import org.junit.Rule
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
+import org.junit.Rule
+import org.junit.Test
 
 class StageViewTest {
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  @get:Rule
-  var grpcServer = FakeGrpcServer.createFakeGrpcServer("StageViewTest", transportService)
+  @get:Rule var grpcServer = FakeGrpcServer.createFakeGrpcServer("StageViewTest", transportService)
 
   @Test
   fun testSelectionTimeLabel() {
     val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices(), timer)
     val profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
-    val stageView = object : StageView<FakeStage>(profilersView, FakeStage(profilers)) {
-      override fun getToolbar(): JComponent? {
-        return null
+    val stageView =
+      object : StageView<FakeStage>(profilersView, FakeStage(profilers)) {
+        override fun getToolbar(): JComponent? {
+          return null
+        }
       }
-    }
 
     val selectionRange = stageView.stage.timeline.selectionRange
     val selectionTimeLabel = stageView.selectionTimeLabel
@@ -72,11 +70,12 @@ class StageViewTest {
     val timer = FakeTimer()
     val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices(), timer)
     val profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
-    val stageView = object : StageView<FakeStage>(profilersView, FakeStage(profilers)) {
-      override fun getToolbar(): JComponent? {
-        return null
+    val stageView =
+      object : StageView<FakeStage>(profilersView, FakeStage(profilers)) {
+        override fun getToolbar(): JComponent? {
+          return null
+        }
       }
-    }
     stageView.selectionTimeLabel.setSize(100, 20)
     val ui = FakeUi(stageView.selectionTimeLabel)
 
@@ -94,7 +93,7 @@ class StageViewTest {
     assertThat(stageView.stage.timeline.viewRange.max).isEqualTo(minuteUs)
 
     stageView.stage.timeline.selectionRange.set(minuteUs, minuteUs + 1)
-    ui.mouse.click(1,  1)
+    ui.mouse.click(1, 1)
     stageView.stage.timeline.update(TimeUnit.MINUTES.toNanos(2))
     assertThat(stageView.stage.timeline.viewRange.min).isEqualTo(minuteUs - 0.1)
     assertThat(stageView.stage.timeline.viewRange.max).isEqualTo(minuteUs + 1.1)

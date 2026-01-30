@@ -20,17 +20,15 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsServiceImpl
 import com.intellij.psi.codeStyle.CustomCodeStyleSettingsFactory
 
 /**
- * This overrides [CodeStyleSettingsService] in the platform to adjust the order of code style
- * setting initialization. Specifically, it ensures [AndroidStudioCodeStyleSettingsProvider]
- * gets initialized _last_ so that it can successfully mutate the other code style settings.
- * Normally this would be accomplished by using order="last" in the extension registration
- * but [CodeStyleSettingsServiceImpl] unfortunately rearranges the extensions further.
+ * This overrides [CodeStyleSettingsService] in the platform to adjust the order of code style setting initialization. Specifically, it
+ * ensures [AndroidStudioCodeStyleSettingsProvider] gets initialized _last_ so that it can successfully mutate the other code style
+ * settings. Normally this would be accomplished by using order="last" in the extension registration but [CodeStyleSettingsServiceImpl]
+ * unfortunately rearranges the extensions further.
  *
  * This is all tested by AndroidCodeStyleSettingsTest.
  */
-class AndroidStudioCodeStyleSettingsService(
-  private val delegate: CodeStyleSettingsService = CodeStyleSettingsServiceImpl()
-) : CodeStyleSettingsService by delegate {
+class AndroidStudioCodeStyleSettingsService(private val delegate: CodeStyleSettingsService = CodeStyleSettingsServiceImpl()) :
+  CodeStyleSettingsService by delegate {
 
   override fun getCustomCodeStyleSettingsFactories(): List<CustomCodeStyleSettingsFactory?> {
     val factories = delegate.customCodeStyleSettingsFactories

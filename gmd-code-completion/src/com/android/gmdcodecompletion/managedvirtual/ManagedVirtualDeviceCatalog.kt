@@ -19,13 +19,13 @@ import com.android.gmdcodecompletion.AndroidDeviceInfo
 import com.android.gmdcodecompletion.GmdDeviceCatalog
 
 /**
- * This class fetches and stores information from DeviceManager and RepoManager server to obtain
- * the latest device catalog for managed virtual devices
+ * This class fetches and stores information from DeviceManager and RepoManager server to obtain the latest device catalog for managed
+ * virtual devices
  */
 data class ManagedVirtualDeviceCatalog(
   // Map of <device id, per Android device information>
   val devices: HashMap<String, AndroidDeviceInfo> = HashMap(),
-  val apiLevels: ArrayList<ApiVersionInfo> = ArrayList()
+  val apiLevels: ArrayList<ApiVersionInfo> = ArrayList(),
 ) : GmdDeviceCatalog() {
 
   // Stores all required information for emulator images

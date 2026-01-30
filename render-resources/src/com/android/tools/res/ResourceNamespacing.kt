@@ -16,13 +16,9 @@
 package com.android.tools.res
 
 enum class ResourceNamespacing {
-  /**
-   * Resources are not namespaced.
-   */
+  /** Resources are not namespaced. */
   DISABLED,
 
-  /**
-   * Resources must be namespaced.
-   */
-  REQUIRED
+  /** Resources must be namespaced. */
+  REQUIRED,
 }

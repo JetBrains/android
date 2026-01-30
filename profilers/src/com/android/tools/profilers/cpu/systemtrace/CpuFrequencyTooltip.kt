@@ -21,13 +21,10 @@ import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.model.TooltipModel
 
-class CpuFrequencyTooltip(val timeline: Timeline,
-                          val cpuId: Int,
-                          private val cpuFrequencyValues: RangedSeries<Long>) : TooltipModel, AspectModel<CpuFrequencyTooltip.Aspect>() {
+class CpuFrequencyTooltip(val timeline: Timeline, val cpuId: Int, private val cpuFrequencyValues: RangedSeries<Long>) :
+  TooltipModel, AspectModel<CpuFrequencyTooltip.Aspect>() {
   enum class Aspect {
-    /**
-     * The hovering CPU frequency value changed.
-     */
+    /** The hovering CPU frequency value changed. */
     VALUE_CHANGED
   }
 

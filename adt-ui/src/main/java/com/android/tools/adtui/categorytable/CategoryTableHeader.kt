@@ -48,8 +48,8 @@ class CategoryTableHeader(
   }
 
   /**
-   * Immutable list of TableColumns corresponding to the model.columns. The headerColumnModel's
-   * columns are removed when we group; we keep a copy here so we can ungroup.
+   * Immutable list of TableColumns corresponding to the model.columns. The headerColumnModel's columns are removed when we group; we keep a
+   * copy here so we can ungroup.
    */
   val tableColumns = columnModel.columnList.toList()
 
@@ -66,8 +66,7 @@ class CategoryTableHeader(
       ?.let {
         val originalIndex = it.modelIndex
         val lastIndex = columnModel.columnCount
-        val firstGreaterIndex =
-          columnModel.columnList.indexOfFirst { it.modelIndex > originalIndex }
+        val firstGreaterIndex = columnModel.columnList.indexOfFirst { it.modelIndex > originalIndex }
 
         columnModel.addColumn(it)
         if (firstGreaterIndex >= 0) {
@@ -104,8 +103,7 @@ class CategoryTableHeader(
 
       val column = model[viewIndexToModelIndex(columnIndex)]
       val primarySort = primarySortSupplier()
-      val sortOrder =
-        primarySort?.takeIf { it.attribute == column.attribute }?.sortOrder ?: SortOrder.UNSORTED
+      val sortOrder = primarySort?.takeIf { it.attribute == column.attribute }?.sortOrder ?: SortOrder.UNSORTED
       icon = sortIcons[sortOrder]
       return this
     }
@@ -124,11 +122,10 @@ class CategoryTableHeader(
 /**
  * Wrapper around DarculaTableHeaderUI to enable sorting by clicking on column headers.
  *
- * BasicTableHeaderUI.MouseInputHandler invokes JTable methods to implement sorting; however, since
- * we are not a JTable, it doesn't do anything.
+ * BasicTableHeaderUI.MouseInputHandler invokes JTable methods to implement sorting; however, since we are not a JTable, it doesn't do
+ * anything.
  */
-class DarculaCategoryTableHeaderUI(val mouseClickedHandler: (MouseEvent) -> Unit) :
-  DarculaTableHeaderUI() {
+class DarculaCategoryTableHeaderUI(val mouseClickedHandler: (MouseEvent) -> Unit) : DarculaTableHeaderUI() {
   inner class MouseInputHandler : BasicTableHeaderUI.MouseInputHandler() {
     override fun mouseClicked(e: MouseEvent) {
       mouseClickedHandler(e)
@@ -138,8 +135,7 @@ class DarculaCategoryTableHeaderUI(val mouseClickedHandler: (MouseEvent) -> Unit
   override fun createMouseInputListener() = MouseInputHandler()
 }
 
-class BasicCategoryTableHeaderUI(val mouseClickedHandler: (MouseEvent) -> Unit) :
-  BasicTableHeaderUI() {
+class BasicCategoryTableHeaderUI(val mouseClickedHandler: (MouseEvent) -> Unit) : BasicTableHeaderUI() {
   inner class MouseInputHandler : BasicTableHeaderUI.MouseInputHandler() {
     override fun mouseClicked(e: MouseEvent) {
       mouseClickedHandler(e)

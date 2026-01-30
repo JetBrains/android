@@ -18,7 +18,7 @@ package com.android.tools.profilers.tasks.args.singleartifact
 import com.android.tools.profilers.tasks.args.TaskArgs
 
 /**
- * To be implemented by TaskArgs that wrap one session artifact (all session-based features). This interface serves to
- * disambiguate this special class of TaskArgs rather than enforce any behavior/functionality.
+ * To be implemented by TaskArgs that wrap one session artifact (all session-based features). This interface serves to disambiguate this
+ * special class of TaskArgs rather than enforce any behavior/functionality.
  */
 interface SingleArtifactTaskArgs : TaskArgs

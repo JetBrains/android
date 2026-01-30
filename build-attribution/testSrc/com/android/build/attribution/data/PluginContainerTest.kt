@@ -24,8 +24,7 @@ import org.junit.Test
 
 class PluginContainerTest {
 
-  @get:Rule
-  val expect = Expect.createAndEnableStackTrace()!!
+  @get:Rule val expect = Expect.createAndEnableStackTrace()!!
 
   val pluginContainer = PluginContainer()
 
@@ -102,8 +101,8 @@ class PluginContainerTest {
       val pluginId = createBinaryPluginIdentifierStub(displayName, id)
       return pluginContainer.getPlugin(pluginId, ":app")
     }
-    fun testThat(id: String, displayName: String = id, isAndroidPlugin: Boolean) = plugin(id, displayName)
-        .let { this.expect.withMessage("$id isAndroidPlugin").that(it.isAndroidPlugin()).isEqualTo(isAndroidPlugin)}
+    fun testThat(id: String, displayName: String = id, isAndroidPlugin: Boolean) =
+      plugin(id, displayName).let { this.expect.withMessage("$id isAndroidPlugin").that(it.isAndroidPlugin()).isEqualTo(isAndroidPlugin) }
     testThat("com.android.build.gradle.api.AndroidBasePlugin", "com.android.base", isAndroidPlugin = true)
     testThat("com.android.build.gradle.AppPlugin", "com.android.application", isAndroidPlugin = true)
     testThat("com.android.build.gradle.AppPlugin", "android", isAndroidPlugin = true)
@@ -126,7 +125,7 @@ class PluginContainerTest {
     testThat("com.android.build.gradle.ReportingPlugin", "com.android.reporting", isAndroidPlugin = true)
     testThat("com.android.build.gradle.TestPlugin", "com.android.test", isAndroidPlugin = true)
 
-    //These are not AGP related so should return false
+    // These are not AGP related so should return false
     testThat("com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin", isAndroidPlugin = false)
     testThat("com.android.java.model.builder.JavaLibraryPlugin", isAndroidPlugin = false)
   }

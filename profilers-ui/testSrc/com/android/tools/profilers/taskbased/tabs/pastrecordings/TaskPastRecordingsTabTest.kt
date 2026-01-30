@@ -53,17 +53,13 @@ class TaskPastRecordingsTabTest {
   private val myTransportService = FakeTransportService(myTimer, false)
   private val myComponents = FakeIdeProfilerComponents()
 
-  @get:Rule
-  val composeTestRule = createStudioComposeTestRule()
+  @get:Rule val composeTestRule = createStudioComposeTestRule()
 
-  @get:Rule
-  val ignoreTestRule = IgnoreTestRule()
+  @get:Rule val ignoreTestRule = IgnoreTestRule()
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("TaskGridViewTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskGridViewTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -73,11 +69,7 @@ class TaskPastRecordingsTabTest {
   @Before
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     pastRecordingsTabModel = PastRecordingsTabModel(myProfilers)
     ideProfilerServices.enableTaskBasedUx(true)
@@ -89,38 +81,35 @@ class TaskPastRecordingsTabTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, light theme`() {
-    standaloneSingleWindowApplication(
-      title = "Testing TaskPastRecordingTab",
-    ) {
-      StudioTestTheme(darkMode = false) {
-        TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
-      }
+    standaloneSingleWindowApplication(title = "Testing TaskPastRecordingTab") {
+      StudioTestTheme(darkMode = false) { TaskPastRecordingsTab(pastRecordingsTabModel, myComponents) }
     }
   }
 
   @Ignore("b/309566948")
   @Test
   fun `visual test, dark theme`() {
-    standaloneSingleWindowApplication(
-      title = "Testing TaskPastRecordingTab",
-    ) {
-      StudioTestTheme(darkMode = true) {
-        TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
-      }
+    standaloneSingleWindowApplication(title = "Testing TaskPastRecordingTab") {
+      StudioTestTheme(darkMode = true) { TaskPastRecordingsTab(pastRecordingsTabModel, myComponents) }
     }
   }
 
   @Test
   fun `selecting recording and task enable open profiler task button`() {
-    composeTestRule.setContent {
-      TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
-    }
+    composeTestRule.setContent { TaskPastRecordingsTab(pastRecordingsTabModel, myComponents) }
 
     val session = Common.Session.getDefaultInstance()
     val artConfig = Trace.TraceConfiguration.newBuilder().setArtOptions(Trace.ArtOptions.getDefaultInstance()).build()
     val artTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, session, 1L, 1L, artConfig)
-    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, "Recording 1",
-                                                             ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING, listOf(artTraceArtifact))
+    val sessionItem =
+      SessionArtifactUtils.createSessionItem(
+        myProfilers,
+        session,
+        1L,
+        "Recording 1",
+        ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING,
+        listOf(artTraceArtifact),
+      )
     // Populate recording list with a fake recording. The ART recording has two supported tasks.
     pastRecordingsTabModel.recordingListModel.setRecordingList(listOf(sessionItem))
 
@@ -149,9 +138,7 @@ class TaskPastRecordingsTabTest {
 
   @Test
   fun `test selection of non-exportable recording does not enable the export button click action`() {
-    composeTestRule.setContent (darkMode = true) {
-      TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
-    }
+    composeTestRule.setContent(darkMode = true) { TaskPastRecordingsTab(pastRecordingsTabModel, myComponents) }
 
     val recordingListModel = pastRecordingsTabModel.recordingListModel
 
@@ -180,9 +167,7 @@ class TaskPastRecordingsTabTest {
 
   @Test
   fun `test selection of exportable recording enables export button click action`() {
-    composeTestRule.setContent (darkMode = true) {
-      TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
-    }
+    composeTestRule.setContent(darkMode = true) { TaskPastRecordingsTab(pastRecordingsTabModel, myComponents) }
 
     val recordingListModel = pastRecordingsTabModel.recordingListModel
 
@@ -211,15 +196,14 @@ class TaskPastRecordingsTabTest {
 
   @Test
   fun `test selection of deletable recording enables delete recording button click action`() {
-    composeTestRule.setContent (darkMode = true) {
-      TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
-    }
+    composeTestRule.setContent(darkMode = true) { TaskPastRecordingsTab(pastRecordingsTabModel, myComponents) }
 
     val recordingListModel = pastRecordingsTabModel.recordingListModel
 
     // Non-null session item is deletable.
-    recordingListModel.setRecordingList(listOf(
-      SessionArtifactUtils.createSessionItemWithSystemTraceArtifact("Recording 1", 1L, 1L, myProfilers)))
+    recordingListModel.setRecordingList(
+      listOf(SessionArtifactUtils.createSessionItemWithSystemTraceArtifact("Recording 1", 1L, 1L, myProfilers))
+    )
 
     // Assert both the data model and the UI reflect the past recording entry.
     assertThat(recordingListModel.recordingList.value).hasSize(1)
@@ -239,9 +223,7 @@ class TaskPastRecordingsTabTest {
 
   @Test
   fun `test deletion of selected recording updates rendered list`() {
-    composeTestRule.setContent (darkMode = true) {
-      TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
-    }
+    composeTestRule.setContent(darkMode = true) { TaskPastRecordingsTab(pastRecordingsTabModel, myComponents) }
 
     val recordingListModel = pastRecordingsTabModel.recordingListModel
 

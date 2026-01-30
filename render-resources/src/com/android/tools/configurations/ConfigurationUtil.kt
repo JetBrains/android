@@ -21,19 +21,11 @@ import com.android.sdklib.AndroidCoordinate
 import com.android.sdklib.AndroidDpCoordinate
 import kotlin.math.roundToInt
 
-/**
- * Represents the width and height of a device in pixels or dps.
- */
+/** Represents the width and height of a device in pixels or dps. */
 data class DeviceSize(val width: Int, val height: Int)
 
-/**
- * Calculates the width and height based on the given x and y dimensions and the screen orientation.
- */
-private fun calculateDimensions(
-  x: Int,
-  y: Int,
-  mScreenOrientation: ScreenOrientation?,
-): DeviceSize {
+/** Calculates the width and height based on the given x and y dimensions and the screen orientation. */
+private fun calculateDimensions(x: Int, y: Int, mScreenOrientation: ScreenOrientation?): DeviceSize {
   // Determine if the desired orientation needs a swap.
   val shouldSwapDimensions = (x > y) != (mScreenOrientation == ScreenOrientation.LANDSCAPE)
 
@@ -59,26 +51,15 @@ fun Configuration.deviceSizePx(): DeviceSize {
 fun Configuration.deviceSizeDp(): DeviceSize {
   val deviceState = deviceState ?: return DeviceSize(0, 0)
   val orientation = deviceState.orientation
-  val x =
-    ConversionUtil.pxToDp(
-      deviceState.hardware.screen.xDimension,
-      dpi(),
-    )
-  val y =
-    ConversionUtil.pxToDp(
-      deviceState.hardware.screen.yDimension,
-      dpi(),
-    )
+  val x = ConversionUtil.pxToDp(deviceState.hardware.screen.xDimension, dpi())
+  val y = ConversionUtil.pxToDp(deviceState.hardware.screen.yDimension, dpi())
   return calculateDimensions(x, y, orientation)
 }
 
 /** Returns the [Configuration]'s density dpi. */
 fun Configuration.dpi(): Int = deviceState?.hardware?.screen?.pixelDensity?.dpiValue ?: 0
 
-/**
- * Utility object for converting between density-independent pixels (dp) and pixels (px) based on
- * screen density.
- */
+/** Utility object for converting between density-independent pixels (dp) and pixels (px) based on screen density. */
 object ConversionUtil {
   /** Calculates the pixel value for the given dp value and density. */
   fun dpToPx(dp: Int, density: Int): Int {

@@ -20,23 +20,16 @@ import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.proto.converters.TaskDataMessageConverter
 import com.android.buildanalyzer.common.TaskCategory
 import com.google.common.truth.Truth
-import org.junit.Test
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
+import org.junit.Test
 
 class TaskDataConverterTest {
   @Test
   fun testTaskData() {
     val pluginDatum = PluginData(PluginData.PluginType.BINARY_PLUGIN, "id name")
-    val taskDatum = TaskData(
-      "task name",
-      "project path",
-      pluginDatum,
-      12345,
-      12345,
-      TaskData.TaskExecutionMode.FULL,
-      listOf("abc", "def", "ghi")
-    )
+    val taskDatum =
+      TaskData("task name", "project path", pluginDatum, 12345, 12345, TaskData.TaskExecutionMode.FULL, listOf("abc", "def", "ghi"))
     val pluginCache = mutableMapOf<String, PluginData>()
     pluginCache[pluginDatum.idName] = pluginDatum
 
@@ -49,21 +42,11 @@ class TaskDataConverterTest {
     assertTaskDataAllFieldsEquals(resultConverted.single(), taskDatum)
   }
 
-  /**
-   * Tests that there is no exceptions when fields is empty
-   */
+  /** Tests that there is no exceptions when fields is empty */
   @Test
   fun testTaskDataEmpty() {
     val pluginDatum = PluginData(PluginData.PluginType.UNKNOWN, "")
-    val taskDatum = TaskData(
-      "",
-      "",
-      pluginDatum,
-      0,
-      0,
-      TaskData.TaskExecutionMode.FULL,
-      emptyList()
-    )
+    val taskDatum = TaskData("", "", pluginDatum, 0, 0, TaskData.TaskExecutionMode.FULL, emptyList())
     val pluginCache = mutableMapOf<String, PluginData>()
     pluginCache[pluginDatum.idName] = pluginDatum
 

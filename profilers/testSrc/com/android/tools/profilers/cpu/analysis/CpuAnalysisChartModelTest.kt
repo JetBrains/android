@@ -37,8 +37,7 @@ class CpuAnalysisChartModelTest {
   private val myTimer = FakeTimer()
   private val transportService = FakeTransportService(myTimer, false)
 
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("CpuAnalysisChartModelTestChannel", transportService)
+  @get:Rule val grpcChannel = FakeGrpcChannel("CpuAnalysisChartModelTestChannel", transportService)
 
   @Before
   fun setUp() {
@@ -54,9 +53,15 @@ class CpuAnalysisChartModelTest {
     val delta = 80000.0
     val selectionRange = Range(minRange, maxRange)
     val capture = CpuProfilerTestUtils.getValidCapture(myProfilers)
-    val model = CpuAnalysisChartModel<CaptureNodeAnalysisModel>(CpuAnalysisTabModel.Type.FLAME_CHART, selectionRange, capture,
-                                                                { listOf() }, Utils::runOnUi)
-    selectionRange.set(minRange+delta, maxRange)
+    val model =
+      CpuAnalysisChartModel<CaptureNodeAnalysisModel>(
+        CpuAnalysisTabModel.Type.FLAME_CHART,
+        selectionRange,
+        capture,
+        { listOf() },
+        Utils::runOnUi,
+      )
+    selectionRange.set(minRange + delta, maxRange)
     model.axisComponentModel.updateImmediately()
     assertThat(selectionRange.min).isEqualTo(minRange + delta)
     assertThat(selectionRange.max).isEqualTo(maxRange)
@@ -69,8 +74,14 @@ class CpuAnalysisChartModelTest {
     val maxRange = 2930531342743.0
     val selectionRange = Range(minRange, maxRange)
     val capture = CpuProfilerTestUtils.getValidCapture(myProfilers)
-    val model = CpuAnalysisChartModel<CpuCapture>(CpuAnalysisTabModel.Type.TOP_DOWN, selectionRange, capture,
-                                                  { capture.captureNodes }, Utils::runOnUi)
+    val model =
+      CpuAnalysisChartModel<CpuCapture>(
+        CpuAnalysisTabModel.Type.TOP_DOWN,
+        selectionRange,
+        capture,
+        { capture.captureNodes },
+        Utils::runOnUi,
+      )
     model.dataSeries.add(capture)
     model.axisComponentModel.updateImmediately()
     // Test Global

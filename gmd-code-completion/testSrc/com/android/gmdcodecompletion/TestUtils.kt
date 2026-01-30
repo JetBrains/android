@@ -33,10 +33,10 @@ import com.google.api.services.testing.model.Locale
 import com.google.api.services.testing.model.Orientation
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.openapi.progress.ProgressManager
+import java.util.Calendar
 import org.junit.Assert.assertEquals
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
-import java.util.Calendar
 
 enum class BuildFileName(val fileName: String) {
   GROOVY_BUILD_FILE("build.gradle"),
@@ -44,30 +44,35 @@ enum class BuildFileName(val fileName: String) {
   OTHER_FILE("build.otherfile"),
 }
 
-val fullAndroidModel: AndroidModel = AndroidModel()
-  .setId("testDeviceId")
-  .setName("testDeviceName")
-  .setBrand("testDeviceBrand")
-  .set("formFactor", "PHONE")
-  .setForm("PHYSICAL")
-  .setSupportedVersionIds(listOf("31", "32"))
+val fullAndroidModel: AndroidModel =
+  AndroidModel()
+    .setId("testDeviceId")
+    .setName("testDeviceName")
+    .setBrand("testDeviceBrand")
+    .set("formFactor", "PHONE")
+    .setForm("PHYSICAL")
+    .setSupportedVersionIds(listOf("31", "32"))
 
 val fullAndroidVersion: AndroidVersion = AndroidVersion().setApiLevel(33)
 
-val fullAndroidRuntimeConfiguration: AndroidRuntimeConfiguration = AndroidRuntimeConfiguration()
-  .setLocales(listOf(Locale().setId("testLocaleId").setRegion("testLocaleRegion").setName("testLocaleName")))
-  .setOrientations(listOf(Orientation().setId("testOrientationId")))
+val fullAndroidRuntimeConfiguration: AndroidRuntimeConfiguration =
+  AndroidRuntimeConfiguration()
+    .setLocales(listOf(Locale().setId("testLocaleId").setRegion("testLocaleRegion").setName("testLocaleName")))
+    .setOrientations(listOf(Orientation().setId("testOrientationId")))
 
-val fullAndroidDeviceCatalog: AndroidDeviceCatalog = AndroidDeviceCatalog()
-  .setModels(listOf(fullAndroidModel))
-  .setVersions(listOf(fullAndroidVersion))
-  .setRuntimeConfiguration(fullAndroidRuntimeConfiguration)
+val fullAndroidDeviceCatalog: AndroidDeviceCatalog =
+  AndroidDeviceCatalog()
+    .setModels(listOf(fullAndroidModel))
+    .setVersions(listOf(fullAndroidVersion))
+    .setRuntimeConfiguration(fullAndroidRuntimeConfiguration)
 
 val testFtlDeviceOrientation = listOf("horizontal", "vertical", "default")
-val testFtlDeviceLocale: HashMap<String, FtlDeviceCatalog.LocaleInfo> = hashMapOf(
-  "lang2" to FtlDeviceCatalog.LocaleInfo("langName2", "region2"),
-  "lang1" to FtlDeviceCatalog.LocaleInfo("langName1", "region1"),
-  "lang3" to FtlDeviceCatalog.LocaleInfo("langName3", "region3"))
+val testFtlDeviceLocale: HashMap<String, FtlDeviceCatalog.LocaleInfo> =
+  hashMapOf(
+    "lang2" to FtlDeviceCatalog.LocaleInfo("langName2", "region2"),
+    "lang1" to FtlDeviceCatalog.LocaleInfo("langName1", "region1"),
+    "lang3" to FtlDeviceCatalog.LocaleInfo("langName3", "region3"),
+  )
 val testFtlDeviceApiLevels = (1..34).toList()
 
 val fullFtlDeviceCatalog: () -> FtlDeviceCatalog = {
@@ -103,50 +108,47 @@ fun matchFtlDeviceCatalog(ftlDeviceCatalog: FtlDeviceCatalog, androidDeviceCatal
   return androidDeviceCatalog.models.all { androidModel ->
     val deviceInfo = ftlDeviceCatalog.devices[androidModel.id]
     deviceInfo != null &&
-    deviceInfo.deviceName == androidModel.name &&
-    deviceInfo.formFactor == androidModel["formFactor"] &&
-    deviceInfo.deviceForm == androidModel.form &&
-    deviceInfo.brand == androidModel.brand &&
-    deviceInfo.supportedApis.map { it.toString() } == androidModel.supportedVersionIds
+      deviceInfo.deviceName == androidModel.name &&
+      deviceInfo.formFactor == androidModel["formFactor"] &&
+      deviceInfo.deviceForm == androidModel.form &&
+      deviceInfo.brand == androidModel.brand &&
+      deviceInfo.supportedApis.map { it.toString() } == androidModel.supportedVersionIds
   } &&
-         androidDeviceCatalog.versions.map { it.apiLevel } == ftlDeviceCatalog.apiLevels &&
-         androidDeviceCatalog.runtimeConfiguration.orientations.map { it.id } == ftlDeviceCatalog.orientation &&
-         androidDeviceCatalog.runtimeConfiguration.locales.all { locale ->
-           val localeInfo = ftlDeviceCatalog.locale[locale.id]
-           localeInfo != null &&
-           localeInfo.region == locale.region &&
-           localeInfo.languageName == locale.name
-         }
+    androidDeviceCatalog.versions.map { it.apiLevel } == ftlDeviceCatalog.apiLevels &&
+    androidDeviceCatalog.runtimeConfiguration.orientations.map { it.id } == ftlDeviceCatalog.orientation &&
+    androidDeviceCatalog.runtimeConfiguration.locales.all { locale ->
+      val localeInfo = ftlDeviceCatalog.locale[locale.id]
+      localeInfo != null && localeInfo.region == locale.region && localeInfo.languageName == locale.name
+    }
 }
 
-fun managedVirtualDeviceCatalogTestHelper(
-  deviceManager: DeviceManager?,
-  androidSdks: AndroidSdks?,
-  callback: () -> Unit) {
+fun managedVirtualDeviceCatalogTestHelper(deviceManager: DeviceManager?, androidSdks: AndroidSdks?, callback: () -> Unit) {
   ProgressManager.getInstance()
-    .runProcessWithProgressSynchronously({
-       mockStatic<DeviceManager>().use {
-         mockStatic<AndroidSdks>().use {
-           whenever(AndroidSdks.getInstance()).thenReturn(androidSdks)
-           mockStatic<DeviceManagers>().use {
-             whenever(DeviceManagers.getDeviceManager(any<AndroidSdkHandler>())).thenReturn(deviceManager)
-             callback()
-           }
-         }
-       }
-     }, "", false, null)
+    .runProcessWithProgressSynchronously(
+      {
+        mockStatic<DeviceManager>().use {
+          mockStatic<AndroidSdks>().use {
+            whenever(AndroidSdks.getInstance()).thenReturn(androidSdks)
+            mockStatic<DeviceManagers>().use {
+              whenever(DeviceManagers.getDeviceManager(any<AndroidSdkHandler>())).thenReturn(deviceManager)
+              callback()
+            }
+          }
+        }
+      },
+      "",
+      false,
+      null,
+    )
 }
 
 val testMinAndTargetApiLevel = MinAndTargetApiLevel(targetSdk = 33, minSdk = 20)
 
-fun verifyConfigurationLookupElementProviderResult(result: Collection<LookupElement>,
-                                                   expectedResult: Collection<GmdCodeCompletionLookupElement>) {
-  val sortedResult = result.map { it as GmdCodeCompletionLookupElement }
-    .sortedWith { element1, element2 ->
-      element1.compareTo(element2)
-    }
+fun verifyConfigurationLookupElementProviderResult(
+  result: Collection<LookupElement>,
+  expectedResult: Collection<GmdCodeCompletionLookupElement>,
+) {
+  val sortedResult = result.map { it as GmdCodeCompletionLookupElement }.sortedWith { element1, element2 -> element1.compareTo(element2) }
   assertEquals(expectedResult.size, sortedResult.size)
-  sortedResult.zip(expectedResult).forEach { (element1, element2) ->
-    assertEquals(element1.compareTo(element2), 0)
-  }
+  sortedResult.zip(expectedResult).forEach { (element1, element2) -> assertEquals(element1.compareTo(element2), 0) }
 }

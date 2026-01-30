@@ -32,14 +32,12 @@ import org.junit.rules.RuleChain
 
 abstract class MigrateBuildConfigFromGradlePropertiesTest(
   val agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
-  val propertyValue: Boolean?
+  val propertyValue: Boolean?,
 ) {
 
   private val projectRule = AndroidGradleProjectRule()
 
-  @JvmField
-  @Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @JvmField @Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   // TODO(b/289219116): Although this looks like a sensible test, and it is, it's not testing one aspect of the refactoring:
   //  that it works when starting from a project without generated sources.  Empirically it does work in production; I (xof) haven't
@@ -68,7 +66,6 @@ abstract class MigrateBuildConfigFromGradlePropertiesTest(
     Truth.assertThat(libBuildGradleContent).doesNotContain("buildFeatures")
     Truth.assertThat(libBuildGradleContent).doesNotContain("buildConfig true")
     Truth.assertThat(libBuildGradleContent).doesNotContain("buildConfigField")
-
   }
 
   @Test
@@ -106,9 +103,7 @@ abstract class MigrateBuildConfigFromGradlePropertiesTest(
     val action = MigrateBuildConfigFromGradlePropertiesAction()
     val event = createTestEvent(action, DataManager.getInstance().getDataContext(projectRule.fixture.editor.component))
 
-    ApplicationManager.getApplication().runReadAction {
-      action.update(event)
-    }
+    ApplicationManager.getApplication().runReadAction { action.update(event) }
 
     Truth.assertThat(event.presentation.isEnabled).isTrue()
     Truth.assertThat(event.presentation.isVisible).isTrue()
@@ -124,9 +119,7 @@ abstract class MigrateBuildConfigFromGradlePropertiesTest(
     val action = MigrateBuildConfigFromGradlePropertiesAction()
     val event = createTestEvent(action, DataManager.getInstance().getDataContext(projectRule.fixture.editor.component))
 
-    ApplicationManager.getApplication().runReadAction {
-      action.update(event)
-    }
+    ApplicationManager.getApplication().runReadAction { action.update(event) }
 
     Truth.assertThat(event.presentation.isEnabled).isTrue()
     Truth.assertThat(event.presentation.isVisible).isTrue()

@@ -20,12 +20,12 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeTraceProcessorService
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.MainProcessSelector
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.TimeUnit
 import org.junit.Test
 import perfetto.protos.PerfettoTrace
-import java.util.concurrent.TimeUnit
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 
 class PerfettoParserTest {
 
@@ -45,12 +45,16 @@ class PerfettoParserTest {
   fun `with UiState appended to trace file`() {
     val services = FakeIdeProfilerServices()
     val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
-    fakeTraceProcessorService.uiStateForTraceId[1] = java.util.Base64.getEncoder().encodeToString(PerfettoTrace.UiState.newBuilder()
-                                                                     .setHighlightProcess(
-                                                                       PerfettoTrace.UiState.HighlightProcess.newBuilder().setPid(1001))
-                                                                     .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
-                                                                     .setTimelineEndTs(TimeUnit.SECONDS.toNanos(99))
-                                                                     .build().toByteArray())
+    fakeTraceProcessorService.uiStateForTraceId[1] =
+      java.util.Base64.getEncoder()
+        .encodeToString(
+          PerfettoTrace.UiState.newBuilder()
+            .setHighlightProcess(PerfettoTrace.UiState.HighlightProcess.newBuilder().setPid(1001))
+            .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
+            .setTimelineEndTs(TimeUnit.SECONDS.toNanos(99))
+            .build()
+            .toByteArray()
+        )
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
     val parser = PerfettoParser(MainProcessSelector(), services)
@@ -64,13 +68,16 @@ class PerfettoParserTest {
   fun `with UiState command line`() {
     val services = FakeIdeProfilerServices()
     val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
-    fakeTraceProcessorService.uiStateForTraceId[1] = java.util.Base64.getEncoder().encodeToString(PerfettoTrace.UiState.newBuilder()
-                                                                     .setHighlightProcess(PerfettoTrace.UiState.HighlightProcess
-                                                                                            .newBuilder()
-                                                                                            .setCmdline("com.android.phone"))
-                                                                     .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
-                                                                     .setTimelineEndTs(TimeUnit.SECONDS.toNanos(99))
-                                                                     .build().toByteArray())
+    fakeTraceProcessorService.uiStateForTraceId[1] =
+      java.util.Base64.getEncoder()
+        .encodeToString(
+          PerfettoTrace.UiState.newBuilder()
+            .setHighlightProcess(PerfettoTrace.UiState.HighlightProcess.newBuilder().setCmdline("com.android.phone"))
+            .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
+            .setTimelineEndTs(TimeUnit.SECONDS.toNanos(99))
+            .build()
+            .toByteArray()
+        )
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
     val parser = PerfettoParser(MainProcessSelector(), services)

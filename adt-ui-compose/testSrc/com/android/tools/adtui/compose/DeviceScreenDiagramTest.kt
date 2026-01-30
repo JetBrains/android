@@ -22,10 +22,7 @@ import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.cre
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Verifies that DeviceScreenDiagram doesn't crash in various configurations. Appearance is not
- * verified.
- */
+/** Verifies that DeviceScreenDiagram doesn't crash in various configurations. Appearance is not verified. */
 class DeviceScreenDiagramTest {
   @get:Rule val composeTestRule = createStudioComposeTestRule()
 

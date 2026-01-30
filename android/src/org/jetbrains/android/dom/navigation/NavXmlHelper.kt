@@ -32,11 +32,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 
-fun getStartDestLayoutId(
-  navResourceId: String,
-  project: Project,
-  resourceResolver: ResourceResolver,
-): String? {
+fun getStartDestLayoutId(navResourceId: String, project: Project, resourceResolver: ResourceResolver): String? {
   if (!navResourceId.startsWith("@navigation/")) {
     return null
   }
@@ -44,11 +40,7 @@ fun getStartDestLayoutId(
   val file = LocalFileSystem.getInstance().findFileByPath(fileName) ?: return null
   val psiFile = AndroidPsiUtils.getPsiFileSafely(project, file) as? XmlFile ?: return null
   return ApplicationManager.getApplication()
-    .runReadAction(
-      Computable<String> {
-        findStartDestination(psiFile.rootTag)?.getAttributeValue(ATTR_LAYOUT, TOOLS_URI)
-      }
-    )
+    .runReadAction(Computable<String> { findStartDestination(psiFile.rootTag)?.getAttributeValue(ATTR_LAYOUT, TOOLS_URI) })
 }
 
 /*
@@ -59,9 +51,7 @@ if the attribute or the tag is missing.
 private fun findStartDestination(root: XmlTag?): XmlTag? {
   var current = root
   while (current?.name == TAG_NAVIGATION) {
-    val startDestId =
-      current.getAttributeValue(ATTR_START_DESTINATION, AUTO_URI)?.let(::stripPrefixFromId)
-        ?: return null
+    val startDestId = current.getAttributeValue(ATTR_START_DESTINATION, AUTO_URI)?.let(::stripPrefixFromId) ?: return null
 
     current =
       current.children.filterIsInstance(XmlTag::class.java).firstOrNull {

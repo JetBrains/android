@@ -439,8 +439,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
     """
         .trimIndent()
     )
-    assertThat(myFixture.lookupElementStrings!!)
-      .containsExactly("constraints", "dimensions", "transforms")
+    assertThat(myFixture.lookupElementStrings!!).containsExactly("constraints", "dimensions", "transforms")
 
     myFixture.completeJson5Text(
       """
@@ -506,7 +505,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """
+      """
         .trimIndent()
     )
 
@@ -535,7 +534,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """
+      """
         .trimIndent()
     )
 
@@ -564,7 +563,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """
+      """
         .trimIndent()
     )
 
@@ -613,8 +612,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
     """
         .trimIndent()
     )
-    assertThat(myFixture.lookupElementStrings!!)
-      .containsExactly("KeyAttributes", "KeyPositions", "KeyCycles")
+    assertThat(myFixture.lookupElementStrings!!).containsExactly("KeyAttributes", "KeyPositions", "KeyCycles")
   }
 
   @Test
@@ -763,7 +761,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """
+      """
         .trimIndent()
     )
 
@@ -797,7 +795,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """
+      """
         .trimIndent()
     )
 
@@ -831,7 +829,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """
+      """
         .trimIndent()
     )
   }
@@ -871,7 +869,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """
+      """
         .trimIndent()
     )
 
@@ -910,7 +908,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """
+      """
         .trimIndent()
     )
 
@@ -976,7 +974,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """
+      """
         .trimIndent()
     )
 

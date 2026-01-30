@@ -18,9 +18,8 @@ package com.android.tools.property.panel.api
 /**
  * A model of the data that should be shown in the properties panel.
  *
- * A client would implement this model and pass it to the top level implementation of the properties
- * view. The view would listen to update events with a [PropertiesModelListener]. This puts the
- * client in control of when the properties view should be updated.
+ * A client would implement this model and pass it to the top level implementation of the properties view. The view would listen to update
+ * events with a [PropertiesModelListener]. This puts the client in control of when the properties view should be updated.
  *
  * @param P A client defined PropertyItem class.
  */
@@ -29,8 +28,8 @@ interface PropertiesModel<P : PropertyItem> {
   val properties: PropertiesTable<P>
 
   /**
-   * This function can be called to instruct the model, that it is currently not being used. A model
-   * may decide to get rid of certain internal data structures.
+   * This function can be called to instruct the model, that it is currently not being used. A model may decide to get rid of certain
+   * internal data structures.
    */
   fun deactivate()
 

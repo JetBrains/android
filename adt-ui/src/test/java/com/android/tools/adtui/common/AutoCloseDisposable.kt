@@ -18,10 +18,7 @@ package com.android.tools.adtui.common
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 
-/**
- * A {@link Disposable} that can be used in try-with-resources to limit the lifetime of disposable
- * children.
- */
+/** A {@link Disposable} that can be used in try-with-resources to limit the lifetime of disposable children. */
 class AutoCloseDisposable : Disposable, AutoCloseable {
   override fun dispose() {}
 

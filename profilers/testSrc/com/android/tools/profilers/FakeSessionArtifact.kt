@@ -19,9 +19,7 @@ import com.android.tools.idea.protobuf.GeneratedMessageV3
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.sessions.SessionArtifact
 
-/**
- * A fake [SessionArtifact] for testing purposes.
- */
+/** A fake [SessionArtifact] for testing purposes. */
 class FakeSessionArtifact(
   override val profilers: StudioProfilers,
   override val session: Common.Session,
@@ -29,7 +27,7 @@ class FakeSessionArtifact(
   override val artifactProto: GeneratedMessageV3,
   override val name: String = "FakeArtifact",
   override val isOngoing: Boolean = false,
-  private val canExportArtifact: Boolean = true
+  private val canExportArtifact: Boolean = true,
 ) : SessionArtifact<GeneratedMessageV3> {
 
   override val timestampNs: Long = 0

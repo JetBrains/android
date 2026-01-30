@@ -15,12 +15,8 @@
  */
 package com.android.tools.completion.inserthandler
 
-/**
- * Describes a string that may be automatically inserted when selecting an autocomplete option.
- */
-sealed class InsertionFormat(
-  val insertableString: String
-)
+/** Describes a string that may be automatically inserted when selecting an autocomplete option. */
+sealed class InsertionFormat(val insertableString: String)
 
 /**
  * Inserts the string after the auto-completed value.
@@ -41,10 +37,11 @@ class LiteralNewLineFormat(literalFormat: String) : InsertionFormat(literalForma
 /**
  * Inserts a string driven by Live templates. The string is inserted after the auto-completed value.
  *
- * Use '<' and '>' to delimit a range of text the user is expected to edit, may contain multiple instances of these delimiters.
+ * Use '<' and '>' to delimit a range of text the user is expected to edit, may contain multiple
+ * instances of these delimiters.
  *
- * Eg: For the string `"<0123>, <text>"`. The '0123' will be selected in the editor for the user to modify, once they press Enter, it
- * will select 'text' for the user to modify until all marked snippets of the strings are handled or the user presses ESC to keep the text
- * as is.
+ * Eg: For the string `"<0123>, <text>"`. The '0123' will be selected in the editor for the user to
+ * modify, once they press Enter, it will select 'text' for the user to modify until all marked
+ * snippets of the strings are handled or the user presses ESC to keep the text as is.
  */
 class LiveTemplateFormat(templateFormat: String) : InsertionFormat(templateFormat)

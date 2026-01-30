@@ -52,18 +52,11 @@ interface NodeType<T> {
   /**
    * Insert [data] into [node] either before [before] or at the end if [before] is null.
    *
-   * The [isMove] specifies if this is a move or copy operation. This is intended as a hint for undo
-   * messages. If the origin of the items being dragged is the component tree; then the items will
-   * be supplied in [draggedFromTree]. If the origin is not the component tree the [draggedFromTree]
-   * will be empty. Return true if the insert was successful.
+   * The [isMove] specifies if this is a move or copy operation. This is intended as a hint for undo messages. If the origin of the items
+   * being dragged is the component tree; then the items will be supplied in [draggedFromTree]. If the origin is not the component tree the
+   * [draggedFromTree] will be empty. Return true if the insert was successful.
    */
-  fun insert(
-    node: T,
-    data: Transferable,
-    before: Any? = null,
-    isMove: Boolean,
-    draggedFromTree: List<Any>,
-  ): Boolean = false
+  fun insert(node: T, data: Transferable, before: Any? = null, isMove: Boolean, draggedFromTree: List<Any>): Boolean = false
 
   /** Delete this [node] after a successful DnD move operation. */
   fun delete(node: T) {}

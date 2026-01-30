@@ -83,5 +83,4 @@ class SystemTraceNodeFactoryTest {
 
     assertThat(node1).isNotSameAs(node2)
   }
-
 }

@@ -16,8 +16,8 @@
 package com.android.tools.adtui.model
 
 /**
- * This class is the default implementation of a ranged series. It provides access to the DataSeries
- * scoped by a given Range or the intersection of two given ranges.
+ * This class is the default implementation of a ranged series. It provides access to the DataSeries scoped by a given Range or the
+ * intersection of two given ranges.
  *
  * @param <E> This should be the type of data this RangedSeries represents.
  */
@@ -36,21 +36,17 @@ constructor(
   private var lastQueriedRange = Range()
   private var lastQueriedSeries = emptyList<SeriesData<E>>()
 
-  /**
-   * A new range object that represents the intersection between the default and intersect ranges.
-   */
+  /** A new range object that represents the intersection between the default and intersect ranges. */
   val intersection: Range
     get() = xRange.getIntersection(intersectRange)
 
   /**
-   * A new, immutable [List<SeriesData>] consisting of items in the DataStore scoped to the range(s)
-   * that the RangedSeries was initialized with.
+   * A new, immutable [List<SeriesData>] consisting of items in the DataStore scoped to the range(s) that the RangedSeries was initialized
+   * with.
    *
-   * Note - this call is frequently made by UI components on the main thread, so the last queried
-   * results are cached and returned if the query range is determined to not have changed to avoid
-   * hitting the Datastore redundantly. If the query range's max value is Long.MAX_VALUE or
-   * Double.MAX_VALUE, however, then the cache is bypassed since there might be new data that are
-   * still streaming in.
+   * Note - this call is frequently made by UI components on the main thread, so the last queried results are cached and returned if the
+   * query range is determined to not have changed to avoid hitting the Datastore redundantly. If the query range's max value is
+   * Long.MAX_VALUE or Double.MAX_VALUE, however, then the cache is bypassed since there might be new data that are still streaming in.
    */
   val series: List<SeriesData<E>>
     get() = getValuesInRange()
@@ -67,8 +63,7 @@ constructor(
       val queriedSeries = _series.getDataForRange(queryRange)
 
       lastQueriedRange = queryRange
-      lastQueriedSeries =
-        queriedSeries.toList() // Make a copy to allow the underlying series to change freely
+      lastQueriedSeries = queriedSeries.toList() // Make a copy to allow the underlying series to change freely
     }
 
     return lastQueriedSeries
@@ -76,8 +71,7 @@ constructor(
 
   /**
    * @param range The range to which the data will be scoped.
-   * @return A new, immutable [SeriesData] list that allows the caller to get items in the DataStore
-   *   scoped to the given range.
+   * @return A new, immutable [SeriesData] list that allows the caller to get items in the DataStore scoped to the given range.
    */
   fun getSeriesForRange(range: Range): List<SeriesData<E>> = _series.getDataForRange(range)
 

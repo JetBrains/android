@@ -41,18 +41,23 @@ fun RecordingList(recordingListModel: RecordingListModel, modifier: Modifier = M
     val recordingList by recordingListModel.recordingList.collectAsState()
     if (recordingList.isEmpty()) {
       EmptyRecordingMessage()
-    }
-    else {
-      RecordingTable(recordingList = recordingList, selectedRecording = selectedRecording,
-                     onRecordingSelection = recordingListModel::onRecordingSelection)
+    } else {
+      RecordingTable(
+        recordingList = recordingList,
+        selectedRecording = selectedRecording,
+        onRecordingSelection = recordingListModel::onRecordingSelection,
+      )
     }
   }
 }
 
 @Composable
 fun EmptyRecordingMessage() {
-  Column(modifier = Modifier.fillMaxSize().padding(40.dp), horizontalAlignment = Alignment.CenterHorizontally,
-         verticalArrangement = Arrangement.Center) {
+  Column(
+    modifier = Modifier.fillMaxSize().padding(40.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center,
+  ) {
     EllipsisText(text = NO_RECORDINGS_TITLE, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
     Spacer(Modifier.height(8.dp))
     EllipsisText(text = NO_RECORDINGS_INSTRUCTIONS_TEXT)

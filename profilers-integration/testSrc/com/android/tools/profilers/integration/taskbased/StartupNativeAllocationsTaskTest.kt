@@ -26,9 +26,7 @@ class StartupNativeAllocationsTaskTest : ProfilersStartupTaskTestBase() {
   }
 
   override fun verifyTaskStarted(studio: AndroidStudio) {
-    verifyIdeaLog(
-      ".*Attempting\\sto\\sstart\\sthe\\s\\'Native Allocations\\'\\stask\\sfrom\\sprocess\\sstart\\s\\(startup\\)\\.\$",
-      300)
+    verifyIdeaLog(".*Attempting\\sto\\sstart\\sthe\\s\\'Native Allocations\\'\\stask\\sfrom\\sprocess\\sstart\\s\\(startup\\)\\.\$", 300)
     waitForAppDeploymentStarted("com.example.minapp", 300)
     verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
   }
@@ -45,20 +43,19 @@ class StartupNativeAllocationsTaskTest : ProfilersStartupTaskTestBase() {
    * Validate native allocations task workflow is working.
    *
    * Test Steps:
-   *  1. Import "minApp" in the testData directory of this module.
-   *  2. Open Profiler tool window.
-   *  3. Select device -> process -> task-> starting point to process start.
-   *  4. Start the task.
-   *  5. Stop the task.
+   * 1. Import "minApp" in the testData directory of this module.
+   * 2. Open Profiler tool window.
+   * 3. Select device -> process -> task-> starting point to process start.
+   * 4. Start the task.
+   * 5. Stop the task.
    *
    * Test Verifications:
-   *  1. Verify if the profiler tool window is opened.
-   *  2. Verify if the app is deployed.
-   *  3. Verify task start succeeded.
-   *  4. Verify task stop succeeded.
-   *  5. Verify if the capture is parsed successfully.
-   *  6. Verify UI components after capture is parsed.
+   * 1. Verify if the profiler tool window is opened.
+   * 2. Verify if the app is deployed.
+   * 3. Verify task start succeeded.
+   * 4. Verify task stop succeeded.
+   * 5. Verify if the capture is parsed successfully.
+   * 6. Verify UI components after capture is parsed.
    */
-  @Test
-  fun test() = testStartUpTask()
+  @Test fun test() = testStartUpTask()
 }

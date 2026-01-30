@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.TooltipModel
 
 /**
  * Base class for tooltip used in a [ProfilerMonitor].
+ *
  * @param <M> the profiler monitor where the tooltip is used in. </M>
  */
 abstract class ProfilerMonitorTooltip<M : ProfilerMonitor>(val monitor: M) : TooltipModel

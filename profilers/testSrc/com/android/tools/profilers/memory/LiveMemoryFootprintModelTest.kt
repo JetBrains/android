@@ -31,7 +31,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 class LiveMemoryFootprintModelTest {
-  private lateinit var myProfilers:StudioProfilers
+  private lateinit var myProfilers: StudioProfilers
   private lateinit var mockMemoryDataProvider: MemoryDataProvider
   private lateinit var myLiveMemoryFootprintModel: LiveMemoryFootprintModel
 
@@ -48,7 +48,7 @@ class LiveMemoryFootprintModelTest {
 
   @Test
   fun testGetDetailedMemoryUsage() {
-    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>();
+    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>()
     whenever(mockMemoryDataProvider.detailedMemoryUsage).thenReturn(mockDetailedMemoryUsage)
     myLiveMemoryFootprintModel = LiveMemoryFootprintModel(myProfilers, mockMemoryDataProvider)
     // Check if method returns expected DetailedMemoryUsage object
@@ -58,8 +58,8 @@ class LiveMemoryFootprintModelTest {
 
   @Test
   fun testGetLegends() {
-    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>();
-    val mockLegends = mock<MemoryStageLegends>();
+    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>()
+    val mockLegends = mock<MemoryStageLegends>()
     whenever(mockMemoryDataProvider.detailedMemoryUsage).thenReturn(mockDetailedMemoryUsage)
     whenever(mockMemoryDataProvider.legends).thenReturn(mockLegends)
     whenever(mockMemoryDataProvider.isLiveAllocationTrackingReady).thenReturn(true)
@@ -71,9 +71,9 @@ class LiveMemoryFootprintModelTest {
 
   @Test
   fun testGetMemoryAxis() {
-    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>();
-    val mockLegends = mock<MemoryStageLegends>();
-    val mockMemoryAxis = mock<ClampedAxisComponentModel>();
+    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>()
+    val mockLegends = mock<MemoryStageLegends>()
+    val mockMemoryAxis = mock<ClampedAxisComponentModel>()
     whenever(mockMemoryDataProvider.detailedMemoryUsage).thenReturn(mockDetailedMemoryUsage)
     whenever(mockMemoryDataProvider.legends).thenReturn(mockLegends)
     whenever(mockMemoryDataProvider.isLiveAllocationTrackingReady).thenReturn(true)
@@ -86,9 +86,9 @@ class LiveMemoryFootprintModelTest {
 
   @Test
   fun testGetObjectsAxis() {
-    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>();
-    val mockLegends = mock<MemoryStageLegends>();
-    val mockObjectAxis = mock<ClampedAxisComponentModel>();
+    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>()
+    val mockLegends = mock<MemoryStageLegends>()
+    val mockObjectAxis = mock<ClampedAxisComponentModel>()
     whenever(mockMemoryDataProvider.detailedMemoryUsage).thenReturn(mockDetailedMemoryUsage)
     whenever(mockMemoryDataProvider.legends).thenReturn(mockLegends)
     whenever(mockMemoryDataProvider.isLiveAllocationTrackingReady).thenReturn(true)
@@ -101,8 +101,8 @@ class LiveMemoryFootprintModelTest {
 
   @Test
   fun testIsLiveAllocationTrackingReady() {
-    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>();
-    val mockLegends = mock<MemoryStageLegends>();
+    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>()
+    val mockLegends = mock<MemoryStageLegends>()
     whenever(mockMemoryDataProvider.detailedMemoryUsage).thenReturn(mockDetailedMemoryUsage)
     whenever(mockMemoryDataProvider.legends).thenReturn(mockLegends)
     whenever(mockMemoryDataProvider.isLiveAllocationTrackingReady).thenReturn(true)
@@ -114,8 +114,8 @@ class LiveMemoryFootprintModelTest {
 
   @Test
   fun testGetRangeSelectionModel() {
-    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>();
-    val mockLegends = mock<MemoryStageLegends>();
+    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>()
+    val mockLegends = mock<MemoryStageLegends>()
     whenever(mockMemoryDataProvider.detailedMemoryUsage).thenReturn(mockDetailedMemoryUsage)
     whenever(mockMemoryDataProvider.legends).thenReturn(mockLegends)
     whenever(mockMemoryDataProvider.isLiveAllocationTrackingReady).thenReturn(true)
@@ -131,7 +131,7 @@ class LiveMemoryFootprintModelTest {
 
   @Test
   fun testEnter() {
-    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>();
+    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>()
     whenever(mockMemoryDataProvider.detailedMemoryUsage).thenReturn(mockDetailedMemoryUsage)
     val mockUpdater = Mockito.mock(Updater::class.java, Mockito.RETURNS_DEEP_STUBS)
     whenever(myProfilers.updater).thenReturn(mockUpdater)
@@ -142,7 +142,7 @@ class LiveMemoryFootprintModelTest {
 
   @Test
   fun testExit() {
-    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>();
+    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>()
     whenever(mockMemoryDataProvider.detailedMemoryUsage).thenReturn(mockDetailedMemoryUsage)
     val mockUpdater = Mockito.mock(Updater::class.java, Mockito.RETURNS_DEEP_STUBS)
     whenever(myProfilers.updater).thenReturn(mockUpdater)
@@ -153,7 +153,7 @@ class LiveMemoryFootprintModelTest {
 
   @Test
   fun testName() {
-    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>();
+    val mockDetailedMemoryUsage = mock<DetailedMemoryUsage>()
     whenever(mockMemoryDataProvider.detailedMemoryUsage).thenReturn(mockDetailedMemoryUsage)
     val mockUpdater = Mockito.mock(Updater::class.java, Mockito.RETURNS_DEEP_STUBS)
     whenever(myProfilers.updater).thenReturn(mockUpdater)

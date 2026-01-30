@@ -42,28 +42,29 @@ class GarbageCollectionComponent {
     return myForceGarbageCollectionButton
   }
 
-  fun makeGcDurationDataRenderer(detailedMemoryUsage: DetailedMemoryUsage,
-                                 tooltipLegends: MemoryStageLegends) =
+  fun makeGcDurationDataRenderer(detailedMemoryUsage: DetailedMemoryUsage, tooltipLegends: MemoryStageLegends) =
     DurationDataRenderer.Builder(detailedMemoryUsage.gcDurations, JBColor.BLACK)
       .setIcon(StudioIcons.Profiler.Events.GARBAGE_EVENT)
       // Need to offset the GcDurationData by the margin difference between the overlay component and the
       // line chart. This ensures we are able to render the Gc events in the proper locations on the line.
-      .setLabelOffsets(-StudioIcons.Profiler.Events.GARBAGE_EVENT.iconWidth / 2f,
-                       StudioIcons.Profiler.Events.GARBAGE_EVENT.iconHeight / 2f)
+      .setLabelOffsets(-StudioIcons.Profiler.Events.GARBAGE_EVENT.iconWidth / 2f, StudioIcons.Profiler.Events.GARBAGE_EVENT.iconHeight / 2f)
       .setHostInsets(JBUI.insets(ProfilerLayout.Y_AXIS_TOP_MARGIN, 0, 0, 0))
       .setHoverHandler { tooltipLegends.gcDurationLegend.setPickData(it) }
       .setClickRegionPadding(0, 0)
       .build()
 
-  fun makeGarbageCollectionAction(profilers: StudioProfilers,
-                                  myForceGarbageCollectionButton: JButton,
-                                  containerComponent: JComponent): DefaultContextMenuItem {
+  fun makeGarbageCollectionAction(
+    profilers: StudioProfilers,
+    myForceGarbageCollectionButton: JButton,
+    containerComponent: JComponent,
+  ): DefaultContextMenuItem {
     return DefaultContextMenuItem.Builder(FORCE_GARBAGE_COLLECTION)
       .setContainerComponent(containerComponent)
       .setIcon(myForceGarbageCollectionButton.icon)
       .setActionRunnable { myForceGarbageCollectionButton.doClick(0) }
       .setEnableBooleanSupplier { getGcSupportStatus(profilers).isSupported }
-      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_G, getActionMask())).build()
+      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_G, getActionMask()))
+      .build()
   }
 
   fun getGcSupportStatus(profilers: StudioProfilers): GcSupportStatus {
@@ -81,11 +82,12 @@ class GarbageCollectionComponent {
   enum class GcSupportStatus(val isSupported: Boolean, val message: String) {
     ENABLED(true, FORCE_GARBAGE_COLLECTION),
     SESSION_DEAD(false, "Forcing garbage collection is unavailable for ended sessions"),
-    PROFILEABLE_PROCESS(false, "Forcing garbage collection is not supported for profileable processes")
+    PROFILEABLE_PROCESS(false, "Forcing garbage collection is not supported for profileable processes"),
   }
 
   companion object {
     private const val FORCE_GARBAGE_COLLECTION = "Force garbage collection"
+
     private fun getActionMask(): Int {
       // Return the appropriate action mask here.
       // Replace this with the actual implementation.

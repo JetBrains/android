@@ -33,8 +33,7 @@ class ResourcePackageGroupingRuleProvider : UsageGroupingRuleProvider {
   override fun getActiveRules(project: Project): Array<UsageGroupingRule> {
     return if (StudioFlags.MIGRATE_TO_NON_TRANSITIVE_R_CLASSES_REFACTORING_ENABLED.get()) {
       arrayOf(ResourcePackageGroupingRule(), PropertiesFileGroupingRule())
-    }
-    else {
+    } else {
       UsageGroupingRule.EMPTY_ARRAY
     }
   }
@@ -61,6 +60,7 @@ class PropertiesFileGroupingRule : SingleParentUsageGroupingRule() {
 
 data class PropertiesFileUsageGroup(val flag: String) : UsageGroupBase(-1) {
   override fun getPresentableGroupText(): String = AndroidBundle.message("android.usageGroup.properties.new.flag", flag)
+
   override fun compareTo(other: UsageGroup) = -1
 }
 
@@ -75,8 +75,7 @@ data class ResourcePackageUsageGroup(val packageName: String) : UsageGroupBase(0
   override fun compareTo(other: UsageGroup): Int {
     return if (other is ResourcePackageUsageGroup) {
       packageName.compareTo(other.packageName)
-    }
-    else {
+    } else {
       super.compareTo(other)
     }
   }

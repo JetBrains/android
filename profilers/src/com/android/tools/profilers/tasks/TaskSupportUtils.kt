@@ -20,13 +20,10 @@ import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
 
 object TaskSupportUtils {
 
-  /**
-   * Returns whether the task supports a session artifact.
-   */
+  /** Returns whether the task supports a session artifact. */
   fun isTaskSupportedByRecording(taskHandler: ProfilerTaskHandler, selectedRecording: SessionItem): Boolean {
     // If only one child artifact then its support by the task is verified.
-    return selectedRecording.containsExactlyOneArtifact()
-           && taskHandler.supportsArtifact(selectedRecording.getChildArtifacts().first())
+    return selectedRecording.containsExactlyOneArtifact() && taskHandler.supportsArtifact(selectedRecording.getChildArtifacts().first())
   }
 
   fun doesDeviceSupportProfilingTaskFromProcessStart(taskType: ProfilerTaskType, featureLevel: Int): Boolean =

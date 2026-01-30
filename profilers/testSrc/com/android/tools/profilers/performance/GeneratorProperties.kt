@@ -35,6 +35,5 @@ class GeneratorProperties private constructor(private val myBuilder: Builder) {
     fun build(): GeneratorProperties {
       return GeneratorProperties(this)
     }
-
   }
 }

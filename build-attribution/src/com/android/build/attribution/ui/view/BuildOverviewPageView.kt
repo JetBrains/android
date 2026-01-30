@@ -47,28 +47,25 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
-class BuildOverviewPageView(
-  val model: BuildOverviewPageModel,
-  val actionHandlers: ViewActionHandlers
-) : BuildAnalyzerDataPageView {
+class BuildOverviewPageView(val model: BuildOverviewPageModel, val actionHandlers: ViewActionHandlers) : BuildAnalyzerDataPageView {
   val linksHandler = HtmlLinksHandler(actionHandlers)
 
-  private val buildInformationPanel = JPanel().apply {
-    name = "info"
-    layout = VerticalLayout(0, SwingConstants.LEFT)
-    val infoPanelHtml = generateInfoPanelHtml()
-    add(htmlTextLabelWithFixedLines(infoPanelHtml, linksHandler))
-  }
+  private val buildInformationPanel =
+    JPanel().apply {
+      name = "info"
+      layout = VerticalLayout(0, SwingConstants.LEFT)
+      val infoPanelHtml = generateInfoPanelHtml()
+      add(htmlTextLabelWithFixedLines(infoPanelHtml, linksHandler))
+    }
 
   fun generateInfoPanelHtml(): String {
     val buildSummary = model.reportUiData.buildSummary
     val buildFinishedTime = DateFormatUtil.formatDateTime(buildSummary.buildFinishedTimestamp)
 
-    val optionalConfigurationCacheLink = if (model.reportUiData.confCachingData.shouldShowWarning())
-      linksHandler.actionLink("Optimize this", "configuration-cache") {
-        actionHandlers.openConfigurationCacheWarnings()
-      }.let { " - $it" }
-    else ""
+    val optionalConfigurationCacheLink =
+      if (model.reportUiData.confCachingData.shouldShowWarning())
+        linksHandler.actionLink("Optimize this", "configuration-cache") { actionHandlers.openConfigurationCacheWarnings() }.let { " - $it" }
+      else ""
     return """
 <b>Build finished on ${buildFinishedTime}</b><br/>
 Total build duration was ${buildSummary.totalBuildDuration.durationStringHtml()}<br/>
@@ -77,114 +74,136 @@ Includes:<br/>
 Build configuration: ${buildSummary.configurationDuration.durationStringHtml()}$optionalConfigurationCacheLink<br/>
 Critical path tasks execution: ${buildSummary.criticalPathDuration.durationStringHtml()}<br/>
 ${optionalDownloadsOverviewSection(model.downloadsSummaryUiData)}
-    """.trim()
+    """
+      .trim()
   }
 
-  private fun optionalDownloadsOverviewSection(downloadsData: DownloadsSummaryUIData?):String {
+  private fun optionalDownloadsOverviewSection(downloadsData: DownloadsSummaryUIData?): String {
     if (downloadsData == null || downloadsData.isEmpty) return ""
-    val tooltipDetails = StringUtil.escapeXmlEntities("""
+    val tooltipDetails =
+      StringUtil.escapeXmlEntities(
+        """
 <html>
 This build had ${downloadsData.sumOfRequests} network ${pluralize("request", downloadsData.sumOfRequests)},<br/>
 downloaded in total ${Formats.formatFileSize(downloadsData.sumOfDataBytes)} in ${durationStringHtml(downloadsData.sumOfTimeMs)}.
 </html>
-    """.trim())
-    val filesDownloadLink = linksHandler.actionLink("Files download", "downloads-view") {
-      actionHandlers.changeViewToDownloadsLinkClicked()
-    }
+    """
+          .trim()
+      )
+    val filesDownloadLink =
+      linksHandler.actionLink("Files download", "downloads-view") { actionHandlers.changeViewToDownloadsLinkClicked() }
     return "$filesDownloadLink: ${durationStringHtml(downloadsData.sumOfTimeMs)} ${helpIcon(tooltipDetails)}<br/>"
   }
 
-  private val linksPanel = JPanel().apply {
-    name = "links"
-    layout = VerticalLayout(10, SwingConstants.LEFT)
-    add(htmlTextLabelWithFixedLines("<b>Common views into this build</b>").apply {
-      // Add 2px left margin to align with links.
-      border = JBUI.Borders.emptyLeft(2)
-    })
-    add(HyperlinkLabel("Tasks impacting build duration").apply {
-      addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(null) }
-    })
-    add(HyperlinkLabel("Plugins with tasks impacting build duration").apply {
-      addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN) }
-    })
-    add(HyperlinkLabel("All warnings").apply {
-      addHyperlinkListener { actionHandlers.changeViewToWarningsLinkClicked() }
-    })
-  }
-
-  private val garbageCollectionIssuePanel = JPanel().apply {
-    name = "memory"
-    layout = VerticalLayout(5)
-    val gcTime = model.reportUiData.buildSummary.garbageCollectionTime
-    val panelHeader = "<b>Gradle Daemon Memory Utilization</b>"
-    val descriptionText: String = buildString {
-      append(
-        "${gcTime.percentageStringHtml()} (${gcTime.durationStringHtml()}) of your build’s time was dedicated to garbage collection during this build.<br/>")
-      if (model.shouldWarnAboutGC) {
-        append("To reduce the amount of time spent on garbage collection, please consider increasing the Gradle daemon heap size.<br/>")
-      }
-      append("You can change the Gradle daemon heap size on the memory settings page.")
-    }
-    val action = object : AbstractAction("Edit memory settings") {
-      override fun actionPerformed(e: ActionEvent?) = actionHandlers.openMemorySettings()
-    }
-    val controlsPanel = JPanel().apply {
-      layout = HorizontalLayout(10)
-      add(JButton(action), HorizontalLayout.LEFT)
-    }
-    val icon = if (model.shouldWarnAboutGC) warningIcon() else AllIcons.General.Information
-
-    val defaultGCUsageWarning = htmlTextLabelWithFixedLines("", linksHandler)
-    val fineTuneYourJvmLink = linksHandler.externalLink("Fine tune your JVM", BuildAnalyzerBrowserLinks.CONFIGURE_GC)
-    val dontShowThisAgainLink = linksHandler.actionLink("Don't show this again", "suppress") {
-      val confirmationResult = Messages.showOkCancelDialog(
-        "Click OK to hide this warning in future builds.",
-        "Confirm Warning Suppression",
-        Messages.getOkButton(),
-        Messages.getCancelButton(),
-        Messages.getInformationIcon()
+  private val linksPanel =
+    JPanel().apply {
+      name = "links"
+      layout = VerticalLayout(10, SwingConstants.LEFT)
+      add(
+        htmlTextLabelWithFixedLines("<b>Common views into this build</b>").apply {
+          // Add 2px left margin to align with links.
+          border = JBUI.Borders.emptyLeft(2)
+        }
       )
-      if (confirmationResult == Messages.OK) {
-        actionHandlers.dontShowAgainNoGCSettingWarningClicked()
-        defaultGCUsageWarning.isVisible = false
-      }
+      add(
+        HyperlinkLabel("Tasks impacting build duration").apply {
+          addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(null) }
+        }
+      )
+      add(
+        HyperlinkLabel("Plugins with tasks impacting build duration").apply {
+          addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN) }
+        }
+      )
+      add(HyperlinkLabel("All warnings").apply { addHyperlinkListener { actionHandlers.changeViewToWarningsLinkClicked() } })
     }
-    val htmlContent = """
+
+  private val garbageCollectionIssuePanel =
+    JPanel().apply {
+      name = "memory"
+      layout = VerticalLayout(5)
+      val gcTime = model.reportUiData.buildSummary.garbageCollectionTime
+      val panelHeader = "<b>Gradle Daemon Memory Utilization</b>"
+      val descriptionText: String = buildString {
+        append(
+          "${gcTime.percentageStringHtml()} (${gcTime.durationStringHtml()}) of your build’s time was dedicated to garbage collection during this build.<br/>"
+        )
+        if (model.shouldWarnAboutGC) {
+          append("To reduce the amount of time spent on garbage collection, please consider increasing the Gradle daemon heap size.<br/>")
+        }
+        append("You can change the Gradle daemon heap size on the memory settings page.")
+      }
+      val action =
+        object : AbstractAction("Edit memory settings") {
+          override fun actionPerformed(e: ActionEvent?) = actionHandlers.openMemorySettings()
+        }
+      val controlsPanel =
+        JPanel().apply {
+          layout = HorizontalLayout(10)
+          add(JButton(action), HorizontalLayout.LEFT)
+        }
+      val icon = if (model.shouldWarnAboutGC) warningIcon() else AllIcons.General.Information
+
+      val defaultGCUsageWarning = htmlTextLabelWithFixedLines("", linksHandler)
+      val fineTuneYourJvmLink = linksHandler.externalLink("Fine tune your JVM", BuildAnalyzerBrowserLinks.CONFIGURE_GC)
+      val dontShowThisAgainLink =
+        linksHandler.actionLink("Don't show this again", "suppress") {
+          val confirmationResult =
+            Messages.showOkCancelDialog(
+              "Click OK to hide this warning in future builds.",
+              "Confirm Warning Suppression",
+              Messages.getOkButton(),
+              Messages.getCancelButton(),
+              Messages.getInformationIcon(),
+            )
+          if (confirmationResult == Messages.OK) {
+            actionHandlers.dontShowAgainNoGCSettingWarningClicked()
+            defaultGCUsageWarning.isVisible = false
+          }
+        }
+      val htmlContent =
+        """
       |The default garbage collector was used in this build running with JDK ${model.reportUiData.buildSummary.javaVersionUsed}.<br/>
       |Note that the default GC was changed starting with JDK 9. This could impact your build performance by as much as 10%.<br/>
       |<b>Recommendation:</b> $fineTuneYourJvmLink.<br/>
       |$dontShowThisAgainLink.
-    """.trimMargin()
-    SwingHelper.setHtml(defaultGCUsageWarning, htmlContent, null)
-    defaultGCUsageWarning.name = "no-gc-setting-warning"
+    """
+          .trimMargin()
+      SwingHelper.setHtml(defaultGCUsageWarning, htmlContent, null)
+      defaultGCUsageWarning.name = "no-gc-setting-warning"
 
-    add(htmlTextLabelWithFixedLines(panelHeader))
-    add(JPanel().apply {
-      layout = BorderLayout(5, 5)
-      add(JLabel(icon).apply { verticalAlignment = SwingConstants.TOP }, BorderLayout.WEST)
-      add(htmlTextLabelWithFixedLines(descriptionText), BorderLayout.CENTER)
-    })
-    add(controlsPanel)
-    if (model.shouldWarnAboutNoGCSetting) add(defaultGCUsageWarning)
-  }
-
-  override val component: JPanel = JPanel().apply {
-    name = "build-overview"
-    layout = BorderLayout()
-    val content = JPanel().apply {
-      border = JBUI.Borders.empty(20)
-      layout = TabularLayout("Fit,50px,Fit,50px,Fit")
-
-      add(buildInformationPanel, TabularLayout.Constraint(0, 0))
-      add(linksPanel, TabularLayout.Constraint(0, 2))
-      add(garbageCollectionIssuePanel, TabularLayout.Constraint(0, 4))
+      add(htmlTextLabelWithFixedLines(panelHeader))
+      add(
+        JPanel().apply {
+          layout = BorderLayout(5, 5)
+          add(JLabel(icon).apply { verticalAlignment = SwingConstants.TOP }, BorderLayout.WEST)
+          add(htmlTextLabelWithFixedLines(descriptionText), BorderLayout.CENTER)
+        }
+      )
+      add(controlsPanel)
+      if (model.shouldWarnAboutNoGCSetting) add(defaultGCUsageWarning)
     }
-    val scrollPane = JBScrollPane().apply {
-      border = JBUI.Borders.empty()
-      setViewportView(content)
+
+  override val component: JPanel =
+    JPanel().apply {
+      name = "build-overview"
+      layout = BorderLayout()
+      val content =
+        JPanel().apply {
+          border = JBUI.Borders.empty(20)
+          layout = TabularLayout("Fit,50px,Fit,50px,Fit")
+
+          add(buildInformationPanel, TabularLayout.Constraint(0, 0))
+          add(linksPanel, TabularLayout.Constraint(0, 2))
+          add(garbageCollectionIssuePanel, TabularLayout.Constraint(0, 4))
+        }
+      val scrollPane =
+        JBScrollPane().apply {
+          border = JBUI.Borders.empty()
+          setViewportView(content)
+        }
+      add(scrollPane, BorderLayout.CENTER)
     }
-    add(scrollPane, BorderLayout.CENTER)
-  }
 
   override val additionalControls: JPanel = JPanel().apply { name = "build-overview-additional-controls" }
 }

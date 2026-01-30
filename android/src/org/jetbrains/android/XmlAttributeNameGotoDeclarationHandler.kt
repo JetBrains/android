@@ -16,17 +16,15 @@
 package org.jetbrains.android
 
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.idea.res.isResourceFile
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlAttribute
 import org.jetbrains.android.facet.AndroidFacet
-import com.android.tools.idea.res.isResourceFile
 
-/**
- * {@link GotoDeclarationHandler} which handles XML attribute names.
- */
+/** {@link GotoDeclarationHandler} which handles XML attribute names. */
 class XmlAttributeNameGotoDeclarationHandler : GotoDeclarationHandler {
   override fun getGotoDeclarationTargets(sourceElement: PsiElement?, offset: Int, editor: Editor): Array<PsiElement>? {
     if (sourceElement == null) {
@@ -38,9 +36,7 @@ class XmlAttributeNameGotoDeclarationHandler : GotoDeclarationHandler {
     }
     val attribute = sourceElement.parent as? XmlAttribute ?: return PsiElement.EMPTY_ARRAY
     val namespace = ResourceNamespace.fromNamespaceUri(attribute.namespace) ?: return PsiElement.EMPTY_ARRAY
-    return AndroidResourceToPsiResolver.getInstance().getXmlAttributeNameGotoDeclarationTargets(
-      attribute.localName,
-      namespace,
-      sourceElement)
+    return AndroidResourceToPsiResolver.getInstance()
+      .getXmlAttributeNameGotoDeclarationTargets(attribute.localName, namespace, sourceElement)
   }
 }

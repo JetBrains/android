@@ -34,27 +34,23 @@ import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.LayoutFocusTraversalPolicy
 
-/**
- * Main view of Build Analyzer report that is based on ComboBoxes navigation on the top level.
- */
-class BuildAnalyzerComboBoxView(
-  private val model: BuildAnalyzerViewModel,
-  private val actionHandlers: ViewActionHandlers,
-): Disposable {
+/** Main view of Build Analyzer report that is based on ComboBoxes navigation on the top level. */
+class BuildAnalyzerComboBoxView(private val model: BuildAnalyzerViewModel, private val actionHandlers: ViewActionHandlers) : Disposable {
 
   // Flag to prevent triggering calls to action handler on pulled from the model updates.
   private var fireActionHandlerEvents = true
 
-  val dataSetCombo = ComboBox(CollectionComboBoxModel(model.availableDataSets)).apply {
-    name = "dataSetCombo"
-    renderer = textListCellRenderer("") { it.uiName }
-    selectedItem = this@BuildAnalyzerComboBoxView.model.selectedData
-    addItemListener { event ->
-      if (fireActionHandlerEvents && event.stateChange == ItemEvent.SELECTED) {
-        actionHandlers.dataSetComboBoxSelectionUpdated(event.item as BuildAnalyzerViewModel.DataSet)
+  val dataSetCombo =
+    ComboBox(CollectionComboBoxModel(model.availableDataSets)).apply {
+      name = "dataSetCombo"
+      renderer = textListCellRenderer("") { it.uiName }
+      selectedItem = this@BuildAnalyzerComboBoxView.model.selectedData
+      addItemListener { event ->
+        if (fireActionHandlerEvents && event.stateChange == ItemEvent.SELECTED) {
+          actionHandlers.dataSetComboBoxSelectionUpdated(event.item as BuildAnalyzerViewModel.DataSet)
+        }
       }
     }
-  }
 
   private val pageViewByDataSetMap: MutableMap<BuildAnalyzerViewModel.DataSet, BuildAnalyzerDataPageView> = mutableMapOf()
 
@@ -66,41 +62,44 @@ class BuildAnalyzerComboBoxView(
         BuildAnalyzerViewModel.DataSet.WARNINGS -> WarningsPageView(model.warningsPageModel, actionHandlers, this)
         BuildAnalyzerViewModel.DataSet.DOWNLOADS -> DownloadsInfoPageView(model.downloadsInfoPageModel, actionHandlers, this)
       }
-  }
-
-  private val pagesPanel = object : CardLayoutPanel<BuildAnalyzerViewModel.DataSet, BuildAnalyzerViewModel.DataSet, JComponent>() {
-    override fun prepare(key: BuildAnalyzerViewModel.DataSet): BuildAnalyzerViewModel.DataSet = key
-
-    override fun create(dataSet: BuildAnalyzerViewModel.DataSet): JComponent = pageViewByDataSet(dataSet).component
-  }
-
-  private val additionalControlsPanel = object : CardLayoutPanel<BuildAnalyzerViewModel.DataSet, BuildAnalyzerViewModel.DataSet, JComponent>() {
-    override fun prepare(key: BuildAnalyzerViewModel.DataSet): BuildAnalyzerViewModel.DataSet = key
-
-    override fun create(dataSet: BuildAnalyzerViewModel.DataSet): JComponent = pageViewByDataSet(dataSet).additionalControls
-  }
-
-  /**
-   * Main panel that contains all the UI.
-   */
-  val wholePanel = JBPanel<JBPanel<*>>(BorderLayout(0, 1)).apply {
-    background = JBUI.CurrentTheme.ToolWindow.headerBorderBackground()
-    val controlsPanel = JBPanel<JBPanel<*>>(HorizontalLayout(10)).apply {
-      border = JBUI.Borders.emptyLeft(4)
-      withPreferredHeight(35)
-    }
-    isFocusTraversalPolicyProvider = true
-    focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
-      override fun accept(aComponent: Component?): Boolean {
-        return aComponent !is JEditorPane && super.accept(aComponent)
-      }
     }
 
-    controlsPanel.add(dataSetCombo)
-    controlsPanel.add(additionalControlsPanel)
-    add(controlsPanel, BorderLayout.NORTH)
-    add(pagesPanel, BorderLayout.CENTER)
-  }
+  private val pagesPanel =
+    object : CardLayoutPanel<BuildAnalyzerViewModel.DataSet, BuildAnalyzerViewModel.DataSet, JComponent>() {
+      override fun prepare(key: BuildAnalyzerViewModel.DataSet): BuildAnalyzerViewModel.DataSet = key
+
+      override fun create(dataSet: BuildAnalyzerViewModel.DataSet): JComponent = pageViewByDataSet(dataSet).component
+    }
+
+  private val additionalControlsPanel =
+    object : CardLayoutPanel<BuildAnalyzerViewModel.DataSet, BuildAnalyzerViewModel.DataSet, JComponent>() {
+      override fun prepare(key: BuildAnalyzerViewModel.DataSet): BuildAnalyzerViewModel.DataSet = key
+
+      override fun create(dataSet: BuildAnalyzerViewModel.DataSet): JComponent = pageViewByDataSet(dataSet).additionalControls
+    }
+
+  /** Main panel that contains all the UI. */
+  val wholePanel =
+    JBPanel<JBPanel<*>>(BorderLayout(0, 1)).apply {
+      background = JBUI.CurrentTheme.ToolWindow.headerBorderBackground()
+      val controlsPanel =
+        JBPanel<JBPanel<*>>(HorizontalLayout(10)).apply {
+          border = JBUI.Borders.emptyLeft(4)
+          withPreferredHeight(35)
+        }
+      isFocusTraversalPolicyProvider = true
+      focusTraversalPolicy =
+        object : LayoutFocusTraversalPolicy() {
+          override fun accept(aComponent: Component?): Boolean {
+            return aComponent !is JEditorPane && super.accept(aComponent)
+          }
+        }
+
+      controlsPanel.add(dataSetCombo)
+      controlsPanel.add(additionalControlsPanel)
+      add(controlsPanel, BorderLayout.NORTH)
+      add(pagesPanel, BorderLayout.CENTER)
+    }
 
   init {
     selectPage(model.selectedData)
@@ -133,4 +132,3 @@ class BuildAnalyzerComboBoxView(
     return JBUI.Panels.simplePanel(toolbar.component)
   }
 }
-

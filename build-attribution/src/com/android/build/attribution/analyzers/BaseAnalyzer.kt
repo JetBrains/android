@@ -18,16 +18,13 @@ package com.android.build.attribution.analyzers
 import com.android.build.attribution.data.TaskData
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 
-/**
- * This is a marker interface for the output of any build analyzer.
- */
+/** This is a marker interface for the output of any build analyzer. */
 interface AnalyzerResult
 
 /**
- * Base class for all build analyzers, provides logic for computing the final result lazily and caching it,
- * requests cleaning internal temporal state when it is not needed anymore.
- * Sub-classes should implement the result computation and cleaning internal state logic.
- * Any new analyzer should extend this.
+ * Base class for all build analyzers, provides logic for computing the final result lazily and caching it, requests cleaning internal
+ * temporal state when it is not needed anymore. Sub-classes should implement the result computation and cleaning internal state logic. Any
+ * new analyzer should extend this.
  *
  * The general flow for each analyzer would be:
  * 1) collect all data required from events and other input sources in internal variables.
@@ -70,24 +67,23 @@ abstract class BaseAnalyzer<T : AnalyzerResult> {
 
   fun onBuildFailure() = cleanupTempState()
 
-  /**
-   * Filter to ignore certain tasks or tasks from certain plugins.
-   */
+  /** Filter to ignore certain tasks or tasks from certain plugins. */
   protected fun applyIgnoredTasksFilter(task: TaskData): Boolean {
     // ignore tasks from our plugins
     return !task.originPlugin.isAndroidPlugin() &&
-           // ignore tasks from Gradle plugins
-           !task.originPlugin.isGradlePlugin() &&
-           // This task is not cacheable and runs all the time intentionally on invoking "clean". We should not surface this as an issue.
-           !(task.taskName == "clean" && task.originPlugin.idName == LifecycleBasePlugin::class.java.canonicalName) &&
-           // ignore custom delete tasks
-           task.taskType != org.gradle.api.tasks.Delete::class.java.canonicalName &&
-           // This task is from kotlin gradle plugin, was added in 1.9.20 and fixed in 2.0: https://youtrack.jetbrains.com/issue/KT-61943
-           // There is no point of warning about it, task runs quick and warning provides more confusion than help.
-           task.taskType != "org.jetbrains.kotlin.gradle.plugin.diagnostics.CheckKotlinGradlePluginConfigurationErrors" &&
-           // Workaround for using configuration caching as gradle doesn't send plugin information with task-finished events
-           // TODO(b/244314356) patch plugin information from the build attribution file in builds with configuration cache
-          !task.isAndroidTask() && !task.isGradleTask()
+      // ignore tasks from Gradle plugins
+      !task.originPlugin.isGradlePlugin() &&
+      // This task is not cacheable and runs all the time intentionally on invoking "clean". We should not surface this as an issue.
+      !(task.taskName == "clean" && task.originPlugin.idName == LifecycleBasePlugin::class.java.canonicalName) &&
+      // ignore custom delete tasks
+      task.taskType != org.gradle.api.tasks.Delete::class.java.canonicalName &&
+      // This task is from kotlin gradle plugin, was added in 1.9.20 and fixed in 2.0: https://youtrack.jetbrains.com/issue/KT-61943
+      // There is no point of warning about it, task runs quick and warning provides more confusion than help.
+      task.taskType != "org.jetbrains.kotlin.gradle.plugin.diagnostics.CheckKotlinGradlePluginConfigurationErrors" &&
+      // Workaround for using configuration caching as gradle doesn't send plugin information with task-finished events
+      // TODO(b/244314356) patch plugin information from the build attribution file in builds with configuration cache
+      !task.isAndroidTask() &&
+      !task.isGradleTask()
   }
 
   class ResultComputationLoopException : Exception("Loop detected in build analyzer computation dependencies, see stacktrace.")

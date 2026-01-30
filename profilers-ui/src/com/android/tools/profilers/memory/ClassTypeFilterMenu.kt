@@ -22,21 +22,21 @@ import com.intellij.util.ui.UIUtil
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-/**
- * A dropdown for filtering memory captures by class type (e.g. project, system, or all classes).
- */
-internal class ClassTypeFilterMenu(selection: MemoryCaptureSelection) : BaseFilterMenu(
-  selection,
-  AllClassTypeFilter.displayName,
-  "Filter by class types",
-  { filter, executor -> selection.setClassTypeFilter(filter, executor) },
-  CaptureSelectionAspect.CURRENT_CLASS_TYPE_FILTER
-) {
+/** A dropdown for filtering memory captures by class type (e.g. project, system, or all classes). */
+internal class ClassTypeFilterMenu(selection: MemoryCaptureSelection) :
+  BaseFilterMenu(
+    selection,
+    AllClassTypeFilter.displayName,
+    "Filter by class types",
+    { filter, executor -> selection.setClassTypeFilter(filter, executor) },
+    CaptureSelectionAspect.CURRENT_CLASS_TYPE_FILTER,
+  ) {
   override fun createComponent(dropDown: ProfilerDropDownComponent<CaptureObjectInstanceFilter?>): JPanel {
-    val label = JLabel("Class:").apply {
-      foreground = UIUtil.getLabelDisabledForeground()
-      border = JBUI.Borders.empty(1, 12, 0, 0)
-    }
+    val label =
+      JLabel("Class:").apply {
+        foreground = UIUtil.getLabelDisabledForeground()
+        border = JBUI.Borders.empty(1, 12, 0, 0)
+      }
     return JPanel(createToolbarLayout()).apply {
       add(label)
       add(dropDown)
@@ -44,5 +44,6 @@ internal class ClassTypeFilterMenu(selection: MemoryCaptureSelection) : BaseFilt
   }
 
   override fun getAvailableFilters(capture: CaptureObject?) = capture?.supportedClassTypeFilters?.toList() ?: emptyList()
+
   override fun getCurrentFilter(): CaptureObjectInstanceFilter? = selection.selectedClassTypeFilter
 }

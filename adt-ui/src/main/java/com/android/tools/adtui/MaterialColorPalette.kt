@@ -52,13 +52,7 @@ class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel()
 
   init {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    border =
-      JBUI.Borders.empty(
-        5,
-        HORIZONTAL_MARGIN_TO_PICKER_BORDER,
-        10,
-        HORIZONTAL_MARGIN_TO_PICKER_BORDER,
-      )
+    border = JBUI.Borders.empty(5, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 10, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
     preferredSize = JBUI.size(PICKER_PREFERRED_WIDTH, PANEL_HEIGHT)
     background = PICKER_BACKGROUND_COLOR
 
@@ -91,9 +85,7 @@ class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel()
   private fun setColorSet(category: MaterialColors.Category) {
     val colorSet = MaterialColors.getColorSet(category)
     saveLastUsedColorCategory(category)
-    MaterialColors.Color.values()
-      .filter { it.ordinal < colorButtons.size }
-      .forEach { colorButtons[it.ordinal].color = colorSet[it]!! }
+    MaterialColors.Color.values().filter { it.ordinal < colorButtons.size }.forEach { colorButtons[it.ordinal].color = colorSet[it]!! }
     repaint()
   }
 }
@@ -121,18 +113,14 @@ private const val COLOR_PICKER_CATEGORY_PROPERTY = "colorPickerCategoryProperty"
 private val DEFAULT_COLOR_CATEGORY = MaterialColors.Category.MATERIAL_500
 
 private fun loadLastUsedColorCategory(): MaterialColors.Category {
-  val modeName =
-    PropertiesComponent.getInstance()
-      .getValue(COLOR_PICKER_CATEGORY_PROPERTY, DEFAULT_COLOR_CATEGORY.name)
+  val modeName = PropertiesComponent.getInstance().getValue(COLOR_PICKER_CATEGORY_PROPERTY, DEFAULT_COLOR_CATEGORY.name)
   return try {
     MaterialColors.Category.valueOf(modeName)
   } catch (e: IllegalArgumentException) {
     // If the code reach here, that means some of unexpected category is saved as user's preference.
     // In this case, return the default category instead.
     Logger.getInstance(MaterialColorPalette::class.java)
-      .warn(
-        "The color category $modeName is not recognized, use default category $DEFAULT_COLOR_CATEGORY instead"
-      )
+      .warn("The color category $modeName is not recognized, use default category $DEFAULT_COLOR_CATEGORY instead")
     DEFAULT_COLOR_CATEGORY
   }
 }
@@ -141,6 +129,5 @@ private fun saveLastUsedColorCategory(category: MaterialColors.Category) =
   PropertiesComponent.getInstance().setValue(COLOR_PICKER_CATEGORY_PROPERTY, category.name)
 
 object MaterialColorPaletteProvider : ColorPickerComponentProvider {
-  override fun createComponent(colorPickerModel: ColorPickerModel) =
-    MaterialColorPalette(colorPickerModel)
+  override fun createComponent(colorPickerModel: ColorPickerModel) = MaterialColorPalette(colorPickerModel)
 }

@@ -24,26 +24,27 @@ import java.awt.Dimension
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-/**
- * A dropdown for filtering memory captures by issue type (e.g. Leaks, Duplicates).
- */
-internal class IssueTypeFilterMenu(selection: MemoryCaptureSelection) : BaseFilterMenu(
-  selection,
-  NoneFilter.displayName,
-  "Filter by issue types",
-  { filter, executor -> selection.setIssueTypeFilter(filter, executor) },
-  CaptureSelectionAspect.CURRENT_ISSUE_TYPE_FILTER
-) {
+/** A dropdown for filtering memory captures by issue type (e.g. Leaks, Duplicates). */
+internal class IssueTypeFilterMenu(selection: MemoryCaptureSelection) :
+  BaseFilterMenu(
+    selection,
+    NoneFilter.displayName,
+    "Filter by issue types",
+    { filter, executor -> selection.setIssueTypeFilter(filter, executor) },
+    CaptureSelectionAspect.CURRENT_ISSUE_TYPE_FILTER,
+  ) {
   override fun createComponent(dropDown: ProfilerDropDownComponent<CaptureObjectInstanceFilter?>): JPanel {
-    val label = JLabel("Filter by:").apply {
-      foreground = UIUtil.getLabelDisabledForeground()
-      border = JBUI.Borders.empty(1, 12, 0, 0)
-    }
-    return JPanel(createToolbarLayout()).apply {
-      val separator = JPanel().apply {
-        preferredSize = Dimension(JBUI.scale(1), JBUI.scale(16))
-        background = JBColor.border()
+    val label =
+      JLabel("Filter by:").apply {
+        foreground = UIUtil.getLabelDisabledForeground()
+        border = JBUI.Borders.empty(1, 12, 0, 0)
       }
+    return JPanel(createToolbarLayout()).apply {
+      val separator =
+        JPanel().apply {
+          preferredSize = Dimension(JBUI.scale(1), JBUI.scale(16))
+          background = JBColor.border()
+        }
       add(separator)
       add(label)
       add(dropDown)
@@ -51,5 +52,6 @@ internal class IssueTypeFilterMenu(selection: MemoryCaptureSelection) : BaseFilt
   }
 
   override fun getAvailableFilters(capture: CaptureObject?) = capture?.supportedIssueTypeFilters?.toList() ?: emptyList()
+
   override fun getCurrentFilter(): CaptureObjectInstanceFilter? = selection.selectedIssueTypeFilter
 }

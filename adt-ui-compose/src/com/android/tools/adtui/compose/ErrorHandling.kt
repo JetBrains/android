@@ -22,15 +22,13 @@ import java.awt.Component
 import kotlinx.coroutines.CancellationException
 
 /**
- * Runs the given block, catching any error that occurs, except for CancellationException and
- * ControlFlowException. The exception is logged at error severity (generating a crash report) and a
- * dialog is shown.
+ * Runs the given block, catching any error that occurs, except for CancellationException and ControlFlowException. The exception is logged
+ * at error severity (generating a crash report) and a dialog is shown.
  *
- * An uncaught exception in a Compose event handler will kill Compose's Recomposer, resulting in a
- * frozen, unresponsive UI. While it is better to avoid having uncaught exceptions to begin with, it
- * may be difficult to guarantee this if there is a large amount of code that may be potentially
- * executed. This provides a failsafe in case an exception slips through, resulting in similar
- * behavior to an uncaught exception in Swing.
+ * An uncaught exception in a Compose event handler will kill Compose's Recomposer, resulting in a frozen, unresponsive UI. While it is
+ * better to avoid having uncaught exceptions to begin with, it may be difficult to guarantee this if there is a large amount of code that
+ * may be potentially executed. This provides a failsafe in case an exception slips through, resulting in similar behavior to an uncaught
+ * exception in Swing.
  */
 inline fun <reified LoggerT : Any> catchAndShowErrors(
   parent: Component? = null,
@@ -48,14 +46,13 @@ inline fun <reified LoggerT : Any> catchAndShowErrors(
 }
 
 /**
- * Runs the given block, catching any error that occurs, except for CancellationException and
- * ControlFlowException. The exception is logged at error severity (generating a crash report).
+ * Runs the given block, catching any error that occurs, except for CancellationException and ControlFlowException. The exception is logged
+ * at error severity (generating a crash report).
  *
- * An uncaught exception in a Compose event handler will kill Compose's Recomposer, resulting in a
- * frozen, unresponsive UI. While it is better to avoid having uncaught exceptions to begin with, it
- * may be difficult to guarantee this if there is a large amount of code that may be potentially
- * executed. This provides a failsafe in case an exception slips through, resulting in similar
- * behavior to an uncaught exception in Swing.
+ * An uncaught exception in a Compose event handler will kill Compose's Recomposer, resulting in a frozen, unresponsive UI. While it is
+ * better to avoid having uncaught exceptions to begin with, it may be difficult to guarantee this if there is a large amount of code that
+ * may be potentially executed. This provides a failsafe in case an exception slips through, resulting in similar behavior to an uncaught
+ * exception in Swing.
  */
 inline fun <reified LoggerT : Any> catchAndLogErrors(block: () -> Unit) {
   try {

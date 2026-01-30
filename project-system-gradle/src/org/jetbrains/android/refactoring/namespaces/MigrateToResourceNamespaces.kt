@@ -22,8 +22,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -83,13 +83,17 @@ import org.jetbrains.android.util.AndroidBundle
  */
 class MigrateToResourceNamespacesAction : AndroidGradleBaseRefactoringAction() {
   override fun getHandler(dataContext: DataContext) = MigrateToResourceNamespacesHandler()
+
   override fun isHidden() = StudioFlags.MIGRATE_TO_RESOURCE_NAMESPACES_REFACTORING_ENABLED.get().not()
+
   override fun isAvailableInEditorOnly() = false
+
   override fun isAvailableForLanguage(language: Language?) = true
 
   override fun isEnabledOnDataContext(dataContext: DataContext) = isEnabledOnModule(dataContext.module)
-  override fun isEnabledOnElements(elements: Array<PsiElement>) = elements.firstOrNull()
-    ?.let { isEnabledOnModule(ModuleUtil.findModuleForPsiElement(it)) } ?: false
+
+  override fun isEnabledOnElements(elements: Array<PsiElement>) =
+    elements.firstOrNull()?.let { isEnabledOnModule(ModuleUtil.findModuleForPsiElement(it)) } ?: false
 
   private fun isEnabledOnModule(module: Module?): Boolean {
     return StudioResourceRepositoryManager.getInstance(module ?: return false)?.namespacing == ResourceNamespacing.DISABLED
@@ -116,9 +120,7 @@ class MigrateToResourceNamespacesHandler : RefactoringActionHandler {
     val processor = MigrateToResourceNamespacesProcessor(AndroidFacet.getInstance(module)!!)
     processor.setPreviewUsages(true)
 
-    offerToCreateBackupAndRun(module.project, processor.commandName) {
-      processor.run()
-    }
+    offerToCreateBackupAndRun(module.project, processor.commandName) { processor.run() }
   }
 }
 
@@ -133,22 +135,25 @@ private class DomValueUsageInfo(
   ref: PsiReference,
 
   /** [XmlElement] whose [GenericDomValue] needs to be changed. */
-  val xmlElement: XmlElement
-) : ResourceUsageInfo( // We don't use the UsageInfo(PsiReference) constructor to avoid resolving the reference.
-  ref.element,
-  ref.rangeInElement.startOffset,
-  ref.rangeInElement.endOffset
-) {
+  val xmlElement: XmlElement,
+) :
+  ResourceUsageInfo( // We don't use the UsageInfo(PsiReference) constructor to avoid resolving the reference.
+    ref.element,
+    ref.rangeInElement.startOffset,
+    ref.rangeInElement.endOffset,
+  ) {
 
   override val resourceType: ResourceType
     get() = resourceValue.type!!
+
   override val name: String
     get() = resourceValue.resourceName!!
 }
 
-
 private class XmlAttributeUsageInfo(attribute: XmlAttribute) : ResourceUsageInfo(attribute) {
-  override val resourceType: ResourceType get() = ResourceType.ATTR
+  override val resourceType: ResourceType
+    get() = ResourceType.ATTR
+
   override val name: String = attribute.localName
 }
 
@@ -157,12 +162,9 @@ private class StyleItemUsageInfo(val xmlAttribute: XmlAttribute, url: ResourceUr
   override val name: String = url.name
 }
 
-/**
- * Implements the "migrate to resource namespaces" refactoring by finding all references to resources and rewriting them.
- */
-class MigrateToResourceNamespacesProcessor(
-  private val invokingFacet: AndroidFacet
-) : BaseRefactoringProcessor(invokingFacet.module.project) {
+/** Implements the "migrate to resource namespaces" refactoring by finding all references to resources and rewriting them. */
+class MigrateToResourceNamespacesProcessor(private val invokingFacet: AndroidFacet) :
+  BaseRefactoringProcessor(invokingFacet.module.project) {
 
   public override fun getCommandName() = AndroidBundle.message("android.refactoring.migrateto.namespaces.title")
 
@@ -222,12 +224,13 @@ class MigrateToResourceNamespacesProcessor(
     val result = mutableListOf<ResourceUsageInfo>()
 
     for (facet in allFacets) {
-      result += SourceProviderManager.getInstance(facet)
-        .sources
-        .manifestFiles
-        .asSequence()
-        .mapNotNull { psiManager.findFile(it) as? XmlFile }
-        .flatMap { findXmlUsages(it, facet).asSequence() }
+      result +=
+        SourceProviderManager.getInstance(facet)
+          .sources
+          .manifestFiles
+          .asSequence()
+          .mapNotNull { psiManager.findFile(it) as? XmlFile }
+          .flatMap { findXmlUsages(it, facet).asSequence() }
     }
 
     return result
@@ -246,74 +249,76 @@ class MigrateToResourceNamespacesProcessor(
       return !moduleRepo.hasResources(ResourceNamespace.RES_AUTO, resourceType, name)
     }
 
-    xmlFile.accept(object : XmlRecursiveElementVisitor() {
-      override fun visitXmlTag(tag: XmlTag) {
-        val domElement = domManager.getDomElement(tag)
-        if (domElement is GenericDomValue<*>) {
-          handleGenericDomValue(domElement, tag)
-        }
-
-        super.visitXmlTag(tag)
-      }
-
-      override fun visitXmlAttribute(attribute: XmlAttribute) {
-        val domElement = domManager.getDomElement(attribute)
-        if (domElement is GenericDomValue<*>) {
-          // This attribute is part of our DOM definition, including the dynamic extensions from AttributeProcessingUtil. Check if the
-          // attribute itself and its value need to be rewritten. Note that rewriting the attribute value after the attribute name has been
-          // changed is harder (because the DOM layer no longer recognizes the attribute), so handle the attribute name first to make sure
-          // this is covered by tests. When not running in headless mode the order is changed by the "preview usages" window so cannot be
-          // easily controlled.
-          if (attribute.namespace == AUTO_URI) {
-            result += XmlAttributeUsageInfo(attribute)
+    xmlFile.accept(
+      object : XmlRecursiveElementVisitor() {
+        override fun visitXmlTag(tag: XmlTag) {
+          val domElement = domManager.getDomElement(tag)
+          if (domElement is GenericDomValue<*>) {
+            handleGenericDomValue(domElement, tag)
           }
-          handleGenericDomValue(domElement, attribute)
+
+          super.visitXmlTag(tag)
         }
-        super.visitXmlAttribute(attribute)
-      }
 
-      private fun handleGenericDomValue(domValue: GenericDomValue<*>, sourceXmlElement: XmlElement) {
-        val converter = WrappingConverter.getDeepestConverter(domValue.converter, domValue)
-        val psiElement = DomUtil.getValueElement(domValue) ?: return
-        when (converter) {
-          is ResourceReferenceConverter -> {
-            references@ for (reference in psiElement.references) {
-              if (reference !is AndroidResourceReference) continue@references
+        override fun visitXmlAttribute(attribute: XmlAttribute) {
+          val domElement = domManager.getDomElement(attribute)
+          if (domElement is GenericDomValue<*>) {
+            // This attribute is part of our DOM definition, including the dynamic extensions from AttributeProcessingUtil. Check if the
+            // attribute itself and its value need to be rewritten. Note that rewriting the attribute value after the attribute name has
+            // been
+            // changed is harder (because the DOM layer no longer recognizes the attribute), so handle the attribute name first to make sure
+            // this is covered by tests. When not running in headless mode the order is changed by the "preview usages" window so cannot be
+            // easily controlled.
+            if (attribute.namespace == AUTO_URI) {
+              result += XmlAttributeUsageInfo(attribute)
+            }
+            handleGenericDomValue(domElement, attribute)
+          }
+          super.visitXmlAttribute(attribute)
+        }
 
-              val resourceValue = reference.resourceValue
-              when {
-                resourceValue.`package` != null -> {
-                  // Leave as-is, this is either a reference to a framework resource or sample data.
-                }
-                resourceValue.resourceType?.startsWith('+') == true -> {
-                  // This defines a new id, no need to change.
-                }
-                else -> {
-                  // See if this resource is defined in the same module, otherwise it needs to be rewritten.
-                  val name = resourceValue.resourceName.nullize(nullizeSpaces = true) ?: continue@references
-                  val resourceType = resourceValue.type ?: continue@references
-                  if (referenceNeedsRewriting(resourceType, name)) {
-                    result += DomValueUsageInfo(resourceValue, converter, reference, sourceXmlElement)
+        private fun handleGenericDomValue(domValue: GenericDomValue<*>, sourceXmlElement: XmlElement) {
+          val converter = WrappingConverter.getDeepestConverter(domValue.converter, domValue)
+          val psiElement = DomUtil.getValueElement(domValue) ?: return
+          when (converter) {
+            is ResourceReferenceConverter -> {
+              references@ for (reference in psiElement.references) {
+                if (reference !is AndroidResourceReference) continue@references
+
+                val resourceValue = reference.resourceValue
+                when {
+                  resourceValue.`package` != null -> {
+                    // Leave as-is, this is either a reference to a framework resource or sample data.
+                  }
+                  resourceValue.resourceType?.startsWith('+') == true -> {
+                    // This defines a new id, no need to change.
+                  }
+                  else -> {
+                    // See if this resource is defined in the same module, otherwise it needs to be rewritten.
+                    val name = resourceValue.resourceName.nullize(nullizeSpaces = true) ?: continue@references
+                    val resourceType = resourceValue.type ?: continue@references
+                    if (referenceNeedsRewriting(resourceType, name)) {
+                      result += DomValueUsageInfo(resourceValue, converter, reference, sourceXmlElement)
+                    }
                   }
                 }
               }
             }
-          }
-          is AttrNameConverter -> {
-            val url = domValue.stringValue?.let(ResourceUrl::parseAttrReference) ?: return
-            if (url.namespace == null && referenceNeedsRewriting(url.type, url.name)) {
-              result += StyleItemUsageInfo(psiElement.parentOfType()!!, url)
+            is AttrNameConverter -> {
+              val url = domValue.stringValue?.let(ResourceUrl::parseAttrReference) ?: return
+              if (url.namespace == null && referenceNeedsRewriting(url.type, url.name)) {
+                result += StyleItemUsageInfo(psiElement.parentOfType()!!, url)
+              }
             }
+          // TODO(b/78765120): handle other relevant converters.
           }
-        // TODO(b/78765120): handle other relevant converters.
         }
       }
-    })
+    )
 
     progressIndicator.text2 = null
     return result
   }
-
 
   override fun performRefactoring(usages: Array<UsageInfo>) {
     val progressIndicator = ProgressManager.getInstance().progressIndicator
@@ -330,21 +335,18 @@ class MigrateToResourceNamespacesProcessor(
         when (usageInfo) {
           is DomValueUsageInfo -> {
             val xmlElement = usageInfo.xmlElement
-            val tag = when (xmlElement) {
-              is XmlTag -> xmlElement
-              is XmlAttribute -> xmlElement.parent
-              else -> return@forEachIndexed
-            }
+            val tag =
+              when (xmlElement) {
+                is XmlTag -> xmlElement
+                is XmlAttribute -> xmlElement.parent
+                else -> return@forEachIndexed
+              }
             val namespace = findOrCreateNamespacePrefix(tag, inferredPackage)
             val resourceValue = usageInfo.resourceValue
-            val newStringValue = usageInfo.converter.convertToString(
-               ResourceValue.referenceTo(
-                resourceValue.prefix,
-                namespace,
-                resourceValue.resourceType,
-                resourceValue.resourceName
-              )
-            ) ?: ""
+            val newStringValue =
+              usageInfo.converter.convertToString(
+                ResourceValue.referenceTo(resourceValue.prefix, namespace, resourceValue.resourceType, resourceValue.resourceName)
+              ) ?: ""
 
             when (xmlElement) {
               is XmlTag -> xmlElement.value.text = newStringValue
@@ -355,9 +357,7 @@ class MigrateToResourceNamespacesProcessor(
           is XmlAttributeUsageInfo -> {
             val element = usageInfo.element as? XmlAttribute ?: return@forEachIndexed
             val prefix = findOrCreateNamespacePrefix(element.parent, inferredPackage)
-            element.references
-              .find { it is SchemaPrefixReference }
-              ?.handleElementRename(prefix)
+            element.references.find { it is SchemaPrefixReference }?.handleElementRename(prefix)
           }
           is StyleItemUsageInfo -> {
             val tag = usageInfo.xmlAttribute.parent
@@ -372,7 +372,6 @@ class MigrateToResourceNamespacesProcessor(
 
         progressIndicator.fraction = (index + 1) / totalUsages
       }
-
     } finally {
       psiMigration.finish()
     }
@@ -394,58 +393,58 @@ class MigrateToResourceNamespacesProcessor(
   }
 
   /**
-   * Finds the xmlns prefix used for the given resource package name in the context of the given [tag]. If no such prefix is defined,
-   * it gets added to the root tag of the document.
+   * Finds the xmlns prefix used for the given resource package name in the context of the given [tag]. If no such prefix is defined, it
+   * gets added to the root tag of the document.
    */
   private fun findOrCreateNamespacePrefix(tag: XmlTag, inferredPackage: String): String {
-    return tag.getPrefixByNamespace(URI_PREFIX + inferredPackage) ?: run {
-      var newPrefix = choosePrefix(inferredPackage)
-      if (tag.getNamespaceByPrefix(newPrefix).isNotEmpty()) {
-        var i = 2
-        while (tag.getNamespaceByPrefix(newPrefix + i).isNotEmpty()) {
-          i++
+    return tag.getPrefixByNamespace(URI_PREFIX + inferredPackage)
+      ?: run {
+        var newPrefix = choosePrefix(inferredPackage)
+        if (tag.getNamespaceByPrefix(newPrefix).isNotEmpty()) {
+          var i = 2
+          while (tag.getNamespaceByPrefix(newPrefix + i).isNotEmpty()) {
+            i++
+          }
+
+          newPrefix += i
         }
 
-        newPrefix += i
+        tag.parentOfType<XmlDocument>()?.rootTag?.let { addXmlnsDeclaration(it, newPrefix, URI_PREFIX + inferredPackage) }
+        newPrefix
       }
-
-      tag.parentOfType<XmlDocument>()?.rootTag?.let { addXmlnsDeclaration(it, newPrefix, URI_PREFIX + inferredPackage) }
-      newPrefix
-    }
   }
 
   private fun addXmlnsDeclaration(tag: XmlTag, prefix: String, uri: String) {
-    tag.addBefore(
-      elementFactory.createAttribute("xmlns:$prefix", uri, tag),
-      tag.attributes.firstOrNull { it.namespacePrefix != "xmlns" }
-    )
+    tag.addBefore(elementFactory.createAttribute("xmlns:$prefix", uri, tag), tag.attributes.firstOrNull { it.namespacePrefix != "xmlns" })
   }
 
   protected override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
-    // TODO(b/78765120): Report conflicts and any other issues. This method runs on the UI thread, so we need to do the actual work in [findUsages].
+    // TODO(b/78765120): Report conflicts and any other issues. This method runs on the UI thread, so we need to do the actual work in
+    // [findUsages].
     return if (refUsages.get().isNotEmpty()) {
       true
-    }
-    else {
+    } else {
       Messages.showInfoMessage(
         myProject,
         "No cross-namespace resource references found",
-        AndroidBundle.message("android.refactoring.migrateto.namespaces.title"))
+        AndroidBundle.message("android.refactoring.migrateto.namespaces.title"),
+      )
       false
     }
   }
 
-  override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor = object : UsageViewDescriptorAdapter() {
-    override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
-    override fun getProcessedElementsHeader() =
-      AndroidBundle.message("android.refactoring.migrateto.resourceview.header")
-  }
+  override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor =
+    object : UsageViewDescriptorAdapter() {
+      override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
+
+      override fun getProcessedElementsHeader() = AndroidBundle.message("android.refactoring.migrateto.resourceview.header")
+    }
 }
 
 /**
  * Picks the short namespace prefix for the given resource package name.
  *
  * TODO(b/80284538): Decide how to pick a short name for a library. For now we're using the last component of the package name, but we
- *                   discussed storing the suggested short prefix in an AAR's metadata, so that library authors can provide a suggestion.
+ *   discussed storing the suggested short prefix in an AAR's metadata, so that library authors can provide a suggestion.
  */
 private fun choosePrefix(packageName: String): String = packageName.substringAfterLast('.')

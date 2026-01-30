@@ -45,8 +45,7 @@ import java.util.function.BiConsumer
 import org.HdrHistogram.Recorder
 
 /**
- * Tracks highlighting latency across file types.
- * To log an [AndroidStudioEvent] with the collected data, call [reportHighlightingStats].
+ * Tracks highlighting latency across file types. To log an [AndroidStudioEvent] with the collected data, call [reportHighlightingStats].
  */
 @Service
 class HighlightingStats : Disposable {
@@ -63,14 +62,14 @@ class HighlightingStats : Disposable {
     // Our fork of IntelliJ adds a custom callback hook in GeneralHighlightingPass to allow
     // measuring highlighting latency. We set the callback using reflection to avoid compilation
     // issues in JetBrains/android. We may upstream a better solution later (b/461569054).
-    val callbackInstalled = ReflectionUtil.setField(
-      @Suppress("UnstableApiUsage")
-      GeneralHighlightingPass::class.java,
-      null,
-      BiConsumer::class.java,
-      "latencyCallbackForAndroidStudio",
-      BiConsumer<Document, Long>(::recordHighlightingLatency),
-    )
+    val callbackInstalled =
+      ReflectionUtil.setField(
+        @Suppress("UnstableApiUsage") GeneralHighlightingPass::class.java,
+        null,
+        BiConsumer::class.java,
+        "latencyCallbackForAndroidStudio",
+        BiConsumer<Document, Long>(::recordHighlightingLatency),
+      )
     if (callbackInstalled) {
       // Send reports hourly.
       JobScheduler.getScheduler().scheduleWithFixedDelay(::reportHighlightingStats, 1, 1, HOURS)
@@ -86,10 +85,7 @@ class HighlightingStats : Disposable {
     reportHighlightingStats()
   }
 
-  /**
-   * Maps file types to latency recorders.
-   * We use [Recorder] to allow thread-safe read access from background threads.
-   */
+  /** Maps file types to latency recorders. We use [Recorder] to allow thread-safe read access from background threads. */
   private val latencyRecorders = ConcurrentHashMap<EditorFileType, Recorder>()
 
   fun recordHighlightingLatency(document: Document, latencyMs: Long) {
@@ -101,8 +97,8 @@ class HighlightingStats : Disposable {
   }
 
   /**
-   * Logs an [AndroidStudioEvent] with editor highlighting stats.
-   * Resets statistics so that counts are not double-counted in the next report.
+   * Logs an [AndroidStudioEvent] with editor highlighting stats. Resets statistics so that counts are not double-counted in the next
+   * report.
    */
   fun reportHighlightingStats() {
     val allStats = EditorHighlightingStats.newBuilder()
@@ -111,10 +107,11 @@ class HighlightingStats : Disposable {
       if (histogram.totalCount == 0L) {
         continue
       }
-      val record = EditorHighlightingStats.Stats.newBuilder().also {
-        it.fileType = fileType
-        it.histogram = histogram.toProto()
-      }
+      val record =
+        EditorHighlightingStats.Stats.newBuilder().also {
+          it.fileType = fileType
+          it.histogram = histogram.toProto()
+        }
       allStats.addByFileType(record.build())
     }
 
@@ -148,5 +145,4 @@ class HighlightingStats : Disposable {
   }
 
   private fun String.isCMakeFileByName(): Boolean = this == "CMakeLists.txt" || StringUtil.endsWithIgnoreCase(this, ".cmake")
-
 }

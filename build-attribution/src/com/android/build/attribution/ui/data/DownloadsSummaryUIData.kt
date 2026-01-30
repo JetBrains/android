@@ -17,11 +17,11 @@ package com.android.build.attribution.ui.data
 
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 
-class DownloadsSummaryUIData(
-  downloadsData: DownloadsAnalyzer.ActiveResult
-) {
+class DownloadsSummaryUIData(downloadsData: DownloadsAnalyzer.ActiveResult) {
   val isEmpty: Boolean = downloadsData.repositoryResults.isEmpty()
-  val sumOfRequests: Int = downloadsData.repositoryResults.sumOf { it.successRequestsCount + it.failedRequestsCount + it.missedRequestsCount }
+  val sumOfRequests: Int =
+    downloadsData.repositoryResults.sumOf { it.successRequestsCount + it.failedRequestsCount + it.missedRequestsCount }
   val sumOfDataBytes: Long = downloadsData.repositoryResults.sumOf { it.successRequestsBytesDownloaded + it.failedRequestsBytesDownloaded }
-  val sumOfTimeMs: Long = downloadsData.repositoryResults.sumOf { it.successRequestsTimeMs + it.failedRequestsTimeMs + it.missedRequestsTimeMs }
+  val sumOfTimeMs: Long =
+    downloadsData.repositoryResults.sumOf { it.successRequestsTimeMs + it.failedRequestsTimeMs + it.missedRequestsTimeMs }
 }

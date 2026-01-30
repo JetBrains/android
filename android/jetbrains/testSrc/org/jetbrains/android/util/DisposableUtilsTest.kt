@@ -34,13 +34,14 @@ class DisposableUtilsTest {
     val d1 = createDisposable()
     val d2 = createDisposable()
     val d3 = createDisposable()
-    val multiParentDisposable = object : MultiParentDisposable(d1, d2, d3) {
-      var isDisposed = false
+    val multiParentDisposable =
+      object : MultiParentDisposable(d1, d2, d3) {
+        var isDisposed = false
 
-      override fun dispose() {
-        isDisposed = true
+        override fun dispose() {
+          isDisposed = true
+        }
       }
-    }
     Disposer.dispose(d2)
     assertThat(multiParentDisposable.isDisposed).isTrue()
     assertThat(DisposerExplorer.getChildren(d1)).isEmpty()
@@ -53,13 +54,14 @@ class DisposableUtilsTest {
     val d1 = createDisposable()
     val d2 = createDisposable()
     val d3 = createDisposable()
-    val multiParentDisposable = object : MultiParentDisposable(d1, d2, d3) {
-      var isDisposed = false
+    val multiParentDisposable =
+      object : MultiParentDisposable(d1, d2, d3) {
+        var isDisposed = false
 
-      override fun dispose() {
-        isDisposed = true
+        override fun dispose() {
+          isDisposed = true
+        }
       }
-    }
     Disposer.dispose(multiParentDisposable)
     assertThat(DisposerExplorer.getChildren(d1)).isEmpty()
     assertThat(DisposerExplorer.getChildren(d2)).isEmpty()
@@ -79,9 +81,7 @@ class DisposableUtilsTest {
     val d2 = createDisposable()
     val d3 = createDisposable()
     var executed = false
-    runOnDisposalOfAnyOf(d1, d2, d3) {
-      executed = true
-    }
+    runOnDisposalOfAnyOf(d1, d2, d3) { executed = true }
     Disposer.dispose(d3)
     assertThat(executed).isTrue()
     assertThat(DisposerExplorer.getChildren(d1)).isEmpty()
@@ -89,6 +89,5 @@ class DisposableUtilsTest {
     assertThat(DisposerExplorer.getChildren(d3)).isEmpty()
   }
 
-  private fun createDisposable(): Disposable =
-      Disposer.newDisposable().also { Disposer.register(disposableRule.disposable, it) }
+  private fun createDisposable(): Disposable = Disposer.newDisposable().also { Disposer.register(disposableRule.disposable, it) }
 }

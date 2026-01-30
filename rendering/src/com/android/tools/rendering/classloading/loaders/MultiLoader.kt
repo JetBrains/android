@@ -15,13 +15,9 @@
  */
 package com.android.tools.rendering.classloading.loaders
 
-/**
- * A [DelegatingClassLoader.Loader] that can use multiple delegate [DelegatingClassLoader.Loader].
- */
-class MultiLoader(val delegates: List<DelegatingClassLoader.Loader>) :
-  DelegatingClassLoader.Loader {
+/** A [DelegatingClassLoader.Loader] that can use multiple delegate [DelegatingClassLoader.Loader]. */
+class MultiLoader(val delegates: List<DelegatingClassLoader.Loader>) : DelegatingClassLoader.Loader {
   constructor(vararg delegates: DelegatingClassLoader.Loader) : this(delegates.toList())
 
-  override fun loadClass(fqcn: String): ByteArray? =
-    delegates.asSequence().mapNotNull { it.loadClass(fqcn) }.firstOrNull()
+  override fun loadClass(fqcn: String): ByteArray? = delegates.asSequence().mapNotNull { it.loadClass(fqcn) }.firstOrNull()
 }

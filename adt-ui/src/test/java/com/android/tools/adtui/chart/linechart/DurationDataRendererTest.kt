@@ -74,8 +74,7 @@ class DurationDataRendererTest {
         override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) = Unit
       }
 
-    val durationDataRenderer =
-      DurationDataRenderer.Builder(durationData, Color.BLACK).setIcon(dummyIcon).build()
+    val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setIcon(dummyIcon).build()
     val underneathComponent = JPanel()
     val overlayComponent = OverlayComponent(underneathComponent)
     overlayComponent.bounds = Rectangle(0, 0, 200, 50)
@@ -84,13 +83,7 @@ class DurationDataRendererTest {
     durationData.update(1) // Forces duration data renderer to update
 
     assertThat(durationDataRenderer.clickRegionCache.size).isEqualTo(1)
-    validateRegion(
-      durationDataRenderer.clickRegionCache[0],
-      0f,
-      1f,
-      5f,
-      5f,
-    ) // attached series has no data before this point, y == 1.
+    validateRegion(durationDataRenderer.clickRegionCache[0], 0f, 1f, 5f, 5f) // attached series has no data before this point, y == 1.
 
     underneathComponent.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 
@@ -106,8 +99,7 @@ class DurationDataRendererTest {
     assertThat(underneathComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
 
     fakeUi.mouse.moveTo(clickRegionRect.x.toInt() + 1, clickRegionRect.y.toInt() + 1)
-    assertThat(underneathComponent.cursor)
-      .isEqualTo(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
+    assertThat(underneathComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
   }
 
   @Test
@@ -145,34 +137,14 @@ class DurationDataRendererTest {
     durationData.update(-1) // value doesn't matter here.
 
     assertThat(durationDataRenderer.clickRegionCache.size).isEqualTo(5)
-    validateRegion(
-      durationDataRenderer.clickRegionCache[0],
-      0f,
-      1f,
-      5f,
-      5f,
-    ) // attached series has no data before this point, y == 1.
-    validateRegion(
-      durationDataRenderer.clickRegionCache[1],
-      0.2f,
-      1f,
-      5f,
-      5f,
-    ) // attached series has no data before this point, y == 1.
-    validateRegion(
-      durationDataRenderer.clickRegionCache[2],
-      0.4f,
-      1f,
-      5f,
-      5f,
-    ) // attached predicate fails.
+    validateRegion(durationDataRenderer.clickRegionCache[0], 0f, 1f, 5f, 5f) // attached series has no data before this point, y == 1.
+    validateRegion(durationDataRenderer.clickRegionCache[1], 0.2f, 1f, 5f, 5f) // attached series has no data before this point, y == 1.
+    validateRegion(durationDataRenderer.clickRegionCache[2], 0.4f, 1f, 5f, 5f) // attached predicate fails.
     validateRegion(durationDataRenderer.clickRegionCache[3], 0.6f, 0.4f, 5f, 5f)
     // attached series has no data after this point, use the last point as the attached y.
     validateRegion(durationDataRenderer.clickRegionCache[4], 0.8f, 0.2f, 5f, 5f)
 
-    assert(
-      durationDataRenderer.clickRegionCache.size == durationDataRenderer.regionOnLineSeries.size
-    )
+    assert(durationDataRenderer.clickRegionCache.size == durationDataRenderer.regionOnLineSeries.size)
 
     // Also checked for the post-scaled values
     fun testPostScaled(hostWidth: Int, hostHeight: Int) =
@@ -227,40 +199,23 @@ class DurationDataRendererTest {
     val rangeSeries1 = RangedContinuousSeries("test1", xRange, yRange, series1)
     val rangeSeries2 = RangedContinuousSeries("test2", xRange, yRange, series2)
     val lineChart = LineChart(Arrays.asList(rangeSeries1, rangeSeries2))
-    lineChart.configure(
-      rangeSeries1,
-      LineConfig(Color.ORANGE).setStroke(LineConfig.DEFAULT_DASH_STROKE),
-    )
-    lineChart.configure(
-      rangeSeries2,
-      LineConfig(Color.PINK).setStroke(LineConfig.DEFAULT_DASH_STROKE),
-    )
+    lineChart.configure(rangeSeries1, LineConfig(Color.ORANGE).setStroke(LineConfig.DEFAULT_DASH_STROKE))
+    lineChart.configure(rangeSeries2, LineConfig(Color.PINK).setStroke(LineConfig.DEFAULT_DASH_STROKE))
 
     val dataSeries = DefaultDataSeries<DurationData>()
     val durationData = DurationDataModel(RangedSeries(xRange, dataSeries))
     val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).build()
-    durationDataRenderer.addCustomLineConfig(
-      rangeSeries1,
-      LineConfig(Color.BLUE).setStroke(LineConfig.DEFAULT_DASH_STROKE),
-    )
+    durationDataRenderer.addCustomLineConfig(rangeSeries1, LineConfig(Color.BLUE).setStroke(LineConfig.DEFAULT_DASH_STROKE))
     durationDataRenderer.addCustomLineConfig(rangeSeries2, LineConfig(Color.YELLOW))
 
     // Fake a dash phase update on the default LineConfig
     lineChart.getLineConfig(rangeSeries1).adjustedDashPhase = 0.25
     lineChart.getLineConfig(rangeSeries2).adjustedDashPhase = 0.75
 
-    assertThat(lineChart.getLineConfig(rangeSeries1).adjustedDashPhase)
-      .isWithin(EPSILON.toDouble())
-      .of(0.25)
-    assertThat(lineChart.getLineConfig(rangeSeries2).adjustedDashPhase)
-      .isWithin(EPSILON.toDouble())
-      .of(0.75)
-    assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries1).adjustedDashPhase)
-      .isWithin(EPSILON.toDouble())
-      .of(0.0)
-    assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries2).adjustedDashPhase)
-      .isWithin(EPSILON.toDouble())
-      .of(0.0)
+    assertThat(lineChart.getLineConfig(rangeSeries1).adjustedDashPhase).isWithin(EPSILON.toDouble()).of(0.25)
+    assertThat(lineChart.getLineConfig(rangeSeries2).adjustedDashPhase).isWithin(EPSILON.toDouble()).of(0.75)
+    assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries1).adjustedDashPhase).isWithin(EPSILON.toDouble()).of(0.0)
+    assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries2).adjustedDashPhase).isWithin(EPSILON.toDouble()).of(0.0)
 
     // Fake a renderLines call then check that the dash phase on the custom LineConfig has been
     // updated.
@@ -270,13 +225,9 @@ class DurationDataRendererTest {
       Collections.singletonList(Path2D.Float()) as List<Path2D>,
       Arrays.asList(rangeSeries1, rangeSeries2),
     )
-    assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries1).adjustedDashPhase)
-      .isWithin(EPSILON.toDouble())
-      .of(0.25)
+    assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries1).adjustedDashPhase).isWithin(EPSILON.toDouble()).of(0.25)
     // rangeSeries2 isn't updated as the custom LineConfig is not a dash stroke.
-    assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries2).adjustedDashPhase)
-      .isWithin(EPSILON.toDouble())
-      .of(0.0)
+    assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries2).adjustedDashPhase).isWithin(EPSILON.toDouble()).of(0.0)
   }
 
   @Test
@@ -302,14 +253,10 @@ class DurationDataRendererTest {
         override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) = Unit
       }
 
-    var durationDataRenderer =
-      DurationDataRenderer.Builder(durationData, Color.BLACK).setIcon(dummyIcon).build()
+    var durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setIcon(dummyIcon).build()
     assertThat(durationDataRenderer.getIcon(DurationData { 0 })).isEqualTo(dummyIcon)
 
-    durationDataRenderer =
-      DurationDataRenderer.Builder(durationData, Color.BLACK)
-        .setIconMapper { _ -> dummyIcon2 }
-        .build()
+    durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setIconMapper { _ -> dummyIcon2 }.build()
     assertThat(durationDataRenderer.getIcon(DurationData { 0 })).isEqualTo(dummyIcon2)
   }
 
@@ -330,10 +277,7 @@ class DurationDataRendererTest {
     durationData.setAttachedSeries(attachedRangeSeries, Interpolatable.SegmentInterpolator)
     durationData.setAttachPredicate { data -> data.x == 6L }
     val durationDataRenderer =
-      DurationDataRenderer.Builder(durationData, Color.BLACK)
-        .setBackgroundClickable(true)
-        .setClickHandler { clicked = true }
-        .build()
+      DurationDataRenderer.Builder(durationData, Color.BLACK).setBackgroundClickable(true).setClickHandler { clicked = true }.build()
     val underneathComponent = JPanel()
     val overlayComponent = OverlayComponent(underneathComponent)
     overlayComponent.bounds = Rectangle(0, 0, 200, 50)
@@ -349,13 +293,7 @@ class DurationDataRendererTest {
     assertThat(clicked).isTrue()
   }
 
-  private fun validateRegion(
-    rect: Rectangle2D.Float,
-    xStart: Float,
-    yStart: Float,
-    width: Float,
-    height: Float,
-  ) {
+  private fun validateRegion(rect: Rectangle2D.Float, xStart: Float, yStart: Float, width: Float, height: Float) {
     assertThat(rect.x).isWithin(EPSILON).of(xStart)
     assertThat(rect.y).isWithin(EPSILON).of(yStart)
     assertThat(rect.width).isWithin(EPSILON).of(width)

@@ -22,21 +22,25 @@ import java.time.Duration
 
 class AnnotationProcessorsAnalyzerResultMessageConverter {
   companion object {
-    fun transform(annotationProcessorsAnalyzerResult: AnnotationProcessorsAnalyzer.Result)
-      : BuildAnalysisResultsMessage.AnnotationProcessorsAnalyzerResult =
+    fun transform(
+      annotationProcessorsAnalyzerResult: AnnotationProcessorsAnalyzer.Result
+    ): BuildAnalysisResultsMessage.AnnotationProcessorsAnalyzerResult =
       BuildAnalysisResultsMessage.AnnotationProcessorsAnalyzerResult.newBuilder()
         .addAllAnnotationProcessorsData(
-          annotationProcessorsAnalyzerResult.annotationProcessorsData.map(Companion::transformAnnotationProcessorsDatum))
+          annotationProcessorsAnalyzerResult.annotationProcessorsData.map(Companion::transformAnnotationProcessorsDatum)
+        )
         .addAllNonIncrementalAnnotationProcessorsData(
-          annotationProcessorsAnalyzerResult.nonIncrementalAnnotationProcessorsData.map(Companion::transformAnnotationProcessorsDatum))
+          annotationProcessorsAnalyzerResult.nonIncrementalAnnotationProcessorsData.map(Companion::transformAnnotationProcessorsDatum)
+        )
         .build()
 
     fun construct(
       annotationProcessorsAnalyzerResult: BuildAnalysisResultsMessage.AnnotationProcessorsAnalyzerResult
-    ): AnnotationProcessorsAnalyzer.Result = AnnotationProcessorsAnalyzer.Result(
-      constructAnnotationProcessorsData(annotationProcessorsAnalyzerResult.annotationProcessorsDataList),
-      constructAnnotationProcessorsData(annotationProcessorsAnalyzerResult.nonIncrementalAnnotationProcessorsDataList)
-    )
+    ): AnnotationProcessorsAnalyzer.Result =
+      AnnotationProcessorsAnalyzer.Result(
+        constructAnnotationProcessorsData(annotationProcessorsAnalyzerResult.annotationProcessorsDataList),
+        constructAnnotationProcessorsData(annotationProcessorsAnalyzerResult.nonIncrementalAnnotationProcessorsDataList),
+      )
 
     private fun transformAnnotationProcessorsDatum(annotationProcessorData: AnnotationProcessorData) =
       BuildAnalysisResultsMessage.AnnotationProcessorsAnalyzerResult.AnnotationProcessorsData.newBuilder()
@@ -45,10 +49,7 @@ class AnnotationProcessorsAnalyzerResultMessageConverter {
         .build()
 
     private fun transformDuration(duration: Duration): BuildAnalysisResultsMessage.Duration =
-      BuildAnalysisResultsMessage.Duration.newBuilder()
-        .setSeconds(duration.seconds)
-        .setNanos(duration.nano)
-        .build()
+      BuildAnalysisResultsMessage.Duration.newBuilder().setSeconds(duration.seconds).setNanos(duration.nano).build()
 
     private fun constructAnnotationProcessorsData(
       annotationProcessorData: MutableList<BuildAnalysisResultsMessage.AnnotationProcessorsAnalyzerResult.AnnotationProcessorsData>
@@ -58,7 +59,8 @@ class AnnotationProcessorsAnalyzerResultMessageConverter {
         val value = annotationProcessorsDatum.className
         val compilationDuration = annotationProcessorsDatum.compilationDuration
         annotationProcessorDataConverted.add(
-          AnnotationProcessorData(value, Duration.ofSeconds(compilationDuration.seconds, compilationDuration.nanos.toLong())))
+          AnnotationProcessorData(value, Duration.ofSeconds(compilationDuration.seconds, compilationDuration.nanos.toLong()))
+        )
       }
       return annotationProcessorDataConverted
     }

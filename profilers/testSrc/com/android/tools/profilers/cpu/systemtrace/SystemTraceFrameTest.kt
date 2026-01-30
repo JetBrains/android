@@ -16,23 +16,17 @@
 package com.android.tools.profilers.cpu.systemtrace
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.util.concurrent.TimeUnit
+import org.junit.Test
 
 class SystemTraceFrameTest {
 
   private companion object {
-    private val GOOD = TraceEventModel("event",
-                                       TimeUnit.SECONDS.toMicros(1),
-                                       TimeUnit.SECONDS.toMicros(2),
-                                       TimeUnit.SECONDS.toMicros(1),
-                                       emptyList())
+    private val GOOD =
+      TraceEventModel("event", TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(2), TimeUnit.SECONDS.toMicros(1), emptyList())
 
-    val BAD = TraceEventModel("event",
-                              TimeUnit.SECONDS.toMicros(3),
-                              TimeUnit.SECONDS.toMicros(10),
-                              TimeUnit.SECONDS.toMicros(7),
-                              emptyList())
+    val BAD =
+      TraceEventModel("event", TimeUnit.SECONDS.toMicros(3), TimeUnit.SECONDS.toMicros(10), TimeUnit.SECONDS.toMicros(7), emptyList())
 
     private val LONG_FRAME_TIME = TimeUnit.SECONDS.toMicros(5)
   }
@@ -59,7 +53,6 @@ class SystemTraceFrameTest {
     assertThat(goodFrame.totalPerfClass).isEqualTo(SystemTraceFrame.PerfClass.BAD)
     assertThat(badFrame.totalPerfClass).isEqualTo(SystemTraceFrame.PerfClass.BAD)
 
-    assertThat(SystemTraceFrame.EMPTY.totalPerfClass).isEqualTo(
-      SystemTraceFrame.PerfClass.NOT_SET)
+    assertThat(SystemTraceFrame.EMPTY.totalPerfClass).isEqualTo(SystemTraceFrame.PerfClass.NOT_SET)
   }
 }

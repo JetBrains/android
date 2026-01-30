@@ -33,9 +33,7 @@ class BuildAnalysisResultsSnapshotGenerator {
   private fun String.smartPad() = this.padEnd(max(30, 10 + this.length / 10 * 10))
 
   private fun prop(name: String, value: () -> String?) {
-    value()?.let {
-      appendLn("${name.smartPad()}: $it")
-    }
+    value()?.let { appendLn("${name.smartPad()}: $it") }
   }
 
   private fun head(name: String, value: () -> String? = { null }) {
@@ -49,9 +47,7 @@ class BuildAnalysisResultsSnapshotGenerator {
       nest {
         prop("TaskType") { taskData.taskType }
         prop("PrimaryTaskCategory") { taskData.primaryTaskCategory.name }
-        taskData.secondaryTaskCategories.joinToString(",").takeIf {
-          it.isNotEmpty()
-        }?.let { prop("SecondaryTaskCategories") { it } }
+        taskData.secondaryTaskCategories.joinToString(",").takeIf { it.isNotEmpty() }?.let { prop("SecondaryTaskCategories") { it } }
         prop("Plugin") { taskData.originPlugin.toString() }
       }
     }
@@ -62,9 +58,7 @@ class BuildAnalysisResultsSnapshotGenerator {
       head("Plugin") { pluginName }
       nest {
         prop("PluginType") { pluginData.pluginType.name }
-        pluginData.displayNames().joinToString(",").takeIf {
-          it.isNotEmpty()
-        }?.let { prop("PluginDisplayNames") { it } }
+        pluginData.displayNames().joinToString(",").takeIf { it.isNotEmpty() }?.let { prop("PluginDisplayNames") { it } }
       }
     }
   }

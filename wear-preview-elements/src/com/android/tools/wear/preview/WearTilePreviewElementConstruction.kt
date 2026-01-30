@@ -25,10 +25,7 @@ import com.android.tools.preview.config.PARAMETER_GROUP
 import com.android.tools.preview.config.PARAMETER_LOCALE
 import com.android.tools.preview.config.PARAMETER_NAME
 
-/**
- * Converts the given preview annotation represented by the [attributesProvider] to a
- * [WearTilePreviewElement].
- */
+/** Converts the given preview annotation represented by the [attributesProvider] to a [WearTilePreviewElement]. */
 fun <T : Any> previewAnnotationToWearTilePreviewElement(
   attributesProvider: AnnotationAttributesProvider,
   annotatedMethod: AnnotatedMethod<T>,
@@ -50,7 +47,7 @@ fun <T : Any> previewAnnotationToWearTilePreviewElement(
       // will default to black in the view adapter
       background = PreviewDisplaySettings.Background.Default,
       organizationGroup = annotatedMethod.qualifiedName,
-      organizationName = methodName
+      organizationName = methodName,
     )
 
   val configuration =

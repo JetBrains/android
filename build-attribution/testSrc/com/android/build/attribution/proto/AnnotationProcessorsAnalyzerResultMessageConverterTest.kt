@@ -19,31 +19,33 @@ import com.android.build.attribution.analyzers.AnnotationProcessorsAnalyzer
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.proto.converters.AnnotationProcessorsAnalyzerResultMessageConverter
 import com.google.common.truth.Truth
-import org.junit.Test
 import java.time.Duration
+import org.junit.Test
 
 class AnnotationProcessorsAnalyzerResultMessageConverterTest {
   @Test
   fun testAnnotationProcessorsAnalyzerResult() {
-    val annotationProcessorData = listOf(
-      AnnotationProcessorData("com.google.auto.value.processor.AutoAnnotationProcessor", Duration.ofMillis(123)),
-      AnnotationProcessorData("com.google.auto.value.processor.AutoValueBuilderProcessor", Duration.ofMillis(456)),
-      AnnotationProcessorData("com.google.auto.value.processor.AutoOneOfProcessor", Duration.ofMillis(789)),
-      AnnotationProcessorData("com.google.auto.value.processor.AutoValueProcessor", Duration.ofMillis(101)),
-      AnnotationProcessorData("com.google.auto.value.extension.memoized.processor.MemoizedValidator", Duration.ofMillis(102)),
-      AnnotationProcessorData("dagger.internal.codegen.ComponentProcessor", Duration.ofMillis(103))
-    )
-    val nonIncrementalAnnotationProcessorData = listOf(
-      AnnotationProcessorData("com.google.auto.value.processor.AutoValueBuilderProcessor", Duration.ofMillis(456)),
-      AnnotationProcessorData("com.google.auto.value.processor.AutoValueProcessor", Duration.ofMillis(101)),
-      AnnotationProcessorData("dagger.internal.codegen.ComponentProcessor", Duration.ofMillis(103))
-    )
-    val annotationProcessorsAnalyzerResult = AnnotationProcessorsAnalyzer.Result(annotationProcessorData,
-                                                                                 nonIncrementalAnnotationProcessorData)
-    val annotationProcessorsAnalyzerMessageResult = AnnotationProcessorsAnalyzerResultMessageConverter.transform(
-      annotationProcessorsAnalyzerResult)
-    val annotationProcessorAnalyzerResultConverted = AnnotationProcessorsAnalyzerResultMessageConverter.construct(
-      annotationProcessorsAnalyzerMessageResult)
+    val annotationProcessorData =
+      listOf(
+        AnnotationProcessorData("com.google.auto.value.processor.AutoAnnotationProcessor", Duration.ofMillis(123)),
+        AnnotationProcessorData("com.google.auto.value.processor.AutoValueBuilderProcessor", Duration.ofMillis(456)),
+        AnnotationProcessorData("com.google.auto.value.processor.AutoOneOfProcessor", Duration.ofMillis(789)),
+        AnnotationProcessorData("com.google.auto.value.processor.AutoValueProcessor", Duration.ofMillis(101)),
+        AnnotationProcessorData("com.google.auto.value.extension.memoized.processor.MemoizedValidator", Duration.ofMillis(102)),
+        AnnotationProcessorData("dagger.internal.codegen.ComponentProcessor", Duration.ofMillis(103)),
+      )
+    val nonIncrementalAnnotationProcessorData =
+      listOf(
+        AnnotationProcessorData("com.google.auto.value.processor.AutoValueBuilderProcessor", Duration.ofMillis(456)),
+        AnnotationProcessorData("com.google.auto.value.processor.AutoValueProcessor", Duration.ofMillis(101)),
+        AnnotationProcessorData("dagger.internal.codegen.ComponentProcessor", Duration.ofMillis(103)),
+      )
+    val annotationProcessorsAnalyzerResult =
+      AnnotationProcessorsAnalyzer.Result(annotationProcessorData, nonIncrementalAnnotationProcessorData)
+    val annotationProcessorsAnalyzerMessageResult =
+      AnnotationProcessorsAnalyzerResultMessageConverter.transform(annotationProcessorsAnalyzerResult)
+    val annotationProcessorAnalyzerResultConverted =
+      AnnotationProcessorsAnalyzerResultMessageConverter.construct(annotationProcessorsAnalyzerMessageResult)
     Truth.assertThat(annotationProcessorAnalyzerResultConverted).isEqualTo(annotationProcessorsAnalyzerResult)
   }
 }

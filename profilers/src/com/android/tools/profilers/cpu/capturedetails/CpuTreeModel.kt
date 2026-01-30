@@ -26,10 +26,8 @@ import javax.swing.event.TreeModelListener
 import javax.swing.tree.TreeModel
 import javax.swing.tree.TreePath
 
-class CpuTreeModel<T: Aggregate<T>>(val clockType: ClockType,
-                                    private val range: Range,
-                                    base: T,
-                                    runModelUpdate: (Runnable) -> Unit): TreeModel {
+class CpuTreeModel<T : Aggregate<T>>(val clockType: ClockType, private val range: Range, base: T, runModelUpdate: (Runnable) -> Unit) :
+  TreeModel {
   private var treeRange = Range(range)
   private var order: Comparator<CpuTreeNode<T>> = compareBy({ it.base.isUnmatched }, { -it.total })
   val aspect = AspectModel<Aspect>()
@@ -42,19 +40,23 @@ class CpuTreeModel<T: Aggregate<T>>(val clockType: ClockType,
         reload()
       }
     }
+
   val isRootNodeIdValid = root.base.id.isNotEmpty()
-  val isEmpty get() = root.total == 0.0
+  val isEmpty
+    get() = root.total == 0.0
 
   private val rangeChanged =
-    AsyncUpdater.by(ApplicationManager.getApplication()::invokeAndWait,
-                    runModelUpdate,
-                    { root },
-                    { it.withRange(clockType, range, treeRange, order) },
-                    { newRoot ->
-                      root = newRoot
-                      treeRange.set(range)
-                      aspect.changed(Aspect.TREE_MODEL)
-                    })
+    AsyncUpdater.by(
+      ApplicationManager.getApplication()::invokeAndWait,
+      runModelUpdate,
+      { root },
+      { it.withRange(clockType, range, treeRange, order) },
+      { newRoot ->
+        root = newRoot
+        treeRange.set(range)
+        aspect.changed(Aspect.TREE_MODEL)
+      },
+    )
 
   init {
     onReattached()
@@ -82,13 +84,24 @@ class CpuTreeModel<T: Aggregate<T>>(val clockType: ClockType,
   }
 
   override fun getRoot() = root
+
   override fun getChild(parent: Any, index: Int) = (parent as CpuTreeNode<T>).getChildAt(index)
+
   override fun getChildCount(parent: Any) = (parent as CpuTreeNode<T>).childCount
+
   override fun isLeaf(node: Any) = (node as CpuTreeNode<T>).isLeaf
+
   override fun valueForPathChanged(path: TreePath, newValue: Any) {}
+
   override fun getIndexOfChild(parent: Any, child: Any) = (parent as CpuTreeNode<T>).getIndex(child as CpuTreeNode<T>)
-  override fun addTreeModelListener(l: TreeModelListener) { listeners.add(l) }
-  override fun removeTreeModelListener(l: TreeModelListener) { listeners.remove(l) }
+
+  override fun addTreeModelListener(l: TreeModelListener) {
+    listeners.add(l)
+  }
+
+  override fun removeTreeModelListener(l: TreeModelListener) {
+    listeners.remove(l)
+  }
 
   enum class Aspect {
     TREE_MODEL // Tree Model changed

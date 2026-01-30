@@ -39,13 +39,13 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.function.DoubleSupplier
 import javax.swing.Icon
 import javax.swing.JComponent
+import org.jetbrains.annotations.VisibleForTesting
 
-abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(stageView: StageView<T>, timeAxis: JComponent)
-  : JBPanel<BaseMemoryTimelineComponent<T>>(TabularLayout("*")) {
+abstract class BaseMemoryTimelineComponent<T : BaseStreamingMemoryProfilerStage>(stageView: StageView<T>, timeAxis: JComponent) :
+  JBPanel<BaseMemoryTimelineComponent<T>>(TabularLayout("*")) {
   protected val stage = stageView.stage
   protected val lineChart: LineChart
   private val overlay: OverlayComponent
@@ -54,17 +54,20 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
   private val garbageCollectionComponent: GarbageCollectionComponent
 
   init {
-    detailedMemoryChart = DetailedMemoryChart(stage.detailedMemoryUsage,
-                                              stage.legends,
-                                              stage.timeline,
-                                              stage.memoryAxis,
-                                              stage.objectsAxis,
-                                              stage.rangeSelectionModel,
-                                              stageView.tooltipPanel,
-                                              stageView.profilersView.component,
-                                              stage.isLiveAllocationTrackingReady,
-                                              ::shouldShowTooltip,
-                                              fillEndSupplier())
+    detailedMemoryChart =
+      DetailedMemoryChart(
+        stage.detailedMemoryUsage,
+        stage.legends,
+        stage.timeline,
+        stage.memoryAxis,
+        stage.objectsAxis,
+        stage.rangeSelectionModel,
+        stageView.tooltipPanel,
+        stageView.profilersView.component,
+        stage.isLiveAllocationTrackingReady,
+        ::shouldShowTooltip,
+        fillEndSupplier(),
+      )
     garbageCollectionComponent = GarbageCollectionComponent()
     lineChart = detailedMemoryChart.lineChart
     rangeSelectionComponent = detailedMemoryChart.rangeSelectionComponent
@@ -91,28 +94,26 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
 
   protected open fun shouldShowTooltip() = true
 
-  /**
-   * The supplier to determine how to fill the end area in the line chart.
-   */
-  @VisibleForTesting
-  open fun fillEndSupplier(): DoubleSupplier = LineChart.ALWAYS_1
+  /** The supplier to determine how to fill the end area in the line chart. */
+  @VisibleForTesting open fun fillEndSupplier(): DoubleSupplier = LineChart.ALWAYS_1
 
-  protected open fun makeScrollbar(): JComponent? =
-    TimelineScrollbar(stage.timeline, this)
+  protected open fun makeScrollbar(): JComponent? = TimelineScrollbar(stage.timeline, this)
 
   protected fun registerRenderer(renderer: AbstractDurationDataRenderer) = detailedMemoryChart.registerRenderer(renderer)
 
   protected open fun makeMonitorPanel(overlayPanel: JBPanel<*>) = detailedMemoryChart.makeMonitorPanel(overlayPanel)
 
-  protected fun makeGcDurationDataRenderer() = garbageCollectionComponent.makeGcDurationDataRenderer(stage.detailedMemoryUsage,
-                                                                                                     stage.tooltipLegends)
+  protected fun makeGcDurationDataRenderer() =
+    garbageCollectionComponent.makeGcDurationDataRenderer(stage.detailedMemoryUsage, stage.tooltipLegends)
 
   protected fun makeAllocationSamplingRateRenderer() =
     DurationDataRenderer.Builder(stage.allocationSamplingRateDurations, JBColor.BLACK)
       .setDurationBg(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
       .setIconMapper { getIconForSamplingMode(getModeFromFrequency(it.currentRate.samplingNumInterval)) }
-      .setLabelOffsets(-StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.iconWidth / 2f,
-                       StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.iconHeight / 2f)
+      .setLabelOffsets(
+        -StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.iconWidth / 2f,
+        StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.iconHeight / 2f,
+      )
       .setHostInsets(JBUI.insets(Y_AXIS_TOP_MARGIN, 0, 0, 0))
       .setClickRegionPadding(0, 0)
       .setHoverHandler { stage.tooltipLegends.samplingRateDurationLegend.setPickData(it) }
@@ -127,17 +128,19 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
           if (it.durationUs == Long.MAX_VALUE) "in progress"
           else TimeAxisFormatter.DEFAULT.getFormattedString(stage.timeline.viewRange.length, it.durationUs.toDouble(), true)
         "$tag record ($duration)"
-      }.build()
+      }
+      .build()
 
   private fun makeRangeSelectionComponent() = detailedMemoryChart.makeRangeSelectionComponent()
 
   companion object {
     // TODO(b/116430034): use real icons when they're done.
     @JvmStatic
-    fun getIconForSamplingMode(mode: LiveAllocationSamplingMode): Icon = when (mode) {
-      FULL -> StudioIcons.Profiler.Events.ALLOCATION_TRACKING_FULL
-      SAMPLED -> StudioIcons.Profiler.Events.ALLOCATION_TRACKING_SAMPLED
-      NONE -> StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE
-    }
+    fun getIconForSamplingMode(mode: LiveAllocationSamplingMode): Icon =
+      when (mode) {
+        FULL -> StudioIcons.Profiler.Events.ALLOCATION_TRACKING_FULL
+        SAMPLED -> StudioIcons.Profiler.Events.ALLOCATION_TRACKING_SAMPLED
+        NONE -> StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE
+      }
   }
 }

@@ -102,13 +102,7 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
     return headerLabel
   }
 
-  override fun customizeCellRenderer(
-    list: JList<out EnumValue>,
-    item: EnumValue,
-    index: Int,
-    selected: Boolean,
-    hasFocus: Boolean,
-  ) {
+  override fun customizeCellRenderer(list: JList<out EnumValue>, item: EnumValue, index: Int, selected: Boolean, hasFocus: Boolean) {
     ipad.left = indent(item, index)
     customize(item)
   }

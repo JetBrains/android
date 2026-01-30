@@ -35,17 +35,15 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
 /**
- * A [JBPanel] that shows an [Image] as background, scaled to fit preserving the aspect ratio.
- * Allows the [Image] to be regenerated through a [ScaledImageProvider] when the panel size changes.
- * Supports HiDPI if [image] is a [JBHiDPIScaledImage].
+ * A [JBPanel] that shows an [Image] as background, scaled to fit preserving the aspect ratio. Allows the [Image] to be regenerated through
+ * a [ScaledImageProvider] when the panel size changes. Supports HiDPI if [image] is a [JBHiDPIScaledImage].
  */
 @UiThread
 open class ScalingImagePanel : JBPanel<ImagePanel>(true), Disposable {
   private val LOG = logger<ScalingImagePanel>()
   private val stopwatch = Stopwatch()
   private val edtExecutor = FutureCallbackExecutor(EdtExecutorService.getInstance())
-  private val boundedExecutor =
-    AppExecutorUtil.createBoundedApplicationPoolExecutor("ScalingImagePanel", 1)
+  private val boundedExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("ScalingImagePanel", 1)
   private val taskExecutor = FutureCallbackExecutor(boundedExecutor)
   private val resizedListener =
     object : ComponentAdapter() {
@@ -120,16 +118,12 @@ open class ScalingImagePanel : JBPanel<ImagePanel>(true), Disposable {
           }
           .transform(edtExecutor) { newImage ->
             // Update image on EDT thread (this will repaint)
-            LOG.debug(
-              "Updating panel image (scaleContext=${ctx}, userWidth=${userWidth(newImage)}, pixelWidth=${pixelWidth(newImage)})"
-            )
+            LOG.debug("Updating panel image (scaleContext=${ctx}, userWidth=${userWidth(newImage)}, pixelWidth=${pixelWidth(newImage)})")
             if (provider == scaledImageProvider) {
               image = newImage
             }
           }
-          .catching(edtExecutor, Exception::class.java) { e ->
-            LOG.warn("Error loading scaled image", e)
-          }
+          .catching(edtExecutor, Exception::class.java) { e -> LOG.warn("Error loading scaled image", e) }
 
       // Cancel previous block of work so that we don't waste CPU cycles scaling
       // an image that will never be displayed (we only care about the last one)

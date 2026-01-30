@@ -27,19 +27,19 @@ import org.junit.Test
 class CpuFrequencyTrackRendererTest {
   @Test
   fun render() {
-    val cpuFrequencyTrackModel = TrackModel.newBuilder(
-      CpuFrequencyTrackModel(CPU_FREQUENCY_COUNTERS, Range()), ProfilerTrackRendererType.CPU_FREQUENCY, "CPU Frequency"
-    ).build()
+    val cpuFrequencyTrackModel =
+      TrackModel.newBuilder(
+          CpuFrequencyTrackModel(CPU_FREQUENCY_COUNTERS, Range()),
+          ProfilerTrackRendererType.CPU_FREQUENCY,
+          "CPU Frequency",
+        )
+        .build()
     val component = CpuFrequencyTrackRenderer().render(cpuFrequencyTrackModel)
     assertThat(component.componentCount).isEqualTo(1)
     assertThat(component.components[0]).isInstanceOf(LineChart::class.java)
   }
 
   companion object {
-    private val CPU_FREQUENCY_COUNTERS = listOf(
-      SeriesData(0L, 1000000L),
-      SeriesData(1000L, 2000000L),
-      SeriesData(2000L, 1000000L)
-    )
+    private val CPU_FREQUENCY_COUNTERS = listOf(SeriesData(0L, 1000000L), SeriesData(1000L, 2000000L), SeriesData(2000L, 1000000L))
   }
 }

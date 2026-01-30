@@ -48,8 +48,7 @@ class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureAdtTestCase() {
         .trimIndent(),
     )
 
-    val settings =
-      CodeStyle.getSettings(project).getCustomSettings(KotlinCodeStyleSettings::class.java)
+    val settings = CodeStyle.getSettings(project).getCustomSettings(KotlinCodeStyleSettings::class.java)
     settings.CONTINUATION_INDENT_FOR_CHAINED_CALLS = false
   }
 
@@ -74,9 +73,7 @@ class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureAdtTestCase() {
 
     var action = myFixture.availableIntentions.find { it.text == "Wrap modifiers" }
     Truth.assertThat(action).isNotNull()
-    WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
-      action!!.invoke(project, myFixture.editor, myFixture.file)
-    }
+    WriteCommandAction.writeCommandAction(project).run<RuntimeException> { action!!.invoke(project, myFixture.editor, myFixture.file) }
 
     myFixture.checkResult(
       """
@@ -100,16 +97,12 @@ class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureAdtTestCase() {
     myFixture.moveCaret("val m2 = Modifier.adj|ust().adjust()")
     action = myFixture.availableIntentions.find { it.text == "Wrap modifiers" }
     Truth.assertThat(action).isNotNull()
-    WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
-      action!!.invoke(project, myFixture.editor, myFixture.file)
-    }
+    WriteCommandAction.writeCommandAction(project).run<RuntimeException> { action!!.invoke(project, myFixture.editor, myFixture.file) }
 
     myFixture.moveCaret("val m3 = Modifier.adjust().adju|st()")
     action = myFixture.availableIntentions.find { it.text == "Wrap modifiers" }
     Truth.assertThat(action).isNotNull()
-    WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
-      action!!.invoke(project, myFixture.editor, myFixture.file)
-    }
+    WriteCommandAction.writeCommandAction(project).run<RuntimeException> { action!!.invoke(project, myFixture.editor, myFixture.file) }
 
     myFixture.checkResult(
       """

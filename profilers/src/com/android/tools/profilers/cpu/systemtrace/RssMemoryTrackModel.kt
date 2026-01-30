@@ -24,9 +24,7 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter
 import com.android.tools.profilers.cpu.LazyDataSeries
 
-/**
- * Track model for RSS (Resident Set Size) memory counter in CPU capture stage.
- */
+/** Track model for RSS (Resident Set Size) memory counter in CPU capture stage. */
 class RssMemoryTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Range) : LineChartModel() {
   val memoryCounterSeries: RangedContinuousSeries
   val axisComponentModel: AxisComponentModel
@@ -35,24 +33,21 @@ class RssMemoryTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Range) 
     val maxValue = dataSeries.asSequence().map { it.value }.maxOrNull() ?: 0
     val yRange = Range(0.0, maxValue.toDouble())
     axisComponentModel = ResizingAxisComponentModel.Builder(yRange, axisFormatter).build()
-    memoryCounterSeries = RangedContinuousSeries(
-      "RSS", viewRange, yRange, LazyDataSeries { dataSeries }
-    )
+    memoryCounterSeries = RangedContinuousSeries("RSS", viewRange, yRange, LazyDataSeries { dataSeries })
     add(memoryCounterSeries)
   }
 
-  /**
-   * @property includedCountersNameMap a map of select memory counters, mapping counter name to display name.
-   */
+  /** @property includedCountersNameMap a map of select memory counters, mapping counter name to display name. */
   companion object {
     private val axisFormatter = MemoryAxisFormatter(1, 2, 5)
 
-    val includedCountersNameMap = sortedMapOf(
-      "mem.rss" to "Total",
-      "mem.rss.anon" to "Allocated",
-      "mem.rss.file" to "File Mappings",
-      "mem.rss.shmem" to "Shared",
-      "mem.swap" to "Swapped-Out",
-    )
+    val includedCountersNameMap =
+      sortedMapOf(
+        "mem.rss" to "Total",
+        "mem.rss.anon" to "Allocated",
+        "mem.rss.file" to "File Mappings",
+        "mem.rss.shmem" to "Shared",
+        "mem.swap" to "Swapped-Out",
+      )
   }
 }

@@ -23,6 +23,4 @@ interface BuildMap {
   val buildIdMap: Map<String, File>
 }
 
-data class BuildMapImpl(
-  override val buildIdMap: Map<String, File>
-): BuildMap, Serializable
+data class BuildMapImpl(override val buildIdMap: Map<String, File>) : BuildMap, Serializable

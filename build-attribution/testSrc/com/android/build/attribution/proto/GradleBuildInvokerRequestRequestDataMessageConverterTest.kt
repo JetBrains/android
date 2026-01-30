@@ -26,30 +26,31 @@ import org.junit.rules.TemporaryFolder
 
 class GradleBuildInvokerRequestRequestDataMessageConverterTest {
 
-  @get:Rule
-  val tmpFolder: TemporaryFolder = TemporaryFolder()
+  @get:Rule val tmpFolder: TemporaryFolder = TemporaryFolder()
 
   @Test
   fun testRequestData() {
     val rootProjectPath = tmpFolder.newFolder("project")
-    val requestData = GradleBuildInvoker.Request.RequestData(
-      BuildMode.DEFAULT_BUILD_MODE,
-      rootProjectPath,
-      listOf("task1", "task2"),
-      listOf("e1", "e2"),
-      listOf("c1", "c2"),
-      mapOf(Pair("a", "b"), Pair("c","d")),
-      false
-    )
+    val requestData =
+      GradleBuildInvoker.Request.RequestData(
+        BuildMode.DEFAULT_BUILD_MODE,
+        rootProjectPath,
+        listOf("task1", "task2"),
+        listOf("e1", "e2"),
+        listOf("c1", "c2"),
+        mapOf(Pair("a", "b"), Pair("c", "d")),
+        false,
+      )
 
-    val expectedHistoricalRequest = HistoricalRequestData(
-      BuildMode.DEFAULT_BUILD_MODE,
-      rootProjectPath.path,
-      listOf("task1", "task2"),
-      listOf("e1", "e2"),
-      listOf("c1", "c2"),
-      mapOf(Pair("a", "b"), Pair("c", "d"))
-    )
+    val expectedHistoricalRequest =
+      HistoricalRequestData(
+        BuildMode.DEFAULT_BUILD_MODE,
+        rootProjectPath.path,
+        listOf("task1", "task2"),
+        listOf("e1", "e2"),
+        listOf("c1", "c2"),
+        mapOf(Pair("a", "b"), Pair("c", "d")),
+      )
 
     val requestDataMessage = GradleBuildInvokerRequestRequestDataMessageConverter.transform(requestData)
     val resultConverted = GradleBuildInvokerRequestRequestDataMessageConverter.construct(requestDataMessage)
@@ -59,20 +60,9 @@ class GradleBuildInvokerRequestRequestDataMessageConverterTest {
   @Test
   fun testRequestDataNullMode() {
     val rootProjectPath = tmpFolder.newFolder("project")
-    val requestData = GradleBuildInvoker.Request.RequestData(
-      null,
-      rootProjectPath,
-      emptyList()
-    )
+    val requestData = GradleBuildInvoker.Request.RequestData(null, rootProjectPath, emptyList())
 
-    val expectedHistoricalRequest = HistoricalRequestData(
-      null,
-      rootProjectPath.path,
-      emptyList(),
-      emptyList(),
-      emptyList(),
-      emptyMap()
-    )
+    val expectedHistoricalRequest = HistoricalRequestData(null, rootProjectPath.path, emptyList(), emptyList(), emptyList(), emptyMap())
 
     val requestDataMessage = GradleBuildInvokerRequestRequestDataMessageConverter.transform(requestData)
     val resultConverted = GradleBuildInvokerRequestRequestDataMessageConverter.construct(requestDataMessage)
@@ -81,7 +71,11 @@ class GradleBuildInvokerRequestRequestDataMessageConverterTest {
 
   @Test
   fun testBuildModeNull() {
-    Truth.assertThat(GradleBuildInvokerRequestRequestDataMessageConverter.constructBuildMode(
-      GradleBuildInvokerRequestRequestDataMessageConverter.transformBuildMode(null))).isNull()
+    Truth.assertThat(
+        GradleBuildInvokerRequestRequestDataMessageConverter.constructBuildMode(
+          GradleBuildInvokerRequestRequestDataMessageConverter.transformBuildMode(null)
+        )
+      )
+      .isNull()
   }
 }

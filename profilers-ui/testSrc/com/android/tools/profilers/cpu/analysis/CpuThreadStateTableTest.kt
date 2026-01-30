@@ -24,14 +24,13 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.LazyDataSeries
 import com.android.tools.profilers.cpu.ThreadState
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class CpuThreadStateTableTest {
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("CpuThreadStateTableTest")
+  @get:Rule val grpcChannel = FakeGrpcChannel("CpuThreadStateTableTest")
 
   private val ideServices = FakeIdeProfilerServices()
   private lateinit var profilers: StudioProfilers
@@ -100,7 +99,6 @@ class CpuThreadStateTableTest {
     assertThat(table.getValueAt(2, 3)).isEqualTo(1)
   }
 
-
   @Test
   fun tableShouldBeSortedByValueNotToString() {
     val range = Range(0.0, MICROS_IN_MILLI * 12.0)
@@ -118,25 +116,28 @@ class CpuThreadStateTableTest {
 
   companion object {
     val MICROS_IN_MILLI = TimeUnit.MILLISECONDS.toMicros(1)
-    val THREAD_1_STATES = listOf(
-      SeriesData(0, ThreadState.RUNNING),
-      SeriesData(MICROS_IN_MILLI, ThreadState.SLEEPING),
-      SeriesData(MICROS_IN_MILLI * 2, ThreadState.RUNNING),
-      SeriesData(MICROS_IN_MILLI * 3, ThreadState.SLEEPING),
-      SeriesData(MICROS_IN_MILLI * 4, ThreadState.RUNNING),
-      SeriesData(MICROS_IN_MILLI * 6, ThreadState.DEAD)
-    )
-    val THREAD_2_STATES = listOf(
-      SeriesData(0, ThreadState.SLEEPING),
-      SeriesData(MICROS_IN_MILLI, ThreadState.RUNNING),
-      SeriesData(MICROS_IN_MILLI * 2, ThreadState.SLEEPING),
-      SeriesData(MICROS_IN_MILLI * 3, ThreadState.RUNNING),
-      SeriesData(MICROS_IN_MILLI * 4, ThreadState.DEAD)
-    )
-    val THREAD_3_STATES = listOf(
-      SeriesData(0, ThreadState.SLEEPING),
-      SeriesData(MICROS_IN_MILLI * 10, ThreadState.RUNNING),
-      SeriesData(MICROS_IN_MILLI * 12, ThreadState.SLEEPING)
-    )
+    val THREAD_1_STATES =
+      listOf(
+        SeriesData(0, ThreadState.RUNNING),
+        SeriesData(MICROS_IN_MILLI, ThreadState.SLEEPING),
+        SeriesData(MICROS_IN_MILLI * 2, ThreadState.RUNNING),
+        SeriesData(MICROS_IN_MILLI * 3, ThreadState.SLEEPING),
+        SeriesData(MICROS_IN_MILLI * 4, ThreadState.RUNNING),
+        SeriesData(MICROS_IN_MILLI * 6, ThreadState.DEAD),
+      )
+    val THREAD_2_STATES =
+      listOf(
+        SeriesData(0, ThreadState.SLEEPING),
+        SeriesData(MICROS_IN_MILLI, ThreadState.RUNNING),
+        SeriesData(MICROS_IN_MILLI * 2, ThreadState.SLEEPING),
+        SeriesData(MICROS_IN_MILLI * 3, ThreadState.RUNNING),
+        SeriesData(MICROS_IN_MILLI * 4, ThreadState.DEAD),
+      )
+    val THREAD_3_STATES =
+      listOf(
+        SeriesData(0, ThreadState.SLEEPING),
+        SeriesData(MICROS_IN_MILLI * 10, ThreadState.RUNNING),
+        SeriesData(MICROS_IN_MILLI * 12, ThreadState.SLEEPING),
+      )
   }
 }

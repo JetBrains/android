@@ -22,6 +22,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.testing.platform.proto.api.core.TestCaseProto
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
+import java.util.Base64
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -29,21 +30,20 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoInteractions
-import java.util.Base64
 
-/**
- * Unit tests for [TaskOutputProcessor].
- */
+/** Unit tests for [TaskOutputProcessor]. */
 @RunWith(JUnit4::class)
 class TaskOutputProcessorTest {
   private val mockListener: TaskOutputProcessorListener = mock()
 
   @Test
   fun processNoUtpTag() {
-    val input = """
+    val input =
+      """
       There are no UTP test result tag in this test input.
       So the input text should be returned as-is.
-      """.trimIndent()
+      """
+        .trimIndent()
     val processor = TaskOutputProcessor(mapOf("" to mockListener))
 
     val processed = processor.process(input)
@@ -54,27 +54,32 @@ class TaskOutputProcessorTest {
 
   @Test
   fun processWithUtpTag() {
-    val input = """
+    val input =
+      """
       Connected to process 6763 on device 'Pixel_3a_XL_API_28 [emulator-5554]'.
       ${testSuiteStartedEvent()}
       ${testCaseStartedEvent()}
       ${testCaseFinishedEvent()}
       ${testSuiteFinishedEvent()}
       > Task :app:connectedDebugAndroidTest
-      """.trimIndent()
+      """
+        .trimIndent()
     val processor = TaskOutputProcessor(mapOf("" to mockListener))
 
     val processed = processor.process(input)
 
-    assertThat(processed).isEqualTo("""
-      Connected to process 6763 on device 'Pixel_3a_XL_API_28 [emulator-5554]'.
-      > Task :app:connectedDebugAndroidTest
-    """.trimIndent())
+    assertThat(processed)
+      .isEqualTo(
+        """
+        Connected to process 6763 on device 'Pixel_3a_XL_API_28 [emulator-5554]'.
+        > Task :app:connectedDebugAndroidTest
+        """
+          .trimIndent()
+      )
 
     inOrder(mockListener).apply {
-      verify(mockListener).onTestSuiteStarted(eq(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
-        scheduledTestCaseCount = 1
-      }.build()))
+      verify(mockListener)
+        .onTestSuiteStarted(eq(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply { scheduledTestCaseCount = 1 }.build()))
       verify(mockListener).onTestCaseStarted(eq(TestCaseProto.TestCase.getDefaultInstance()))
       verify(mockListener).onTestCaseFinished(eq(TestResultProto.TestResult.getDefaultInstance()))
       verify(mockListener).onTestSuiteFinished(eq(TestSuiteResultProto.TestSuiteResult.getDefaultInstance()))
@@ -83,40 +88,37 @@ class TaskOutputProcessorTest {
   }
 
   private fun testSuiteStartedEvent(): String {
-    return GradleAndroidTestResultListenerProto.TestResultEvent.newBuilder().apply {
-      testSuiteStartedBuilder.apply {
-        testSuiteMetadata = Any.pack(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
-          scheduledTestCaseCount = 1
-        }.build())
+    return GradleAndroidTestResultListenerProto.TestResultEvent.newBuilder()
+      .apply {
+        testSuiteStartedBuilder.apply {
+          testSuiteMetadata = Any.pack(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply { scheduledTestCaseCount = 1 }.build())
+        }
       }
-    }.build().toXml()
+      .build()
+      .toXml()
   }
 
   private fun testCaseStartedEvent(): String {
-    return GradleAndroidTestResultListenerProto.TestResultEvent.newBuilder().apply {
-      testCaseStartedBuilder.apply {
-        testCase = Any.pack(TestCaseProto.TestCase.newBuilder().apply {
-        }.build())
-      }
-    }.build().toXml()
+    return GradleAndroidTestResultListenerProto.TestResultEvent.newBuilder()
+      .apply { testCaseStartedBuilder.apply { testCase = Any.pack(TestCaseProto.TestCase.newBuilder().apply {}.build()) } }
+      .build()
+      .toXml()
   }
 
   private fun testCaseFinishedEvent(): String {
-    return GradleAndroidTestResultListenerProto.TestResultEvent.newBuilder().apply {
-      testCaseFinishedBuilder.apply {
-        testCaseResult = Any.pack(TestResultProto.TestResult.newBuilder().apply {
-        }.build())
-      }
-    }.build().toXml()
+    return GradleAndroidTestResultListenerProto.TestResultEvent.newBuilder()
+      .apply { testCaseFinishedBuilder.apply { testCaseResult = Any.pack(TestResultProto.TestResult.newBuilder().apply {}.build()) } }
+      .build()
+      .toXml()
   }
 
   private fun testSuiteFinishedEvent(): String {
-    return GradleAndroidTestResultListenerProto.TestResultEvent.newBuilder().apply {
-      testSuiteFinishedBuilder.apply {
-        testSuiteResult = Any.pack(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
-        }.build())
+    return GradleAndroidTestResultListenerProto.TestResultEvent.newBuilder()
+      .apply {
+        testSuiteFinishedBuilder.apply { testSuiteResult = Any.pack(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {}.build()) }
       }
-    }.build().toXml()
+      .build()
+      .toXml()
   }
 
   private fun GradleAndroidTestResultListenerProto.TestResultEvent.toXml(): String {

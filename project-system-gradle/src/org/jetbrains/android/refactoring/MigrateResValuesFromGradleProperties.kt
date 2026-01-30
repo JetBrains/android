@@ -79,20 +79,23 @@ private fun shouldEnable(project: Project): Boolean {
 
 class MigrateResValuesFromGradlePropertiesAction : AndroidGradleBaseRefactoringAction() {
   override fun getHandler(dataContext: DataContext) = MigrateResValuesFromGradlePropertiesHandler()
+
   override fun isAvailableInEditorOnly() = false
+
   override fun isAvailableForLanguage(language: Language?) = true
+
   override fun isEnabledOnDataContext(dataContext: DataContext) = dataContext.project?.let { shouldEnable(it) } ?: false
+
   override fun isEnabledOnElements(elements: Array<PsiElement>) = shouldEnable(elements.first().project)
+
   override fun isAvailableOnElementInEditorAndFile(element: PsiElement, editor: Editor, file: PsiFile, context: DataContext) =
     shouldEnable(element.project)
 }
 
 class MigrateResValuesFromGradlePropertiesHandler : RefactoringActionHandler {
-  @UiThread
-  override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext?) = invoke(project)
+  @UiThread override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext?) = invoke(project)
 
-  @UiThread
-  override fun invoke(project: Project, elements: Array<out PsiElement>, dataContext: DataContext?) = invoke(project)
+  @UiThread override fun invoke(project: Project, elements: Array<out PsiElement>, dataContext: DataContext?) = invoke(project)
 
   @UiThread
   private fun invoke(project: Project) {
@@ -108,7 +111,11 @@ class MigrateResValuesFromGradlePropertiesHandler : RefactoringActionHandler {
         }
         val agpVersion = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project) ?: return@runProcessWithProgressSynchronously
         processor = MigrateResValuesFromGradlePropertiesRefactoringProcessor(project, agpVersion, indicator)
-      }, "Migrate Res Values from Gradle Properties", true, project)
+      },
+      "Migrate Res Values from Gradle Properties",
+      true,
+      project,
+    )
     processor?.apply {
       PsiManager.getInstance(project).dropPsiCaches()
       DumbService.getInstance(project).completeJustSubmittedTasks()
@@ -121,7 +128,7 @@ class MigrateResValuesFromGradlePropertiesHandler : RefactoringActionHandler {
 class MigrateResValuesFromGradlePropertiesRefactoringProcessor(
   project: Project,
   private val agpVersion: AgpVersion,
-  indicator: ProgressIndicator?
+  indicator: ProgressIndicator?,
 ) : BaseRefactoringProcessor(project) {
   private val projectBuildModel: ProjectBuildModel
   private val targets = ArrayList<PsiElement>()
@@ -142,10 +149,12 @@ class MigrateResValuesFromGradlePropertiesRefactoringProcessor(
   // TODO(xof): AndroidBundleize
   override fun getCommandName() = "Migrate resValues setting from gradle.properties to build Dsl"
 
-  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>) = object : UsageViewDescriptorAdapter() {
-    override fun getElements() = targets.toTypedArray()
-    override fun getProcessedElementsHeader() = "Migrate resValues setting to build Dsl"
-  }
+  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>) =
+    object : UsageViewDescriptorAdapter() {
+      override fun getElements() = targets.toTypedArray()
+
+      override fun getProcessedElementsHeader() = "Migrate resValues setting to build Dsl"
+    }
 
   override fun findUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -184,13 +193,13 @@ class MigrateResValuesFromGradlePropertiesRefactoringProcessor(
         // If we can find an explicit resValues directive for this module, true or false, then we don't need to do anything.
         if (resValuesEnabled != null) return@module
 
-        if (buildModel.android().defaultConfig().resValues().isNotEmpty() ||
+        if (
+          buildModel.android().defaultConfig().resValues().isNotEmpty() ||
             buildModel.android().buildTypes().any { it.resValues().isNotEmpty() } ||
-            buildModel.android().productFlavors().any { it.resValues().isNotEmpty() }) {
+            buildModel.android().productFlavors().any { it.resValues().isNotEmpty() }
+        ) {
           // We have resValues Dsl in this module. Make sure the feature is turned on explicitly in this module.
-          buildModel.psiFile?.let {
-            usages.add(ModuleWithResValuesUsageInfo(it, projectBuildModel, module))
-          }
+          buildModel.psiFile?.let { usages.add(ModuleWithResValuesUsageInfo(it, projectBuildModel, module)) }
         }
       }
     }
@@ -218,25 +227,29 @@ class MigrateResValuesFromGradlePropertiesRefactoringProcessor(
       }
     }
 
-    myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_RES_VALUES_FROM_GRADLE_PROPERTIES.toReason())
-    UndoManager.getInstance(myProject).undoableActionPerformed(object : BasicUndoableAction() {
-      override fun undo() {
-        myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE.toReason())
-      }
-      override fun redo() {
-        myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE.toReason())
-      }
-    })
+    myProject
+      .getSyncManager()
+      .requestSyncProject(GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_RES_VALUES_FROM_GRADLE_PROPERTIES.toReason())
+    UndoManager.getInstance(myProject)
+      .undoableActionPerformed(
+        object : BasicUndoableAction() {
+          override fun undo() {
+            myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE.toReason())
+          }
+
+          override fun redo() {
+            myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE.toReason())
+          }
+        }
+      )
   }
 
-  abstract class MigrateBuildPropertiesUsageInfo(element: PsiElement): UsageInfo(element) {
+  abstract class MigrateBuildPropertiesUsageInfo(element: PsiElement) : UsageInfo(element) {
     abstract fun doIt()
   }
 
-  class ExistingGradlePropertiesUsageInfo(
-    val element: PropertiesFileImpl,
-    val newSetting: Boolean?
-  ): MigrateBuildPropertiesUsageInfo(element) {
+  class ExistingGradlePropertiesUsageInfo(val element: PropertiesFileImpl, val newSetting: Boolean?) :
+    MigrateBuildPropertiesUsageInfo(element) {
     override fun doIt() {
       when (newSetting) {
         null -> element.findPropertyByKey(RES_VALUES_PROPERTY)?.psiElement?.delete()
@@ -245,18 +258,15 @@ class MigrateResValuesFromGradlePropertiesRefactoringProcessor(
     }
   }
 
-  class NewGradlePropertiesUsageInfo(val element: PsiDirectory, val newSetting: Boolean): MigrateBuildPropertiesUsageInfo(element) {
+  class NewGradlePropertiesUsageInfo(val element: PsiDirectory, val newSetting: Boolean) : MigrateBuildPropertiesUsageInfo(element) {
     override fun doIt() {
       val propertiesFile = element.createFile(FN_GRADLE_PROPERTIES) as? PropertiesFileImpl
       propertiesFile?.addProperty(RES_VALUES_PROPERTY, "$newSetting")
     }
   }
 
-  class ModuleWithResValuesUsageInfo(
-    element: PsiElement,
-    val buildModel: ProjectBuildModel,
-    val module: Module
-  ): MigrateBuildPropertiesUsageInfo(element) {
+  class ModuleWithResValuesUsageInfo(element: PsiElement, val buildModel: ProjectBuildModel, val module: Module) :
+    MigrateBuildPropertiesUsageInfo(element) {
     override fun doIt() {
       buildModel.getModuleBuildModel(module)?.android()?.buildFeatures()?.resValues()?.setValue(true)
     }

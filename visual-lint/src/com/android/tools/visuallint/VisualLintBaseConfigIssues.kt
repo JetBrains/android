@@ -19,15 +19,9 @@ package com.android.tools.visuallint
 class VisualLintBaseConfigIssues {
 
   /** List of issues that current component has in base configuration. */
-  data class BaseConfigComponentState(
-    var hasI18NEllipsis: Boolean = false,
-    var hasI18NTextTooBig: Boolean = false,
-  )
+  data class BaseConfigComponentState(var hasI18NEllipsis: Boolean = false, var hasI18NTextTooBig: Boolean = false)
 
-  /**
-   * State of the component. Key is hashcode of the [com.intellij.psi.xml.XmlTag] and value shows
-   * what state configuration is in.
-   */
+  /** State of the component. Key is hashcode of the [com.intellij.psi.xml.XmlTag] and value shows what state configuration is in. */
   val componentState: MutableMap<Int, BaseConfigComponentState> = HashMap()
 
   fun clear() {

@@ -26,23 +26,22 @@ import com.android.gmdcodecompletion.verifyConfigurationLookupElementProviderRes
 import org.junit.Test
 
 class FtlTestOptionsLookupElementProviderTest {
-  private fun ftlTestOptionsTestHelper(configurationParameterName: ConfigurationParameterName,
-                                       currentDeviceProperties: CurrentDeviceProperties,
-                                       expectedResult: List<GmdCodeCompletionLookupElement>) {
+  private fun ftlTestOptionsTestHelper(
+    configurationParameterName: ConfigurationParameterName,
+    currentDeviceProperties: CurrentDeviceProperties,
+    expectedResult: List<GmdCodeCompletionLookupElement>,
+  ) {
     val result = FtlTestOptionsLookupElementProvider.generateSimpleValueSuggestionList(configurationParameterName, currentDeviceProperties)
     verifyConfigurationLookupElementProviderResult(result, expectedResult)
   }
 
   @Test
   fun testGenerateGrantedPermissions() {
-    val expectedResult = listOf(
-      GmdCodeCompletionLookupElement(myValue = "all",
-                                     myScore = 1u,
-                                     myInsertHandler = GmdDevicePropertyInsertHandler()),
-      GmdCodeCompletionLookupElement(myValue = "none",
-                                     myScore = 0u,
-                                     myInsertHandler = GmdDevicePropertyInsertHandler())
-    )
+    val expectedResult =
+      listOf(
+        GmdCodeCompletionLookupElement(myValue = "all", myScore = 1u, myInsertHandler = GmdDevicePropertyInsertHandler()),
+        GmdCodeCompletionLookupElement(myValue = "none", myScore = 0u, myInsertHandler = GmdDevicePropertyInsertHandler()),
+      )
     ftlTestOptionsTestHelper(GRANTED_PERMISSIONS, hashMapOf(), expectedResult)
   }
 
@@ -62,12 +61,11 @@ class FtlTestOptionsLookupElementProviderTest {
   }
 
   private fun simpleBooleanSuggestionHelper(configurationParameterName: ConfigurationParameterName, defaultValue: Boolean) {
-    val expectedResult = listOf(
-      GmdCodeCompletionLookupElement(myValue = defaultValue.toString(),
-                                     myScore = 1u),
-      GmdCodeCompletionLookupElement(myValue = (!defaultValue).toString(),
-                                     myScore = 0u)
-    )
+    val expectedResult =
+      listOf(
+        GmdCodeCompletionLookupElement(myValue = defaultValue.toString(), myScore = 1u),
+        GmdCodeCompletionLookupElement(myValue = (!defaultValue).toString(), myScore = 0u),
+      )
     ftlTestOptionsTestHelper(configurationParameterName, hashMapOf(), expectedResult)
   }
 }

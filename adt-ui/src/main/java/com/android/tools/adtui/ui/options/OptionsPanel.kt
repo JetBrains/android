@@ -41,10 +41,9 @@ import javax.swing.JSpinner
 import javax.swing.SpinnerNumberModel
 
 /**
- * The OptionsPanel control is dynamically populated based on the currently set {@link
- * OptionsProvider}. This control will enumerate all methods with the property attribute set on a
- * given OptionsProvider object. It will then use the return type of each method to determine which
- * OptionsBinder to use in generating the UI.
+ * The OptionsPanel control is dynamically populated based on the currently set {@link OptionsProvider}. This control will enumerate all
+ * methods with the property attribute set on a given OptionsProvider object. It will then use the return type of each method to determine
+ * which OptionsBinder to use in generating the UI.
  */
 class OptionsPanel : JComponent() {
   /** Map of return types to OptionsBinders. Values can be added or replaced in this map. */
@@ -70,9 +69,8 @@ class OptionsPanel : JComponent() {
   }
 
   /**
-   * To map accessor / mutator / attribute functions as the same the method name should be stripped
-   * of known prefix's and suffix's. setEnabled = enabled (mutator) isEnabled = enabled (accessor)
-   * isEnabled$annotations = enabled (static attribute)
+   * To map accessor / mutator / attribute functions as the same the method name should be stripped of known prefix's and suffix's.
+   * setEnabled = enabled (mutator) isEnabled = enabled (accessor) isEnabled$annotations = enabled (static attribute)
    */
   private fun cleanMethodName(rawMethodName: String): String {
     return rawMethodName
@@ -197,9 +195,7 @@ class OptionsPanel : JComponent() {
             border = JBUI.Borders.emptyTop(12)
             add(JLabel(group), TabularLayout.Constraint(0, 0))
             add(
-              JPanel(TabularLayout("*", "*,*")).apply {
-                add(JSeparator(), TabularLayout.Constraint(1, 0))
-              },
+              JPanel(TabularLayout("*", "*,*")).apply { add(JSeparator(), TabularLayout.Constraint(1, 0)) },
               TabularLayout.Constraint(0, 2),
             )
           }
@@ -217,10 +213,7 @@ class OptionsPanel : JComponent() {
         data.mutator?.parameterTypes!![0] != data.accessor?.returnType ||
         isReadOnly
     val component =
-      data.binder?.bind(data, readOnly)
-        ?: JLabel(
-          "Unknown return type (${data.accessor?.returnType?.name}) for property \"${data.name}\""
-        )
+      data.binder?.bind(data, readOnly) ?: JLabel("Unknown return type (${data.accessor?.returnType?.name}) for property \"${data.name}\"")
     component.isEnabled = !readOnly
     return component
   }
@@ -235,8 +228,7 @@ private class BooleanBinder : OptionsBinder {
   }
 }
 
-private class SliderBinder(private val min: Int, private val max: Int, private val step: Int) :
-  OptionsBinder {
+private class SliderBinder(private val min: Int, private val max: Int, private val step: Int) : OptionsBinder {
   override fun bind(data: PropertyInfo, readonly: Boolean): JComponent {
     val valueLabel =
       JLabel("${data.value} ${data.unit}").apply {

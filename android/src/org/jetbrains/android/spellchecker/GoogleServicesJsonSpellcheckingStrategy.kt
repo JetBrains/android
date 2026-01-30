@@ -25,9 +25,7 @@ import com.intellij.spellchecker.tokenizer.SpellcheckingStrategy
 import com.intellij.spellchecker.tokenizer.TokenConsumer
 import com.intellij.spellchecker.tokenizer.Tokenizer
 
-/**
- * Custom spellchecking strategy for Json files, takes precedence over [com.intellij.json.JsonSpellcheckerStrategy]
- */
+/** Custom spellchecking strategy for Json files, takes precedence over [com.intellij.json.JsonSpellcheckerStrategy] */
 class GoogleServicesJsonSpellcheckingStrategy : SpellcheckingStrategy(), DumbAware {
 
   companion object {
@@ -45,8 +43,7 @@ class GoogleServicesJsonSpellcheckingStrategy : SpellcheckingStrategy(), DumbAwa
           }
         }
       }
-    }
-    else {
+    } else {
       EMPTY_TOKENIZER
     }
   }

@@ -23,20 +23,19 @@ import java.util.concurrent.TimeUnit
 object PowerRailTableUtils {
   private fun isPowerRangeInvalid(lowerBoundTs: Long, upperBoundTs: Long) = lowerBoundTs >= upperBoundTs
 
-  fun computeCumulativeEnergyInRange(powerUsageRange: PowerUsageRange) : Long {
+  fun computeCumulativeEnergyInRange(powerUsageRange: PowerUsageRange): Long {
     val lowerBound = powerUsageRange.lowerBound
     val upperBound = powerUsageRange.upperBound
     val lowerBoundTs = lowerBound.x
     val upperBoundTs = upperBound.x
     return if (isPowerRangeInvalid(lowerBoundTs, upperBoundTs)) {
       0
-    }
-    else {
+    } else {
       upperBound.value - lowerBound.value
     }
   }
 
-  fun computeAveragePowerInRange(powerUsageRange: PowerUsageRange) : Double {
+  fun computeAveragePowerInRange(powerUsageRange: PowerUsageRange): Double {
     val lowerBound = powerUsageRange.lowerBound
     val upperBound = powerUsageRange.upperBound
     val lowerBoundTs = lowerBound.x
@@ -44,22 +43,16 @@ object PowerRailTableUtils {
     val durationMs = TimeUnit.MICROSECONDS.toMillis(upperBoundTs - lowerBoundTs)
     return if (isPowerRangeInvalid(lowerBoundTs, upperBoundTs) || durationMs == 0L) {
       0.0
-    }
-    else {
+    } else {
       val cumulativeEnergy = computeCumulativeEnergyInRange(powerUsageRange)
       // The time is in micro-seconds, so this converts it to milliseconds.
       cumulativeEnergy / durationMs.toDouble()
     }
   }
 
-  data class PowerUsageRange(
-    val lowerBound: SeriesData<Long>,
-    val upperBound: SeriesData<Long>
-  )
+  data class PowerUsageRange(val lowerBound: SeriesData<Long>, val upperBound: SeriesData<Long>)
 
-  /**
-   * Computes and returns the cumulative power used in the passed-in range.
-   */
+  /** Computes and returns the cumulative power used in the passed-in range. */
   fun computePowerUsageRange(cumulativeData: List<SeriesData<Long>>, selectionRange: Range): PowerUsageRange {
     val lowerBound = getLowerBoundDataInRange(cumulativeData, selectionRange.min)
     val upperBound = getUpperBoundDataInRange(cumulativeData, selectionRange.max)
@@ -71,10 +64,9 @@ object PowerRailTableUtils {
   }
 
   /**
-   * Returns the lower bound of the power data according to the passed in [minTs] timestamp.
-   * Because the data points of the power rails will most likely not match up exactly with
-   * the user's selected range, we must be able to find and return the smallest SeriesData
-   * greater than the range's min (passed in as [minTs]) as the lower bound data.
+   * Returns the lower bound of the power data according to the passed in [minTs] timestamp. Because the data points of the power rails will
+   * most likely not match up exactly with the user's selected range, we must be able to find and return the smallest SeriesData greater
+   * than the range's min (passed in as [minTs]) as the lower bound data.
    */
   @VisibleForTesting
   fun getLowerBoundDataInRange(data: List<SeriesData<Long>>, minTs: Double): SeriesData<Long> {
@@ -82,10 +74,9 @@ object PowerRailTableUtils {
   }
 
   /**
-   * Returns the upper bound of the power data w.r.t. the passed in [maxTs] timestamp.
-   * Because the data points of the power rails will most likely not match up exactly with
-   * the user's selected range, we must be able to find and return the greatest SeriesData
-   * smaller than the range's max (passed in as [maxTs]) as the upper bound data.
+   * Returns the upper bound of the power data w.r.t. the passed in [maxTs] timestamp. Because the data points of the power rails will most
+   * likely not match up exactly with the user's selected range, we must be able to find and return the greatest SeriesData smaller than the
+   * range's max (passed in as [maxTs]) as the upper bound data.
    */
   @VisibleForTesting
   fun getUpperBoundDataInRange(data: List<SeriesData<Long>>, maxTs: Double): SeriesData<Long> {
@@ -93,11 +84,10 @@ object PowerRailTableUtils {
   }
 
   /**
-   * Helper function to find the lower and upper bounded SeriesData by performing a binary search on
-   * the passed in timestamp. If the timestamp exists in the SeriesData, we can return that SeriesData
-   * element, otherwise, if a lower bound is being sought, we return the smallest element's timestamp
-   * greater than the target timestamp, and for the upper bound we return the greatest element's
-   * timestamp less than the target timestamp.
+   * Helper function to find the lower and upper bounded SeriesData by performing a binary search on the passed in timestamp. If the
+   * timestamp exists in the SeriesData, we can return that SeriesData element, otherwise, if a lower bound is being sought, we return the
+   * smallest element's timestamp greater than the target timestamp, and for the upper bound we return the greatest element's timestamp less
+   * than the target timestamp.
    *
    * Assumes and asserts [data] is a non-empty list of SeriesData.
    */
@@ -152,9 +142,10 @@ object PowerRailTableUtils {
     return data.binarySearch<SeriesData<Long>>(SeriesData(target, 0), { a, b -> a.x.compareTo(b.x) })
   }
 
-  const val POWER_RAIL_TOTAL_VALUE_IN_RANGE_TOOLTIP_MSG = "Power data is sampled in 250ms intervals.<br><br>" +
-                                                          "The total energy number represented<br>" +
-                                                          "contains an <b><i>error margin of up to +/- 0.5<br>" +
-                                                          "seconds (500ms)</i></b> of power data due to the<br>" +
-                                                          "sampling interval."
+  const val POWER_RAIL_TOTAL_VALUE_IN_RANGE_TOOLTIP_MSG =
+    "Power data is sampled in 250ms intervals.<br><br>" +
+      "The total energy number represented<br>" +
+      "contains an <b><i>error margin of up to +/- 0.5<br>" +
+      "seconds (500ms)</i></b> of power data due to the<br>" +
+      "sampling interval."
 }

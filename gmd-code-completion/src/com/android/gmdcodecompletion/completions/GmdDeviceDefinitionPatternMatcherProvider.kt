@@ -52,9 +52,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrRefere
 /**
  * Describes available interfaces associated with each GMD property type
  *
- * FTL: FTL device definition block
- * FTL_TEST_OPTIONS: testOptions block for FTL
- * MANAGED_VIRTUAL: local managed virtual devices block
+ * FTL: FTL device definition block FTL_TEST_OPTIONS: testOptions block for FTL MANAGED_VIRTUAL: local managed virtual devices block
  */
 enum class ConfigurationType(val availableContainers: PersistentList<GmdConfigurationInterfaceInfo>) {
   FTL(persistentListOf(FTL_DEVICE)),
@@ -65,11 +63,9 @@ enum class ConfigurationType(val availableContainers: PersistentList<GmdConfigur
     val matchingInterface = this.availableContainers.filter { it.leafDslBlock == leafBlockName }
     return if (matchingInterface.isEmpty() && this.availableContainers.size == 1) {
       this.availableContainers[0].getDslSequence(leafBlockName, isSimplified)
-    }
-    else if (matchingInterface.size == 1) {
+    } else if (matchingInterface.size == 1) {
       matchingInterface[0].getDslSequence(leafBlockName, isSimplified)
-    }
-    else null
+    } else null
   }
 
   fun getMatchingInterfaceIndex(dslContent: String): Int {
@@ -82,50 +78,40 @@ enum class ConfigurationType(val availableContainers: PersistentList<GmdConfigur
   }
 }
 
-/**
- * Provides pattern matching functions for both Groovy and Kotlin GMD device definition fields
- */
+/** Provides pattern matching functions for both Groovy and Kotlin GMD device definition fields */
 object GmdDeviceDefinitionPatternMatchingProvider {
 
   /**
-   * Returns true if cursor is inside FTl or managed device (depending on device type) definition block in Groovy build file.
-   * Else returns false
+   * Returns true if cursor is inside FTl or managed device (depending on device type) definition block in Groovy build file. Else returns
+   * false
    */
   fun matchesDevicePropertyGroovyPattern(configurationType: ConfigurationType, grExpression: GrExpression): Boolean {
     // Also check propertyAssignment.superParentAsGrMethodCall(3) since caret might be inside double quotation mark
-    var currentPsiElement = grExpression.superParentAsGrMethodCall()
-                            ?: grExpression.superParentAsGrMethodCall(3) ?: return false
-    val deviceDefinitionArgs =
-      currentPsiElement?.argumentList?.children?.let {
-        if (it.size > 1) return false
-        else it.firstOrNull()
-      }
+    var currentPsiElement = grExpression.superParentAsGrMethodCall() ?: grExpression.superParentAsGrMethodCall(3) ?: return false
+    val deviceDefinitionArgs = currentPsiElement?.argumentList?.children?.let { if (it.size > 1) return false else it.firstOrNull() }
 
     /**
-     * Simplified DSL does not have arguments in device declaration.
-     * If device declaration has argument, check if it or it's resolved reference
-     * matches FTl or managed virtual device interface name
+     * Simplified DSL does not have arguments in device declaration. If device declaration has argument, check if it or it's resolved
+     * reference matches FTl or managed virtual device interface name
      */
-    val usesSimplifiedDsl = if (deviceDefinitionArgs != null) {
-      val argReference = deviceDefinitionArgs as? GrReferenceExpression ?: return false
-      if (argReference.qualifiedReferenceName != configurationType.availableContainers[0].interfaceName) {
-        val resolvedArgument = argReference.resolve() as? PsiNamedElement ?: return false
-        if (resolvedArgument.qualifiedClassNameForRendering() != configurationType.availableContainers[0].interfaceName) return false
+    val usesSimplifiedDsl =
+      if (deviceDefinitionArgs != null) {
+        val argReference = deviceDefinitionArgs as? GrReferenceExpression ?: return false
+        if (argReference.qualifiedReferenceName != configurationType.availableContainers[0].interfaceName) {
+          val resolvedArgument = argReference.resolve() as? PsiNamedElement ?: return false
+          if (resolvedArgument.qualifiedClassNameForRendering() != configurationType.availableContainers[0].interfaceName) return false
+        }
+        false
+      } else {
+        true
       }
-      false
-    }
-    else {
-      true
-    }
 
     var qualifiedReferenceNameList = currentPsiElement.getQualifiedNameList() ?: return false
     val dslSequence = configurationType.getMatchingDsl(qualifiedReferenceNameList[0], usesSimplifiedDsl) ?: return false
     val seqItr = dslSequence.iterator()
     // Check if text before each layer of Groovy block matches DSL sequence for given device type
     while (seqItr.hasNext()) {
-      qualifiedReferenceNameList.forEach {
-        if (seqItr.hasNext() && seqItr.next() != it) return false
-      }
+      qualifiedReferenceNameList.forEach { if (seqItr.hasNext() && seqItr.next() != it) return false }
       if (!seqItr.hasNext()) break
       currentPsiElement = currentPsiElement.superParentAsGrMethodCall() ?: return false
       // Handle text similar to "android.testOptions"
@@ -137,13 +123,12 @@ object GmdDeviceDefinitionPatternMatchingProvider {
   }
 
   /**
-   * Returns true if caret is inside FTl or managed device (depending on device type) definition block in Kotlin build file.
-   * Else returns false
+   * Returns true if caret is inside FTl or managed device (depending on device type) definition block in Kotlin build file. Else returns
+   * false
    */
   fun matchesDevicePropertyKotlinPattern(configurationType: ConfigurationType, ktExpression: KtExpression): Boolean {
     // Also check expression.parent since caret might be inside double quotation mark
-    val propertyAssignment = ktExpression as? KtBinaryExpression
-                             ?: ktExpression.parent as? KtBinaryExpression ?: return false
+    val propertyAssignment = ktExpression as? KtBinaryExpression ?: ktExpression.parent as? KtBinaryExpression ?: return false
     val propertyField = propertyAssignment.left as? KtNameReferenceExpression ?: return false
     // Unlike Groovy, we can resolve directly from device property name to corresponding interface
     val interfaceName = (propertyField.reference?.resolve()?.superParent() as? KtClass)?.kotlinFqName?.toString() ?: return false
@@ -153,13 +138,11 @@ object GmdDeviceDefinitionPatternMatchingProvider {
   fun getMinAndTargetSdk(androidFacet: AndroidFacet?): MinAndTargetApiLevel {
     androidFacet ?: return MinAndTargetApiLevel(-1, -1)
     val model = AndroidModel.get(androidFacet) ?: return MinAndTargetApiLevel(-1, -1)
-    return MinAndTargetApiLevel(targetSdk = model.targetSdkVersion?.apiLevel ?: -1,
-                                minSdk = model.minSdkVersion?.apiLevel ?: -1)
+    return MinAndTargetApiLevel(targetSdk = model.targetSdkVersion?.apiLevel ?: -1, minSdk = model.minSdkVersion?.apiLevel ?: -1)
   }
 
   // Returns current device property name value map
-  fun getSiblingPropertyMap(
-    position: PsiElement, psiElementLevel: PsiElementLevel, finishCheck: Boolean = false): CurrentDeviceProperties {
+  fun getSiblingPropertyMap(position: PsiElement, psiElementLevel: PsiElementLevel, finishCheck: Boolean = false): CurrentDeviceProperties {
     val currentProperty = position.superParent(psiElementLevel.psiElementLevel)
     val propertyValueMap = HashMap<ConfigurationParameterName, String>()
     // Use parent.children to get all siblings works better than siblings() method

@@ -46,12 +46,7 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
   override fun getIcon() = StudioIcons.GutterIcons.COMPOSABLE_FUNCTION
 
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
-    if (
-      element !is LeafPsiElement ||
-        element.elementType != KtTokens.IDENTIFIER ||
-        !isComposeEnabled(element)
-    )
-      return null
+    if (element !is LeafPsiElement || element.elementType != KtTokens.IDENTIFIER || !isComposeEnabled(element)) return null
 
     val parentFunction = element.parent.parent as? KtCallExpression ?: return null
     if (!isComposableInvocation(parentFunction)) return null
@@ -68,8 +63,7 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
   }
 
   companion object {
-    private val ANALYSIS_RESULT_KEY =
-      Key<CachedValue<AnalysisResult>>("ComposeLineMarkerProviderDescriptor.AnalysisResult")
+    private val ANALYSIS_RESULT_KEY = Key<CachedValue<AnalysisResult>>("ComposeLineMarkerProviderDescriptor.AnalysisResult")
 
     private fun isComposableInvocation(parentFunction: KtCallExpression): Boolean {
       analyze(parentFunction) {

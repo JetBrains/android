@@ -42,18 +42,14 @@ import org.jetbrains.android.facet.TagFromClassDescriptor
 import org.jetbrains.annotations.NonNls
 
 /**
- * XmlElementDescriptor for all View tags (tags that are inheritors of [SdkConstants.CLASS_VIEW])
- * and <view></view> tag.
+ * XmlElementDescriptor for all View tags (tags that are inheritors of [SdkConstants.CLASS_VIEW]) and <view></view> tag.
  *
  * [LayoutViewElementDescriptor] is returned by [AndroidDomElementDescriptorProvider].
  */
 class LayoutViewElementDescriptor(override val clazz: PsiClass?, delegate: XmlElementDescriptor) :
   TagFromClassDescriptor, LayoutElementDescriptor(delegate) {
 
-  constructor(
-    viewClass: PsiClass?,
-    element: LayoutViewElement,
-  ) : this(viewClass, DomElementXmlDescriptor(element))
+  constructor(viewClass: PsiClass?, element: LayoutViewElement) : this(viewClass, DomElementXmlDescriptor(element))
 
   override fun getIcon(): Icon? {
     if (clazz?.name == defaultName) {
@@ -64,9 +60,7 @@ class LayoutViewElementDescriptor(override val clazz: PsiClass?, delegate: XmlEl
 
   override fun getDeclaration() = clazz
 
-  override val isContainer by lazy {
-    InheritanceUtil.isInheritor(clazz, SdkConstants.CLASS_VIEWGROUP)
-  }
+  override val isContainer by lazy { InheritanceUtil.isInheritor(clazz, SdkConstants.CLASS_VIEWGROUP) }
 }
 
 /**
@@ -74,8 +68,7 @@ class LayoutViewElementDescriptor(override val clazz: PsiClass?, delegate: XmlEl
  *
  * [LayoutElementDescriptor] is returned by [AndroidDomElementDescriptorProvider].
  */
-open class LayoutElementDescriptor(private val delegate: XmlElementDescriptor) :
-  PsiPresentableMetaData, XmlElementDescriptor by delegate {
+open class LayoutElementDescriptor(private val delegate: XmlElementDescriptor) : PsiPresentableMetaData, XmlElementDescriptor by delegate {
 
   protected open val isContainer: Boolean = true
 
@@ -83,10 +76,7 @@ open class LayoutElementDescriptor(private val delegate: XmlElementDescriptor) :
 
   override fun getElementsDescriptors(context: XmlTag?): Array<LayoutElementDescriptor> {
     if (context == null) return emptyArray()
-    return delegate
-      .getElementsDescriptors(context)
-      .map { LayoutElementDescriptor(it) }
-      .toTypedArray()
+    return delegate.getElementsDescriptors(context).map { LayoutElementDescriptor(it) }.toTypedArray()
   }
 
   override fun getElementDescriptor(childTag: XmlTag?, contextTag: XmlTag?): XmlElementDescriptor? {
@@ -121,17 +111,12 @@ open class LayoutElementDescriptor(private val delegate: XmlElementDescriptor) :
     return descriptors
   }
 
-  override fun getAttributeDescriptor(
-    @NonNls attributeName: String?,
-    context: XmlTag?,
-  ): XmlAttributeDescriptor? {
-    return delegate.getAttributeDescriptor(attributeName, context)
-      ?: AndroidAnyAttributeDescriptor(attributeName!!)
+  override fun getAttributeDescriptor(@NonNls attributeName: String?, context: XmlTag?): XmlAttributeDescriptor? {
+    return delegate.getAttributeDescriptor(attributeName, context) ?: AndroidAnyAttributeDescriptor(attributeName!!)
   }
 
   override fun getAttributeDescriptor(attribute: XmlAttribute): XmlAttributeDescriptor? {
-    return delegate.getAttributeDescriptor(attribute)
-      ?: AndroidAnyAttributeDescriptor(attribute.name)
+    return delegate.getAttributeDescriptor(attribute) ?: AndroidAnyAttributeDescriptor(attribute.name)
   }
 
   override fun getIcon() = getIconForViewTag(name)
@@ -141,12 +126,7 @@ open class LayoutElementDescriptor(private val delegate: XmlElementDescriptor) :
 
 object AndroidLayoutNSDescriptor : XmlNSDescriptorImpl() {
   private val staticLayoutFileRootDescriptors =
-    arrayOf(
-      ViewTagDomFileDescription(),
-      FragmentLayoutDomFileDescription(),
-      MergeDomFileDescription(),
-      DataBindingDomFileDescription(),
-    )
+    arrayOf(ViewTagDomFileDescription(), FragmentLayoutDomFileDescription(), MergeDomFileDescription(), DataBindingDomFileDescription())
 
   override fun getRootElementsDescriptors(doc: XmlDocument?): Array<LayoutElementDescriptor> {
     if (doc == null) return emptyArray()
@@ -166,10 +146,7 @@ object AndroidLayoutNSDescriptor : XmlNSDescriptorImpl() {
             LayoutElementDescriptor(delegate)
           }
           .toTypedArray()
-      CachedValueProvider.Result.create(
-        static,
-        AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project),
-      )
+      CachedValueProvider.Result.create(static, AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project))
     }
   }
 }

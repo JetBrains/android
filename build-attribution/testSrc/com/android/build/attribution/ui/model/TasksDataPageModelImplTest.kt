@@ -28,8 +28,7 @@ import org.junit.Test
 
 class TasksDataPageModelImplTest {
 
-  @get:Rule
-  var disposableRule = DisposableRule()
+  @get:Rule var disposableRule = DisposableRule()
 
   private val task1 = mockTask(":app", "compile", "compiler.plugin", 2000, taskCategory = TaskCategory.JAVA)
   private val task2 = mockTask(":app", "resources", "resources.plugin", 1000, taskCategory = TaskCategory.ANDROID_RESOURCES)
@@ -51,15 +50,19 @@ class TasksDataPageModelImplTest {
   @Test
   fun testInitialSelection() {
     assertThat(model.selectedGrouping).isEqualTo(Grouping.BY_TASK_CATEGORY)
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration: 4.0s
-      |ROOT
-      |  Java
-      |    :app:compile
-      |    :lib:compile
-      |  Android Resources
-      |    :app:resources
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration: 4.0s
+        |ROOT
+        |  Java
+        |    :app:compile
+        |    :lib:compile
+        |  Android Resources
+        |    :app:resources
+        """
+          .trimMargin()
+      )
     assertThat(modelUpdateListenerCallsCount).isEqualTo(0)
   }
 
@@ -70,15 +73,19 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.selectedGrouping).isEqualTo(Grouping.BY_PLUGIN)
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration: 4.0s
-      |ROOT
-      |  compiler.plugin
-      |    :app:compile
-      |    :lib:compile
-      |  resources.plugin
-      |    :app:resources
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration: 4.0s
+        |ROOT
+        |  compiler.plugin
+        |    :app:compile
+        |    :lib:compile
+        |  resources.plugin
+        |    :app:resources
+        """
+          .trimMargin()
+      )
     // Update should trigger model update listener once
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
     assertThat(modelUpdateListenerCallsWithTreeUpdateCount).isEqualTo(1)
@@ -96,13 +103,17 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.selectedGrouping).isEqualTo(Grouping.UNGROUPED)
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration: 4.0s
-      |ROOT
-      |  :app:compile
-      |  :app:resources
-      |  :lib:compile
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration: 4.0s
+        |ROOT
+        |  :app:compile
+        |  :app:resources
+        |  :lib:compile
+        """
+          .trimMargin()
+      )
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
     assertThat(modelUpdateListenerCallsWithTreeUpdateCount).isEqualTo(1)
   }
@@ -130,15 +141,19 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.selectedNode).isEqualTo(lastChild)
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration: 4.0s
-      |ROOT
-      |  Java
-      |    :app:compile
-      |    :lib:compile
-      |  Android Resources
-      |===>:app:resources
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration: 4.0s
+        |ROOT
+        |  Java
+        |    :app:compile
+        |    :lib:compile
+        |  Android Resources
+        |===>:app:resources
+        """
+          .trimMargin()
+      )
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
     assertThat(modelUpdateListenerCallsWithTreeUpdateCount).isEqualTo(0)
   }
@@ -154,15 +169,19 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.selectedNode).isNull()
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration: 4.0s
-      |ROOT
-      |  Java
-      |    :app:compile
-      |    :lib:compile
-      |  Android Resources
-      |    :app:resources
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration: 4.0s
+        |ROOT
+        |  Java
+        |    :app:compile
+        |    :lib:compile
+        |  Android Resources
+        |    :app:resources
+        """
+          .trimMargin()
+      )
     assertThat(modelUpdateListenerCallsCount).isEqualTo(2)
     assertThat(modelUpdateListenerCallsWithTreeUpdateCount).isEqualTo(0)
   }
@@ -172,13 +191,17 @@ class TasksDataPageModelImplTest {
     // Arrange
     model.selectGrouping(Grouping.UNGROUPED)
     model.selectNode(model.treeRoot.firstChild as TasksTreeNode)
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration: 4.0s
-      |ROOT
-      |=>:app:compile
-      |  :app:resources
-      |  :lib:compile
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration: 4.0s
+        |ROOT
+        |=>:app:compile
+        |  :app:resources
+        |  :lib:compile
+        """
+          .trimMargin()
+      )
     modelUpdateListenerCallsCount = 0
 
     // Act
@@ -186,15 +209,19 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.selectedGrouping).isEqualTo(Grouping.BY_PLUGIN)
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration: 4.0s
-      |ROOT
-      |  compiler.plugin
-      |===>:app:compile
-      |    :lib:compile
-      |  resources.plugin
-      |    :app:resources
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration: 4.0s
+        |ROOT
+        |  compiler.plugin
+        |===>:app:compile
+        |    :lib:compile
+        |  resources.plugin
+        |    :app:resources
+        """
+          .trimMargin()
+      )
     // Update should trigger model update listener once
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -204,28 +231,36 @@ class TasksDataPageModelImplTest {
     // Arrange
     model.selectGrouping(Grouping.BY_PLUGIN)
     model.selectNode(model.treeRoot.lastLeaf as TasksTreeNode)
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration: 4.0s
-      |ROOT
-      |  compiler.plugin
-      |    :app:compile
-      |    :lib:compile
-      |  resources.plugin
-      |===>:app:resources
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration: 4.0s
+        |ROOT
+        |  compiler.plugin
+        |    :app:compile
+        |    :lib:compile
+        |  resources.plugin
+        |===>:app:resources
+        """
+          .trimMargin()
+      )
     modelUpdateListenerCallsCount = 0
 
     // Act
     model.selectGrouping(Grouping.UNGROUPED)
 
     // Assert
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration: 4.0s
-      |ROOT
-      |  :app:compile
-      |=>:app:resources
-      |  :lib:compile
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration: 4.0s
+        |ROOT
+        |  :app:compile
+        |=>:app:resources
+        |  :lib:compile
+        """
+          .trimMargin()
+      )
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
 
@@ -234,28 +269,36 @@ class TasksDataPageModelImplTest {
     // Arrange
     model.selectGrouping(Grouping.BY_PLUGIN)
     model.selectNode(model.treeRoot.lastChild as TasksTreeNode)
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration: 4.0s
-      |ROOT
-      |  compiler.plugin
-      |    :app:compile
-      |    :lib:compile
-      |=>resources.plugin
-      |    :app:resources
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration: 4.0s
+        |ROOT
+        |  compiler.plugin
+        |    :app:compile
+        |    :lib:compile
+        |=>resources.plugin
+        |    :app:resources
+        """
+          .trimMargin()
+      )
     modelUpdateListenerCallsCount = 0
 
     // Act
     model.selectGrouping(Grouping.UNGROUPED)
 
     // Assert
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration: 4.0s
-      |ROOT
-      |  :app:compile
-      |  :app:resources
-      |  :lib:compile
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration: 4.0s
+        |ROOT
+        |  :app:compile
+        |  :app:resources
+        |  :lib:compile
+        """
+          .trimMargin()
+      )
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
 
@@ -272,15 +315,19 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.selectedGrouping).isEqualTo(Grouping.BY_TASK_CATEGORY)
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration: 4.0s
-      |ROOT
-      |  Java
-      |    :app:compile
-      |    :lib:compile
-      |=>Android Resources
-      |    :app:resources
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration: 4.0s
+        |ROOT
+        |  Java
+        |    :app:compile
+        |    :lib:compile
+        |=>Android Resources
+        |    :app:resources
+        """
+          .trimMargin()
+      )
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
     assertThat(modelUpdateListenerCallsWithTreeUpdateCount).isEqualTo(1)
   }
@@ -292,15 +339,19 @@ class TasksDataPageModelImplTest {
     model.selectPageById(pageId)
 
     // Assert
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration: 4.0s
-      |ROOT
-      |  Java
-      |    :app:compile
-      |===>:lib:compile
-      |  Android Resources
-      |    :app:resources
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration: 4.0s
+        |ROOT
+        |  Java
+        |    :app:compile
+        |===>:lib:compile
+        |  Android Resources
+        |    :app:resources
+        """
+          .trimMargin()
+      )
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
     assertThat(modelUpdateListenerCallsWithTreeUpdateCount).isEqualTo(0)
   }
@@ -313,15 +364,19 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.selectedGrouping).isEqualTo(Grouping.BY_PLUGIN)
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration: 4.0s
-      |ROOT
-      |  compiler.plugin
-      |    :app:compile
-      |===>:lib:compile
-      |  resources.plugin
-      |    :app:resources
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration: 4.0s
+        |ROOT
+        |  compiler.plugin
+        |    :app:compile
+        |===>:lib:compile
+        |  resources.plugin
+        |    :app:resources
+        """
+          .trimMargin()
+      )
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
     assertThat(modelUpdateListenerCallsWithTreeUpdateCount).isEqualTo(1)
   }
@@ -334,28 +389,34 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.selectedGrouping).isEqualTo(Grouping.BY_TASK_CATEGORY)
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration: 4.0s
-      |ROOT
-      |  Java
-      |    :app:compile
-      |    :lib:compile
-      |  Android Resources
-      |    :app:resources
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration: 4.0s
+        |ROOT
+        |  Java
+        |    :app:compile
+        |    :lib:compile
+        |  Android Resources
+        |    :app:resources
+        """
+          .trimMargin()
+      )
     assertThat(modelUpdateListenerCallsCount).isEqualTo(0)
   }
 
   @Test
   fun testFilterApplySelectedNodeRemains() {
     // Arrange
-    val task1 = mockTask(":app", "compile", "compiler.plugin", 2000, taskCategory = TaskCategory.JAVA).apply {
-      issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-    }
+    val task1 =
+      mockTask(":app", "compile", "compiler.plugin", 2000, taskCategory = TaskCategory.JAVA).apply {
+        issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
+      }
     val task2 = mockTask(":app", "resources", "resources.plugin", 1000, taskCategory = TaskCategory.ANDROID_RESOURCES)
-    val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000, taskCategory = TaskCategory.JAVA).apply {
-      issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-    }
+    val task3 =
+      mockTask(":lib", "compile", "compiler.plugin", 1000, taskCategory = TaskCategory.JAVA).apply {
+        issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
+      }
     val task4 = mockTask(":lib", "noWarnings", "noWarnings.plugin", 1000)
 
     val mockData = MockUiData(tasksList = listOf(task1, task2, task3, task4), createTaskCategoryWarning = true)
@@ -367,27 +428,35 @@ class TasksDataPageModelImplTest {
     model.applyFilter(TasksFilter.DEFAULT.copy(showTasksWithoutWarnings = false))
 
     // Assert
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration - Total: 5.0s, Filtered: 4.0s
-      |ROOT
-      |  Java
-      |===>:app:compile
-      |    :lib:compile
-      |  Android Resources
-      |    :app:resources
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration - Total: 5.0s, Filtered: 4.0s
+        |ROOT
+        |  Java
+        |===>:app:compile
+        |    :lib:compile
+        |  Android Resources
+        |    :app:resources
+        """
+          .trimMargin()
+      )
 
     // Act - group by plugin
     model.selectGrouping(Grouping.BY_PLUGIN)
 
     // Assert
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration - Total: 5.0s, Filtered: 3.0s
-      |ROOT
-      |  compiler.plugin
-      |===>:app:compile
-      |    :lib:compile
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration - Total: 5.0s, Filtered: 3.0s
+        |ROOT
+        |  compiler.plugin
+        |===>:app:compile
+        |    :lib:compile
+        """
+          .trimMargin()
+      )
   }
 
   @Test
@@ -401,10 +470,14 @@ class TasksDataPageModelImplTest {
     model.applyFilter(TasksFilter.DEFAULT.copy(showTaskSourceTypes = setOf(PluginSourceType.BUILD_SCRIPT)))
 
     // Assert
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration - Total: 4.0s, Filtered: 0.0s
-      |ROOT
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration - Total: 4.0s, Filtered: 0.0s
+        |ROOT
+        """
+          .trimMargin()
+      )
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
     assertThat(modelUpdateListenerCallsWithTreeUpdateCount).isEqualTo(1)
 
@@ -412,26 +485,25 @@ class TasksDataPageModelImplTest {
     model.selectGrouping(Grouping.BY_PLUGIN)
 
     // Assert
-    assertThat(model.print()).isEqualTo("""
-      |Tasks duration - Total: 4.0s, Filtered: 0.0s
-      |ROOT
-    """.trimMargin())
+    assertThat(model.print())
+      .isEqualTo(
+        """
+        |Tasks duration - Total: 4.0s, Filtered: 0.0s
+        |ROOT
+        """
+          .trimMargin()
+      )
   }
 
   private fun TasksDataPageModel.print(): String {
-    return treeRoot.preorderEnumeration().asSequence().joinToString(
-      prefix = "${treeHeaderText}\n",
-      separator = "\n"
-    ) {
+    return treeRoot.preorderEnumeration().asSequence().joinToString(prefix = "${treeHeaderText}\n", separator = "\n") {
       if (it is TasksTreeNode) {
         if (selectedNode?.descriptor?.pageId == it.descriptor.pageId) {
           ">".padStart(it.level * 2, padChar = '=') + it.descriptor.pageId.id
-        }
-        else {
+        } else {
           "".padStart(it.level * 2) + it.descriptor.pageId.id
         }
-      }
-      else {
+      } else {
         "ROOT"
       }
     }

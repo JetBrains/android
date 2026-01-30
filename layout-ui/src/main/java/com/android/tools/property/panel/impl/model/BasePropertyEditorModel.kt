@@ -37,14 +37,12 @@ import kotlin.properties.Delegates
  * @property property The property being edited
  * @property value The computed value of the property
  * @property visible Controls the visibility of the editor
- * @property hasFocus Shows if an editor has focus. Setting this to true will cause focus to be
- *   requested to the editor.
+ * @property hasFocus Shows if an editor has focus. Setting this to true will cause focus to be requested to the editor.
  */
 abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : PropertyEditorModel {
   private val valueChangeListeners = mutableListOf<ValueChangedListener>()
 
-  override var property: PropertyItem by
-    Delegates.observable(initialProperty) { _, _, _ -> fireValueChanged() }
+  override var property: PropertyItem by Delegates.observable(initialProperty) { _, _, _ -> fireValueChanged() }
 
   override var value: String
     get() = property.value.orEmpty()
@@ -70,8 +68,8 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
   /**
    * A focus request was made.
    *
-   * We cannot call a method in the UI to request focus. Instead [focusRequest] is temporarily set
-   * to true, and the Ui is requested to update itself. See the [requestFocus] function.
+   * We cannot call a method in the UI to request focus. Instead [focusRequest] is temporarily set to true, and the Ui is requested to
+   * update itself. See the [requestFocus] function.
    */
   var focusRequest = false
     private set
@@ -84,8 +82,7 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
     }
   }
 
-  override var isUsedInRendererWithSelection: Boolean by
-    Delegates.observable(false) { _, _, _ -> fireValueChanged() }
+  override var isUsedInRendererWithSelection: Boolean by Delegates.observable(false) { _, _, _ -> fireValueChanged() }
 
   fun displayedIcon(icon: Icon?): Icon? =
     if (icon != null && icon !is ColorIcon && isUsedInRendererWithSelection && !NewUI.isEnabled())
@@ -98,8 +95,7 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
   fun displayedBackground(background: Color): Color =
     if (isUsedInRendererWithSelection) UIUtil.getTableBackground(true, true) else background
 
-  override var isExpandedTableItem: Boolean by
-    Delegates.observable(false) { _, _, _ -> fireValueChanged() }
+  override var isExpandedTableItem: Boolean by Delegates.observable(false) { _, _, _ -> fireValueChanged() }
 
   override var tableExpansionState: TableExpansionState by
     Delegates.observable(TableExpansionState.NORMAL) { _, _, _ -> fireValueChanged() }
@@ -133,8 +129,8 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
   /**
    * The property value may have changed.
    *
-   * Implementations should override this method and update their internal state after the value of
-   * the property we are editing may have changed outside of the control of the editor.
+   * Implementations should override this method and update their internal state after the value of the property we are editing may have
+   * changed outside of the control of the editor.
    */
   open fun updateValueFromProperty() {}
 

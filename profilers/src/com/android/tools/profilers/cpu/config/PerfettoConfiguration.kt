@@ -18,9 +18,7 @@ package com.android.tools.profilers.cpu.config
 import com.android.tools.profiler.proto.Trace
 import perfetto.protos.PerfettoConfig
 
-/**
- * Configuration for Perfetto traces.
- */
+/** Configuration for Perfetto traces. */
 abstract class PerfettoConfiguration(name: String) : ProfilingConfiguration(name) {
 
   abstract override fun getOptions(): PerfettoConfig.TraceConfig

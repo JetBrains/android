@@ -39,15 +39,12 @@ class ExpandedLeakDetailsTest : WithFakeTimer {
   override val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
-  @Rule
-  @JvmField
-  val grpcChannel = FakeGrpcChannel("ExpandedLeakDetailsTestChannel", transportService)
+  @Rule @JvmField val grpcChannel = FakeGrpcChannel("ExpandedLeakDetailsTestChannel", transportService)
   private lateinit var profilers: StudioProfilers
   private lateinit var mockLeakCanaryModel: LeakCanaryModel
   private lateinit var ideProfilerServices: FakeIdeProfilerServices
 
-  @get:Rule
-  val composeTestRule = StudioComposeTestRule.createStudioComposeTestRule()
+  @get:Rule val composeTestRule = StudioComposeTestRule.createStudioComposeTestRule()
 
   @Before
   fun setup() {
@@ -58,15 +55,21 @@ class ExpandedLeakDetailsTest : WithFakeTimer {
 
   @Test
   fun `text expand node details displays correctly`() {
-    val referencingField = ReferencingField("random.classname", ReferencingField.ReferencingFieldType.INSTANCE_FIELD,
-                                            false, "referenceName")
-    val node = Node(LeakTraceNodeType.INSTANCE, "random.classname", LeakingStatus.YES,
-                    "A Strong garbage collection.", "1024 bytes",
-                    10, listOf("Note 1", "Note 2"), referencingField)
+    val referencingField =
+      ReferencingField("random.classname", ReferencingField.ReferencingFieldType.INSTANCE_FIELD, false, "referenceName")
+    val node =
+      Node(
+        LeakTraceNodeType.INSTANCE,
+        "random.classname",
+        LeakingStatus.YES,
+        "A Strong garbage collection.",
+        "1024 bytes",
+        10,
+        listOf("Note 1", "Note 2"),
+        referencingField,
+      )
 
-    composeTestRule.setContent {
-      LeakNodeDetails(node = node)
-    }
+    composeTestRule.setContent { LeakNodeDetails(node = node) }
 
     composeTestRule.onNodeWithText("Leaking").assertIsDisplayed()
     composeTestRule.onNodeWithText("Yes").assertIsDisplayed()
@@ -88,13 +91,9 @@ class ExpandedLeakDetailsTest : WithFakeTimer {
 
   @Test
   fun `test expand node details display correctly when node is not leaking`() {
-    val node = Node(LeakTraceNodeType.INSTANCE, "random.classname", LeakingStatus.NO,
-                        "Not Leaking", null,
-                        null, listOf(), null)
+    val node = Node(LeakTraceNodeType.INSTANCE, "random.classname", LeakingStatus.NO, "Not Leaking", null, null, listOf(), null)
 
-    composeTestRule.setContent {
-      LeakNodeDetails(node = node)
-    }
+    composeTestRule.setContent { LeakNodeDetails(node = node) }
 
     composeTestRule.onNodeWithText("Leaking").assertIsDisplayed()
     composeTestRule.onNodeWithText("No").assertIsDisplayed()
@@ -111,14 +110,11 @@ class ExpandedLeakDetailsTest : WithFakeTimer {
 
   @Test
   fun `test unknown leak status with no reason does not show not leaking`() {
-    val referencingField = ReferencingField("random.classname", ReferencingField.ReferencingFieldType.INSTANCE_FIELD,
-                                            false, "referenceName")
-    val node = Node(LeakTraceNodeType.INSTANCE, "random.classname", LeakingStatus.UNKNOWN,
-                    "", "2 KB", 10, listOf(), referencingField)
+    val referencingField =
+      ReferencingField("random.classname", ReferencingField.ReferencingFieldType.INSTANCE_FIELD, false, "referenceName")
+    val node = Node(LeakTraceNodeType.INSTANCE, "random.classname", LeakingStatus.UNKNOWN, "", "2 KB", 10, listOf(), referencingField)
 
-    composeTestRule.setContent {
-      LeakNodeDetails(node = node)
-    }
+    composeTestRule.setContent { LeakNodeDetails(node = node) }
 
     composeTestRule.onNodeWithText("Leaking").assertIsDisplayed()
     composeTestRule.onNodeWithText("Unknown").assertIsDisplayed()

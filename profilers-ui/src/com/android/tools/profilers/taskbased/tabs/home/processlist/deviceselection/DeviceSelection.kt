@@ -31,20 +31,17 @@ import org.jetbrains.jewel.ui.component.Tooltip
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun DeviceSelection(deviceList: List<Common.Device>,
-                    selectedDevice: ProfilerDeviceSelection?,
-                    selectedDevicesCount: Int,
-                    onDeviceSelection: (Common.Device) -> Unit) {
-  Column (modifier = Modifier.fillMaxWidth()) {
+fun DeviceSelection(
+  deviceList: List<Common.Device>,
+  selectedDevice: ProfilerDeviceSelection?,
+  selectedDevicesCount: Int,
+  onDeviceSelection: (Common.Device) -> Unit,
+) {
+  Column(modifier = Modifier.fillMaxWidth()) {
     if (IdeInfo.isGameTool()) {
       DeviceSelectionDropdown(deviceList = deviceList, selectedDevice = selectedDevice, onDeviceSelection = onDeviceSelection)
-    }
-    else {
-      Tooltip(
-        { Text(DEVICE_SELECTION_TOOLTIP) }
-      ) {
-        DeviceSelectionContent(selectedDevice, selectedDevicesCount)
-      }
+    } else {
+      Tooltip({ Text(DEVICE_SELECTION_TOOLTIP) }) { DeviceSelectionContent(selectedDevice, selectedDevicesCount) }
       ToolWindowHorizontalDivider()
     }
   }

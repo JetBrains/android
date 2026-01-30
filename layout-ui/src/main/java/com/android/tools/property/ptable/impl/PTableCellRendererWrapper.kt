@@ -28,9 +28,8 @@ import javax.swing.table.TableCellRenderer
 /**
  * A [TableCellRenderer] that delegates to a [PTableCellRenderer].
  *
- * A thin wrapper around a [TableCellRenderer] that can be used in a [JTable]. By default a
- * [DefaultPTableCellRenderer] is used, but it can be overridden with a different implementation by
- * setting the [renderer]
+ * A thin wrapper around a [TableCellRenderer] that can be used in a [JTable]. By default a [DefaultPTableCellRenderer] is used, but it can
+ * be overridden with a different implementation by setting the [renderer]
  */
 class PTableCellRendererWrapper : TableCellRenderer {
   var renderer: PTableCellRenderer = DefaultPTableCellRenderer()
@@ -51,15 +50,7 @@ class PTableCellRendererWrapper : TableCellRenderer {
     val item = value as PTableItem
     val isExpanded = pTable.isExpandedItem(row, column)
     val component =
-      renderer.getEditorComponent(
-        pTable,
-        item,
-        PTableColumn.fromColumn(column),
-        model.depth(item),
-        isSelected,
-        hasFocus,
-        isExpanded,
-      )
+      renderer.getEditorComponent(pTable, item, PTableColumn.fromColumn(column), model.depth(item), isSelected, hasFocus, isExpanded)
     if (isSelected && !hasFocus) {
       // The JBTable.prepareRenderer overrides the background color to indicate when the mouse is
       // hovering the row.
@@ -70,9 +61,7 @@ class PTableCellRendererWrapper : TableCellRenderer {
       // the cell is selected but does not have focus.
       @Suppress("UnstableApiUsage")
       component?.background =
-        if (TableHoverListener.getHoveredRow(table) == row)
-          JBUI.CurrentTheme.Table.Hover.background(true)
-        else table.background
+        if (TableHoverListener.getHoveredRow(table) == row) JBUI.CurrentTheme.Table.Hover.background(true) else table.background
     }
     return component
   }

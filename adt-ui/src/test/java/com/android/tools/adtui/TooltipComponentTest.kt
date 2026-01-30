@@ -27,20 +27,16 @@ import org.junit.Test
 
 class TooltipComponentTest {
 
-  /**
-   * Create components with a default size - the size isn't that important, but one is needed so
-   * that [FakeUi] can interact with them.
-   */
+  /** Create components with a default size - the size isn't that important, but one is needed so that [FakeUi] can interact with them. */
   private fun <C : JComponent> createWithSize(produceComponent: () -> C): C {
     return produceComponent().apply { setSize(100, 100) }
   }
 
   /**
-   * Produce fake displayble values, since we can't check [JComponent.isDisplayable] in unit tests.
-   * If [explicitRoot] is not set, will return true iff owner has a direct parent.
+   * Produce fake displayble values, since we can't check [JComponent.isDisplayable] in unit tests. If [explicitRoot] is not set, will
+   * return true iff owner has a direct parent.
    */
-  private class DisplayableProducer(val owner: JComponent, val explicitRoot: JComponent? = null) :
-    Supplier<Boolean> {
+  private class DisplayableProducer(val owner: JComponent, val explicitRoot: JComponent? = null) : Supplier<Boolean> {
     override fun get(): Boolean {
       return if (explicitRoot == null) {
         owner.parent != null
@@ -59,10 +55,9 @@ class TooltipComponentTest {
 
     val displayableProducer = DisplayableProducer(owner)
     val tooltip =
-      TooltipComponent.Builder(JLabel(), owner, root)
-        .setIsOwnerDisplayable(displayableProducer)
-        .build()
-        .apply { registerListenersOn(owner) }
+      TooltipComponent.Builder(JLabel(), owner, root).setIsOwnerDisplayable(displayableProducer).build().apply {
+        registerListenersOn(owner)
+      }
 
     val fakeUi = FakeUi(root)
     fakeUi.mouse.moveTo(50, 50)
@@ -86,10 +81,9 @@ class TooltipComponentTest {
 
     val displayableProducer = DisplayableProducer(owner, root)
     val tooltip =
-      TooltipComponent.Builder(JLabel(), owner, root)
-        .setIsOwnerDisplayable(displayableProducer)
-        .build()
-        .apply { registerListenersOn(owner) }
+      TooltipComponent.Builder(JLabel(), owner, root).setIsOwnerDisplayable(displayableProducer).build().apply {
+        registerListenersOn(owner)
+      }
     val fakeUi = FakeUi(root)
     fakeUi.mouse.moveTo(50, 50)
 

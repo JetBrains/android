@@ -31,12 +31,12 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.PsiTestUtil
-import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager.Companion.get
-import org.junit.Test
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
+import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager.Companion.get
+import org.junit.Test
 
 // Regression test for b/229997303
 class ModuleClassLoaderDependenciesTest : AndroidTestCase() {
@@ -46,7 +46,8 @@ class ModuleClassLoaderDependenciesTest : AndroidTestCase() {
     val srcDir = Files.createDirectories(Files.createTempDirectory("testProject").resolve("src"))
     val packageDir = Files.createDirectories(srcDir.resolve("com/foo/qwe"))
     val dSrc = Files.createFile(packageDir.resolve("D.java"))
-    FileUtil.writeToFile(dSrc.toFile(),
+    FileUtil.writeToFile(
+      dSrc.toFile(),
       // language=java
       """
       package com.foo.qwe;
@@ -70,40 +71,44 @@ class ModuleClassLoaderDependenciesTest : AndroidTestCase() {
           A a = foo();
         }
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     val classes = addAarDependency(myModule, "pseudoclasslocator/classes.jar", "foobar")
 
-    ApplicationManager.getApplication().runWriteAction(
-      Computable {
-        PsiTestUtil.addSourceRoot(myModule,
-                                  VfsUtil.findFileByIoFile(srcDir.toFile(), true)!!)
-      } as Computable<SourceFolder>)
+    ApplicationManager.getApplication()
+      .runWriteAction(
+        Computable { PsiTestUtil.addSourceRoot(myModule, VfsUtil.findFileByIoFile(srcDir.toFile(), true)!!) } as Computable<SourceFolder>
+      )
 
     val javac = getJavac()
-    javac.run(null, null, null, "-cp", "${classes.absolutePath}",  "${dSrc.toAbsolutePath()}")
+    javac.run(null, null, null, "-cp", "${classes.absolutePath}", "${dSrc.toAbsolutePath()}")
 
     val dClass = dSrc.getParent().toFile().resolve("D.class")
     assertTrue(dClass.exists())
 
     val context = InjectableContext(BuildTargetReference.gradleOnly(myModule), mapOf("com.foo.qwe.D" to ClassContent.loadFromFile(dClass)))
-    val unused = get().getShared(null, context).useWithClassLoader { loader ->
-
-      val loadedDClass = loader.loadClass("com.foo.qwe.D")
-      assertNotNull(loadedDClass.getConstructor())
-    }
+    val unused =
+      get().getShared(null, context).useWithClassLoader { loader ->
+        val loadedDClass = loader.loadClass("com.foo.qwe.D")
+        assertNotNull(loadedDClass.getConstructor())
+      }
   }
 
   companion object {
     private fun createManifest(aarDir: File, packageName: String) {
       aarDir.mkdirs()
-      aarDir.resolve(SdkConstants.FN_ANDROID_MANIFEST_XML).writeText(
-        // language=xml
-        """
+      aarDir
+        .resolve(SdkConstants.FN_ANDROID_MANIFEST_XML)
+        .writeText(
+          // language=xml
+          """
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="$packageName">
       </manifest>
-    """.trimIndent()
-      )
+    """
+            .trimIndent()
+        )
     }
 
     @Throws(IOException::class)
@@ -113,19 +118,10 @@ class ModuleClassLoaderDependenciesTest : AndroidTestCase() {
       val classesJar = aarDir.resolve(SdkConstants.FN_CLASSES_JAR)
       ModuleClassLoaderDependenciesTest::class.java.classLoader.getResourceAsStream(classesjar).use { stream ->
         val bytes = stream.readAllBytes()
-        classesJar.outputStream().use {
-          it.write(bytes)
-        }
+        classesJar.outputStream().use { it.write(bytes) }
       }
 
-      val library = PsiTestUtil.addProjectLibrary(
-        module,
-        "$libraryName.aar",
-        listOf(
-          classesJar.toVirtualFile(refresh = true)
-        ),
-        emptyList()
-      )
+      val library = PsiTestUtil.addProjectLibrary(module, "$libraryName.aar", listOf(classesJar.toVirtualFile(refresh = true)), emptyList())
       ModuleRootModificationUtil.addDependency(module, library)
       return classesJar
     }

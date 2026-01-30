@@ -39,10 +39,10 @@ private const val PREVIEW_TEST_ANNOTATION = "com.android.tools.screenshot.Previe
 val IS_SCREENSHOT_TEST_CONFIGURATION = Key.create<Boolean>("com.android.tools.idea.testartifacts.screenshot.isScreenshotTest")
 
 /**
- * Checks if the given location belongs to screenshot test source set.
- * It verifies if the virtual file associated with the location either
+ * Checks if the given location belongs to screenshot test source set. It verifies if the virtual file associated with the location either
  * - is contained within the screenshot test or generated screenshot test source roots, or
  * - contains the screenshot test or generated screenshot test source sets
+ *
  * @param location The location of the PSI element to check.
  * @param facet The Android facet associated with the project.
  * @return {@code true} if the location is within a screenshot test source set, {@code false} otherwise.
@@ -64,8 +64,8 @@ fun isScreenshotTestSourceSet(location: Location<PsiElement>, facet: AndroidFace
 }
 
 /**
- * Retrieves the name of the Gradle task for screenshot validation .
- * It uses the Gradle Android model and module data to construct the task names.
+ * Retrieves the name of the Gradle task for screenshot validation . It uses the Gradle Android model and module data to construct the task
+ * names.
  *
  * @param context The configuration context.
  * @return A list of String containing the screenshot test task name, or {@code null} if any required information is missing.
@@ -76,23 +76,23 @@ fun getScreenshotTestTaskNames(context: ConfigurationContext): List<String>? {
   val androidModel = GradleAndroidModel.get(facet) ?: return null
   val moduleData = GradleUtil.findGradleModuleData(myModule)?.data ?: return null
   return listOf(
-    moduleData.gradleIdentityPath.trimEnd(':') + ":" +
-      androidModel.getGradleScreenshotTestTaskNameForSelectedVariant("validate")
+    moduleData.gradleIdentityPath.trimEnd(':') + ":" + androidModel.getGradleScreenshotTestTaskNameForSelectedVariant("validate")
   )
 }
 
-
 /**
- * Checks if a given class declaration contains any methods annotated with the Compose Preview annotation or compose multi preview annotation
+ * Checks if a given class declaration contains any methods annotated with the Compose Preview annotation or compose multi preview
+ * annotation
  *
  * @param psiClass The PSI class to check.
  * @param visitedAnnotations A mutable map to track visited annotations to avoid infinite recursion.
  * @return {@code true} if the class has at least one preview-annotated method, {@code false} otherwise.
  */
-fun isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass: PsiClass, visitedAnnotations: MutableMap<String, Boolean> = mutableMapOf()): Boolean {
-  return psiClass.methods.any {
-    isMethodDeclarationPreviewTestAnnotated(it, visitedAnnotations)
-  }
+fun isClassDeclarationWithPreviewTestAnnotatedMethods(
+  psiClass: PsiClass,
+  visitedAnnotations: MutableMap<String, Boolean> = mutableMapOf(),
+): Boolean {
+  return psiClass.methods.any { isMethodDeclarationPreviewTestAnnotated(it, visitedAnnotations) }
 }
 
 /**
@@ -102,23 +102,27 @@ fun isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass: PsiClass, visite
  * @param visitedAnnotations A mutable map to track visited annotations to avoid infinite recursion.
  * @return {@code true} if the method is preview annotated, {@code false} otherwise.
  */
-fun isMethodDeclarationPreviewTestAnnotated(psiMethod: PsiMethod, visitedAnnotations: MutableMap<String, Boolean> = mutableMapOf()) : Boolean {
-  return psiMethod.annotations.any{ it.qualifiedName == PREVIEW_TEST_ANNOTATION}
+fun isMethodDeclarationPreviewTestAnnotated(
+  psiMethod: PsiMethod,
+  visitedAnnotations: MutableMap<String, Boolean> = mutableMapOf(),
+): Boolean {
+  return psiMethod.annotations.any { it.qualifiedName == PREVIEW_TEST_ANNOTATION }
 }
 
 private fun IdeaSourceProvider.containedIn(targetFolder: VirtualFile): Boolean {
   return manifestFileUrls.any { manifestFileUrl -> VfsUtilCore.isEqualOrAncestor(targetFolder.url, manifestFileUrl) } ||
-         allSourceFolderUrls().any { sourceFolderUrl -> VfsUtilCore.isEqualOrAncestor(targetFolder.url, sourceFolderUrl) }
+    allSourceFolderUrls().any { sourceFolderUrl -> VfsUtilCore.isEqualOrAncestor(targetFolder.url, sourceFolderUrl) }
 }
 
-private fun IdeaSourceProvider.allSourceFolderUrls() : Sequence<String> {
+private fun IdeaSourceProvider.allSourceFolderUrls(): Sequence<String> {
   return arrayOf(
-    javaDirectoryUrls,
-    resDirectoryUrls,
-    aidlDirectoryUrls,
-    renderscriptDirectoryUrls,
-    assetsDirectoryUrls,
-    jniLibsDirectoryUrls
-  ).asSequence()
+      javaDirectoryUrls,
+      resDirectoryUrls,
+      aidlDirectoryUrls,
+      renderscriptDirectoryUrls,
+      assetsDirectoryUrls,
+      jniLibsDirectoryUrls,
+    )
+    .asSequence()
     .flatten()
 }

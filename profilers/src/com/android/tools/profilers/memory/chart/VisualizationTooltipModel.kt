@@ -21,5 +21,4 @@ import com.android.tools.adtui.model.Range
  * Model for memory visualization tooltip. This model provides access for things the tooltip needs. The tooltip determines what to render
  * for each node on demand. As such the state is provided by referenced objects.
  */
-data class VisualizationTooltipModel(val captureRange: Range, val visualizationModel: MemoryVisualizationModel) {
-}
+data class VisualizationTooltipModel(val captureRange: Range, val visualizationModel: MemoryVisualizationModel) {}

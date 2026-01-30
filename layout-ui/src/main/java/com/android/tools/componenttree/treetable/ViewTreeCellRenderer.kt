@@ -43,10 +43,9 @@ private const val MAX_TOOLTIP_TEXT_LENGTH = 1000
 /**
  * A renderer for an Android View node.
  *
- * In order to allow the text to be fitted in length a 2 step approach is taken: 1: Setup the
- * component with the full text and the unselected icon. This resulting render component is ideal
- * for measuring the preferred size of the tree node. 2: Before painting perform the following
- * adjustments:
+ * In order to allow the text to be fitted in length a 2 step approach is taken: 1: Setup the component with the full text and the
+ * unselected icon. This resulting render component is ideal for measuring the preferred size of the tree node. 2: Before painting perform
+ * the following adjustments:
  * - Adjust the text such that "..." is shown if the text doesn't fit inside the tree width.
  * - Adjust colors for selection and focus including the generation of a special selected icon.
  */
@@ -89,8 +88,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
   /**
    * The renderer component.
    *
-   * If you need to update this renderer you probably should update the [computeSearchString] below
-   * as well.
+   * If you need to update this renderer you probably should update the [computeSearchString] below as well.
    */
   @VisibleForTesting
   class ColoredViewRenderer : SimpleColoredRenderer() {
@@ -108,10 +106,8 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     var deEmphasized = false
 
     private val baseFontMetrics = getFontMetrics(StartupUiUtil.labelFont)
-    private val smallFontMetrics =
-      getFontMetrics(StartupUiUtil.labelFont.deriveFont(UIUtil.getFontSize(UIUtil.FontSize.SMALL)))
-    private val strikeout =
-      SimpleTextAttributes.REGULAR_ATTRIBUTES.derive(STYLE_STRIKEOUT, null, null, null)
+    private val smallFontMetrics = getFontMetrics(StartupUiUtil.labelFont.deriveFont(UIUtil.getFontSize(UIUtil.FontSize.SMALL)))
+    private val strikeout = SimpleTextAttributes.REGULAR_ATTRIBUTES.derive(STYLE_STRIKEOUT, null, null, null)
     private val small = SimpleTextAttributes(STYLE_SMALLER, null)
     private val smallStrikeout = SimpleTextAttributes(STYLE_SMALLER or STYLE_STRIKEOUT, null)
 
@@ -147,8 +143,8 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     /**
      * Generate the text from className, component ID, the text value.
      *
-     * If the ID is available show that first followed by the text value if that is available in
-     * gray. If either of these 2 strings are missing then also show the className.
+     * If the ID is available show that first followed by the text value if that is available in gray. If either of these 2 strings are
+     * missing then also show the className.
      */
     private fun generate(maxWidth: Int) {
       clear()
@@ -170,9 +166,8 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
 
     /**
      * Adjust the renderer in preparation for painting.
-     * - adjust the text such that we shrink the text pieces to fit the available width. Note that
-     *   if the renderer is going to be used for painting the row current that is currently expanded
-     *   by the expandableItemsHandler of the tree then we need the full text.
+     * - adjust the text such that we shrink the text pieces to fit the available width. Note that if the renderer is going to be used for
+     *   painting the row current that is currently expanded by the expandableItemsHandler of the tree then we need the full text.
      * - set the correct foreground & background colors
      * - if painting on a blue background (focus & selected) generate and use a white icon
      */
@@ -184,10 +179,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
       }
       foreground = UIUtil.getTreeForeground(selectedValue, focusedValue)
       background = UIUtil.getTreeBackground(selectedValue, focusedValue)
-      icon =
-        treeIcon?.let {
-          if (focusedValue && !NewUI.isEnabled()) ColoredIconGenerator.generateWhiteIcon(it) else it
-        }
+      icon = treeIcon?.let { if (focusedValue && !NewUI.isEnabled()) ColoredIconGenerator.generateWhiteIcon(it) else it }
       if (!selectedValue && (deEmphasized || !enabledValue)) {
         foreground = foreground.deEmphasize()
         icon = ColoredIconGenerator.generateDeEmphasizedIcon(icon)
@@ -198,16 +190,11 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     /**
      * Add a fragment of [text] to the renderer using the given text [attributes].
      *
-     * If a [maxWidth] is specified the [metrics] is used to measure if there is enough room in the
-     * renderer to show this text fragment. If there is not enough room the text is replaced with a
-     * string that ends with ellipsis "...". Return true if the text was included unchanged.
+     * If a [maxWidth] is specified the [metrics] is used to measure if there is enough room in the renderer to show this text fragment. If
+     * there is not enough room the text is replaced with a string that ends with ellipsis "...". Return true if the text was included
+     * unchanged.
      */
-    private fun append(
-      text: String?,
-      attributes: SimpleTextAttributes,
-      metrics: FontMetrics,
-      maxWidth: Int,
-    ): Boolean {
+    private fun append(text: String?, attributes: SimpleTextAttributes, metrics: FontMetrics, maxWidth: Int): Boolean {
       var actual = text ?: return true
       var unchanged = true
       if (maxWidth > 0) {
@@ -244,8 +231,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     /**
      * A SpeedSearch string calculated from the Android View node properties.
      *
-     * If you need to update this method you probably should update the [ColoredViewRenderer] above
-     * as well.
+     * If you need to update this method you probably should update the [ColoredViewRenderer] above as well.
      */
     fun <T> computeSearchString(type: ViewNodeType<T>, node: T): String {
       val id = type.idOf(node)
@@ -266,7 +252,6 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     }
 
     private fun String.truncateTooltipValue(): String =
-      if (this.length > MAX_TOOLTIP_TEXT_LENGTH) this.substring(0, MAX_TOOLTIP_TEXT_LENGTH) + "..."
-      else this
+      if (this.length > MAX_TOOLTIP_TEXT_LENGTH) this.substring(0, MAX_TOOLTIP_TEXT_LENGTH) + "..." else this
   }
 }

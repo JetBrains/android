@@ -34,55 +34,76 @@ import org.jetbrains.jewel.ui.component.Tooltip
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun EllipsisText(modifier: Modifier = Modifier,
-                 text: String,
-                 maxLines: Int = 1,
-                 fontSize: TextUnit = TextUnit.Unspecified,
-                 fontWeight: FontWeight? = null,
-                 fontStyle: FontStyle? = null,
-                 textAlign: TextAlign = TextAlign.Unspecified,
-                 lineHeight: TextUnit = TextUnit.Unspecified,
-                 color: Color = Color.Unspecified,
-                 enableTooltipOnOverflow: Boolean = true) {
+fun EllipsisText(
+  modifier: Modifier = Modifier,
+  text: String,
+  maxLines: Int = 1,
+  fontSize: TextUnit = TextUnit.Unspecified,
+  fontWeight: FontWeight? = null,
+  fontStyle: FontStyle? = null,
+  textAlign: TextAlign = TextAlign.Unspecified,
+  lineHeight: TextUnit = TextUnit.Unspecified,
+  color: Color = Color.Unspecified,
+  enableTooltipOnOverflow: Boolean = true,
+) {
   var hasVisualOverflow by remember { mutableStateOf(false) }
   if (hasVisualOverflow && enableTooltipOnOverflow) {
     Tooltip(tooltip = { Text(text) }) {
-      EllipsisTextContent(text = text,
-                          maxLines = maxLines,
-                          fontSize = fontSize,
-                          fontWeight = fontWeight,
-                          lineHeight = lineHeight,
-                          textAlign = textAlign,
-                          fontStyle = fontStyle,
-                          color = color,
-                          modifier = modifier) { hasVisualOverflow = it.hasVisualOverflow }
+      EllipsisTextContent(
+        text = text,
+        maxLines = maxLines,
+        fontSize = fontSize,
+        fontWeight = fontWeight,
+        lineHeight = lineHeight,
+        textAlign = textAlign,
+        fontStyle = fontStyle,
+        color = color,
+        modifier = modifier,
+      ) {
+        hasVisualOverflow = it.hasVisualOverflow
+      }
     }
-  }
-  else {
-    EllipsisTextContent(text = text,
-                        maxLines = maxLines,
-                        fontSize = fontSize,
-                        fontWeight = fontWeight,
-                        lineHeight = lineHeight,
-                        textAlign = textAlign,
-                        fontStyle = fontStyle,
-                        color = color,
-                        modifier = modifier) { hasVisualOverflow = it.hasVisualOverflow }
+  } else {
+    EllipsisTextContent(
+      text = text,
+      maxLines = maxLines,
+      fontSize = fontSize,
+      fontWeight = fontWeight,
+      lineHeight = lineHeight,
+      textAlign = textAlign,
+      fontStyle = fontStyle,
+      color = color,
+      modifier = modifier,
+    ) {
+      hasVisualOverflow = it.hasVisualOverflow
+    }
   }
 }
 
 @Composable
-private fun EllipsisTextContent(text: String,
-                                maxLines: Int,
-                                fontSize: TextUnit,
-                                fontWeight: FontWeight?,
-                                lineHeight: TextUnit,
-                                fontStyle: FontStyle?,
-                                textAlign: TextAlign,
-                                color: Color,
-                                modifier: Modifier,
-                                onTextLayout: (TextLayoutResult) -> Unit) {
-  Text(text = text, maxLines = maxLines, overflow = TextOverflow.Ellipsis, fontSize = fontSize, fontWeight = fontWeight,
-       lineHeight = lineHeight, color = color, modifier = modifier, onTextLayout = onTextLayout, textAlign = textAlign,
-       fontStyle = fontStyle)
+private fun EllipsisTextContent(
+  text: String,
+  maxLines: Int,
+  fontSize: TextUnit,
+  fontWeight: FontWeight?,
+  lineHeight: TextUnit,
+  fontStyle: FontStyle?,
+  textAlign: TextAlign,
+  color: Color,
+  modifier: Modifier,
+  onTextLayout: (TextLayoutResult) -> Unit,
+) {
+  Text(
+    text = text,
+    maxLines = maxLines,
+    overflow = TextOverflow.Ellipsis,
+    fontSize = fontSize,
+    fontWeight = fontWeight,
+    lineHeight = lineHeight,
+    color = color,
+    modifier = modifier,
+    onTextLayout = onTextLayout,
+    textAlign = textAlign,
+    fontStyle = fontStyle,
+  )
 }

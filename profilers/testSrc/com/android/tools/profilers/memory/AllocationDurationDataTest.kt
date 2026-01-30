@@ -31,35 +31,36 @@ class AllocationDurationDataTest {
     val viewRange = Range(0.0, 10.0)
     val dataRange = Range(0.0, 10.0)
 
-    val allocSeries = DataSeries.using {
-      listOf(makeAllocData(1),
-             makeAllocData(3))
-    }
+    val allocSeries = DataSeries.using { listOf(makeAllocData(1), makeAllocData(3)) }
 
-    val samplingSeries = DataSeries.using {
-      listOf(makeSamplingData(1, 1, FULL),
-             makeSamplingData(2, 1, NONE),
-             makeSamplingData(3, 1, SAMPLED),
-             makeSamplingData(4, 2, FULL),
-             makeSamplingData(6, 1, NONE))
-    }
+    val samplingSeries =
+      DataSeries.using {
+        listOf(
+          makeSamplingData(1, 1, FULL),
+          makeSamplingData(2, 1, NONE),
+          makeSamplingData(3, 1, SAMPLED),
+          makeSamplingData(4, 2, FULL),
+          makeSamplingData(6, 1, NONE),
+        )
+      }
 
     val model = AllocationDurationData.makeModel(viewRange, dataRange, allocSeries, samplingSeries)
     model.series.series.let { series ->
       assertThat(series).hasSize(2)
-      fun check(i: Int, x: Int, start: Double, end: Double) = series[i].let {
-        assertThat(it.x).isEqualTo(x)
-        assertThat(it.value).isInstanceOf(AllocationDurationData::class.java)
-        assertThat((it.value as AllocationDurationData).start).isEqualTo(start)
-        assertThat((it.value as AllocationDurationData).end).isEqualTo(end)
-      }
+      fun check(i: Int, x: Int, start: Double, end: Double) =
+        series[i].let {
+          assertThat(it.x).isEqualTo(x)
+          assertThat(it.value).isInstanceOf(AllocationDurationData::class.java)
+          assertThat((it.value as AllocationDurationData).start).isEqualTo(start)
+          assertThat((it.value as AllocationDurationData).end).isEqualTo(end)
+        }
       check(0, 1, 1.0, 2.0)
       check(1, 3, 3.0, 6.0)
     }
   }
 
   private fun makeAllocData(x: Long): SeriesData<CaptureDurationData<out CaptureObject>> =
-    SeriesData(x, CaptureDurationData<CaptureObject>(1, false, false, CaptureEntry(x) {throw NotImplementedError()}))
+    SeriesData(x, CaptureDurationData<CaptureObject>(1, false, false, CaptureEntry(x) { throw NotImplementedError() }))
 
   private fun makeSamplingData(x: Long, dur: Long, mode: BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode) =
     Memory.MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(mode.value).build().let {

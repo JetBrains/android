@@ -18,8 +18,8 @@ package com.android.tools.profilers.memory
 import com.android.tools.profilers.sessions.SessionArtifactView
 import icons.StudioIcons
 
-class AllocationArtifactView(artifactDrawInfo: SessionArtifactView.ArtifactDrawInfo, artifact: AllocationSessionArtifact)
-  : SessionArtifactView<AllocationSessionArtifact>(artifactDrawInfo, artifact) {
+class AllocationArtifactView(artifactDrawInfo: SessionArtifactView.ArtifactDrawInfo, artifact: AllocationSessionArtifact) :
+  SessionArtifactView<AllocationSessionArtifact>(artifactDrawInfo, artifact) {
 
   override fun buildComponent() =
     buildCaptureArtifactView(artifact.name, artifact.subtitle, StudioIcons.Profiler.Sessions.ALLOCATIONS, artifact.isOngoing)

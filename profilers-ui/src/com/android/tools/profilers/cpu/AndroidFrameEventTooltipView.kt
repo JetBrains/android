@@ -20,25 +20,20 @@ import com.android.tools.adtui.TooltipView
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEvent
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip
-import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComponent
 import javax.swing.JPanel
+import org.jetbrains.annotations.VisibleForTesting
 
 class AndroidFrameEventTooltipView(parent: JComponent, val tooltip: AndroidFrameEventTooltip) : TooltipView(tooltip.timeline) {
-  @VisibleForTesting
-  val labelContainer = JPanel(TabularLayout("*").setVGap(12))
+  @VisibleForTesting val labelContainer = JPanel(TabularLayout("*").setVGap(12))
 
-  @VisibleForTesting
-  val frameNumberLabel = createTooltipLabel()
+  @VisibleForTesting val frameNumberLabel = createTooltipLabel()
 
-  @VisibleForTesting
-  val startTimeLabel = createTooltipLabel()
+  @VisibleForTesting val startTimeLabel = createTooltipLabel()
 
-  @VisibleForTesting
-  val durationLabel = createTooltipLabel()
+  @VisibleForTesting val durationLabel = createTooltipLabel()
 
-  @VisibleForTesting
-  val helpTextLabel = createTooltipLabel().apply { text = tooltip.androidFramePhase.tooltipText }
+  @VisibleForTesting val helpTextLabel = createTooltipLabel().apply { text = tooltip.androidFramePhase.tooltipText }
 
   override fun createTooltip(): JComponent {
     return labelContainer
@@ -53,7 +48,8 @@ class AndroidFrameEventTooltipView(parent: JComponent, val tooltip: AndroidFrame
       }
       startTimeLabel.apply {
         isVisible = true
-        text = "Start time: ${
+        text =
+          "Start time: ${
           TimeFormatter.getSemiSimplifiedClockString(activeEvent.timestampUs - timeline.dataRange.min.toLong())
         }"
       }
@@ -62,8 +58,7 @@ class AndroidFrameEventTooltipView(parent: JComponent, val tooltip: AndroidFrame
         text = "Duration: ${TimeFormatter.getSingleUnitDurationString(activeEvent.durationUs)}"
       }
       helpTextLabel.isVisible = true
-    }
-    else {
+    } else {
       frameNumberLabel.isVisible = false
       startTimeLabel.isVisible = false
       durationLabel.isVisible = false

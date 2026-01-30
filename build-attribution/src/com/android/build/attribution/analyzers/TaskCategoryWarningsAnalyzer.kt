@@ -21,18 +21,18 @@ import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.flags.StudioFlags
 
-class TaskCategoryWarningsAnalyzer : BaseAnalyzer<TaskCategoryWarningsAnalyzer.Result>(),
-                                     BuildAttributionReportAnalyzer,
-                                     PostBuildProcessAnalyzer {
+class TaskCategoryWarningsAnalyzer :
+  BaseAnalyzer<TaskCategoryWarningsAnalyzer.Result>(), BuildAttributionReportAnalyzer, PostBuildProcessAnalyzer {
   private val taskCategoryIssues = mutableListOf<TaskCategoryIssue>()
   private var agpSupportsTaskCategories: Boolean = false
   private val minAGPVersion = AgpVersion.parse("8.0.0-alpha08")
 
-  override fun calculateResult(): Result = when {
-    !StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.get() -> FeatureDisabled
-    !agpSupportsTaskCategories -> NoDataFromAGP
-    else -> IssuesResult(taskCategoryIssues.toList())
-  }
+  override fun calculateResult(): Result =
+    when {
+      !StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.get() -> FeatureDisabled
+      !agpSupportsTaskCategories -> NoDataFromAGP
+      else -> IssuesResult(taskCategoryIssues.toList())
+    }
 
   override fun cleanupTempState() {
     taskCategoryIssues.clear()
@@ -52,13 +52,11 @@ class TaskCategoryWarningsAnalyzer : BaseAnalyzer<TaskCategoryWarningsAnalyzer.R
     ensureResultCalculated()
   }
 
-  sealed class Result: AnalyzerResult
+  sealed class Result : AnalyzerResult
 
-  object FeatureDisabled: Result()
+  object FeatureDisabled : Result()
 
-  object NoDataFromAGP: Result()
+  object NoDataFromAGP : Result()
 
-  data class IssuesResult(
-    val taskCategoryIssues: List<TaskCategoryIssue>
-  ): Result()
+  data class IssuesResult(val taskCategoryIssues: List<TaskCategoryIssue>) : Result()
 }

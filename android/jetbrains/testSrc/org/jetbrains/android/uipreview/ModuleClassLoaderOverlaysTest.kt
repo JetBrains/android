@@ -18,6 +18,9 @@ package org.jetbrains.android.uipreview
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.utils.FileUtils.toSystemIndependentPath
+import org.jetbrains.org.objectweb.asm.Type
+import java.nio.file.Files
+import java.nio.file.Paths
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -25,21 +28,20 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import org.jetbrains.org.objectweb.asm.Type
-import java.nio.file.Files
-import java.nio.file.Paths
 
 fun loadClassBytes(c: Class<*>): ByteArray {
   val className = "${Type.getInternalName(c)}.class"
-  c.classLoader.getResourceAsStream(className)!!.use { return it.readBytes() }
+  c.classLoader.getResourceAsStream(className)!!.use {
+    return it.readBytes()
+  }
 }
 
 class TestClass
+
 val testClassName: String = TestClass::class.java.canonicalName
 
 internal class ModuleClassLoaderOverlaysTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val buildTargetReference: BuildTargetReference
     get() = BuildTargetReference.gradleOnly(projectRule.module)
@@ -61,8 +63,7 @@ internal class ModuleClassLoaderOverlaysTest {
     val tempOverlayPath = Files.createTempDirectory("overlayTest")
     val packageDirPath = Files.createDirectories(tempOverlayPath.resolve(TestClass::class.java.packageName.replace(".", "/")))
 
-    val moduleClassLoaderOverlay =
-      ModuleClassLoaderOverlays.getInstance(buildTargetReference)
+    val moduleClassLoaderOverlay = ModuleClassLoaderOverlays.getInstance(buildTargetReference)
     moduleClassLoaderOverlay.pushOverlayPath(tempOverlayPath)
     val classFilePath = packageDirPath.resolve(TestClass::class.java.simpleName + ".class")
     Files.write(classFilePath, loadClassBytes(TestClass::class.java))
@@ -83,8 +84,7 @@ internal class ModuleClassLoaderOverlaysTest {
 
     val classFilePath = packageDirPath.resolve(TestClass::class.java.simpleName + ".class")
     Files.write(classFilePath, loadClassBytes(TestClass::class.java))
-    val moduleClassLoaderOverlay = ModuleClassLoaderOverlays.getInstance(
-      buildTargetReference)
+    val moduleClassLoaderOverlay = ModuleClassLoaderOverlays.getInstance(buildTargetReference)
     moduleClassLoaderOverlay.pushOverlayPath(tempOverlayPath)
     assertTrue(moduleClassLoaderOverlay.containsClass(testClassName))
     assertNotNull(moduleClassLoaderOverlay.classLoaderLoader.loadClass(testClassName))
@@ -97,31 +97,31 @@ internal class ModuleClassLoaderOverlaysTest {
 
   @Test
   fun `state loading`() {
-    fun List<String>.asPlatformIndependent(): List<String> =
-      map { toSystemIndependentPath(it) }
+    fun List<String>.asPlatformIndependent(): List<String> = map { toSystemIndependentPath(it) }
 
-    val moduleClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(
-      buildTargetReference)
+    val moduleClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(buildTargetReference)
 
     moduleClassLoaderOverlays.pushOverlayPath(Paths.get("/tmp/overlay2"))
     moduleClassLoaderOverlays.pushOverlayPath(Paths.get("/tmp/overlay1"))
     val state = moduleClassLoaderOverlays.state
     assertEquals(
       """
-        /tmp/overlay1
-        /tmp/overlay2
-      """.trimIndent(),
-      state.paths.asPlatformIndependent().joinToString("\n")
+      /tmp/overlay1
+      /tmp/overlay2
+      """
+        .trimIndent(),
+      state.paths.asPlatformIndependent().joinToString("\n"),
     )
     moduleClassLoaderOverlays.loadState(state)
 
     val state2 = moduleClassLoaderOverlays.state
     assertEquals(
       """
-        /tmp/overlay1
-        /tmp/overlay2
-      """.trimIndent(),
-      state2.paths.asPlatformIndependent().joinToString("\n")
+      /tmp/overlay1
+      /tmp/overlay2
+      """
+        .trimIndent(),
+      state2.paths.asPlatformIndependent().joinToString("\n"),
     )
   }
 

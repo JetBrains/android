@@ -20,28 +20,30 @@ import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.PluginIdentifier
 import org.gradle.tooling.events.ScriptPluginIdentifier
 
-/**
- * A cache object to unify [PluginData] objects and share them between different analyzers.
- */
+/** A cache object to unify [PluginData] objects and share them between different analyzers. */
 class PluginContainer {
   private val pluginCache = HashMap<String, PluginData>()
-  val allPlugins: Map<String, PluginData> get() = pluginCache
+  val allPlugins: Map<String, PluginData>
+    get() = pluginCache
+
   private val pluginDisplayNamesToPlugin = HashMap<PluginData.DisplayName, PluginData>()
 
   fun getPlugin(pluginIdentifier: PluginIdentifier?, projectPath: String): PluginData {
     val pluginIdName = getPluginIdName(pluginIdentifier, projectPath)
-    return pluginCache.getOrPut(pluginIdName) { PluginData(getPluginType(pluginIdentifier), pluginIdName) }.also { plugin ->
-      if (pluginIdentifier != null) {
-        val displayName = getPluginDisplayName(pluginIdentifier, projectPath)
-        plugin.recordDisplayName(displayName)
-        pluginDisplayNamesToPlugin[displayName] = plugin
+    return pluginCache
+      .getOrPut(pluginIdName) { PluginData(getPluginType(pluginIdentifier), pluginIdName) }
+      .also { plugin ->
+        if (pluginIdentifier != null) {
+          val displayName = getPluginDisplayName(pluginIdentifier, projectPath)
+          plugin.recordDisplayName(displayName)
+          pluginDisplayNamesToPlugin[displayName] = plugin
+        }
       }
-    }
   }
 
   fun findPluginByName(pluginName: String, projectPath: String): PluginData? {
     return pluginDisplayNamesToPlugin[PluginData.DisplayName(pluginName.cleanUpInternalPluginName(), projectPath)]
-           ?: pluginCache[pluginName.cleanUpInternalPluginName()]
+      ?: pluginCache[pluginName.cleanUpInternalPluginName()]
   }
 
   fun updatePluginsData(agpAttributionData: AndroidGradlePluginAttributionData) {
@@ -66,20 +68,22 @@ class PluginContainer {
     }
   }
 
-  private fun getPluginIdName(pluginIdentifier: PluginIdentifier?, projectPath: String): String = when (pluginIdentifier) {
-    null -> ""
-    is BinaryPluginIdentifier -> pluginIdentifier.className.cleanUpInternalPluginName()
-    is ScriptPluginIdentifier -> "$projectPath:${pluginIdentifier.displayName}"
-    else -> pluginIdentifier.displayName
-  }
+  private fun getPluginIdName(pluginIdentifier: PluginIdentifier?, projectPath: String): String =
+    when (pluginIdentifier) {
+      null -> ""
+      is BinaryPluginIdentifier -> pluginIdentifier.className.cleanUpInternalPluginName()
+      is ScriptPluginIdentifier -> "$projectPath:${pluginIdentifier.displayName}"
+      else -> pluginIdentifier.displayName
+    }
 
-  private fun getPluginDisplayName(pluginIdentifier: PluginIdentifier, projectPath: String): PluginData.DisplayName = when (pluginIdentifier) {
-    is ScriptPluginIdentifier -> PluginData.DisplayName("$projectPath:${pluginIdentifier.displayName}", projectPath)
-    else -> PluginData.DisplayName(pluginIdentifier.displayName.cleanUpInternalPluginName(), projectPath)
-  }
+  private fun getPluginDisplayName(pluginIdentifier: PluginIdentifier, projectPath: String): PluginData.DisplayName =
+    when (pluginIdentifier) {
+      is ScriptPluginIdentifier -> PluginData.DisplayName("$projectPath:${pluginIdentifier.displayName}", projectPath)
+      else -> PluginData.DisplayName(pluginIdentifier.displayName.cleanUpInternalPluginName(), projectPath)
+    }
 
-  private fun String.cleanUpInternalPluginName() = if (startsWith("com.android.internal.")) {
-    replace("com.android.internal.", "com.android.")
-  }
-  else this
+  private fun String.cleanUpInternalPluginName() =
+    if (startsWith("com.android.internal.")) {
+      replace("com.android.internal.", "com.android.")
+    } else this
 }

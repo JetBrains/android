@@ -25,16 +25,16 @@ import com.google.common.annotations.VisibleForTesting
 
 /**
  * Building on/extending the ProfilerTaskHandler, this abstract class adds and enforces additional functionality catered towards tasks
- * backed by a single artifact. It augments the behavior of the ProfilerTaskHandler by introducing and enforcing the use of an TaskStage
- * to facilitate the capture of the artifact.
+ * backed by a single artifact. It augments the behavior of the ProfilerTaskHandler by introducing and enforcing the use of an TaskStage to
+ * facilitate the capture of the artifact.
  */
 abstract class SingleArtifactTaskHandler<T : TaskStage>(sessionsManager: SessionsManager) : ProfilerTaskHandler(sessionsManager) {
 
   /**
    * To collect the single artifact, an interim stage instance is utilized.
    *
-   * For example, to perform a heap dump capture (and thus receive a heap dump artifact), the MainMemoryProfilerStage's
-   * startHeapDumpCapture method can be invoked.
+   * For example, to perform a heap dump capture (and thus receive a heap dump artifact), the MainMemoryProfilerStage's startHeapDumpCapture
+   * method can be invoked.
    */
   var stage: T? = null
     protected set
@@ -45,12 +45,9 @@ abstract class SingleArtifactTaskHandler<T : TaskStage>(sessionsManager: Session
    *
    * To be called before invoking the super class' enter method as the stage being prepared is a pre-requisite to start and load a task.
    */
-  @VisibleForTesting
-  abstract fun setupStage()
+  @VisibleForTesting abstract fun setupStage()
 
-  /**
-   * Builds upon the ProfilerTaskHandler enter method by setting up the respective stage first to enable starting and loading a task.
-   */
+  /** Builds upon the ProfilerTaskHandler enter method by setting up the respective stage first to enable starting and loading a task. */
   override fun enter(args: TaskArgs): Boolean {
     setupStage()
     return super.enter(args)
@@ -58,16 +55,14 @@ abstract class SingleArtifactTaskHandler<T : TaskStage>(sessionsManager: Session
 
   /**
    * SingleArtifactTaskHandlers create and store a stage to perform starting, stopping, and loading of the tasks. Yet, when this type of
-   * task handler is not in use, it is unnecessary to hold onto the instance of the stage. Thus, on exit of the task handler, we null it
-   * out to prevent a memory leak.
+   * task handler is not in use, it is unnecessary to hold onto the instance of the stage. Thus, on exit of the task handler, we null it out
+   * to prevent a memory leak.
    */
   override fun exit() {
     stage = null
   }
 
-  /**
-   * For a single artifact task handler, starting the task functionally is equivalent to starting the capture of the artifact.
-   */
+  /** For a single artifact task handler, starting the task functionally is equivalent to starting the capture of the artifact. */
   override fun startTask(args: TaskArgs) {
     if (stage == null) {
       handleError("Cannot start the task as the InterimStage was null")
@@ -83,9 +78,7 @@ abstract class SingleArtifactTaskHandler<T : TaskStage>(sessionsManager: Session
     TaskHandlerUtils.executeTaskAction(action = { startCapture(stage!!) }, errorHandler = ::handleError)
   }
 
-  /**
-   * For a single artifact task handler, stopping the task functionally is equivalent to stopping the capture of the artifact.
-   */
+  /** For a single artifact task handler, stopping the task functionally is equivalent to stopping the capture of the artifact. */
   override fun stopTask() {
     if (stage == null) {
       handleError("Cannot stop the task as the InterimStage was null")
@@ -95,24 +88,22 @@ abstract class SingleArtifactTaskHandler<T : TaskStage>(sessionsManager: Session
   }
 
   /**
-   * For a single artifact task handler, loading the task functionally is equivalent to invoke the doSelect method on an artifact.
-   * This will effectively create and set the capture stage required to display the artifact. To prepare for this doSelect behavior, the
-   * only pre-requisite is being in the correct InterimStage, which is why we invoke setupStage before entering the task for single
-   * artifact task handlers.
+   * For a single artifact task handler, loading the task functionally is equivalent to invoke the doSelect method on an artifact. This will
+   * effectively create and set the capture stage required to display the artifact. To prepare for this doSelect behavior, the only
+   * pre-requisite is being in the correct InterimStage, which is why we invoke setupStage before entering the task for single artifact task
+   * handlers.
    */
   protected fun loadCapture(artifact: SessionArtifact<*>) {
     TaskHandlerUtils.executeTaskAction(action = { artifact.doSelect() }, errorHandler = ::handleError)
   }
 
-  /**
-   * Utilizing the parametrized InterimStage, implementations invoke the start of a capture for their respective tasks.
-   */
+  /** Utilizing the parametrized InterimStage, implementations invoke the start of a capture for their respective tasks. */
   protected abstract fun startCapture(stage: T)
 
   /**
    * Utilizing the parametrized InterimStage, implementations invoke the stop of a capture for their respective tasks. The default
-   * implementation is empty to accommodate some tasks that do not have an implementation to stop the capture,
-   * or some might directly override the stopTask method.
+   * implementation is empty to accommodate some tasks that do not have an implementation to stop the capture, or some might directly
+   * override the stopTask method.
    */
   protected open fun stopCapture(stage: T) {}
 }

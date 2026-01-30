@@ -34,25 +34,23 @@ import org.junit.Rule
 import org.junit.Test
 
 class LibraryResourceClassLoaderTest {
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.onDisk()
+  @get:Rule val androidProjectRule = AndroidProjectRule.onDisk()
 
   private fun assertThrowsClassNotFoundException(code: () -> Unit) {
     try {
       code()
       fail("ClassNotFoundException expected")
-    }
-    catch (_: ClassNotFoundException) {
-    }
+    } catch (_: ClassNotFoundException) {}
   }
 
   private lateinit var resourceIdManger: TestResourceIdManager
 
   private lateinit var projectSystem: TestProjectSystem
 
-  private val nullDelegatingClassLoader: DelegatingClassLoader.Loader = object : DelegatingClassLoader.Loader {
-    override fun loadClass(fqcn: String): ByteArray? = null
-  }
+  private val nullDelegatingClassLoader: DelegatingClassLoader.Loader =
+    object : DelegatingClassLoader.Loader {
+      override fun loadClass(fqcn: String): ByteArray? = null
+    }
 
   @Before
   fun setup() {
@@ -60,8 +58,10 @@ class LibraryResourceClassLoaderTest {
     resourceIdManger.setFinalIdsUsed(false)
 
     addAarDependency(androidProjectRule.fixture, androidProjectRule.module, "aarLib", "com.example.mylibrary") { resDir ->
-      resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
-        """
+      resDir.parentFile
+        .resolve(SdkConstants.FN_RESOURCE_TEXT)
+        .writeText(
+          """
           int string my_aar_string 0x7f010001
           int string another_aar_string 0x7f010002
           int attr attrOne 0x7f040001
@@ -70,26 +70,31 @@ class LibraryResourceClassLoaderTest {
           int styleable LibStyleable_attrOne 0
           int styleable LibStyleable_attrTwo 1
           int styleable LibStyleable_android_maxWidth 2
-          """.trimIndent()
-      )
-      resDir.parentFile.resolve("res/values/strings.xml").writeText(
-        // language=xml
-        """
-        <resources>
-          <string name='my_aar_string'>app test resource</string>
-          <string name='another_aar_string'>another app test resource</string>
-        </resources>
-      """.trimIndent()
-      )
+          """
+            .trimIndent()
+        )
+      resDir.parentFile
+        .resolve("res/values/strings.xml")
+        .writeText(
+          // language=xml
+          """
+          <resources>
+            <string name='my_aar_string'>app test resource</string>
+            <string name='another_aar_string'>another app test resource</string>
+          </resources>
+          """
+            .trimIndent()
+        )
     }
     addAarDependency(androidProjectRule.fixture, androidProjectRule.module, "emptyAarLib", "com.example.mylibrary.empty") { resDir ->
       resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText("")
     }
 
-    projectSystem = TestProjectSystem(
-      project = androidProjectRule.project,
-      androidLibraryDependencies = androidProjectRule.module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN)
-    )
+    projectSystem =
+      TestProjectSystem(
+        project = androidProjectRule.project,
+        androidLibraryDependencies = androidProjectRule.module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN),
+      )
     runInEdtAndWait { projectSystem.useInTests() }
   }
 
@@ -118,19 +123,17 @@ class LibraryResourceClassLoaderTest {
     assertNotNull(classLoader.loadClass("com.example.mylibrary.R${'$'}layout"))
     val stringRclass = classLoader.loadClass("com.example.mylibrary.R${'$'}string")
 
-    assertEquals("another_aar_string, my_aar_string", stringRclass.declaredFields
-      .map { it.name }
-      .sorted()
-      .joinToString())
+    assertEquals("another_aar_string, my_aar_string", stringRclass.declaredFields.map { it.name }.sorted().joinToString())
   }
 
   // Regression test for b/233862429
   @Test
   fun `library R class is not found if final IDs are used and module class loader finds class`() {
     resourceIdManger.setFinalIdsUsed(true)
-    val delegatingClassLoader = object : DelegatingClassLoader.Loader {
-      override fun loadClass(fqcn: String): ByteArray? = ByteArray(1) // stub for ModuleClassLoaderImpl being able to load the class
-    }
+    val delegatingClassLoader =
+      object : DelegatingClassLoader.Loader {
+        override fun loadClass(fqcn: String): ByteArray? = ByteArray(1) // stub for ModuleClassLoaderImpl being able to load the class
+      }
 
     val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module, delegatingClassLoader)
     // When final IDs are used, we should load the R classes from the compiled R classes, not the light classes created by this class loader
@@ -142,9 +145,10 @@ class LibraryResourceClassLoaderTest {
   @Test
   fun `library R class is found if final IDs are used and module class loader does not find class`() {
     resourceIdManger.setFinalIdsUsed(true)
-    val delegatingClassLoader = object : DelegatingClassLoader.Loader {
-      override fun loadClass(fqcn: String): ByteArray? = null // stub for ModuleClassLoaderImpl being unable to load the class
-    }
+    val delegatingClassLoader =
+      object : DelegatingClassLoader.Loader {
+        override fun loadClass(fqcn: String): ByteArray? = null // stub for ModuleClassLoaderImpl being unable to load the class
+      }
 
     val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module, delegatingClassLoader)
     // When final IDs are used, we should only load the R classes from the compiled R classes if a build has happened. If not, we should
@@ -155,9 +159,10 @@ class LibraryResourceClassLoaderTest {
 
   @Test
   fun `disposed module throws ClassNotFoundException`() {
-    val disposedModule = object: Module by androidProjectRule.module {
-      override fun isDisposed(): Boolean = true
-    }
+    val disposedModule =
+      object : Module by androidProjectRule.module {
+        override fun isDisposed(): Boolean = true
+      }
 
     val classLoader = LibraryResourceClassLoader(null, disposedModule, nullDelegatingClassLoader)
     assertThrowsClassNotFoundException { classLoader.loadClass("com.example.mylibrary.R") }

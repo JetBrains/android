@@ -22,10 +22,10 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Device
-import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profiler.proto.Trace
+import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
@@ -43,20 +43,18 @@ import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.SystemT
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.NativeAllocationsTaskHandler
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.truth.Truth.assertThat
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
-import java.io.File
 
 class SessionsManagerTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
-  @get:Rule
-  val myThrown = ExpectedException.none()
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("SessionsManagerTestChannel", myTransportService, FakeEventService())
+  @get:Rule val myThrown = ExpectedException.none()
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("SessionsManagerTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -67,13 +65,10 @@ class SessionsManagerTest {
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
     myObserver = SessionsAspectObserver()
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
-    myManager.addDependency(myObserver)
+    myManager
+      .addDependency(myObserver)
       .onChange(SessionAspect.SELECTED_SESSION) { myObserver.selectedSessionChanged() }
       .onChange(SessionAspect.PROFILING_SESSION) { myObserver.profilingSessionChanged() }
       .onChange(SessionAspect.SESSIONS) { myObserver.sessionsChanged() }
@@ -172,17 +167,23 @@ class SessionsManagerTest {
 
     val streamId = 1L
     val processId = 10
-    val device = Common.Device.newBuilder().apply {
-      deviceId = streamId
-      state = Common.Device.State.ONLINE
-      featureLevel = AndroidVersion.VersionCodes.O
-    }.build()
-    val process = Common.Process.newBuilder().apply {
-      pid = processId
-      state = Common.Process.State.ALIVE
-      abiCpuArch = "arm64"
-      exposureLevel = Common.Process.ExposureLevel.DEBUGGABLE
-    }.build()
+    val device =
+      Common.Device.newBuilder()
+        .apply {
+          deviceId = streamId
+          state = Common.Device.State.ONLINE
+          featureLevel = AndroidVersion.VersionCodes.O
+        }
+        .build()
+    val process =
+      Common.Process.newBuilder()
+        .apply {
+          pid = processId
+          state = Common.Process.State.ALIVE
+          abiCpuArch = "arm64"
+          exposureLevel = Common.Process.ExposureLevel.DEBUGGABLE
+        }
+        .build()
     beginSessionHelper(device, process)
 
     val session = myManager.selectedSession
@@ -200,17 +201,23 @@ class SessionsManagerTest {
 
     val streamId = 1L
     val processId = 10
-    val device = Common.Device.newBuilder().apply {
-      deviceId = streamId
-      state = Common.Device.State.ONLINE
-      featureLevel = AndroidVersion.VersionCodes.Q
-    }.build()
-    val process = Common.Process.newBuilder().apply {
-      pid = processId
-      state = Common.Process.State.ALIVE
-      abiCpuArch = "arm64"
-      exposureLevel = Common.Process.ExposureLevel.PROFILEABLE
-    }.build()
+    val device =
+      Common.Device.newBuilder()
+        .apply {
+          deviceId = streamId
+          state = Common.Device.State.ONLINE
+          featureLevel = AndroidVersion.VersionCodes.Q
+        }
+        .build()
+    val process =
+      Common.Process.newBuilder()
+        .apply {
+          pid = processId
+          state = Common.Process.State.ALIVE
+          abiCpuArch = "arm64"
+          exposureLevel = Common.Process.ExposureLevel.PROFILEABLE
+        }
+        .build()
     beginSessionHelper(device, process)
 
     val session = myManager.selectedSession
@@ -415,18 +422,12 @@ class SessionsManagerTest {
     assertThat(SessionsManager.isSessionAlive(myManager.profilingSession)).isFalse()
   }
 
-  /**
-   * Note: This test does not use the global manager because it needs to set the native memory sampling flag to enabled.
-   */
+  /** Note: This test does not use the global manager because it needs to set the native memory sampling flag to enabled. */
   @Test
   fun testNativeHeapArtifacts() {
     ideProfilerServices.enableTaskBasedUx(false)
 
-    val profiler = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    val profiler = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     val manager = profiler.sessionsManager
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
@@ -440,9 +441,13 @@ class SessionsManagerTest {
     val session1 = manager.selectedSession
 
     val nativeHeapTimestamp = 30L
-    val nativeHeapInfo = Trace.TraceData.newBuilder().setTraceStarted(Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(
-      Trace.TraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(
-        nativeHeapTimestamp + 1))).build()
+    val nativeHeapInfo =
+      Trace.TraceData.newBuilder()
+        .setTraceStarted(
+          Trace.TraceData.TraceStarted.newBuilder()
+            .setTraceInfo(Trace.TraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(nativeHeapTimestamp + 1))
+        )
+        .build()
     val nativeHeapData = ProfilersTestData.generateMemoryTraceData(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
     myTransportService.addEventToStream(device.deviceId, nativeHeapData.setPid(session1.pid).build())
     manager.update()
@@ -491,10 +496,14 @@ class SessionsManagerTest {
     val liveAllocationsInfoTimestamp = 40L
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
     val cpuTraceInfo = Trace.TraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
-    val legacyAllocationsInfo = AllocationsInfo.newBuilder()
-      .setStartTime(legacyAllocationsInfoTimestamp).setEndTime(legacyAllocationsInfoTimestamp + 1).setLegacy(true).build()
-    val liveAllocationsInfo = AllocationsInfo.newBuilder().setStartTime(liveAllocationsInfoTimestamp)
-      .setEndTime(liveAllocationsInfoTimestamp + 1).build()
+    val legacyAllocationsInfo =
+      AllocationsInfo.newBuilder()
+        .setStartTime(legacyAllocationsInfoTimestamp)
+        .setEndTime(legacyAllocationsInfoTimestamp + 1)
+        .setLegacy(true)
+        .build()
+    val liveAllocationsInfo =
+      AllocationsInfo.newBuilder().setStartTime(liveAllocationsInfoTimestamp).setEndTime(liveAllocationsInfoTimestamp + 1).build()
 
     val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(session1Timestamp, session1Timestamp, heapDumpInfo)
     myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(session1.pid).build())
@@ -502,24 +511,30 @@ class SessionsManagerTest {
 
     myTransportService.addEventToStream(
       device.deviceId,
-      ProfilersTestData.generateMemoryAllocationInfoData(legacyAllocationsInfoTimestamp, session1.pid, legacyAllocationsInfo).build())
+      ProfilersTestData.generateMemoryAllocationInfoData(legacyAllocationsInfoTimestamp, session1.pid, legacyAllocationsInfo).build(),
+    )
     myTransportService.addEventToStream(
       device.deviceId,
-      ProfilersTestData.generateMemoryAllocationInfoData(liveAllocationsInfoTimestamp, session1.pid, liveAllocationsInfo).build())
+      ProfilersTestData.generateMemoryAllocationInfoData(liveAllocationsInfoTimestamp, session1.pid, liveAllocationsInfo).build(),
+    )
     myTransportService.addEventToStream(
       device.deviceId,
-      ProfilersTestData.generateMemoryAllocationInfoData(legacyAllocationsInfoTimestamp, session2.pid, legacyAllocationsInfo).build())
+      ProfilersTestData.generateMemoryAllocationInfoData(legacyAllocationsInfoTimestamp, session2.pid, legacyAllocationsInfo).build(),
+    )
     myTransportService.addEventToStream(
       device.deviceId,
-      ProfilersTestData.generateMemoryAllocationInfoData(liveAllocationsInfoTimestamp, session2.pid, liveAllocationsInfo).build())
+      ProfilersTestData.generateMemoryAllocationInfoData(liveAllocationsInfoTimestamp, session2.pid, liveAllocationsInfo).build(),
+    )
 
-    val cpuTrace = Common.Event.newBuilder()
-      .setGroupId(session1Timestamp + cpuTraceTimestamp)
-      .setKind(Common.Event.Kind.CPU_TRACE)
-      .setTimestamp(session1Timestamp)
-      .setIsEnded(true)
-      .setTraceData(Trace.TraceData.newBuilder()
-                     .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+    val cpuTrace =
+      Common.Event.newBuilder()
+        .setGroupId(session1Timestamp + cpuTraceTimestamp)
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTimestamp(session1Timestamp)
+        .setIsEnded(true)
+        .setTraceData(
+          Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build())
+        )
     myTransportService.addEventToStream(device.deviceId, cpuTrace.setPid(session1.pid).build())
     myTransportService.addEventToStream(device.deviceId, cpuTrace.setPid(session2.pid).build())
 
@@ -565,9 +580,10 @@ class SessionsManagerTest {
 
   @Test
   fun testImportedSessionOnlyProcessedWhenEnded() {
-    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, 1,
-                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE,
-                                                                                       1).build())
+    myTransportService.addEventToStream(
+      1,
+      ProfilersTestData.generateSessionStartEvent(1, 1, 1, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 1).build(),
+    )
     myManager.update()
     assertThat(myManager.sessionArtifacts.size).isEqualTo(0)
 
@@ -583,12 +599,14 @@ class SessionsManagerTest {
 
     // Note the event may be added to the pipeline out of order (of epoch time).
     myTransportService.addEventToStream(
-      1, ProfilersTestData.generateSessionStartEvent(
-      1, 1, 1, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 200).build())
+      1,
+      ProfilersTestData.generateSessionStartEvent(1, 1, 1, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 200).build(),
+    )
     myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, 2).build())
     myTransportService.addEventToStream(
-      3, ProfilersTestData.generateSessionStartEvent(
-      3, 3, 3, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 100).build())
+      3,
+      ProfilersTestData.generateSessionStartEvent(3, 3, 3, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 100).build(),
+    )
     myTransportService.addEventToStream(3, ProfilersTestData.generateSessionEndEvent(3, 3, 4).build())
     myManager.update()
     assertThat(myManager.selectedSession.sessionId).isEqualTo(1)
@@ -600,28 +618,33 @@ class SessionsManagerTest {
     val session2Timestamp = 2L
 
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build()
-    val cpuTraceInfo = Trace.TraceInfo.newBuilder()
-      .setConfiguration(Trace.TraceConfiguration.newBuilder()).build()
+    val cpuTraceInfo = Trace.TraceInfo.newBuilder().setConfiguration(Trace.TraceConfiguration.newBuilder()).build()
 
-    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, session1Timestamp,
-                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE,
-                                                                                       1).build())
+    myTransportService.addEventToStream(
+      1,
+      ProfilersTestData.generateSessionStartEvent(1, 1, session1Timestamp, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 1)
+        .build(),
+    )
     myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, session1Timestamp).build())
     val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(session1Timestamp, session1Timestamp, heapDumpInfo)
     myTransportService.addEventToStream(1, heapDumpEvent.build())
 
-    myTransportService.addEventToStream(2, ProfilersTestData.generateSessionStartEvent(2, 2, session2Timestamp,
-                                                                                       Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE,
-                                                                                       2).build())
+    myTransportService.addEventToStream(
+      2,
+      ProfilersTestData.generateSessionStartEvent(2, 2, session2Timestamp, Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE, 2)
+        .build(),
+    )
     myTransportService.addEventToStream(2, ProfilersTestData.generateSessionEndEvent(2, 2, session2Timestamp).build())
-    val cpuTrace = Common.Event.newBuilder()
-      .setGroupId(session2Timestamp)
-      .setKind(Common.Event.Kind.CPU_TRACE)
-      .setTimestamp(session2Timestamp)
-      .setIsEnded(true)
-      .setTraceData(Trace.TraceData.newBuilder()
-                     .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
-      .build()
+    val cpuTrace =
+      Common.Event.newBuilder()
+        .setGroupId(session2Timestamp)
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTimestamp(session2Timestamp)
+        .setIsEnded(true)
+        .setTraceData(
+          Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build())
+        )
+        .build()
     myTransportService.addEventToStream(2, cpuTrace)
 
     myManager.update()
@@ -636,9 +659,10 @@ class SessionsManagerTest {
   @Test
   fun testImportedSessionAutoSelectedWithTaskBasedUXDisabled() {
     (myProfilers.ideServices as FakeIdeProfilerServices).enableTaskBasedUx(false)
-    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, 1,
-                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE,
-                                                                                       1).build())
+    myTransportService.addEventToStream(
+      1,
+      ProfilersTestData.generateSessionStartEvent(1, 1, 1, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 1).build(),
+    )
     myManager.update()
     assertThat(myManager.sessionArtifacts.size).isEqualTo(0)
 
@@ -652,9 +676,10 @@ class SessionsManagerTest {
   @Test
   fun testImportedSessionNotAutoSelectedWithTaskBasedUXEnabled() {
     (myProfilers.ideServices as FakeIdeProfilerServices).enableTaskBasedUx(true)
-    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, 1,
-                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE,
-                                                                                       1).build())
+    myTransportService.addEventToStream(
+      1,
+      ProfilersTestData.generateSessionStartEvent(1, 1, 1, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 1).build(),
+    )
     myManager.update()
     assertThat(myManager.sessionArtifacts.size).isEqualTo(0)
 
@@ -669,7 +694,9 @@ class SessionsManagerTest {
   fun testImportedSessionDoesNotTriggerSessionNewlyEndedAspectWithTaskBasedUXEnabled() {
     ideProfilerServices.enableTaskBasedUx(true)
     myTransportService.addEventToStream(
-      1, ProfilersTestData.generateSessionStartEvent(1, 1, 1, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 1).build())
+      1,
+      ProfilersTestData.generateSessionStartEvent(1, 1, 1, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 1).build(),
+    )
     myManager.update()
     assertThat(myManager.sessionArtifacts.size).isEqualTo(0)
 
@@ -697,11 +724,12 @@ class SessionsManagerTest {
 
     val heapDumpTimestamp = 10L
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
-    myTransportService.addEventToStream(device.deviceId,
-                                        ProfilersTestData.generateMemoryHeapDumpData(heapDumpInfo.startTime, heapDumpInfo.startTime,
-                                                                                     heapDumpInfo)
-                                          .setPid(process1.pid)
-                                          .build())
+    myTransportService.addEventToStream(
+      device.deviceId,
+      ProfilersTestData.generateMemoryHeapDumpData(heapDumpInfo.startTime, heapDumpInfo.startTime, heapDumpInfo)
+        .setPid(process1.pid)
+        .build(),
+    )
     myManager.update()
     assertThat(myObserver.sessionsChangedCount).isEqualTo(2)
     // Repeated update should not fire the aspect.
@@ -711,15 +739,19 @@ class SessionsManagerTest {
     val cpuTraceTimestamp = 20L
     val cpuTraceInfo = Trace.TraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
 
-    myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
-      .setGroupId(cpuTraceTimestamp)
-      .setPid(process1.pid)
-      .setKind(Common.Event.Kind.CPU_TRACE)
-      .setTimestamp(myTimer.currentTimeNs)
-      .setIsEnded(true)
-      .setTraceData(Trace.TraceData.newBuilder()
-                     .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
-      .build())
+    myTransportService.addEventToStream(
+      device.deviceId,
+      Common.Event.newBuilder()
+        .setGroupId(cpuTraceTimestamp)
+        .setPid(process1.pid)
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTimestamp(myTimer.currentTimeNs)
+        .setIsEnded(true)
+        .setTraceData(
+          Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build())
+        )
+        .build(),
+    )
 
     myManager.update()
     assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
@@ -733,9 +765,18 @@ class SessionsManagerTest {
     ideProfilerServices.enableTaskBasedUx(false)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process1 = debuggableProcess { pid = 10; deviceId = 1 }
-    val process2 = debuggableProcess { pid = 20; deviceId = 1 }
-    val process3 = debuggableProcess { pid = 30; deviceId = 1 }
+    val process1 = debuggableProcess {
+      pid = 10
+      deviceId = 1
+    }
+    val process2 = debuggableProcess {
+      pid = 20
+      deviceId = 1
+    }
+    val process3 = debuggableProcess {
+      pid = 30
+      deviceId = 1
+    }
     myTransportService.addDevice(device)
     myTransportService.addProcess(device, process1)
     myTransportService.addProcess(device, process2)
@@ -805,7 +846,6 @@ class SessionsManagerTest {
     // Trigger an update to get both sesssions from both streams.
     myManager.update()
     assertThat(myManager.sessionArtifacts).hasSize(2)
-
   }
 
   @Test
@@ -813,8 +853,14 @@ class SessionsManagerTest {
     ideProfilerServices.enableTaskBasedUx(false)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process1 = debuggableProcess { pid = 10; deviceId = 1 }
-    val process2 = debuggableProcess { pid = 20; deviceId = 1 }
+    val process1 = debuggableProcess {
+      pid = 10
+      deviceId = 1
+    }
+    val process2 = debuggableProcess {
+      pid = 20
+      deviceId = 1
+    }
     myTransportService.addDevice(device)
     myTransportService.addProcess(device, process1)
     myTransportService.addProcess(device, process2)
@@ -848,7 +894,10 @@ class SessionsManagerTest {
     ideProfilerServices.enableTaskBasedUx(true)
     myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, SystemTraceTaskHandler(myManager, false))
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process = debuggableProcess { pid = 10; deviceId = 1 }
+    val process = debuggableProcess {
+      pid = 10
+      deviceId = 1
+    }
     myTransportService.addDevice(device)
     myTransportService.addProcess(device, process)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -888,11 +937,19 @@ class SessionsManagerTest {
     // If the Task-Based UX is disabled, any new session (ongoing or complete) is enough to auto-select the session as the profiling
     // and selected session. Under the Task-Based UX, only if the user has begun a new session that has not complete (a new, ongoing task)
     // with a non-UNSPECIFIED task type, then it will be auto-selected as the profiling and selected session.
-    myTransportService.addEventToStream(streamId,
-                                        ProfilersTestData.generateSessionStartEvent(streamId, sessionId, startTimestamp,
-                                                                                    Common.SessionData.SessionStarted.SessionType.FULL,
-                                                                                    Common.ProfilerTaskType.SYSTEM_TRACE,
-                                                                                    startTimestamp, pid).build())
+    myTransportService.addEventToStream(
+      streamId,
+      ProfilersTestData.generateSessionStartEvent(
+          streamId,
+          sessionId,
+          startTimestamp,
+          Common.SessionData.SessionStarted.SessionType.FULL,
+          Common.ProfilerTaskType.SYSTEM_TRACE,
+          startTimestamp,
+          pid,
+        )
+        .build(),
+    )
     myManager.update()
     assertThat(myManager.profilingSession.sessionId).isEqualTo(123)
     assertThat(myManager.selectedSession.sessionId).isEqualTo(123)
@@ -909,11 +966,19 @@ class SessionsManagerTest {
     // and selected session. Under the Task-Based UX, only if the user has begun a new session that has not complete (a new, ongoing task)
     // with a non-UNSPECIFIED task type set as the SessionsManger.currentTaskType, then it will be auto-selected as the profiling and
     // selected session.
-    myTransportService.addEventToStream(streamId,
-                                        ProfilersTestData.generateSessionStartEvent(streamId, sessionId, startTimestamp,
-                                                                                    Common.SessionData.SessionStarted.SessionType.FULL,
-                                                                                    Common.ProfilerTaskType.UNSPECIFIED_TASK,
-                                                                                    startTimestamp, pid).build())
+    myTransportService.addEventToStream(
+      streamId,
+      ProfilersTestData.generateSessionStartEvent(
+          streamId,
+          sessionId,
+          startTimestamp,
+          Common.SessionData.SessionStarted.SessionType.FULL,
+          Common.ProfilerTaskType.UNSPECIFIED_TASK,
+          startTimestamp,
+          pid,
+        )
+        .build(),
+    )
     myManager.update()
     assertThat(myManager.profilingSession.sessionId).isNotEqualTo(123)
     assertThat(myManager.selectedSession.sessionId).isNotEqualTo(123)
@@ -926,17 +991,25 @@ class SessionsManagerTest {
     val streamId = 1L
     val startTimestamp = 1L
     val endTimestamp = 2L
-    val pid = 456;
+    val pid = 456
     // If the Task-Based UX is disabled, a new, completed FULL session is enough to auto-select the session as the selected session and
     // profiling session. Under the Task-Based UX, complete sessions must be explicitly selected, and thus the auto-selection in
     // SessionsManger#update is prevented except if the user explicitly selects a previously completed session (completed full session with
     // a non-UNSPECIFIED set as the SessionsManger.currentTaskType). The following session events would trigger a session auto-selection
     // without Task-Based UX enabled and are thus utilized to make sure that the auto-selection does not occur with Task-Based UX enabled.
-    myTransportService.addEventToStream(streamId,
-                                        ProfilersTestData.generateSessionStartEvent(streamId, sessionId, startTimestamp,
-                                                                                    Common.SessionData.SessionStarted.SessionType.FULL,
-                                                                                    Common.ProfilerTaskType.UNSPECIFIED_TASK,
-                                                                                    startTimestamp, pid).build())
+    myTransportService.addEventToStream(
+      streamId,
+      ProfilersTestData.generateSessionStartEvent(
+          streamId,
+          sessionId,
+          startTimestamp,
+          Common.SessionData.SessionStarted.SessionType.FULL,
+          Common.ProfilerTaskType.UNSPECIFIED_TASK,
+          startTimestamp,
+          pid,
+        )
+        .build(),
+    )
     myTransportService.addEventToStream(streamId, ProfilersTestData.generateSessionEndEvent(streamId, sessionId, endTimestamp).build())
     myManager.update()
 
@@ -955,11 +1028,19 @@ class SessionsManagerTest {
     val startTimestamp = 1L
     val endTimestamp = 2L
     val pid = 456
-    myTransportService.addEventToStream(streamId,
-                                        ProfilersTestData.generateSessionStartEvent(streamId, sessionId, startTimestamp,
-                                                                                    Common.SessionData.SessionStarted.SessionType.FULL,
-                                                                                    Common.ProfilerTaskType.SYSTEM_TRACE,
-                                                                                    startTimestamp, pid).build())
+    myTransportService.addEventToStream(
+      streamId,
+      ProfilersTestData.generateSessionStartEvent(
+          streamId,
+          sessionId,
+          startTimestamp,
+          Common.SessionData.SessionStarted.SessionType.FULL,
+          Common.ProfilerTaskType.SYSTEM_TRACE,
+          startTimestamp,
+          pid,
+        )
+        .build(),
+    )
     myTransportService.addEventToStream(streamId, ProfilersTestData.generateSessionEndEvent(streamId, sessionId, endTimestamp).build())
     myManager.update()
 
@@ -977,18 +1058,30 @@ class SessionsManagerTest {
     val startTimestamp = 1L
     val endTimestamp = 2L
     val pid = 456
-    myTransportService.addEventToStream(streamId,
-                                        ProfilersTestData.generateSessionStartEvent(streamId, sessionId, startTimestamp,
-                                                                                    Common.SessionData.SessionStarted.SessionType.FULL,
-                                                                                    Common.ProfilerTaskType.NATIVE_ALLOCATIONS,
-                                                                                    startTimestamp, pid).build())
+    myTransportService.addEventToStream(
+      streamId,
+      ProfilersTestData.generateSessionStartEvent(
+          streamId,
+          sessionId,
+          startTimestamp,
+          Common.SessionData.SessionStarted.SessionType.FULL,
+          Common.ProfilerTaskType.NATIVE_ALLOCATIONS,
+          startTimestamp,
+          pid,
+        )
+        .build(),
+    )
     myTransportService.addEventToStream(streamId, ProfilersTestData.generateSessionEndEvent(streamId, sessionId, endTimestamp).build())
     // Populate the underlying session artifact so that createArgs successfully construct an artifact to load. Otherwise, an
     // IllegalStateException will be raised.
     val nativeHeapTimestamp = 30L
-    val nativeHeapInfo = Trace.TraceData.newBuilder().setTraceStarted(Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(
-      Trace.TraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(
-        nativeHeapTimestamp + 1))).build()
+    val nativeHeapInfo =
+      Trace.TraceData.newBuilder()
+        .setTraceStarted(
+          Trace.TraceData.TraceStarted.newBuilder()
+            .setTraceInfo(Trace.TraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(nativeHeapTimestamp + 1))
+        )
+        .build()
     val nativeHeapData = ProfilersTestData.generateMemoryTraceData(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
     myTransportService.addEventToStream(streamId, nativeHeapData.setPid(pid).build())
     myManager.update()
@@ -1057,7 +1150,6 @@ class SessionsManagerTest {
     myManager.endCurrentSession()
     myManager.update()
   }
-
 
   @VisibleForTesting
   class SessionsAspectObserver : AspectObserver() {

@@ -142,8 +142,7 @@ class ComposableItemPresentationProviderTest {
       assertThat(function).isInstanceOf(KtFunction::class.java)
 
       val presentation = provider.getPresentation(function as KtFunction)!!
-      assertThat(presentation.presentableText)
-        .isEqualTo("@Composable testFunction(arg0: Int, ...) {...}")
+      assertThat(presentation.presentableText).isEqualTo("@Composable testFunction(arg0: Int, ...) {...}")
     }
   }
 }

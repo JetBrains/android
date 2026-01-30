@@ -39,23 +39,17 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-/**
- * Unit tests for [ReferenceImageManager].
- */
+/** Unit tests for [ReferenceImageManager]. */
 @RunsInEdt
 class ReferenceImageManagerTest {
 
   private val projectRule = AndroidGradleProjectRule().onEdt()
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val rules: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(disposableRule)
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(projectRule).around(disposableRule)
 
   private lateinit var testFunction: KtNamedFunction
   private lateinit var tempOutputDir: File
-
 
   @Before
   fun setup() {
@@ -63,10 +57,15 @@ class ReferenceImageManagerTest {
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
 
     // Create a dummy function to use for PreviewDetails, which is required by ImageData.
-    val psiFile = createTestFile("app/src/main/java/com/example/test/DummyFile.kt", """
+    val psiFile =
+      createTestFile(
+        "app/src/main/java/com/example/test/DummyFile.kt",
+        """
         package com.example.test
         fun myTestFunction() {}
-    """.trimIndent())
+        """
+          .trimIndent(),
+      )
     testFunction = PsiTreeUtil.findChildrenOfType(psiFile, KtNamedFunction::class.java).first()
     tempOutputDir = File(projectRule.project.basePath, "tmp/outputs").apply { mkdirs() }
   }
@@ -136,9 +135,7 @@ class ReferenceImageManagerTest {
 
     // 2. Act
     var failures: List<ImageData> = emptyList()
-    LoggedErrorProcessor.executeAndReturnLoggedError {
-      failures = copyReferenceImages(listOf(imageData))
-    }
+    LoggedErrorProcessor.executeAndReturnLoggedError { failures = copyReferenceImages(listOf(imageData)) }
 
     // 3. Assert
     assertEquals("There should be one failure", 1, failures.size)
@@ -161,10 +158,7 @@ class ReferenceImageManagerTest {
   }
 
   private fun createRelativeFilewithContent(relativePath: String, content: String): File {
-    val newFile = File(
-      projectRule.project.basePath,
-      FileUtils.toSystemDependentPath(relativePath)
-    )
+    val newFile = File(projectRule.project.basePath, FileUtils.toSystemDependentPath(relativePath))
     FileUtil.createIfDoesntExist(newFile)
     newFile.writeText(content)
     return newFile

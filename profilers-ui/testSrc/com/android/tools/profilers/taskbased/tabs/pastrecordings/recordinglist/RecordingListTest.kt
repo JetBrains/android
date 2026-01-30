@@ -20,6 +20,7 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.compose.StudioTestTheme
 import com.android.tools.adtui.compose.standaloneSingleWindowApplication
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -37,23 +38,18 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 
 class RecordingListTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
-  @get:Rule
-  val composeTestRule = createStudioComposeTestRule()
+  @get:Rule val composeTestRule = createStudioComposeTestRule()
 
-  @get:Rule
-  val ignoreTestRule = IgnoreTestRule()
+  @get:Rule val ignoreTestRule = IgnoreTestRule()
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("TaskGridViewTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskGridViewTestChannel", myTransportService, FakeEventService())
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -63,14 +59,10 @@ class RecordingListTest {
   @Before
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myManager)
-    taskHandlers.forEach {  myProfilers.addTaskHandler(it.key, it.value)  }
+    taskHandlers.forEach { myProfilers.addTaskHandler(it.key, it.value) }
     recordingListModel = RecordingListModel(myProfilers, taskHandlers, {}) {}
     ideProfilerServices.enableTaskBasedUx(true)
   }
@@ -79,20 +71,14 @@ class RecordingListTest {
   @Test
   fun `visual test, dark theme`() {
     recordingListModel.setRecordingList(listOf(createSessionItemWithSystemTraceArtifact("Recording 1", 1L, 1L, myProfilers)))
-    standaloneSingleWindowApplication(
-      title = "Testing TaskGridView",
-    ) {
-      StudioTestTheme (darkMode = true) {
-        RecordingList(recordingListModel = recordingListModel)
-      }
+    standaloneSingleWindowApplication(title = "Testing TaskGridView") {
+      StudioTestTheme(darkMode = true) { RecordingList(recordingListModel = recordingListModel) }
     }
   }
 
   @Test
   fun `test import file renders in UI and is reflected in data model`() {
-    composeTestRule.setContent (darkMode = true) {
-      RecordingList(recordingListModel)
-    }
+    composeTestRule.setContent(darkMode = true) { RecordingList(recordingListModel) }
 
     recordingListModel.setRecordingList(listOf(createSessionItemWithSystemTraceArtifact("Recording 1", 1L, 1L, myProfilers)))
 

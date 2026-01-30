@@ -26,20 +26,14 @@ import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 
 /**
- * Gets a color from the current Swing theme, looking it up by name. It then remembers it, keying it
- * on the current [theme name][JewelTheme.name] and [isDark][JewelTheme.isDark] values.
+ * Gets a color from the current Swing theme, looking it up by name. It then remembers it, keying it on the current
+ * [theme name][JewelTheme.name] and [isDark][JewelTheme.isDark] values.
  *
- * If there is no corresponding key in the theme, it looks up a fallback key (which is generally a
- * `ColorPalette.*` entry), and if that is also missing, it falls back to the hardcoded defaults.
+ * If there is no corresponding key in the theme, it looks up a fallback key (which is generally a `ColorPalette.*` entry), and if that is
+ * also missing, it falls back to the hardcoded defaults.
  */
 @Composable
-fun rememberColor(
-  key: String,
-  darkFallbackKey: String?,
-  darkDefault: Color,
-  lightFallbackKey: String?,
-  lightDefault: Color,
-): Color {
+fun rememberColor(key: String, darkFallbackKey: String?, darkDefault: Color, lightFallbackKey: String?, lightDefault: Color): Color {
   val isDark = JewelTheme.isDark
 
   return remember(JewelTheme.name, isDark) {
@@ -54,8 +48,8 @@ fun rememberColor(
 /**
  * Gets a color from the current Swing theme, looking it up by name.
  *
- * If there is no corresponding key in the theme, it looks up a fallback key (which is generally a
- * `ColorPalette.*` entry), and if that is also missing, it falls back to the hardcoded default.
+ * If there is no corresponding key in the theme, it looks up a fallback key (which is generally a `ColorPalette.*` entry), and if that is
+ * also missing, it falls back to the hardcoded default.
  */
 private fun retrieveColor(key: String, fallbackKey: String?, default: Color) =
   retrieveColorStrictOrUnspecified(key).takeOrElse {

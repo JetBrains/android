@@ -23,24 +23,27 @@ import java.awt.BorderLayout
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-class UsageInstructionsView: JPanel(BorderLayout()) {
+class UsageInstructionsView : JPanel(BorderLayout()) {
 
   init {
-      background = primaryContentBackground
-      border = JBUI.Borders.empty(8)
-      val usageInstructionsLabel = JLabel().apply {
+    background = primaryContentBackground
+    border = JBUI.Borders.empty(8)
+    val usageInstructionsLabel =
+      JLabel().apply {
         foreground = usageInstructionsText
         text = USAGE_INSTRUCTIONS_TEXT
       }
-      add(usageInstructionsLabel)
+    add(usageInstructionsLabel)
   }
 
   companion object {
     const val USAGE_INSTRUCTIONS_TITLE = "<b>Usage Instructions</b>"
     private val CONTROL_KEY_TEXT
       get() = if (ClientSystemInfo.isMac()) "Command &#8984" else "Ctrl &#8963"
+
     private val USAGE_INSTRUCTIONS_TEXT
-      get() = """
+      get() =
+        """
       <html>
         <h3>Navigation</h3>
         <p>You can use the mini-map at the top left of recordings to navigate to a section of the recording.</p>
@@ -59,6 +62,7 @@ class UsageInstructionsView: JPanel(BorderLayout()) {
         <blockquote>To see more details about an event, method call, or function call, select it in the timeline.</blockquote>
         <br>
       </html>
-      """.trimIndent()
+      """
+          .trimIndent()
   }
 }

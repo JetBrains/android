@@ -18,13 +18,17 @@ package com.android.tools.profilers.cpu.analysis
 import com.android.tools.profilers.StudioProfilersView
 import java.awt.BorderLayout
 
-class CpuAnalysisEventsTab(profilersView: StudioProfilersView,
-                           model: CpuAnalysisEventsTabModel<*>)
-  : CpuAnalysisTab<CpuAnalysisEventsTabModel<*>?>(profilersView, model) {
+class CpuAnalysisEventsTab(profilersView: StudioProfilersView, model: CpuAnalysisEventsTabModel<*>) :
+  CpuAnalysisTab<CpuAnalysisEventsTabModel<*>?>(profilersView, model) {
   private fun initComponents() {
     layout = BorderLayout()
-    val nodesTable = CaptureNodeDetailTable(model.getNodes(), model.captureRange,
-                                            viewRange = profilersView.studioProfilers.stage.timeline.viewRange, initialPageSize = 25)
+    val nodesTable =
+      CaptureNodeDetailTable(
+        model.getNodes(),
+        model.captureRange,
+        viewRange = profilersView.studioProfilers.stage.timeline.viewRange,
+        initialPageSize = 25,
+      )
     add(nodesTable.component)
   }
 
@@ -32,6 +36,7 @@ class CpuAnalysisEventsTab(profilersView: StudioProfilersView,
     initComponents()
   }
 
-  override fun onRemoved() { }
-  override fun onReattached() { }
+  override fun onRemoved() {}
+
+  override fun onReattached() {}
 }

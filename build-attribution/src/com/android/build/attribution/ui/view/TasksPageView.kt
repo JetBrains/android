@@ -43,7 +43,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import icons.StudioIcons
-import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Font
@@ -55,165 +54,182 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
+import org.jetbrains.annotations.NonNls
 
-@NonNls
-private const val SPLITTER_PROPERTY = "BuildAnalyzer.TasksView.Splitter.Proportion"
+@NonNls private const val SPLITTER_PROPERTY = "BuildAnalyzer.TasksView.Splitter.Proportion"
 
-/**
- * Tasks view of Build Analyzer report that is based on ComboBoxes navigation on the top level.
- */
+/** Tasks view of Build Analyzer report that is based on ComboBoxes navigation on the top level. */
 class TasksPageView(
   val model: TasksDataPageModel,
   val actionHandlers: ViewActionHandlers,
   val disposable: Disposable,
-  val detailPagesFactory: TaskViewDetailPagesFactory = TaskViewDetailPagesFactory(model, actionHandlers)
+  val detailPagesFactory: TaskViewDetailPagesFactory = TaskViewDetailPagesFactory(model, actionHandlers),
 ) : BuildAnalyzerDataPageView {
 
   // Flag to prevent triggering calls to action handler on pulled from the model updates.
   private var fireActionHandlerEvents = true
 
-  val groupingCheckBox = JCheckBox("Group by plugin", false).apply {
-    name = "tasksGroupingCheckBox"
-    addActionListener { event ->
-      if (fireActionHandlerEvents) {
-        val grouping = if (isSelected) TasksDataPageModel.Grouping.BY_PLUGIN else TasksDataPageModel.Grouping.UNGROUPED
-        actionHandlers.tasksGroupingSelectionUpdated(grouping)
+  val groupingCheckBox =
+    JCheckBox("Group by plugin", false).apply {
+      name = "tasksGroupingCheckBox"
+      addActionListener { event ->
+        if (fireActionHandlerEvents) {
+          val grouping = if (isSelected) TasksDataPageModel.Grouping.BY_PLUGIN else TasksDataPageModel.Grouping.UNGROUPED
+          actionHandlers.tasksGroupingSelectionUpdated(grouping)
+        }
       }
     }
-  }
 
-  val tasksGroupingComboBox = ComboBox(
-    CollectionComboBoxModel(model.availableGroupings.toMutableList(), TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
-  ).apply {
-    name = "tasksGroupingComboBox"
-    renderer = textListCellRenderer("") { it.uiName }
-    addItemListener { event ->
-      if (fireActionHandlerEvents && event.stateChange == ItemEvent.SELECTED) {
-        actionHandlers.tasksGroupingSelectionUpdated(event.item as TasksDataPageModel.Grouping)
+  val tasksGroupingComboBox =
+    ComboBox(CollectionComboBoxModel(model.availableGroupings.toMutableList(), TasksDataPageModel.Grouping.BY_TASK_CATEGORY)).apply {
+      name = "tasksGroupingComboBox"
+      renderer = textListCellRenderer("") { it.uiName }
+      addItemListener { event ->
+        if (fireActionHandlerEvents && event.stateChange == ItemEvent.SELECTED) {
+          actionHandlers.tasksGroupingSelectionUpdated(event.item as TasksDataPageModel.Grouping)
+        }
       }
     }
-  }
 
-  val tree = Tree(DefaultTreeModel(model.treeRoot)).apply {
-    isRootVisible = false
-    selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
-    BuildAnalyzerMasterTreeCellRenderer.install(this)
-    TreeSpeedSearch.installOn(this, true, TreeSpeedSearch.NODE_PRESENTATION_FUNCTION).apply {
-      comparator = SpeedSearchComparator(false)
-    }
-    TreeUtil.installActions(this)
-    addTreeSelectionListener { e ->
-      if (fireActionHandlerEvents) {
-        actionHandlers.tasksTreeNodeSelected(e?.newLeadSelectionPath?.lastPathComponent as? TasksTreeNode)
+  val tree =
+    Tree(DefaultTreeModel(model.treeRoot)).apply {
+      isRootVisible = false
+      selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
+      BuildAnalyzerMasterTreeCellRenderer.install(this)
+      TreeSpeedSearch.installOn(this, true, TreeSpeedSearch.NODE_PRESENTATION_FUNCTION).apply { comparator = SpeedSearchComparator(false) }
+      TreeUtil.installActions(this)
+      addTreeSelectionListener { e ->
+        if (fireActionHandlerEvents) {
+          actionHandlers.tasksTreeNodeSelected(e?.newLeadSelectionPath?.lastPathComponent as? TasksTreeNode)
+        }
       }
     }
-  }
 
   val treeHeaderLabel: JLabel = JBLabel().apply { font = font.deriveFont(Font.BOLD) }
-  val tasksLegendPanel = JPanel().apply {
-    border = JBUI.Borders.emptyRight(5)
-    layout = HorizontalLayout(10)
-    isOpaque = false
-    fun legendItem(name: String, tooltip: String, color: Color) = JBLabel(name, ColorIcon(10, color), SwingConstants.RIGHT).apply {
-      toolTipText = tooltip
+  val tasksLegendPanel =
+    JPanel().apply {
+      border = JBUI.Borders.emptyRight(5)
+      layout = HorizontalLayout(10)
+      isOpaque = false
+      fun legendItem(name: String, tooltip: String, color: Color) =
+        JBLabel(name, ColorIcon(10, color), SwingConstants.RIGHT).apply { toolTipText = tooltip }
+      add(
+        legendItem(
+          name = "Android/Java/Kotlin Plugin",
+          tooltip = "The task belongs to the Android Gradle plugin, Java Gradle plugin, or Kotlin Gradle plugin",
+          color = CriticalPathChartLegend.androidPluginColor.baseColor,
+        ),
+        HorizontalLayout.RIGHT,
+      )
+      add(
+        legendItem(
+          name = "Other Plugin",
+          tooltip =
+            "The task belongs to a third-party or custom plugin, such as a plugin you applied after creating a new project using Android Studio",
+          color = CriticalPathChartLegend.externalPluginColor.baseColor,
+        ),
+        HorizontalLayout.RIGHT,
+      )
+      add(
+        legendItem(
+          name = "Project Customization",
+          tooltip = "The task does not belong to a plugin. For example, task that you might define within your build.gradle files",
+          color = CriticalPathChartLegend.buildscriptPluginColor.baseColor,
+        ),
+        HorizontalLayout.RIGHT,
+      )
     }
-    add(legendItem(
-      name = "Android/Java/Kotlin Plugin",
-      tooltip = "The task belongs to the Android Gradle plugin, Java Gradle plugin, or Kotlin Gradle plugin",
-      color = CriticalPathChartLegend.androidPluginColor.baseColor
-    ), HorizontalLayout.RIGHT)
-    add(legendItem(
-      name = "Other Plugin",
-      tooltip = "The task belongs to a third-party or custom plugin, such as a plugin you applied after creating a new project using Android Studio",
-      color = CriticalPathChartLegend.externalPluginColor.baseColor
-    ), HorizontalLayout.RIGHT)
-    add(legendItem(
-      name = "Project Customization",
-      tooltip = "The task does not belong to a plugin. For example, task that you might define within your build.gradle files",
-      color = CriticalPathChartLegend.buildscriptPluginColor.baseColor
-    ), HorizontalLayout.RIGHT)
-  }
 
-  val detailsPanel = object : CardLayoutPanel<TasksPageId, TasksPageId, JComponent>() {
-    override fun prepare(key: TasksPageId): TasksPageId = key
+  val detailsPanel =
+    object : CardLayoutPanel<TasksPageId, TasksPageId, JComponent>() {
+      override fun prepare(key: TasksPageId): TasksPageId = key
 
-    override fun create(pageId: TasksPageId): JComponent = JBPanel<JBPanel<*>>(BorderLayout()).apply {
-      name = "details-${pageId}"
-      val scrollPane = JBScrollPane().apply {
-        border = JBUI.Borders.empty()
-        setViewportView(detailPagesFactory.createDetailsPage(pageId))
-      }
-      add(scrollPane, BorderLayout.CENTER)
+      override fun create(pageId: TasksPageId): JComponent =
+        JBPanel<JBPanel<*>>(BorderLayout()).apply {
+          name = "details-${pageId}"
+          val scrollPane =
+            JBScrollPane().apply {
+              border = JBUI.Borders.empty()
+              setViewportView(detailPagesFactory.createDetailsPage(pageId))
+            }
+          add(scrollPane, BorderLayout.CENTER)
+        }
     }
-  }
 
-  private val componentsSplitter = OnePixelSplitter(SPLITTER_PROPERTY, 0.33f).apply {
-    val masterHalf: JComponent = JBPanel<JBPanel<*>>().apply {
-      layout = BorderLayout(2, 1)
-      val treeHeaderPanel = JPanel().apply {
-        layout = BorderLayout()
-        background = UIUtil.getTreeBackground()
+  private val componentsSplitter =
+    OnePixelSplitter(SPLITTER_PROPERTY, 0.33f).apply {
+      val masterHalf: JComponent =
+        JBPanel<JBPanel<*>>().apply {
+          layout = BorderLayout(2, 1)
+          val treeHeaderPanel =
+            JPanel().apply {
+              layout = BorderLayout()
+              background = UIUtil.getTreeBackground()
 
-        val helpIcon = JLabel(StudioIcons.Common.HELP).apply {
-          HelpTooltip()
-            .setDescription("Build Analyzer only includes tasks that are part of the <b>critical path</b> for this build." +
-                            " These are the tasks you should investigate to optimize your build.")
-            .installOn(this)
+              val helpIcon =
+                JLabel(StudioIcons.Common.HELP).apply {
+                  HelpTooltip()
+                    .setDescription(
+                      "Build Analyzer only includes tasks that are part of the <b>critical path</b> for this build." +
+                        " These are the tasks you should investigate to optimize your build."
+                    )
+                    .installOn(this)
+                }
+
+              add(
+                JBPanel<JBPanel<*>>(HorizontalLayout(5)).apply {
+                  border = JBUI.Borders.empty(5, 20)
+                  add(treeHeaderLabel)
+                  add(helpIcon)
+                },
+                BorderLayout.CENTER,
+              )
+              add(tasksLegendPanel, BorderLayout.SOUTH)
+            }
+          add(treeHeaderPanel, BorderLayout.NORTH)
+          CriticalPathChartLegend.pluginColorPalette.reset()
+          val treeComponent = TimeDistributionTreeChart.wrap(tree)
+
+          add(treeComponent, BorderLayout.CENTER)
+        }
+      val detailsHalf: JPanel =
+        JPanel().apply {
+          val dimension = JBUI.size(5, 5)
+          layout = BorderLayout(dimension.width(), dimension.height())
+          border = JBUI.Borders.empty(5, 20)
+          add(detailsPanel, BorderLayout.CENTER)
         }
 
-        add(
-          JBPanel<JBPanel<*>>(HorizontalLayout(5)).apply {
-            border = JBUI.Borders.empty(5, 20)
-            add(treeHeaderLabel)
-            add(helpIcon)
-          },
-          BorderLayout.CENTER
-        )
-        add(tasksLegendPanel, BorderLayout.SOUTH)
-      }
-      add(treeHeaderPanel, BorderLayout.NORTH)
-      CriticalPathChartLegend.pluginColorPalette.reset()
-      val treeComponent = TimeDistributionTreeChart.wrap(tree)
-
-      add(treeComponent, BorderLayout.CENTER)
-    }
-    val detailsHalf: JPanel = JPanel().apply {
-      val dimension = JBUI.size(5, 5)
-      layout = BorderLayout(dimension.width(), dimension.height())
-      border = JBUI.Borders.empty(5, 20)
-      add(detailsPanel, BorderLayout.CENTER)
+      firstComponent = masterHalf
+      secondComponent = detailsHalf
+      setHonorComponentsMinimumSize(true)
     }
 
-    firstComponent = masterHalf
-    secondComponent = detailsHalf
-    setHonorComponentsMinimumSize(true)
-  }
-
-  override val component: JPanel = JBPanelWithEmptyText(BorderLayout()).apply {
-    name = "tasks-view"
-    add(componentsSplitter, BorderLayout.CENTER)
-    componentsSplitter.isVisible = !model.isEmpty
-    emptyText.apply {
-      appendLine("This build ran without any tasks to process, or all tasks were already up to date.")
-      appendLine("Learn more about this build's performance:")
-      appendLine("All warnings", SimpleTextAttributes.LINK_ATTRIBUTES) {
-        actionHandlers.changeViewToWarningsLinkClicked()
+  override val component: JPanel =
+    JBPanelWithEmptyText(BorderLayout()).apply {
+      name = "tasks-view"
+      add(componentsSplitter, BorderLayout.CENTER)
+      componentsSplitter.isVisible = !model.isEmpty
+      emptyText.apply {
+        appendLine("This build ran without any tasks to process, or all tasks were already up to date.")
+        appendLine("Learn more about this build's performance:")
+        appendLine("All warnings", SimpleTextAttributes.LINK_ATTRIBUTES) { actionHandlers.changeViewToWarningsLinkClicked() }
       }
     }
-  }
 
-  override val additionalControls: JPanel = JPanel().apply {
-    layout = HorizontalLayout(10)
-    name = "tasks-view-additional-controls"
+  override val additionalControls: JPanel =
+    JPanel().apply {
+      layout = HorizontalLayout(10)
+      name = "tasks-view-additional-controls"
 
-    if (model.reportData.showTaskCategoryInfo) {
-      add(JLabel("Group by:"))
-      add(tasksGroupingComboBox)
-    } else {
-      add(groupingCheckBox)
+      if (model.reportData.showTaskCategoryInfo) {
+        add(JLabel("Group by:"))
+        add(tasksGroupingComboBox)
+      } else {
+        add(groupingCheckBox)
+      }
+      add(tasksFilterComponent(model, actionHandlers, disposable))
     }
-    add(tasksFilterComponent(model, actionHandlers, disposable))
-  }
 
   init {
     updateViewFromModel(true)
@@ -239,8 +255,7 @@ class TasksPageView(
         val emptyPageId = TasksPageId.emptySelection(model.selectedGrouping)
         detailsPanel.select(emptyPageId, true)
         tree.selectionModel.clearSelection()
-      }
-      else {
+      } else {
         detailsPanel.select(selectedNode.descriptor.pageId, true)
         TreeUtil.selectNode(tree, selectedNode)
       }

@@ -20,9 +20,9 @@ import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTooltip
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
+import org.junit.Test
 
 class RssMemoryTooltipViewTest {
   @Test
@@ -47,9 +47,11 @@ class RssMemoryTooltipViewTest {
   }
 
   private companion object {
-    val RSS_MEMORY_VALUES = listOf(
-      SeriesData(0, 0L),
-      SeriesData(TimeUnit.MILLISECONDS.toMicros(1), 1024L),
-      SeriesData(TimeUnit.MILLISECONDS.toMicros(2), 2 * 1024 * 1024L))
+    val RSS_MEMORY_VALUES =
+      listOf(
+        SeriesData(0, 0L),
+        SeriesData(TimeUnit.MILLISECONDS.toMicros(1), 1024L),
+        SeriesData(TimeUnit.MILLISECONDS.toMicros(2), 2 * 1024 * 1024L),
+      )
   }
 }

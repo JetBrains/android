@@ -52,8 +52,8 @@ typealias DnDMerger = (Transferable, Transferable) -> Transferable
 /**
  * A component tree builder creates a tree that can hold multiple types of nodes.
  *
- * Each [NodeType] must be specified. If a node type represent an Android View consider using
- * [ViewNodeType] which defines a standard node renderer.
+ * Each [NodeType] must be specified. If a node type represent an Android View consider using [ViewNodeType] which defines a standard node
+ * renderer.
  */
 class ComponentTreeBuilder {
   private val nodeTypeMap = mutableMapOf<Class<*>, NodeType<*>>()
@@ -89,22 +89,16 @@ class ComponentTreeBuilder {
   fun withMultipleSelection() = apply { selectionMode = DISCONTIGUOUS_TREE_SELECTION }
 
   /** Add a context popup menu on the tree node item. */
-  fun withContextMenu(treeContextMenu: ContextPopupHandler) = apply {
-    contextPopup = treeContextMenu
-  }
+  fun withContextMenu(treeContextMenu: ContextPopupHandler) = apply { contextPopup = treeContextMenu }
 
   /** Add a double click handler on the tree node item. */
-  fun withDoubleClick(doubleClickHandler: DoubleClickHandler) = apply {
-    doubleClick = doubleClickHandler
-  }
+  fun withDoubleClick(doubleClickHandler: DoubleClickHandler) = apply { doubleClick = doubleClickHandler }
 
   /** Set the toggle click count (default is 2). */
   fun withToggleClickCount(clickCount: Int) = apply { toggleClickCount = clickCount }
 
   /** Specify specific invokeLater implementation to use. */
-  fun withInvokeLaterOption(invokeLaterImpl: (Runnable) -> Unit) = apply {
-    invokeLater = invokeLaterImpl
-  }
+  fun withInvokeLaterOption(invokeLaterImpl: (Runnable) -> Unit) = apply { invokeLater = invokeLaterImpl }
 
   /** Do not install tree search. Can be omitted for tests. */
   fun withoutTreeSearch() = apply { installTreeSearch = false }
@@ -125,9 +119,9 @@ class ComponentTreeBuilder {
   /**
    * Add Drag and Drop support.
    *
-   * Optionally specify a merge operator for support of dragging multiple items. Without a merge
-   * operator, only the 1st item will be dragged. When dragging items from the component tree itself
-   * [deleteOriginOfInternalMove] controls whether the origin items should be deleted.
+   * Optionally specify a merge operator for support of dragging multiple items. Without a merge operator, only the 1st item will be
+   * dragged. When dragging items from the component tree itself [deleteOriginOfInternalMove] controls whether the origin items should be
+   * deleted.
    */
   fun withDnD(merger: DnDMerger? = null, deleteOriginOfInternalMove: Boolean = true) = apply {
     dndSupport = true
@@ -142,14 +136,10 @@ class ComponentTreeBuilder {
   fun withExpandableRoot() = apply { showRootHandles = true }
 
   /** Show the support lines for the component tree. */
-  fun withShowSupportLines(showSupportLines: () -> Boolean) = apply {
-    this.showSupportLines = showSupportLines
-  }
+  fun withShowSupportLines(showSupportLines: () -> Boolean) = apply { this.showSupportLines = showSupportLines }
 
   /** Checks if the node in the tree has a callstack relation. */
-  fun withIsCallStackNodeCheck(isCallStackNode: (TreePath) -> Boolean) = apply {
-    this.isCallStackNode = isCallStackNode
-  }
+  fun withIsCallStackNodeCheck(isCallStackNode: (TreePath) -> Boolean) = apply { this.isCallStackNode = isCallStackNode }
 
   /** Show an horizontal scrollbar if necessary. */
   fun withHorizontalScrollBar() = apply { horizontalScrollbar = true }
@@ -161,9 +151,7 @@ class ComponentTreeBuilder {
   fun withAutoScroll() = apply { autoScroll = true }
 
   /** Allows custom keyboard actions to be installed. */
-  fun withKeyboardActions(installer: (JComponent) -> Unit) = apply {
-    this.installKeyboardActions = installer
-  }
+  fun withKeyboardActions(installer: (JComponent) -> Unit) = apply { this.installKeyboardActions = installer }
 
   fun withExpandAllOnRootChange() = apply { expandAllOnRootChange = true }
 
@@ -192,10 +180,8 @@ class ComponentTreeBuilder {
     tree.isRootVisible = isRootVisible
     tree.showsRootHandles = !isRootVisible || showRootHandles
 
-    val horizontalPolicy =
-      if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
-    val verticalScrollPane =
-      ScrollPaneFactory.createScrollPane(table, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
+    val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
+    val verticalScrollPane = ScrollPaneFactory.createScrollPane(table, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
     verticalScrollPane.setCorner(ScrollPaneConstants.UPPER_RIGHT_CORNER, UpperRightCorner())
     verticalScrollPane.border = JBUI.Borders.empty()
 
@@ -209,15 +195,7 @@ class ComponentTreeBuilder {
       val horizontalScrollPane = ColumnTreeScrollPanel(tree, table)
       horizontalScrollPane.border = verticalScrollPane.border
 
-      table.treeUI =
-        ColumnTreeUI(
-          table,
-          horizontalScrollPane,
-          verticalScrollPane,
-          autoScroll,
-          showSupportLines,
-          isCallStackNode,
-        )
+      table.treeUI = ColumnTreeUI(table, horizontalScrollPane, verticalScrollPane, autoScroll, showSupportLines, isCallStackNode)
 
       val outerPanel = JPanel(BorderLayout())
       // Add a vertical scroll pane wrapping the TreeTable content to the center, and add a JPanel
@@ -271,8 +249,7 @@ class ComponentTreeBuildResult(
   /**
    * The Tree component of the component tree.
    *
-   * Note: the Tree instance may be just be a renderer instance, and may not have a parent
-   * component.
+   * Note: the Tree instance may be just be a renderer instance, and may not have a parent component.
    */
   val tree: Tree,
 

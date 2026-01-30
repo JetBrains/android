@@ -26,7 +26,5 @@ interface ScaledImageProvider {
     @AnyThread get() = null
 
   /** Returns a scaled [Image] with all bits available. See [ScalingImagePanel]. */
-  @Throws(java.io.IOException::class)
-  @WorkerThread
-  fun createScaledImage(ctx: ScaleContext, width: Double, height: Double): Image
+  @Throws(java.io.IOException::class) @WorkerThread fun createScaledImage(ctx: ScaleContext, width: Double, height: Double): Image
 }

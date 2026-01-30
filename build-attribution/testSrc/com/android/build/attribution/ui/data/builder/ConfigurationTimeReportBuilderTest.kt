@@ -25,23 +25,18 @@ class ConfigurationTimeReportBuilderTest : AbstractBuildAttributionReportBuilder
   @Test
   fun testConfigurationTimesReport() {
 
-    val analyzerResults = object : MockResultsProvider() {
-      override fun getBuildFinishedTimestamp(): Long = 12345
+    val analyzerResults =
+      object : MockResultsProvider() {
+        override fun getBuildFinishedTimestamp(): Long = 12345
 
-      override fun getConfigurationPhaseTimeMs(): Long = 2000
+        override fun getConfigurationPhaseTimeMs(): Long = 2000
 
-      override fun getProjectsConfigurationData(): List<ProjectConfigurationData> = listOf(
-        project(":app", 1000, listOf(
-          plugin(pluginA, 200),
-          plugin(pluginB, 100),
-          plugin(pluginC, 700)
-        )),
-        project(":lib", 500, listOf(
-          plugin(pluginA, 200),
-          plugin(libraryPlugin, 300)
-        ))
-      )
-    }
+        override fun getProjectsConfigurationData(): List<ProjectConfigurationData> =
+          listOf(
+            project(":app", 1000, listOf(plugin(pluginA, 200), plugin(pluginB, 100), plugin(pluginC, 700))),
+            project(":lib", 500, listOf(plugin(pluginA, 200), plugin(libraryPlugin, 300))),
+          )
+      }
 
     val report = BuildAttributionReportBuilder(analyzerResults).build()
 

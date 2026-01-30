@@ -16,9 +16,7 @@
 
 package org.jetbrains.android.refactoring.runsGradle
 
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import org.jetbrains.android.refactoring.MigrateResValuesFromGradlePropertiesTest
-
 // TODO (b/366029616): enable this test when the current AGP version is at 9.0.0 or above
 // When AGP_CURRENT no longer supports android.defaults.buildfeatures.buildconfig at all, this test can be removed.
-//class MigrateResValuesFromGradlePropertiesTestCurrent : MigrateResValuesFromGradlePropertiesTest(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, null)
+// class MigrateResValuesFromGradlePropertiesTestCurrent :
+// MigrateResValuesFromGradlePropertiesTest(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, null)

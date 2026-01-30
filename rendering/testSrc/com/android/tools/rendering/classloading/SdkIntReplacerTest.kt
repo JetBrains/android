@@ -52,8 +52,7 @@ class SdkIntReplacerTest {
     val fieldResult = resourcesCompat.fields.firstOrNull { it.name == "sdkVersion" }?.get(null)
     assertEquals(28, fieldResult)
 
-    val methodResult =
-      resourcesCompat.methods.firstOrNull { it.name == "getSdkVersion" }?.invoke(null)
+    val methodResult = resourcesCompat.methods.firstOrNull { it.name == "getSdkVersion" }?.invoke(null)
     assertEquals(28, methodResult)
   }
 }

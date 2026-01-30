@@ -19,10 +19,10 @@ import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel
 import com.intellij.openapi.diagnostic.Logger
 
 /**
- * This interface will be implemented by stages that are used as an intermediate stage before entering a terminal stage. One example
- * is the CpuProfilerStage. It is an InterimStage as it serves as the intermediate stage between starting and displaying a CPU trace.
+ * This interface will be implemented by stages that are used as an intermediate stage before entering a terminal stage. One example is the
+ * CpuProfilerStage. It is an InterimStage as it serves as the intermediate stage between starting and displaying a CPU trace.
  */
-interface InterimStage: TaskStage {
+interface InterimStage : TaskStage {
   private val LOGGER: Logger
     get() = Logger.getInstance(InterimStage::class.java)
 
@@ -35,9 +35,9 @@ interface InterimStage: TaskStage {
   /**
    * The RecordingScreenModel to be created and managed by each InterimStage.
    *
-   * This model will back the state for the corresponding RecordingScreen component living in the InterimStageView.
-   * NOTE: This field is nullable so that it's instantiation could be prevented when the Task-Based UX feature flag is disabled.
-   * TODO (b/323973893): Make this field's type non-null after enabling the Task-Based UX flag permanently and/or removing the feature flag.
+   * This model will back the state for the corresponding RecordingScreen component living in the InterimStageView. NOTE: This field is
+   * nullable so that it's instantiation could be prevented when the Task-Based UX feature flag is disabled. TODO (b/323973893): Make this
+   * field's type non-null after enabling the Task-Based UX flag permanently and/or removing the feature flag.
    */
   val recordingScreenModel: RecordingScreenModel<*>?
 

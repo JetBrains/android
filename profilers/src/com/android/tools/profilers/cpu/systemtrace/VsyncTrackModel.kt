@@ -21,12 +21,10 @@ import com.android.tools.adtui.model.RangedContinuousSeries
 import com.android.tools.profilers.cpu.LazyDataSeries
 import java.util.function.Supplier
 
-/**
- * Track model for VSYNC counter in CPU capture stage.
- */
+/** Track model for VSYNC counter in CPU capture stage. */
 class VsyncTrackModel(systemTraceData: CpuSystemTraceData, viewRange: Range) : LineChartModel() {
-  val vsyncCounterSeries: RangedContinuousSeries = RangedContinuousSeries(
-    "VSYNC", viewRange, Range(0.0, 1.0), LazyDataSeries(Supplier { systemTraceData.vsyncCounterValues }))
+  val vsyncCounterSeries: RangedContinuousSeries =
+    RangedContinuousSeries("VSYNC", viewRange, Range(0.0, 1.0), LazyDataSeries(Supplier { systemTraceData.vsyncCounterValues }))
 
   init {
     add(vsyncCounterSeries)

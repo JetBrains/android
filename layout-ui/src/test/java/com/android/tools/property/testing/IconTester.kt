@@ -51,8 +51,7 @@ object IconTester {
   }
 
   private fun toImage(icon: Icon): BufferedImage {
-    @Suppress("UndesirableClassUsage")
-    val image = BufferedImage(icon.iconWidth, icon.iconHeight, BufferedImage.TYPE_INT_ARGB)
+    @Suppress("UndesirableClassUsage") val image = BufferedImage(icon.iconWidth, icon.iconHeight, BufferedImage.TYPE_INT_ARGB)
     val g = image.createGraphics()
     icon.paintIcon(null, g, 0, 0)
     return image

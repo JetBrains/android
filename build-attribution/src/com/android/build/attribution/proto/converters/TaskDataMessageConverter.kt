@@ -55,14 +55,13 @@ class TaskDataMessageConverter {
           throw IllegalStateException("Unrecognized task primary category")
         val primaryTaskCategory = constructTaskCategory(task.primaryTaskCategory)
         val secondaryTaskCategory = task.secondaryTaskCategoriesList.map(this::constructTaskCategory)
-        originPlugin
-          ?.let {
-            val data = TaskData(taskName, projectPath, it, executionStartTime, executionEndTime, executionMode, executionReasons)
-            data.isOnTheCriticalPath = isOnTheCriticalPath
-            data.setTaskType(taskType)
-            data.setTaskCategories(primaryTaskCategory, secondaryTaskCategory)
-            taskDataList.add(data)
-          }
+        originPlugin?.let {
+          val data = TaskData(taskName, projectPath, it, executionStartTime, executionEndTime, executionMode, executionReasons)
+          data.isOnTheCriticalPath = isOnTheCriticalPath
+          data.setTaskType(taskType)
+          data.setTaskCategories(primaryTaskCategory, secondaryTaskCategory)
+          taskDataList.add(data)
+        }
       }
       return taskDataList
     }

@@ -27,8 +27,7 @@ import com.intellij.psi.codeStyle.NameUtil
  * Contains implementations for search/filtering of properties in the inspector.
  *
  * @property lines All line models displayed in the inspector.
- * @property filter The search term or an empty string. The panel will hide all lines where the
- *   label text doesn't match.
+ * @property filter The search term or an empty string. The panel will hide all lines where the label text doesn't match.
  */
 class InspectorPanelModel {
   private var listeners = mutableListOf<ValueChangedListener>()
@@ -56,10 +55,7 @@ class InspectorPanelModel {
     nextLine.requestFocus()
   }
 
-  /**
-   * Search for the closest line after [lineIndex] that can take focus. Wrap to the first line if we
-   * get to the end.
-   */
+  /** Search for the closest line after [lineIndex] that can take focus. Wrap to the first line if we get to the end. */
   private fun findClosestNextLine(lineIndex: Int): InspectorLineModel? {
     var index = (lineIndex + 1) % lines.size
     while (index != lineIndex) {
@@ -92,8 +88,7 @@ class InspectorPanelModel {
     if (filter.isEmpty()) {
       return false
     }
-    val visibleLabels =
-      lines.filter { it.visible && (it is CollapsibleLabelModel || it is TableLineModel) }
+    val visibleLabels = lines.filter { it.visible && (it is CollapsibleLabelModel || it is TableLineModel) }
     if (visibleLabels.count() != 1) {
       return false
     }

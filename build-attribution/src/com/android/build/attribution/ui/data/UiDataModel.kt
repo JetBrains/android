@@ -40,9 +40,7 @@ interface BuildAttributionReportUiData {
   val criticalPathTasks: CriticalPathTasksUiData
   val criticalPathPlugins: CriticalPathPluginsUiData
   val criticalPathTaskCategories: CriticalPathTaskCategoriesUiData?
-  /**
-   * All detected issues grouped by issue type
-   */
+  /** All detected issues grouped by issue type */
   val issues: List<TaskIssuesGroup>
   val configurationTime: ConfigurationUiData
   val annotationProcessors: AnnotationProcessorsReport
@@ -59,10 +57,9 @@ interface BuildSummary {
   val criticalPathDuration: TimeWithPercentage
   val configurationDuration: TimeWithPercentage
   val miscStepsTime: TimeWithPercentage
-    get() = TimeWithPercentage(
-      totalBuildDuration.timeMs - configurationDuration.timeMs - criticalPathDuration.timeMs,
-      totalBuildDuration.totalMs
-    )
+    get() =
+      TimeWithPercentage(totalBuildDuration.timeMs - configurationDuration.timeMs - criticalPathDuration.timeMs, totalBuildDuration.totalMs)
+
   val garbageCollectionTime: TimeWithPercentage
   val javaVersionUsed: Int?
   val isGarbageCollectorSettingSet: Boolean?
@@ -74,15 +71,16 @@ interface CriticalPathTasksUiData {
   val tasks: List<TaskUiData>
   val size: Int
     get() = tasks.size
+
   val warningCount: Int
   val infoCount: Int
 }
 
-interface CriticalPathPluginsUiData: CriticalPathEntriesUiData {
+interface CriticalPathPluginsUiData : CriticalPathEntriesUiData {
   override val entries: List<CriticalPathPluginUiData>
 }
 
-interface CriticalPathTaskCategoriesUiData: CriticalPathEntriesUiData{
+interface CriticalPathTaskCategoriesUiData : CriticalPathEntriesUiData {
   override val entries: List<CriticalPathTaskCategoryUiData>
 }
 
@@ -103,27 +101,32 @@ interface TaskUiData {
   val executionTime: TimeWithPercentage
   val executedIncrementally: Boolean
   val executionMode: String
-  /** True for tasks that belong to a critical path based on task dependencies analysis.*/
+  /** True for tasks that belong to a critical path based on task dependencies analysis. */
   val onLogicalCriticalPath: Boolean
-  /** True for tasks that belong effective critical path based on execution times analysis.*/
+  /** True for tasks that belong effective critical path based on execution times analysis. */
   val onExtendedCriticalPath: Boolean
   val pluginName: String
   val sourceType: PluginSourceType
   val pluginUnknownBecauseOfCC: Boolean
     get() = false
+
   val reasonsToRun: List<String>
   val issues: List<TaskIssueUiData>
   val hasWarning: Boolean
     get() = issues.any { it.type.level == IssueLevel.WARNING }
+
   val hasInfo: Boolean
     get() = issues.any { it.type.level == IssueLevel.INFO }
+
   val primaryTaskCategory: TaskCategory
   val secondaryTaskCategories: List<TaskCategory>
   val relatedTaskCategoryIssues: List<TaskCategoryIssueUiData>
 }
 
 enum class PluginSourceType {
-  ANDROID_PLUGIN, BUILD_SCRIPT, THIRD_PARTY
+  ANDROID_PLUGIN,
+  BUILD_SCRIPT,
+  THIRD_PARTY,
 }
 
 interface CriticalPathPluginUiData : CriticalPathEntryUiData {
@@ -153,37 +156,38 @@ interface CriticalPathEntryUiData {
   val criticalPathTasks: List<TaskUiData>
   val size: Int
     get() = criticalPathTasks.size
+
   val issues: List<TaskIssuesGroup>
   val warningCount: Int
   val infoCount: Int
   val modelGrouping: TasksDataPageModel.Grouping
 }
 
-/**
- * Represents issues list of one type.
- */
+/** Represents issues list of one type. */
 interface TaskIssuesGroup {
   val type: TaskIssueType
   val issues: List<TaskIssueUiData>
   val size: Int
     get() = issues.size
+
   val warningCount: Int
     get() = if (type.level == IssueLevel.WARNING) size else 0
+
   val infoCount: Int
     get() = if (type.level == IssueLevel.INFO) size else 0
+
   val timeContribution: TimeWithPercentage
 }
 
-enum class IssueLevel { WARNING, INFO }
+enum class IssueLevel {
+  WARNING,
+  INFO,
+}
 
-enum class TaskIssueType(
-  val uiName: String,
-  val level: IssueLevel
-) {
+enum class TaskIssueType(val uiName: String, val level: IssueLevel) {
   // Order is important and reflects sorting order on the UI.
   ALWAYS_RUN_TASKS("Always-Run Tasks", IssueLevel.WARNING),
   TASK_SETUP_ISSUE("Task Setup Issues", IssueLevel.WARNING),
-
 }
 
 interface TaskIssueUiData {
@@ -197,8 +201,8 @@ interface TaskIssueUiData {
 }
 
 /**
- * Represents an issue that has another task connected to it
- * e.g. For tasks declaring same output we want to show the original task and another task that declares same output.
+ * Represents an issue that has another task connected to it e.g. For tasks declaring same output we want to show the original task and
+ * another task that declares same output.
  */
 interface InterTaskIssueUiData : TaskIssueUiData {
   val connectedTask: TaskUiData
@@ -236,9 +240,4 @@ interface AnnotationProcessorUiData {
   val compilationTimeMs: Long
 }
 
-data class TaskCategoryIssueUiData(
-  val issue: TaskCategoryIssue,
-  val message: String,
-  val link: BuildAnalyzerBrowserLinks?
-  )
-
+data class TaskCategoryIssueUiData(val issue: TaskCategoryIssue, val message: String, val link: BuildAnalyzerBrowserLinks?)

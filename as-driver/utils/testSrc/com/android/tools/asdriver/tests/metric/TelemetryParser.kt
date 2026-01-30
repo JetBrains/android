@@ -38,8 +38,7 @@ open class TelemetryParser(private val spanFilter: SpanFilter) {
   }
 
   private fun getSpans(file: Path): List<SpanData> {
-    val root =
-      Files.newBufferedReader(file).use { OpenTelemetryJsonTypeAdapter().read(JsonReader(it)) }
+    val root = Files.newBufferedReader(file).use { OpenTelemetryJsonTypeAdapter().read(JsonReader(it)) }
     val spanData = root.data
     check(spanData.isNotEmpty()) { "No 'data' node in json at path $file" }
     requireNotNull(spanData.firstOrNull()) { "First data element is absent in json file $file" }
@@ -49,30 +48,18 @@ open class TelemetryParser(private val spanFilter: SpanFilter) {
     return allSpans
   }
 
-  fun getSpanElements(
-    file: Path,
-    spanElementFilter: Predicate<SpanElement> = Predicate { true },
-  ): Set<SpanElement> {
+  fun getSpanElements(file: Path, spanElementFilter: Predicate<SpanElement> = Predicate { true }): Set<SpanElement> {
     val rawSpans = getSpans(file)
     val index = getParentToSpanMap(rawSpans)
     val result = Sets.newHashSet<SpanElement>()
-    for (span in
-      rawSpans
-        .asSequence()
-        .filter(spanFilter.rawFilter::test)
-        .map { toSpanElement(it) }
-        .filter { spanElementFilter.test(it) }) {
+    for (span in rawSpans.asSequence().filter(spanFilter.rawFilter::test).map { toSpanElement(it) }.filter { spanElementFilter.test(it) }) {
       result.add(span)
       processChild(result, span, index)
     }
     return result
   }
 
-  protected open fun processChild(
-    result: MutableSet<SpanElement>,
-    parent: SpanElement,
-    index: Map<String, Collection<SpanElement>>,
-  ) {
+  protected open fun processChild(result: MutableSet<SpanElement>, parent: SpanElement, index: Map<String, Collection<SpanElement>>) {
     index[parent.spanId]?.forEach {
       if (parent.isWarmup) {
         it.isWarmup = true
@@ -85,10 +72,7 @@ open class TelemetryParser(private val spanFilter: SpanFilter) {
 
 private data class OpenTelemetryJson(@JvmField val data: List<OpenTelemetryJsonData> = emptyList())
 
-private data class OpenTelemetryJsonData(
-  @JvmField val traceID: String? = null,
-  @JvmField val spans: List<SpanData> = mutableListOf(),
-)
+private data class OpenTelemetryJsonData(@JvmField val traceID: String? = null, @JvmField val spans: List<SpanData> = mutableListOf())
 
 private class OpenTelemetryJsonTypeAdapter : TypeAdapter<OpenTelemetryJson>() {
   override fun write(out: JsonWriter?, value: OpenTelemetryJson?) {}

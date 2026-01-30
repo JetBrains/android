@@ -64,14 +64,8 @@ class ColoredIconGeneratorTest {
 
   @Test
   fun testColoredIcon() {
-    for (origIcon in
-      listOf(
-        StudioIcons.Common.ERROR,
-        StudioIcons.Common.PROPERTY_UNBOUND_FOCUS_LARGE,
-        StudioIcons.Cursors.GRAB,
-      )) {
-      val coloredIcon =
-        ColoredIconGenerator.generateColoredIcon(origIcon, JBColor(LIGHT_COLOR, DARK_COLOR))
+    for (origIcon in listOf(StudioIcons.Common.ERROR, StudioIcons.Common.PROPERTY_UNBOUND_FOCUS_LARGE, StudioIcons.Cursors.GRAB)) {
+      val coloredIcon = ColoredIconGenerator.generateColoredIcon(origIcon, JBColor(LIGHT_COLOR, DARK_COLOR))
 
       JBColor.setDark(false)
       IconLoader.setUseDarkIcons(false)
@@ -92,12 +86,7 @@ class ColoredIconGeneratorTest {
 
   @Test
   fun testDeEmphasizedIcon() {
-    for (origIcon in
-      listOf(
-        StudioIcons.Common.ERROR,
-        StudioIcons.Common.PROPERTY_UNBOUND_FOCUS_LARGE,
-        StudioIcons.Cursors.GRAB,
-      )) {
+    for (origIcon in listOf(StudioIcons.Common.ERROR, StudioIcons.Common.PROPERTY_UNBOUND_FOCUS_LARGE, StudioIcons.Cursors.GRAB)) {
       val deEmphasizedIcon = ColoredIconGenerator.generateDeEmphasizedIcon(origIcon)
 
       JBColor.setDark(false)
@@ -157,13 +146,10 @@ class ColoredIconGeneratorTest {
     for ((origValue, deEmphasizedValue) in
       origImg
         .getRGB(0, 0, origImg.width, origImg.height, null, 0, origImg.width)
-        .zip(
-          deEmphasizedImage.getRGB(0, 0, origImg.width, origImg.height, null, 0, origImg.width)
-        )) {
+        .zip(deEmphasizedImage.getRGB(0, 0, origImg.width, origImg.height, null, 0, origImg.width))) {
       if (deEmphasizedValue != 0 || origValue != 0) {
         assertThat(deEmphasizedValue and 0xffffff).isEqualTo(origValue and 0xffffff)
-        assertThat((deEmphasizedValue shr 24) and 0xff)
-          .isEqualTo((((origValue shr 24) and 0xff) + 1) / 2)
+        assertThat((deEmphasizedValue shr 24) and 0xff).isEqualTo((((origValue shr 24) and 0xff) + 1) / 2)
       }
     }
   }

@@ -36,9 +36,5 @@ fun maskKotlinProblemHighlightFilter(fixture: JavaCodeInsightTestFixture) {
 
       override fun shouldProcessInBatch(file: PsiFile) = true
     }
-  ExtensionTestUtil.maskExtensions(
-    ProblemHighlightFilter.EP_NAME,
-    listOf(extension),
-    fixture.testRootDisposable,
-  )
+  ExtensionTestUtil.maskExtensions(ProblemHighlightFilter.EP_NAME, listOf(extension), fixture.testRootDisposable)
 }

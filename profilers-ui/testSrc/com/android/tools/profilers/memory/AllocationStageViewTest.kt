@@ -29,6 +29,10 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import icons.StudioIcons
+import java.awt.geom.Rectangle2D
+import java.util.concurrent.TimeUnit
+import javax.swing.JLabel
+import javax.swing.JPanel
 import org.junit.Assert
 import org.junit.Assume
 import org.junit.Before
@@ -37,25 +41,17 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.awt.geom.Rectangle2D
-import java.util.concurrent.TimeUnit
-import javax.swing.JLabel
-import javax.swing.JPanel
 
 @RunWith(Parameterized::class)
 class AllocationStageViewTest(private val isLive: Boolean) {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
-  @Rule
-  @JvmField
-  val grpcChannel = FakeGrpcChannel("LiveAllocationStageTestChannel", transportService, FakeEventService())
+  @Rule @JvmField val grpcChannel = FakeGrpcChannel("LiveAllocationStageTestChannel", transportService, FakeEventService())
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var profilers: StudioProfilers
   private lateinit var stage: AllocationStage
@@ -90,9 +86,7 @@ class AllocationStageViewTest(private val isLive: Boolean) {
       val expected =
         if (isLive) listOf(timelineComponent, samplingMenu, selectAllButton, forceGcButton, stopButton)
         else listOf(timelineComponent, selectAllButton)
-      val unexpected =
-        if (isLive) listOf()
-        else listOf(samplingMenu, forceGcButton, stopButton)
+      val unexpected = if (isLive) listOf() else listOf(samplingMenu, forceGcButton, stopButton)
       assertThat(descendants).containsAllIn(expected)
       assertThat(expected.all { it.isVisible }).isTrue()
       assertThat(unexpected.all { !it.isVisible || it !in descendants }).isTrue()
@@ -102,38 +96,45 @@ class AllocationStageViewTest(private val isLive: Boolean) {
   @Test
   fun `stage has AgentError with virtual device, display error panel`() {
     val errorLabel = getAgentUnattachedError(true)
-    assertThat(errorLabel.text).isEqualTo("<html><div style='text-align: center;'> " +
-                                          "There was an error loading this feature. Try cold booting the virtual device. </div></html>")
+    assertThat(errorLabel.text)
+      .isEqualTo(
+        "<html><div style='text-align: center;'> " +
+          "There was an error loading this feature. Try cold booting the virtual device. </div></html>"
+      )
   }
 
   @Test
   fun `stage has AgentError with physical device, display error panel`() {
     val errorLabel = getAgentUnattachedError(false)
-    assertThat(errorLabel.text).isEqualTo("<html><div style='text-align: center;'> " +
-                                          "There was an error loading this feature. Try restarting the device. </div></html>")
+    assertThat(errorLabel.text)
+      .isEqualTo(
+        "<html><div style='text-align: center;'> " + "There was an error loading this feature. Try restarting the device. </div></html>"
+      )
   }
 
   @Test
   fun `loading panel is shown only for live recording`() {
     stageView.apply {
-     if (isLive) {
-       assertThat(loadingPanel).isNotNull()
-     } else {
-       assertThat(loadingPanel).isNull()
-     }
+      if (isLive) {
+        assertThat(loadingPanel).isNotNull()
+      } else {
+        assertThat(loadingPanel).isNull()
+      }
     }
   }
 
   @Test
   fun `sampling menu updates text when sampling mode changes`() {
     stage.liveAllocationSamplingMode = FULL
-    val info = Memory.AllocationsInfo.newBuilder().setStartTime(AllocationSessionArtifactTest.TIMESTAMP1).setEndTime(
-      Long.MAX_VALUE).setLegacy(false)
+    val info =
+      Memory.AllocationsInfo.newBuilder().setStartTime(AllocationSessionArtifactTest.TIMESTAMP1).setEndTime(Long.MAX_VALUE).setLegacy(false)
     val session = stage.studioProfilers.session
     transportService.addEventToStream(
       session.streamId,
-      ProfilersTestData.generateMemoryAllocationInfoData(AllocationSessionArtifactTest.TIMESTAMP1, session.pid, info.build()).setIsEnded(
-        false).build())
+      ProfilersTestData.generateMemoryAllocationInfoData(AllocationSessionArtifactTest.TIMESTAMP1, session.pid, info.build())
+        .setIsEnded(false)
+        .build(),
+    )
     tick()
     assertThat(stageView.samplingMenu.combobox.selectedItem).isEqualTo(FULL)
 
@@ -141,7 +142,6 @@ class AllocationStageViewTest(private val isLive: Boolean) {
     tick()
     assertThat(stageView.samplingMenu.combobox.selectedItem).isEqualTo(SAMPLED)
   }
-
 
   @Test
   fun `stopping alloc tracking issues the correct command`() {
@@ -153,23 +153,29 @@ class AllocationStageViewTest(private val isLive: Boolean) {
   }
 
   fun `test allocation sampling rate attachment`() {
-    val device = Common.Device.newBuilder().setDeviceId(1).setFeatureLevel(AndroidVersion.VersionCodes.O).setState(
-      Common.Device.State.ONLINE).build()
+    val device =
+      Common.Device.newBuilder().setDeviceId(1).setFeatureLevel(AndroidVersion.VersionCodes.O).setState(Common.Device.State.ONLINE).build()
     val process = Common.Process.newBuilder().setDeviceId(1).setPid(2).setState(Common.Process.State.ALIVE).build()
 
     // Set up test data from range 0us-10us. Note that the proto timestamps are in nanoseconds.
+    transportService.addEventToStream(device.deviceId, ProfilersTestData.generateMemoryAllocStatsData(process.pid, 0, 0).build())
+    transportService.addEventToStream(device.deviceId, ProfilersTestData.generateMemoryAllocStatsData(process.pid, 10, 100).build())
     transportService.addEventToStream(
-      device.deviceId, ProfilersTestData.generateMemoryAllocStatsData(process.pid, 0, 0).build())
+      device.deviceId,
+      ProfilersTestData.generateMemoryAllocSamplingData(process.pid, 1, FULL.value).build(),
+    )
     transportService.addEventToStream(
-      device.deviceId, ProfilersTestData.generateMemoryAllocStatsData(process.pid, 10, 100).build())
+      device.deviceId,
+      ProfilersTestData.generateMemoryAllocSamplingData(process.pid, 5, SAMPLED.value).build(),
+    )
     transportService.addEventToStream(
-      device.deviceId, ProfilersTestData.generateMemoryAllocSamplingData(process.pid, 1, FULL.value).build())
+      device.deviceId,
+      ProfilersTestData.generateMemoryAllocSamplingData(process.pid, 8, NONE.value).build(),
+    )
     transportService.addEventToStream(
-      device.deviceId, ProfilersTestData.generateMemoryAllocSamplingData(process.pid, 5, SAMPLED.value).build())
-    transportService.addEventToStream(
-      device.deviceId, ProfilersTestData.generateMemoryAllocSamplingData(process.pid, 8, NONE.value).build())
-    transportService.addEventToStream(
-      device.deviceId, ProfilersTestData.generateMemoryAllocSamplingData(process.pid, 10, FULL.value).build())
+      device.deviceId,
+      ProfilersTestData.generateMemoryAllocSamplingData(process.pid, 10, FULL.value).build(),
+    )
 
     // Set up the correct agent and session state so that the MemoryProfilerStageView can be initialized properly.
     transportService.setAgentStatus(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build())
@@ -229,8 +235,7 @@ class AllocationStageViewTest(private val isLive: Boolean) {
   private fun tick() = timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
   private fun requestSamplingRate(rate: Int) =
-    transportService.addEventToStream(
-      FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.pid, 1, rate).build())
+    transportService.addEventToStream(FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.pid, 1, rate).build())
 
   private fun startSessionHelper(device: Common.Device, process: Common.Process) {
     profilers.sessionsManager.endCurrentSession()
@@ -243,11 +248,13 @@ class AllocationStageViewTest(private val isLive: Boolean) {
   private fun getAgentUnattachedError(isEmulator: Boolean): JLabel {
     Assume.assumeTrue(isLive)
     stage.liveAllocationSamplingMode = SAMPLED
-    val device = Common.Device.newBuilder().setDeviceId(1)
-      .setFeatureLevel(AndroidVersion.VersionCodes.O)
-      .setState(Common.Device.State.ONLINE)
-      .setIsEmulator(isEmulator)
-      .build()
+    val device =
+      Common.Device.newBuilder()
+        .setDeviceId(1)
+        .setFeatureLevel(AndroidVersion.VersionCodes.O)
+        .setState(Common.Device.State.ONLINE)
+        .setIsEmulator(isEmulator)
+        .build()
     val process = Common.Process.newBuilder().setDeviceId(1).setPid(2).setState(Common.Process.State.ALIVE).build()
     // Set agent status unattachable
     transportService.setAgentStatus(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.UNATTACHABLE).build())
@@ -271,12 +278,9 @@ class AllocationStageViewTest(private val isLive: Boolean) {
   }
 
   companion object {
-    @Parameterized.Parameters @JvmStatic
-    fun isLiveAllocationStage() = listOf(false, true)
+    @Parameterized.Parameters @JvmStatic fun isLiveAllocationStage() = listOf(false, true)
 
-    @JvmField
-    @ClassRule
-    val appRule = ApplicationRule()
+    @JvmField @ClassRule val appRule = ApplicationRule()
   }
 }
 

@@ -23,10 +23,7 @@ import com.sun.jdi.ObjectReference
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-internal fun mockEvaluationContext(
-  debugProcess: DebugProcessImpl,
-  objectReference: ObjectReference,
-): EvaluationContextImpl {
+internal fun mockEvaluationContext(debugProcess: DebugProcessImpl, objectReference: ObjectReference): EvaluationContextImpl {
   val mockSuspendContext = mock<SuspendContextImpl>()
   whenever(mockSuspendContext.debugProcess).thenReturn(debugProcess)
   whenever(mockSuspendContext.virtualMachineProxy).thenReturn(debugProcess.virtualMachineProxy)

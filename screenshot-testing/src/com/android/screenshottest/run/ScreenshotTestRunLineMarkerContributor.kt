@@ -15,11 +15,14 @@
  */
 package com.android.screenshottest.run
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.isScreenshotTestFile
 import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.psi.PsiElement
-import com.android.tools.idea.flags.StudioFlags
+import org.jetbrains.kotlin.idea.base.util.isUnderKotlinSourceRootTypes
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
@@ -27,40 +30,39 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
-import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionManager
-import org.jetbrains.kotlin.idea.base.util.isUnderKotlinSourceRootTypes
 
-class ScreenshotTestRunLineMarkerContributor: RunLineMarkerContributor() {
+class ScreenshotTestRunLineMarkerContributor : RunLineMarkerContributor() {
   override fun getInfo(element: PsiElement): Info? {
     return null
   }
 
   override fun getSlowInfo(element: PsiElement): Info? {
-    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get() ||
-        !isScreenshotTestFile(element.project, element.containingFile.virtualFile)) return null
+    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get() || !isScreenshotTestFile(element.project, element.containingFile.virtualFile))
+      return null
 
     val declaration = element.getStrictParentOfType<KtNamedDeclaration>()?.takeIf { it.nameIdentifier == element } ?: return null
     val isClass = isValidKtTestClassIdentifier(declaration)
     if (isClass || isValidKtMethodIdentifier(declaration)) {
-        val icon = if (isClass) AllIcons.RunConfigurations.TestState.Run_run else AllIcons.RunConfigurations.TestState.Run
-        val actions = arrayOf(*ExecutorAction.getActions(), ActionManager.getInstance().getAction("com.android.screenshottest.action.UpdateReferenceImagesAction"))
-        return Info(icon, actions) { "Run screenshot tests" }
+      val icon = if (isClass) AllIcons.RunConfigurations.TestState.Run_run else AllIcons.RunConfigurations.TestState.Run
+      val actions =
+        arrayOf(
+          *ExecutorAction.getActions(),
+          ActionManager.getInstance().getAction("com.android.screenshottest.action.UpdateReferenceImagesAction"),
+        )
+      return Info(icon, actions) { "Run screenshot tests" }
     }
     return null
   }
 
   private fun isValidKtTestClassIdentifier(declaration: KtNamedDeclaration): Boolean {
     return declaration is KtClassOrObject &&
-           declaration.isUnderKotlinSourceRootTypes() &&
-           declaration is KtClass &&
-           declaration.declarations.any { it is KtNamedFunction && isPreviewTestMethod(it) }
+      declaration.isUnderKotlinSourceRootTypes() &&
+      declaration is KtClass &&
+      declaration.declarations.any { it is KtNamedFunction && isPreviewTestMethod(it) }
   }
 
   private fun isValidKtMethodIdentifier(declaration: KtNamedDeclaration): Boolean {
-    return declaration is KtNamedFunction &&
-           declaration.isUnderKotlinSourceRootTypes() &&
-           isPreviewTestMethod(declaration)
+    return declaration is KtNamedFunction && declaration.isUnderKotlinSourceRootTypes() && isPreviewTestMethod(declaration)
   }
 
   private fun isPreviewTestMethod(declaration: KtNamedFunction): Boolean {

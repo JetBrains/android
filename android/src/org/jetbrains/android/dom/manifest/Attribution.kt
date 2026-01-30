@@ -28,8 +28,5 @@ interface Attribution : GenericDomValue<String?>, AndroidDomElement {
 
   @Required fun getTag(): AndroidAttributeValue<String>
 
-  @Required
-  @Convert(ResourceReferenceConverter::class)
-  @AndroidResourceType("string")
-  fun getLabel(): AndroidAttributeValue<ResourceValue>
+  @Required @Convert(ResourceReferenceConverter::class) @AndroidResourceType("string") fun getLabel(): AndroidAttributeValue<ResourceValue>
 }

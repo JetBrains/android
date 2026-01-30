@@ -23,24 +23,15 @@ class CodeLocationTest {
 
   @Test
   fun equalityOfSameInstance() {
-    val location = CodeLocation.Builder("outerClass")
-      .setLineNumber(10)
-      .setMethodParameters(listOf("int", "int", "double"))
-      .build()
+    val location = CodeLocation.Builder("outerClass").setLineNumber(10).setMethodParameters(listOf("int", "int", "double")).build()
     assertThat(location).isEqualTo(location)
   }
 
   @Test
   fun equalityOfSameValue() {
-    val locationA = CodeLocation.Builder("outerClass")
-      .setLineNumber(10)
-      .setMethodParameters(listOf("int", "int", "double"))
-      .build()
+    val locationA = CodeLocation.Builder("outerClass").setLineNumber(10).setMethodParameters(listOf("int", "int", "double")).build()
 
-    val locationB = CodeLocation.Builder("outerClass")
-      .setLineNumber(10)
-      .setMethodParameters(listOf("int", "int", "double"))
-      .build()
+    val locationB = CodeLocation.Builder("outerClass").setLineNumber(10).setMethodParameters(listOf("int", "int", "double")).build()
 
     assertThat(locationA).isEqualTo(locationB)
     assertThat(locationB).isEqualTo(locationA)
@@ -48,15 +39,9 @@ class CodeLocationTest {
 
   @Test
   fun equalityOfDifferentValue() {
-    val locationA = CodeLocation.Builder("outerClass")
-      .setLineNumber(10)
-      .setMethodParameters(listOf("int", "int", "double"))
-      .build()
+    val locationA = CodeLocation.Builder("outerClass").setLineNumber(10).setMethodParameters(listOf("int", "int", "double")).build()
 
-    val locationB = CodeLocation.Builder("outerClass")
-      .setLineNumber(10)
-      .setMethodParameters(listOf("int", "double"))
-      .build()
+    val locationB = CodeLocation.Builder("outerClass").setLineNumber(10).setMethodParameters(listOf("int", "double")).build()
 
     assertThat(locationA).isNotEqualTo(locationB)
     assertThat(locationB).isNotEqualTo(locationA)
@@ -64,24 +49,15 @@ class CodeLocationTest {
 
   @Test
   fun hashOfSameInstance() {
-    val location = CodeLocation.Builder("outerClass")
-      .setLineNumber(10)
-      .setMethodParameters(listOf("int", "int", "double"))
-      .build()
+    val location = CodeLocation.Builder("outerClass").setLineNumber(10).setMethodParameters(listOf("int", "int", "double")).build()
     assertThat(location.hashCode()).isEqualTo(location.hashCode())
   }
 
   @Test
   fun hashOfSameValue() {
-    val locationA = CodeLocation.Builder("outerClass")
-      .setLineNumber(10)
-      .setMethodParameters(listOf("int", "int", "double"))
-      .build()
+    val locationA = CodeLocation.Builder("outerClass").setLineNumber(10).setMethodParameters(listOf("int", "int", "double")).build()
 
-    val locationB = CodeLocation.Builder("outerClass")
-      .setLineNumber(10)
-      .setMethodParameters(listOf("int", "int", "double"))
-      .build()
+    val locationB = CodeLocation.Builder("outerClass").setLineNumber(10).setMethodParameters(listOf("int", "int", "double")).build()
 
     assertThat(locationA.hashCode()).isEqualTo(locationB.hashCode())
     assertThat(locationB.hashCode()).isEqualTo(locationA.hashCode())
@@ -89,15 +65,9 @@ class CodeLocationTest {
 
   @Test
   fun hashOfDifferentValue() {
-    val locationA = CodeLocation.Builder("outerClass")
-      .setLineNumber(10)
-      .setMethodParameters(listOf("int", "int", "double"))
-      .build()
+    val locationA = CodeLocation.Builder("outerClass").setLineNumber(10).setMethodParameters(listOf("int", "int", "double")).build()
 
-    val locationB = CodeLocation.Builder("outerClass")
-      .setLineNumber(10)
-      .setMethodParameters(listOf("int", "double"))
-      .build()
+    val locationB = CodeLocation.Builder("outerClass").setLineNumber(10).setMethodParameters(listOf("int", "double")).build()
 
     assertThat(locationA.hashCode()).isNotEqualTo(locationB.hashCode())
     assertThat(locationB.hashCode()).isNotEqualTo(locationA.hashCode())

@@ -42,10 +42,7 @@ class ConditionalEnumComboBoxModelTest {
 
   @Test
   fun changeEventIsTriggeredOnUpdate() {
-    val model =
-      ConditionalEnumComboBoxModel<TestData>(TestData::class.java) { value ->
-        value != TestData.SECOND
-      }
+    val model = ConditionalEnumComboBoxModel<TestData>(TestData::class.java) { value -> value != TestData.SECOND }
     val listener = Listener()
     model.addListDataListener(listener)
     assertThat(model.size).isEqualTo(2)
@@ -59,10 +56,7 @@ class ConditionalEnumComboBoxModelTest {
   @Test
   fun predicateIsTriggeredOnUpdate() {
     var returnElement = TestData.FIRST
-    val model =
-      ConditionalEnumComboBoxModel<TestData>(TestData::class.java) { value ->
-        value == returnElement
-      }
+    val model = ConditionalEnumComboBoxModel<TestData>(TestData::class.java) { value -> value == returnElement }
     assertThat(model.size).isEqualTo(1)
     assertThat(model.getElementAt(0)).isEqualTo(returnElement)
     returnElement = TestData.SECOND

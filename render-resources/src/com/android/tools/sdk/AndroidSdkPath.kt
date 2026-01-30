@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("AndroidSdkPath")
+
 package com.android.tools.sdk
 
 import java.io.File

@@ -23,15 +23,15 @@ import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel
 import com.google.common.collect.Lists
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
 
 class SimpleperfTraceParserTest {
   private lateinit var myParser: SimpleperfTraceParser
@@ -42,10 +42,13 @@ class SimpleperfTraceParserTest {
   fun setUp() {
     // Create the trace file that'll be used for this test by copying the test trace file to a temp file.
 
-    myTraceFile = File("C:\\Users\\vaage\\Desktop\\cpu_trace.trace").also {
-      if (it.exists()) { it.delete() }
-      it.writeBytes(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace").toByteArray())
-    }
+    myTraceFile =
+      File("C:\\Users\\vaage\\Desktop\\cpu_trace.trace").also {
+        if (it.exists()) {
+          it.delete()
+        }
+        it.writeBytes(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace").toByteArray())
+      }
 
     myParser = SimpleperfTraceParser()
   }
@@ -98,62 +101,78 @@ class SimpleperfTraceParserTest {
 
     // TODO: Update file name along with the trace files
     // libjvmtiagent should be the entry point
-    groups.filter { (key, _) -> "Studio:Heartbeat".contains(key) }.flatMap { it.value }.map { capture.getCaptureNode(it.id) }.forEach {node ->
-      Truth.assertThat(node).isNotNull()
+    groups
+      .filter { (key, _) -> "Studio:Heartbeat".contains(key) }
+      .flatMap { it.value }
+      .map { capture.getCaptureNode(it.id) }
+      .forEach { node ->
+        Truth.assertThat(node).isNotNull()
 
-      val startThread = node!!.getChildAt(0)
+        val startThread = node!!.getChildAt(0)
 
-      Truth.assertThat(startThread.data.fullName).startsWith("__start_thread")
+        Truth.assertThat(startThread.data.fullName).startsWith("__start_thread")
 
-      startThread.getChildAt(0).also {child ->
-        Truth.assertThat(child.data.fullName).startsWith("__pthread_start")
-        Truth.assertThat(child.getChildAt(0).data.fullName).startsWith("libperfa_arm64.so")
+        startThread.getChildAt(0).also { child ->
+          Truth.assertThat(child.data.fullName).startsWith("__pthread_start")
+          Truth.assertThat(child.getChildAt(0).data.fullName).startsWith("libperfa_arm64.so")
+        }
       }
-    }
 
     // TODO: Update file name along with the trace files
     // libjvmtiagent should be the entry point
-    groups.filter { (key, _) -> "Studio:MemoryAgent".contains(key) }.flatMap { it.value }.map { capture.getCaptureNode(it.id) }.forEach {node ->
-      Truth.assertThat(node).isNotNull()
+    groups
+      .filter { (key, _) -> "Studio:MemoryAgent".contains(key) }
+      .flatMap { it.value }
+      .map { capture.getCaptureNode(it.id) }
+      .forEach { node ->
+        Truth.assertThat(node).isNotNull()
 
-      val startThread = node!!.getChildAt(0)
+        val startThread = node!!.getChildAt(0)
 
-      Truth.assertThat(startThread.data.fullName).startsWith("__start_thread")
+        Truth.assertThat(startThread.data.fullName).startsWith("__start_thread")
 
-      startThread.getChildAt(0).also {child ->
-        Truth.assertThat(child.data.fullName).startsWith("__pthread_start")
-        Truth.assertThat(child.getChildAt(0).data.fullName).startsWith("libperfa_arm64.so")
+        startThread.getChildAt(0).also { child ->
+          Truth.assertThat(child.data.fullName).startsWith("__pthread_start")
+          Truth.assertThat(child.getChildAt(0).data.fullName).startsWith("libperfa_arm64.so")
+        }
       }
-    }
 
     // TODO: Update file name along with the trace files
     // libjvmtiagent should be the entry point
-    groups.filter { (key, _) -> "Studio:Studio:Socket".contains(key) }.flatMap { it.value }.map { capture.getCaptureNode(it.id) }.forEach {node ->
-      Truth.assertThat(node).isNotNull()
+    groups
+      .filter { (key, _) -> "Studio:Studio:Socket".contains(key) }
+      .flatMap { it.value }
+      .map { capture.getCaptureNode(it.id) }
+      .forEach { node ->
+        Truth.assertThat(node).isNotNull()
 
-      val startThread = node!!.getChildAt(0)
+        val startThread = node!!.getChildAt(0)
 
-      Truth.assertThat(startThread.data.fullName).startsWith("__start_thread")
+        Truth.assertThat(startThread.data.fullName).startsWith("__start_thread")
 
-      startThread.getChildAt(0).also {child ->
-        Truth.assertThat(child.data.fullName).startsWith("__pthread_start")
-        Truth.assertThat(child.getChildAt(0).data.fullName).startsWith("libperfa_arm64.so")
+        startThread.getChildAt(0).also { child ->
+          Truth.assertThat(child.data.fullName).startsWith("__pthread_start")
+          Truth.assertThat(child.getChildAt(0).data.fullName).startsWith("libperfa_arm64.so")
+        }
       }
-    }
 
     // openjdkjvmti should be the entry point
-    groups.filter { (key, _) -> "JVMTI Agent thread".contains(key) }.flatMap { it.value }.map { capture.getCaptureNode(it.id) }.forEach {node ->
-      Truth.assertThat(node).isNotNull()
+    groups
+      .filter { (key, _) -> "JVMTI Agent thread".contains(key) }
+      .flatMap { it.value }
+      .map { capture.getCaptureNode(it.id) }
+      .forEach { node ->
+        Truth.assertThat(node).isNotNull()
 
-      val startThread = node!!.getChildAt(0)
+        val startThread = node!!.getChildAt(0)
 
-      Truth.assertThat(startThread.data.fullName).startsWith("__start_thread")
+        Truth.assertThat(startThread.data.fullName).startsWith("__start_thread")
 
-      startThread.getChildAt(0).also {child ->
-        Truth.assertThat(child.data.fullName).startsWith("__pthread_start")
-        Truth.assertThat(child.getChildAt(0).data.fullName).startsWith("openjdkjvmti::AgentCallback")
+        startThread.getChildAt(0).also { child ->
+          Truth.assertThat(child.data.fullName).startsWith("__pthread_start")
+          Truth.assertThat(child.getChildAt(0).data.fullName).startsWith("openjdkjvmti::AgentCallback")
+        }
       }
-    }
   }
 
   @Test
@@ -184,11 +203,12 @@ class SimpleperfTraceParserTest {
     val mainThread = 7056
     val mainThreadName = "e.sample.tunnel"
 
-    val trace = CpuProfilerTestUtils.traceFileToByteString("simpleperf_callchain.trace").let {
-      val trace = FileUtil.createTempFile("native_trace", ".trace", true)
-      FileOutputStream(trace).use { out -> out.write(it.toByteArray()) }
-      return@let trace
-    }
+    val trace =
+      CpuProfilerTestUtils.traceFileToByteString("simpleperf_callchain.trace").let {
+        val trace = FileUtil.createTempFile("native_trace", ".trace", true)
+        FileOutputStream(trace).use { out -> out.write(it.toByteArray()) }
+        return@let trace
+      }
 
     val capture = myParser.parse(trace, 1)
 
@@ -197,10 +217,11 @@ class SimpleperfTraceParserTest {
 
     val firstCallChain = Lists.reverse(mainFirstSample!!.callchainList)
 
-    val leftMostMainTreeBranch = capture.getCaptureNode(mainFirstSample.threadId).let {
-      Truth.assertThat(it).isNotNull()
-      return@let mutableListOf(it!!)
-    }
+    val leftMostMainTreeBranch =
+      capture.getCaptureNode(mainFirstSample.threadId).let {
+        Truth.assertThat(it).isNotNull()
+        return@let mutableListOf(it!!)
+      }
 
     while (leftMostMainTreeBranch.last().firstChild != null) {
       leftMostMainTreeBranch.add(leftMostMainTreeBranch.last().firstChild!!)

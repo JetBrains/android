@@ -23,9 +23,11 @@ interface WithFakeTimer {
   val timer: FakeTimer
 
   fun tickOneSec() = tick(FakeTimer.ONE_SECOND_IN_NS)
+
   fun tick(ns: Long) = timer.tick(ns)
 
   fun <T> tickOneSecThen(get: () -> T) = tickThen(FakeTimer.ONE_SECOND_IN_NS, get)
+
   fun <T> tickThen(ns: Long, get: () -> T): T {
     tick(ns)
     return get()
@@ -33,22 +35,29 @@ interface WithFakeTimer {
 }
 
 object Utils {
-  fun newDevice(initialState: Common.Device.State, setUp: Common.Device.Builder.() -> Unit) = Common.Device.newBuilder().apply {
-    state = initialState
-    setUp()
-  }.build()
+  fun newDevice(initialState: Common.Device.State, setUp: Common.Device.Builder.() -> Unit) =
+    Common.Device.newBuilder()
+      .apply {
+        state = initialState
+        setUp()
+      }
+      .build()
 
   fun onlineDevice(setUp: Common.Device.Builder.() -> Unit) = newDevice(Common.Device.State.ONLINE, setUp)
 
-  fun newProcess(initialExposureLevel: Common.Process.ExposureLevel = Common.Process.ExposureLevel.UNKNOWN,
-                 setUp: Common.Process.Builder.() -> Unit) = Common.Process.newBuilder().apply {
-    exposureLevel = initialExposureLevel
-    state = Common.Process.State.ALIVE
-    setUp()
-  }.build()
+  fun newProcess(
+    initialExposureLevel: Common.Process.ExposureLevel = Common.Process.ExposureLevel.UNKNOWN,
+    setUp: Common.Process.Builder.() -> Unit,
+  ) =
+    Common.Process.newBuilder()
+      .apply {
+        exposureLevel = initialExposureLevel
+        state = Common.Process.State.ALIVE
+        setUp()
+      }
+      .build()
 
   fun debuggableProcess(setUp: Common.Process.Builder.() -> Unit) = newProcess(Common.Process.ExposureLevel.DEBUGGABLE, setUp)
 
-  @JvmStatic
-  fun runOnUi(work: Runnable): Unit = ApplicationManager.getApplication().invokeAndWait(work)
+  @JvmStatic fun runOnUi(work: Runnable): Unit = ApplicationManager.getApplication().invokeAndWait(work)
 }

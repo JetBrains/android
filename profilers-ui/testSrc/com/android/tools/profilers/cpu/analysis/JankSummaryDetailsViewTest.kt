@@ -26,29 +26,23 @@ import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.RenderSequence
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
+import java.awt.Component
+import javax.swing.JLabel
+import javax.swing.JTable
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
 import perfetto.protos.PerfettoTrace
-import java.awt.Component
-import javax.swing.JLabel
-import javax.swing.JTable
 
 class JankSummaryDetailsViewTest {
   @Test
   fun `jank summary view gets basic content right`() {
     fun isCollapsibleTable(title: String): (Component) -> Boolean = { panel ->
-      panel is HideablePanel &&
-      panel.any { it is JLabel && title in it.text } &&
-      panel.any { it is JTable }
+      panel is HideablePanel && panel.any { it is JLabel && title in it.text } && panel.any { it is JTable }
     }
     val v = JankSummaryDetailsView(PROFILERS_VIEW, MODEL)
-    listOf("Jank type",
-           "Layer name",
-           "Display timing",
-           "Expected duration",
-           "Actual duration").forEach { title ->
+    listOf("Jank type", "Layer name", "Display timing", "Expected duration", "Actual duration").forEach { title ->
       assertThat(v.any { it is JLabel && title in it.text }).isTrue()
     }
     assertThat(v.any(isCollapsibleTable("Events associated with frame"))).isTrue()
@@ -57,26 +51,36 @@ class JankSummaryDetailsViewTest {
 }
 
 private fun Component.any(satisfies: (Component) -> Boolean) = TreeWalker(this).descendantStream().anyMatch(satisfies)
+
 private val FAKE_MAIN_THREAD = CpuThreadInfo(0, "Main", true)
 private val FAKE_GPU_THREAD = CpuThreadInfo(1, "GPU completion", false)
 private val FAKE_RENDER_THREAD = CpuThreadInfo(2, CpuThreadInfo.RENDER_THREAD_NAME, false)
 private val CAPTURE_RANGE = Range(0.0, 5000.0)
 private val PROFILERS = Mockito.mock(StudioProfilers::class.java)
-private val PROFILERS_VIEW = Mockito.mock(StudioProfilersView::class.java).apply {
-  whenever(studioProfilers).thenReturn(PROFILERS)
-}
+private val PROFILERS_VIEW = Mockito.mock(StudioProfilersView::class.java).apply { whenever(studioProfilers).thenReturn(PROFILERS) }
 private val EVENT_NODE = Mockito.mock(CaptureNode::class.java)
-private val CAPTURE = Mockito.mock(SystemTraceCpuCapture::class.java).apply {
-  whenever(range).thenReturn(CAPTURE_RANGE)
-  whenever(systemTraceData).thenReturn(this)
-  whenever(getThreads()).thenReturn(setOf(FAKE_MAIN_THREAD, FAKE_GPU_THREAD, FAKE_RENDER_THREAD))
-  whenever(getThreadStatesForThread(anyInt())).thenReturn(listOf())
-  whenever(frameRenderSequence).thenReturn { RenderSequence(EVENT_NODE, EVENT_NODE, EVENT_NODE) }
-}
-private val MODEL = JankAnalysisModel.Summary(
-  AndroidFrameTimelineEvent(42, 42,
-                            1000L, 2000L, 3000L, "",
-                            PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
-                            PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
-                            false, false, 0),
-  CAPTURE)
+private val CAPTURE =
+  Mockito.mock(SystemTraceCpuCapture::class.java).apply {
+    whenever(range).thenReturn(CAPTURE_RANGE)
+    whenever(systemTraceData).thenReturn(this)
+    whenever(getThreads()).thenReturn(setOf(FAKE_MAIN_THREAD, FAKE_GPU_THREAD, FAKE_RENDER_THREAD))
+    whenever(getThreadStatesForThread(anyInt())).thenReturn(listOf())
+    whenever(frameRenderSequence).thenReturn { RenderSequence(EVENT_NODE, EVENT_NODE, EVENT_NODE) }
+  }
+private val MODEL =
+  JankAnalysisModel.Summary(
+    AndroidFrameTimelineEvent(
+      42,
+      42,
+      1000L,
+      2000L,
+      3000L,
+      "",
+      PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
+      PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
+      false,
+      false,
+      0,
+    ),
+    CAPTURE,
+  )

@@ -28,9 +28,7 @@ class SnapshotProtoException(message: String, cause: Throwable? = null) : Except
  *
  * Throws [SnapshotProtoException] if the protobuf does not exist or is invalid.
  */
-class SnapshotProtoParser
-@Throws(SnapshotProtoException::class)
-constructor(snapshotProtobufFile: Path, private val fileName: String) {
+class SnapshotProtoParser @Throws(SnapshotProtoException::class) constructor(snapshotProtobufFile: Path, private val fileName: String) {
   private val snapshot: Snapshot
 
   val logicalName: String
@@ -41,14 +39,10 @@ constructor(snapshotProtobufFile: Path, private val fileName: String) {
 
   init {
     try {
-      snapshot = CancellableFileIo.newInputStream(snapshotProtobufFile).use {
-        Snapshot.parseFrom(it)
-      }
-    }
-    catch (exception: IOException) {
+      snapshot = CancellableFileIo.newInputStream(snapshotProtobufFile).use { Snapshot.parseFrom(it) }
+    } catch (exception: IOException) {
       if (!CancellableFileIo.isRegularFile(snapshotProtobufFile)) {
-        throw SnapshotProtoException(
-          "Snapshot file " + snapshotProtobufFile.toAbsolutePath() + " does not exist")
+        throw SnapshotProtoException("Snapshot file " + snapshotProtobufFile.toAbsolutePath() + " does not exist")
       }
       throw exception
     }

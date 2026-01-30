@@ -39,12 +39,8 @@ class SplittingTabsContextMenuActionTest {
   @get:Rule val rule = RuleChain(projectRule, EdtRule())
 
   private val splittingTabsContextMenuAction = TestSplittingTabsContextMenuAction("")
-  private val toolWindow by lazy {
-    ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)
-  }
-  private val event by lazy {
-    TestActionEvent.createTestEvent(splittingTabsContextMenuAction, DataContext.EMPTY_CONTEXT)
-  }
+  private val toolWindow by lazy { ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project) }
+  private val event by lazy { TestActionEvent.createTestEvent(splittingTabsContextMenuAction, DataContext.EMPTY_CONTEXT) }
   private val content by lazy {
     toolWindow.contentManager.factory.createContent(null, "Content", false).also {
       it.component =
@@ -52,10 +48,7 @@ class SplittingTabsContextMenuActionTest {
           it,
           null,
           object : ChildComponentFactory {
-            override fun createChildComponent(
-              state: String?,
-              popupActionGroup: DefaultActionGroup,
-            ): JComponent = JPanel()
+            override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = JPanel()
           },
         )
       toolWindow.contentManager.addContent(it)
@@ -123,10 +116,7 @@ class SplittingTabsContextMenuActionTest {
             it,
             null,
             object : ChildComponentFactory {
-              override fun createChildComponent(
-                state: String?,
-                popupActionGroup: DefaultActionGroup,
-              ): JComponent = JPanel()
+              override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = JPanel()
             },
           )
       }
@@ -144,8 +134,7 @@ class SplittingTabsContextMenuActionTest {
     assertThat(splittingTabsContextMenuAction.actionPerformedCalled).isEqualTo(1)
   }
 
-  private class TestSplittingTabsContextMenuAction(text: String) :
-    SplittingTabsContextMenuAction(text) {
+  private class TestSplittingTabsContextMenuAction(text: String) : SplittingTabsContextMenuAction(text) {
     var isEnabledCalled = 0
     var actionPerformedCalled = 0
 

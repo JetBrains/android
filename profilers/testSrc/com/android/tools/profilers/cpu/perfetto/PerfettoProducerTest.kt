@@ -57,7 +57,10 @@ class PerfettoProducerTest {
     while (!slice.toString().contains("sched_switch: ")) {
       slice = parser.next()
     }
-    assertThat(slice.toString()).containsMatch("prev_comm=(.*) prev_pid=(\\d+) prev_prio=(\\d+) prev_state=([^\\s]+) ==> next_comm=(.*) next_pid=(\\d+) next_prio=(\\d+)")
+    assertThat(slice.toString())
+      .containsMatch(
+        "prev_comm=(.*) prev_pid=(\\d+) prev_prio=(\\d+) prev_state=([^\\s]+) ==> next_comm=(.*) next_pid=(\\d+) next_prio=(\\d+)"
+      )
   }
 
   @Test
@@ -85,9 +88,9 @@ class PerfettoProducerTest {
     val parser = PerfettoProducer()
     assertThat(parser.parseFile(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))).isTrue()
     // Find first non comment line.
-    var slice = parser.next();
+    var slice = parser.next()
     while (slice.toString().startsWith('#')) {
-      slice = parser.next();
+      slice = parser.next()
     }
 
     // First line should be our parent timestamp.
@@ -96,7 +99,7 @@ class PerfettoProducerTest {
 
     // Second line should be our real timestamp.
     slice = parser.next()
-    //"tracing_mark_write: trace_event_clock_sync: realtime_ts=" +
+    // "tracing_mark_write: trace_event_clock_sync: realtime_ts=" +
     assertThat(slice.toString()).containsMatch(".*: tracing_mark_write: trace_event_clock_sync: realtime_ts=\\d+")
   }
 }

@@ -29,14 +29,13 @@ import org.jetbrains.android.inspections.AndroidDeprecationInspection
 /** [CompletionContributor] that removes strikeout from deprecated items that are not deprecated in the current context. */
 class AndroidDeprecationPresentationCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
-    result.runRemainingContributors(parameters) {
-     result.passResult(fixDeprecationPresentation(it, parameters))
-    }
+    result.runRemainingContributors(parameters) { result.passResult(fixDeprecationPresentation(it, parameters)) }
   }
 }
 
 /** Decorator around a [LookupElement] that overrides the text strikeout. */
-private class OverrideStrikeoutDecorator(delegate: LookupElement, private val isStrikeout: Boolean) : LookupElementDecorator<LookupElement?>(delegate) {
+private class OverrideStrikeoutDecorator(delegate: LookupElement, private val isStrikeout: Boolean) :
+  LookupElementDecorator<LookupElement?>(delegate) {
   override fun renderElement(presentation: LookupElementPresentation) {
     super.renderElement(presentation)
     presentation.isStrikeout = isStrikeout
@@ -44,15 +43,12 @@ private class OverrideStrikeoutDecorator(delegate: LookupElement, private val is
 }
 
 /**
- * Removes the deprecation strikeout if the result is not actually deprecated at the specific location, e.g. when we are in a code
- * branch specific to an old SDK where a given [PsiElement] was not yet deprecated.
+ * Removes the deprecation strikeout if the result is not actually deprecated at the specific location, e.g. when we are in a code branch
+ * specific to an old SDK where a given [PsiElement] was not yet deprecated.
  *
  * @see AndroidDeprecationInspection.DeprecationFilter
  */
-private fun fixDeprecationPresentation(
-  result: CompletionResult,
-  parameters: CompletionParameters
-): CompletionResult {
+private fun fixDeprecationPresentation(result: CompletionResult, parameters: CompletionParameters): CompletionResult {
   val deprecatedObj = (result.lookupElement.psiElement as? PsiDocCommentOwner)?.takeIf { it.isDeprecated } ?: return result
   // If any filters say we shouldn't consider this deprecated at this position, remove the text strikeout.
   // Note: This does not currently work for Kotlin as the AndroidDeprecationInspection filters don't seem to work for Kotlin.

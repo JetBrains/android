@@ -24,13 +24,12 @@ class ClearBuildResultsAction(private val callback: () -> Unit) : AnAction("Clea
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project
-    if(project != null) {
+    if (project != null) {
       val runnable = Runnable {
         BuildAnalyzerStorageManager.getInstance(project).clearBuildResultsStored()
         callback()
       }
-      ProgressManager.getInstance()
-        .runProcessWithProgressSynchronously(runnable, "Clear build analyzer results", false, project)
+      ProgressManager.getInstance().runProcessWithProgressSynchronously(runnable, "Clear build analyzer results", false, project)
     }
   }
 }

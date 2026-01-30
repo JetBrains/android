@@ -25,12 +25,14 @@ import java.awt.Graphics2D
 import java.awt.geom.Rectangle2D
 
 class HeapSetNodeHRenderer : HRenderer<ClassifierSetHNode> {
-  override fun render(g: Graphics2D,
-                      node: ClassifierSetHNode,
-                      fullDrawingArea: Rectangle2D,
-                      drawingArea: Rectangle2D,
-                      isFocused: Boolean,
-                      isDeselected: Boolean) {
+  override fun render(
+    g: Graphics2D,
+    node: ClassifierSetHNode,
+    fullDrawingArea: Rectangle2D,
+    drawingArea: Rectangle2D,
+    isFocused: Boolean,
+    isDeselected: Boolean,
+  ) {
     // Draw rectangle background
     val index = node.name.hashCode()
     var color: Color = DataVisualizationColors.paletteManager.getBackgroundColor(index, isFocused)
@@ -48,8 +50,7 @@ class HeapSetNodeHRenderer : HRenderer<ClassifierSetHNode> {
     if (node.isFiltered && node.isMatched) {
       font = font.deriveFont(Font.BOLD)
       g.font = font
-    }
-    else if (node.isFiltered) {
+    } else if (node.isFiltered) {
       g.paint = ColorUtil.withAlpha(textColor, .2)
     }
     val marginPadding = 5

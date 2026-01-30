@@ -29,8 +29,8 @@ import java.awt.Rectangle
 import kotlin.math.roundToInt
 
 /**
- * A [JBPanel] that shows an [Image] as background, scaled to fit preserving the aspect ratio.
- * Quality of scaling is controlled by the [highFidelityScaling] parameter.
+ * A [JBPanel] that shows an [Image] as background, scaled to fit preserving the aspect ratio. Quality of scaling is controlled by the
+ * [highFidelityScaling] parameter.
  */
 class ImagePanel(val highFidelityScaling: Boolean = false) : JBPanel<ImagePanel>(true) {
   var image: Image? = null
@@ -52,20 +52,9 @@ class ImagePanel(val highFidelityScaling: Boolean = false) : JBPanel<ImagePanel>
 }
 
 /** Draws an image inside a [JBPanel], preserving aspect ratio. */
-fun <T : JBPanel<T>> JBPanel<T>.paintPanelImage(
-  g: Graphics,
-  image: Image?,
-  active: Boolean,
-  highFidelityScaling: Boolean,
-) {
+fun <T : JBPanel<T>> JBPanel<T>.paintPanelImage(g: Graphics, image: Image?, active: Boolean, highFidelityScaling: Boolean) {
   val insets = this.insets
-  val rect =
-    Rectangle(
-      insets.left,
-      insets.top,
-      width - insets.left - insets.right,
-      height - insets.bottom - insets.top,
-    )
+  val rect = Rectangle(insets.left, insets.top, width - insets.left - insets.right, height - insets.bottom - insets.top)
 
   // Paint background.
   g.color = background

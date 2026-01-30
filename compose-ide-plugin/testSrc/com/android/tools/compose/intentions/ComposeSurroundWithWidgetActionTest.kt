@@ -48,11 +48,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
     )
   }
 
-  private fun invokeActionAndAssertResult(
-    actionProvider: () -> IntentionAction,
-    inputFileContent: String,
-    expectedResult: String,
-  ) {
+  private fun invokeActionAndAssertResult(actionProvider: () -> IntentionAction, inputFileContent: String, expectedResult: String) {
     myFixture.loadNewFile("src/com/example/Test.kt", inputFileContent)
     val action = actionProvider()
     WriteCommandAction.runWriteCommandAction(myFixture.project) {
@@ -65,11 +61,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
     myFixture.checkResult(expectedResult)
   }
 
-  private fun invokeActionAndAssertResult(
-    actionName: String,
-    inputFileContent: String,
-    expectedResult: String,
-  ) {
+  private fun invokeActionAndAssertResult(actionName: String, inputFileContent: String, expectedResult: String) {
     invokeActionAndAssertResult(
       {
         val action = myFixture.availableIntentions.find { it.text == actionName }
@@ -81,11 +73,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
     )
   }
 
-  private fun invokeActionAndAssertResult(
-    action: IntentionAction,
-    inputFileContent: String,
-    expectedResult: String,
-  ) {
+  private fun invokeActionAndAssertResult(action: IntentionAction, inputFileContent: String, expectedResult: String) {
     invokeActionAndAssertResult({ action }, inputFileContent, expectedResult)
   }
 
@@ -282,20 +270,20 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
       listOf(
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import androidx.compose.runtime.Composable
-      import androidx.compose.foundation.layout.Box
+        import androidx.compose.runtime.Composable
+        import androidx.compose.foundation.layout.Box
 
-      @Composable
-      fun NewsStory() {
-          Box {
-              Text("A day in Shark Fin Cove")
-              Text("Davenport, California")
-              Text("December 2018")
-          }
-      }
-    """
+        @Composable
+        fun NewsStory() {
+            Box {
+                Text("A day in Shark Fin Cove")
+                Text("Davenport, California")
+                Text("December 2018")
+            }
+        }
+        """
           .trimIndent(),
         // language=kotlin
         """
@@ -350,15 +338,11 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
 
     cases.forEachIndexed { index, content ->
       myFixture.loadNewFile("src/com/example/Test${index}.kt", content)
-      assertThat(myFixture.availableIntentions.map { intention -> intention.text }.toList())
-        .doesNotContain("Surround with widget")
+      assertThat(myFixture.availableIntentions.map { intention -> intention.text }.toList()).doesNotContain("Surround with widget")
     }
   }
 
-  /**
-   * Checks surround with widget when the selection starts and/or stops in the middle or an element
-   * and not in empty space.
-   */
+  /** Checks surround with widget when the selection starts and/or stops in the middle or an element and not in empty space. */
   fun testSurroundWithWidgetWithPartialSelection() {
     invokeActionAndAssertResult(
       "Surround with widget",

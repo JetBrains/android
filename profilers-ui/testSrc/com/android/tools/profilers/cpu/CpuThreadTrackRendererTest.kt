@@ -40,12 +40,12 @@ import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import javax.swing.JComponent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
-import javax.swing.JComponent
 
 class CpuThreadTrackRendererTest {
   private val timer = FakeTimer()
@@ -53,14 +53,11 @@ class CpuThreadTrackRendererTest {
   private val transportService = FakeTransportService(timer, true)
   private val ideProfilerComponents = FakeIdeProfilerComponents()
 
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("CpuThreadTrackRendererTest", transportService)
+  @get:Rule val grpcChannel = FakeGrpcChannel("CpuThreadTrackRendererTest", transportService)
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var profilers: StudioProfilers
   private lateinit var profilersView: StudioProfilersView
@@ -79,26 +76,23 @@ class CpuThreadTrackRendererTest {
     val threadInfo = CpuThreadInfo(1, "Thread-1")
     val multiSelectionModel = MultiSelectionModel<CpuAnalyzable<*>>()
     val captureNode = CaptureNode(StubCaptureNodeModel())
-    val sysTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
-      whenever(getThreadStatesForThread(1)).thenReturn(listOf())
-    }
+    val sysTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply { whenever(getThreadStatesForThread(1)).thenReturn(listOf()) }
     val fakeTimeline = DefaultTimeline()
-    val mockCapture = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(range).thenReturn(Range())
-      whenever(type).thenReturn(TraceType.ATRACE)
-      whenever(getCaptureNode(1)).thenReturn(captureNode)
-      whenever(systemTraceData).thenReturn(sysTraceData)
-      whenever(timeline).thenReturn(fakeTimeline)
-    }
-    val threadTrackModel = TrackModel.newBuilder(
-      CpuThreadTrackModel(
-        mockCapture,
-        threadInfo,
-        fakeTimeline,
-        multiSelectionModel,
-        Utils::runOnUi
-      ),
-      ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
+    val mockCapture =
+      Mockito.mock(CpuCapture::class.java).apply {
+        whenever(range).thenReturn(Range())
+        whenever(type).thenReturn(TraceType.ATRACE)
+        whenever(getCaptureNode(1)).thenReturn(captureNode)
+        whenever(systemTraceData).thenReturn(sysTraceData)
+        whenever(timeline).thenReturn(fakeTimeline)
+      }
+    val threadTrackModel =
+      TrackModel.newBuilder(
+          CpuThreadTrackModel(mockCapture, threadInfo, fakeTimeline, multiSelectionModel, Utils::runOnUi),
+          ProfilerTrackRendererType.CPU_THREAD,
+          "Foo",
+        )
+        .build()
     val renderer = CpuThreadTrackRenderer(profilersView) { false }
     val componentWithOverlay = renderer.render(threadTrackModel).getComponent(0) as JComponent
     val component = componentWithOverlay.components[1] as JComponent
@@ -122,16 +116,14 @@ class CpuThreadTrackRendererTest {
     whenever(mockCapture.range).thenReturn(Range())
     whenever(mockCapture.type).thenReturn(TraceType.ART)
     whenever(mockCapture.getCaptureNode(1)).thenReturn(CaptureNode(StubCaptureNodeModel()))
-    val threadTrackModel = TrackModel.newBuilder(
-      CpuThreadTrackModel(
-        mockCapture,
-        CpuThreadInfo(1, "Thread-1"),
-        DefaultTimeline(),
-        MultiSelectionModel(),
-        Utils::runOnUi
-      ),
-      ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
-    val component = CpuThreadTrackRenderer(profilersView, {false}).render(threadTrackModel)
+    val threadTrackModel =
+      TrackModel.newBuilder(
+          CpuThreadTrackModel(mockCapture, CpuThreadInfo(1, "Thread-1"), DefaultTimeline(), MultiSelectionModel(), Utils::runOnUi),
+          ProfilerTrackRendererType.CPU_THREAD,
+          "Foo",
+        )
+        .build()
+    val component = CpuThreadTrackRenderer(profilersView, { false }).render(threadTrackModel)
     assertThat(component.componentCount).isEqualTo(1)
     assertThat(component.components[0]).isInstanceOf(HTreeChart::class.java)
   }
@@ -139,20 +131,19 @@ class CpuThreadTrackRendererTest {
   @Test
   fun supportsCodeNavigationForArt() {
     // Mock a recorded ART trace.
-    val mockCapture = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(range).thenReturn(Range())
-      whenever(type).thenReturn(TraceType.ART)
-    }
-    val threadTrackModel = TrackModel.newBuilder(
-      CpuThreadTrackModel(
-        mockCapture,
-        CpuThreadInfo(1, "Thread-1"),
-        DefaultTimeline(),
-        MultiSelectionModel(),
-        Utils::runOnUi
-      ),
-      ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
-    val renderer = CpuThreadTrackRenderer(profilersView, {false})
+    val mockCapture =
+      Mockito.mock(CpuCapture::class.java).apply {
+        whenever(range).thenReturn(Range())
+        whenever(type).thenReturn(TraceType.ART)
+      }
+    val threadTrackModel =
+      TrackModel.newBuilder(
+          CpuThreadTrackModel(mockCapture, CpuThreadInfo(1, "Thread-1"), DefaultTimeline(), MultiSelectionModel(), Utils::runOnUi),
+          ProfilerTrackRendererType.CPU_THREAD,
+          "Foo",
+        )
+        .build()
+    val renderer = CpuThreadTrackRenderer(profilersView, { false })
     val component = renderer.render(threadTrackModel)
     val callChart = TreeWalker(component).descendants().filterIsInstance<HTreeChart<*>>().first()
     assertThat(ideProfilerComponents.getCodeLocationSupplier(callChart)).isNotNull()

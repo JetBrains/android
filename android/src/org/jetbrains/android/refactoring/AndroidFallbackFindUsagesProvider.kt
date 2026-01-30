@@ -15,13 +15,13 @@
  */
 package org.jetbrains.android.refactoring
 
+import com.android.tools.idea.res.isResourceFile
 import com.android.tools.idea.util.androidFacet
 import com.intellij.lang.cacheBuilder.WordsScanner
 import com.intellij.lang.findUsages.EmptyFindUsagesProvider
 import com.intellij.lang.findUsages.FindUsagesProvider
 import com.intellij.psi.PsiBinaryFile
 import com.intellij.psi.PsiElement
-import com.android.tools.idea.res.isResourceFile
 
 /**
  * [FindUsagesProvider] for resource images files and any other files that are special in Android projects.
@@ -57,17 +57,16 @@ class AndroidFallbackFindUsagesProvider : FindUsagesProvider {
       val dir = file.containingDirectory
       if (dir != null) {
         "${dir.name}/${file.name}"
-      }
-      else {
+      } else {
         file.name
       }
     }
   }
+
   override fun getNodeText(element: PsiElement, useFullName: Boolean): String {
     return if (isBinaryResourceFile(element)) {
       getDescriptiveName(element)
-    }
-    else {
+    } else {
       empty.getNodeText(element, useFullName)
     }
   }

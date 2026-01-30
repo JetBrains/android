@@ -21,10 +21,9 @@ import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 /**
  * A [DelegatingClassLoader.Loader] that loads classes from a different path.
  *
- * The overlay is a set of `.class` files that have been modified and that will
- * take priority when loading from this.
- * This allows to have modifications for specific classes to be loaded. The overlay classes are also located outside
- * of the usual output directories used by IntelliJ/Gradle/Bazel.
+ * The overlay is a set of `.class` files that have been modified and that will take priority when loading from this. This allows to have
+ * modifications for specific classes to be loaded. The overlay classes are also located outside of the usual output directories used by
+ * IntelliJ/Gradle/Bazel.
  */
 internal class OverlayLoader(private val overlayManager: ClassLoaderOverlays) : DelegatingClassLoader.Loader {
   override fun loadClass(fqcn: String): ByteArray? = overlayManager.classLoaderLoader.loadClass(fqcn)

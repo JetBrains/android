@@ -26,39 +26,44 @@ import javax.swing.JFrame
 
 object DropDownButton {
 
-  /**
-   * Creates a button that opens to a custom drop-down UI
-   */
+  /** Creates a button that opens to a custom drop-down UI */
   @JvmStatic
-  fun of(text: String, makeUi: () -> JComponent) = JButton(text).apply {
-    addActionListener {
-      val dialog = JDialog(JFrame())
-      val button = this
-      with(dialog) {
-        isUndecorated = true
-        add(makeUi())
-        pack()
-        location = Toolkit.getDefaultToolkit().let {
-          val screenSize = it.screenSize
-          val screenInsets = it.getScreenInsets(graphicsConfiguration)
-          val buttonX = button.locationOnScreen.x
-          val buttonY = button.locationOnScreen.y
-          val x = when { // align with left edge if possible, but resort to right edge
-            buttonX + width <= screenSize.width - screenInsets.right -> buttonX
-            else -> buttonX + button.width - width
-          }
-          val y = when { // drop down if possible, but resort to up
-            buttonY + button.height + height <= screenSize.height - screenInsets.bottom -> buttonY + button.height
-            else -> buttonY - height
-          }
-          Point(x, y)
+  fun of(text: String, makeUi: () -> JComponent) =
+    JButton(text).apply {
+      addActionListener {
+        val dialog = JDialog(JFrame())
+        val button = this
+        with(dialog) {
+          isUndecorated = true
+          add(makeUi())
+          pack()
+          location =
+            Toolkit.getDefaultToolkit().let {
+              val screenSize = it.screenSize
+              val screenInsets = it.getScreenInsets(graphicsConfiguration)
+              val buttonX = button.locationOnScreen.x
+              val buttonY = button.locationOnScreen.y
+              val x =
+                when { // align with left edge if possible, but resort to right edge
+                  buttonX + width <= screenSize.width - screenInsets.right -> buttonX
+                  else -> buttonX + button.width - width
+                }
+              val y =
+                when { // drop down if possible, but resort to up
+                  buttonY + button.height + height <= screenSize.height - screenInsets.bottom -> buttonY + button.height
+                  else -> buttonY - height
+                }
+              Point(x, y)
+            }
+          addWindowFocusListener(
+            object : WindowFocusListener {
+              override fun windowLostFocus(e: WindowEvent) = dialog.dispose()
+
+              override fun windowGainedFocus(e: WindowEvent) {}
+            }
+          )
+          isVisible = true
         }
-        addWindowFocusListener(object : WindowFocusListener {
-          override fun windowLostFocus(e: WindowEvent) = dialog.dispose()
-          override fun windowGainedFocus(e: WindowEvent) {}
-        })
-        isVisible = true
       }
     }
-  }
 }

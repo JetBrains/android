@@ -20,16 +20,16 @@ interface Updatable {
   fun reset() {}
 
   /**
-   * Triggered by the [Choreographer] to give an [Updatable] a chance to update/interpolate any
-   * components or data based on the current frame rate.
+   * Triggered by the [Choreographer] to give an [Updatable] a chance to update/interpolate any components or data based on the current
+   * frame rate.
    *
    * @param elapsedNs the time elapsed since the last update in nanoseconds.
    */
   fun update(elapsedNs: Long)
 
   /**
-   * Triggered by the [Choreographer] after all components have finished animating. This allows an
-   * [Updatable] to read any data modified by other components during [.update].
+   * Triggered by the [Choreographer] after all components have finished animating. This allows an [Updatable] to read any data modified by
+   * other components during [.update].
    */
   fun postUpdate() {}
 }

@@ -28,9 +28,13 @@ import org.junit.Test
 class BatteryDrainTrackRendererTest {
   @Test
   fun render() {
-    val batteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), ""), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
-    ).build()
+    val batteryDrainTrackModel =
+      TrackModel.newBuilder(
+          BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), ""),
+          ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN,
+          "Battery Drain",
+        )
+        .build()
     val component = BatteryDrainTrackRenderer().render(batteryDrainTrackModel)
     assertThat(component.componentCount).isEqualTo(2)
     assertThat(component.components[0]).isInstanceOf(AxisComponent::class.java)
@@ -39,57 +43,89 @@ class BatteryDrainTrackRendererTest {
 
   @Test
   fun axisLabelIsCorrectWithoutCommas() {
-    var percentBatteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "%"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
-    ).build()
+    var percentBatteryDrainTrackModel =
+      TrackModel.newBuilder(
+          BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "%"),
+          ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN,
+          "Battery Drain",
+        )
+        .build()
     var formatter = percentBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
     assertThat(formatter.getFormattedString(100.0, 100.0, true)).isEqualTo("100%")
 
-    val microAmpHoursBatteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "µah"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
-    ).build()
+    val microAmpHoursBatteryDrainTrackModel =
+      TrackModel.newBuilder(
+          BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "µah"),
+          ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN,
+          "Battery Drain",
+        )
+        .build()
     formatter = microAmpHoursBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
     assertThat(formatter.getFormattedString(100.0, 100.0, true)).isEqualTo("100 µah")
 
-    val microAmpsBatteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "µa"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
-    ).build()
+    val microAmpsBatteryDrainTrackModel =
+      TrackModel.newBuilder(
+          BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "µa"),
+          ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN,
+          "Battery Drain",
+        )
+        .build()
     formatter = microAmpsBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
     assertThat(formatter.getFormattedString(100.0, 100.0, true)).isEqualTo("100 µa")
 
-    var noUnitBatteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), ""), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
-    ).build()
+    var noUnitBatteryDrainTrackModel =
+      TrackModel.newBuilder(
+          BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), ""),
+          ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN,
+          "Battery Drain",
+        )
+        .build()
     formatter = noUnitBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
     assertThat(formatter.getFormattedString(100.0, 100.0, true)).isEqualTo("100")
   }
 
   @Test
   fun axisLabelIsCorrectWithCommas() {
-    val microAmpHoursBatteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "µah"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
-    ).build()
+    val microAmpHoursBatteryDrainTrackModel =
+      TrackModel.newBuilder(
+          BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "µah"),
+          ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN,
+          "Battery Drain",
+        )
+        .build()
     var formatter = microAmpHoursBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
     assertThat(formatter.getFormattedString(1000.0, 1000.0, true)).isEqualTo("1,000 µah")
 
-    val microAmpsBatteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "µa"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
-    ).build()
+    val microAmpsBatteryDrainTrackModel =
+      TrackModel.newBuilder(
+          BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "µa"),
+          ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN,
+          "Battery Drain",
+        )
+        .build()
     formatter = microAmpsBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
     assertThat(formatter.getFormattedString(1000000.0, 1000000.0, true)).isEqualTo("1,000,000 µa")
 
-    var noUnitBatteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), ""), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
-    ).build()
+    var noUnitBatteryDrainTrackModel =
+      TrackModel.newBuilder(
+          BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), ""),
+          ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN,
+          "Battery Drain",
+        )
+        .build()
     formatter = noUnitBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
     assertThat(formatter.getFormattedString(1000000000.0, 1000000000.0, true)).isEqualTo("1,000,000,000")
   }
 
   @Test
   fun batteryCurrentDrainNegativeMinRangeValuesGivesCorrectRange() {
-    val batteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(NEGATIVE_MIN_DRAIN_COUNTERS, Range(), "µa"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
-    ).build()
+    val batteryDrainTrackModel =
+      TrackModel.newBuilder(
+          BatteryDrainTrackModel(NEGATIVE_MIN_DRAIN_COUNTERS, Range(), "µa"),
+          ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN,
+          "Battery Drain",
+        )
+        .build()
 
     val component = BatteryDrainTrackRenderer().render(batteryDrainTrackModel)
     assertThat(component.componentCount).isEqualTo(2)
@@ -101,10 +137,13 @@ class BatteryDrainTrackRendererTest {
 
   @Test
   fun batteryCurrentDrainNegativeMinAndMaxRangeValuesGivesCorrectRange() {
-    val batteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(NEGATIVE_MIN_AND_MAX_DRAIN_COUNTERS, Range(), "µa"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN,
-      "Battery Drain"
-    ).build()
+    val batteryDrainTrackModel =
+      TrackModel.newBuilder(
+          BatteryDrainTrackModel(NEGATIVE_MIN_AND_MAX_DRAIN_COUNTERS, Range(), "µa"),
+          ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN,
+          "Battery Drain",
+        )
+        .build()
 
     val component = BatteryDrainTrackRenderer().render(batteryDrainTrackModel)
     assertThat(component.componentCount).isEqualTo(2)
@@ -116,9 +155,13 @@ class BatteryDrainTrackRendererTest {
 
   @Test
   fun batteryCurrentDrainPositiveRangeValuesGivesCorrectRange() {
-    val batteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "ua"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
-    ).build()
+    val batteryDrainTrackModel =
+      TrackModel.newBuilder(
+          BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "ua"),
+          ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN,
+          "Battery Drain",
+        )
+        .build()
 
     val component = BatteryDrainTrackRenderer().render(batteryDrainTrackModel)
     assertThat(component.componentCount).isEqualTo(2)
@@ -129,22 +172,10 @@ class BatteryDrainTrackRendererTest {
   }
 
   companion object {
-    private val BATTERY_DRAIN_COUNTERS = listOf(
-      SeriesData(0L, 1000L),
-      SeriesData(1000L, 2000L),
-      SeriesData(2000L, 3000L)
-    )
+    private val BATTERY_DRAIN_COUNTERS = listOf(SeriesData(0L, 1000L), SeriesData(1000L, 2000L), SeriesData(2000L, 3000L))
 
-    private val NEGATIVE_MIN_DRAIN_COUNTERS = listOf(
-      SeriesData(0L, -500L),
-      SeriesData(1000L, 0L),
-      SeriesData(2000L, 1000L),
-    )
+    private val NEGATIVE_MIN_DRAIN_COUNTERS = listOf(SeriesData(0L, -500L), SeriesData(1000L, 0L), SeriesData(2000L, 1000L))
 
-    private val NEGATIVE_MIN_AND_MAX_DRAIN_COUNTERS = listOf(
-      SeriesData(0L, -1000L),
-      SeriesData(1000L, -500L),
-      SeriesData(2000L, -100L),
-    )
+    private val NEGATIVE_MIN_AND_MAX_DRAIN_COUNTERS = listOf(SeriesData(0L, -1000L), SeriesData(1000L, -500L), SeriesData(2000L, -100L))
   }
 }

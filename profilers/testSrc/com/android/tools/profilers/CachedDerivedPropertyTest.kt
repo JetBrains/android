@@ -23,10 +23,11 @@ class CachedDerivedPropertyTest {
   @Test
   fun `derived property only changes when source changes`() {
     var recompCount = 0
-    val obj = object {
-      var name: String = ""
-      val nameLength: Int by CachedDerivedProperty({name}, { str -> str.length.also { recompCount++ } })
-    }
+    val obj =
+      object {
+        var name: String = ""
+        val nameLength: Int by CachedDerivedProperty({ name }, { str -> str.length.also { recompCount++ } })
+      }
 
     assertThat(obj.nameLength).isEqualTo(0)
     assertThat(recompCount).isEqualTo(1)
@@ -47,32 +48,37 @@ class CachedDerivedPropertyTest {
   @Test
   fun `last result used for incremental computation`() {
     var log = listOf<Int>()
-    fun sumFromTo(from: Int, to: Int) = (from..to).sum().also {
-      log = (from..to).toList()
-    }
+    fun sumFromTo(from: Int, to: Int) = (from..to).sum().also { log = (from..to).toList() }
 
-    val obj = object {
-      var bound: Int = 0
-      val sumUpToBound: Int by CachedDerivedProperty({bound}, { bound, cache -> when (cache) {
-        null -> sumFromTo(1, bound)
-        else -> {
-          val (oldBound, oldSum) = cache
-          when {
-            oldBound < bound -> oldSum + sumFromTo(oldBound + 1, bound)
-            else -> oldSum - sumFromTo(bound + 1, oldBound)
-          }
-        }
-      } })
-    }
+    val obj =
+      object {
+        var bound: Int = 0
+        val sumUpToBound: Int by
+          CachedDerivedProperty(
+            { bound },
+            { bound, cache ->
+              when (cache) {
+                null -> sumFromTo(1, bound)
+                else -> {
+                  val (oldBound, oldSum) = cache
+                  when {
+                    oldBound < bound -> oldSum + sumFromTo(oldBound + 1, bound)
+                    else -> oldSum - sumFromTo(bound + 1, oldBound)
+                  }
+                }
+              }
+            },
+          )
+      }
 
     assertThat(obj.sumUpToBound).isEqualTo(0)
 
     obj.bound = 10
-    assertThat(obj.sumUpToBound).isEqualTo((1 .. 10).sum())
-    assertThat(log).isEqualTo((1 .. 10).toList())
+    assertThat(obj.sumUpToBound).isEqualTo((1..10).sum())
+    assertThat(log).isEqualTo((1..10).toList())
 
     obj.bound = 11
-    assertThat(obj.sumUpToBound).isEqualTo((1 .. 11).sum())
+    assertThat(obj.sumUpToBound).isEqualTo((1..11).sum())
     assertThat(log).isEqualTo(listOf(11))
   }
 }

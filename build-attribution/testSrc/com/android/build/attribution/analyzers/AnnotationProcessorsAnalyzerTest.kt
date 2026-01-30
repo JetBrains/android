@@ -32,8 +32,7 @@ import org.junit.Test
 @RunsInEdt
 class AnnotationProcessorsAnalyzerTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testNonIncrementalAnnotationProcessorsAnalyzer() {
@@ -44,22 +43,19 @@ class AnnotationProcessorsAnalyzerTest {
       val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
       var results = buildAnalyzerStorageManager.getSuccessfulResult()
 
-      assertThat(
-        results.getNonIncrementalAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
-        setOf(
-          "com.google.auto.value.processor.AutoAnnotationProcessor",
-          "com.google.auto.value.processor.AutoValueBuilderProcessor",
-          "com.google.auto.value.processor.AutoOneOfProcessor",
-          "com.google.auto.value.processor.AutoValueProcessor",
-          "com.google.auto.value.extension.memoized.processor.MemoizedValidator"
+      assertThat(results.getNonIncrementalAnnotationProcessorsData().map { it.className })
+        .containsExactlyElementsIn(
+          setOf(
+            "com.google.auto.value.processor.AutoAnnotationProcessor",
+            "com.google.auto.value.processor.AutoValueBuilderProcessor",
+            "com.google.auto.value.processor.AutoOneOfProcessor",
+            "com.google.auto.value.processor.AutoValueProcessor",
+            "com.google.auto.value.extension.memoized.processor.MemoizedValidator",
+          )
         )
-      )
       assertThat(results.getTaskCategoryWarningsAnalyzerResult()).isInstanceOf(TaskCategoryWarningsAnalyzer.IssuesResult::class.java)
-      assertThat(
-        (results.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult).taskCategoryIssues
-      ).contains(
-        TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR
-      )
+      assertThat((results.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult).taskCategoryIssues)
+        .contains(TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR)
 
       val appBuildFile = FileUtils.join(projectDir, "app", FN_BUILD_GRADLE)
 
@@ -68,7 +64,7 @@ class AnnotationProcessorsAnalyzerTest {
         appBuildFile
           .readText()
           .replace("implementation 'com.google.auto.value:auto-value-annotations:1.6.2'", "")
-          .replace("annotationProcessor 'com.google.auto.value:auto-value:1.6.2'", "")
+          .replace("annotationProcessor 'com.google.auto.value:auto-value:1.6.2'", ""),
       )
 
       invokeTasks("clean", ":app:compileDebugJavaWithJavac")
@@ -76,11 +72,8 @@ class AnnotationProcessorsAnalyzerTest {
 
       assertThat(results.getNonIncrementalAnnotationProcessorsData()).isEmpty()
       assertThat(results.getTaskCategoryWarningsAnalyzerResult()).isInstanceOf(TaskCategoryWarningsAnalyzer.IssuesResult::class.java)
-      assertThat(
-        (results.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult).taskCategoryIssues
-      ).doesNotContain(
-        TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR
-      )
+      assertThat((results.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult).taskCategoryIssues)
+        .doesNotContain(TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR)
     }
   }
 }

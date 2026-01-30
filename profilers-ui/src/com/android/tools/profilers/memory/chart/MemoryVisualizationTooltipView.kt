@@ -25,31 +25,35 @@ import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSe
 import javax.swing.JComponent
 import javax.swing.JLabel
 
-/**
- * When the user mouses over an element in the {@link MemoryVisualizationView} this class represents the tooltip to be displayed.
- */
-class MemoryVisualizationTooltipView(chart: HTreeChart<ClassifierSetHNode>,
-                                     tooltipRoot: JComponent,
-                                     private val model: VisualizationTooltipModel) : ChartTooltipViewBase<ClassifierSetHNode>(
-  chart, tooltipRoot) {
+/** When the user mouses over an element in the {@link MemoryVisualizationView} this class represents the tooltip to be displayed. */
+class MemoryVisualizationTooltipView(
+  chart: HTreeChart<ClassifierSetHNode>,
+  tooltipRoot: JComponent,
+  private val model: VisualizationTooltipModel,
+) : ChartTooltipViewBase<ClassifierSetHNode>(chart, tooltipRoot) {
 
   public override fun showTooltip(node: ClassifierSetHNode) {
     tooltipContainer.removeAll()
     val nameLabel = JLabel(node.name)
     nameLabel.font = TooltipView.TOOLTIP_BODY_FONT
     nameLabel.foreground = ProfilerColors.TOOLTIP_TEXT
-    val formattedNumber = model.visualizationModel.formatter().getFormattedString(model.captureRange.length,
-                                                                                  node.duration.toDouble(),
-                                                                                  model.visualizationModel.isSizeAxis())
+    val formattedNumber =
+      model.visualizationModel
+        .formatter()
+        .getFormattedString(model.captureRange.length, node.duration.toDouble(), model.visualizationModel.isSizeAxis())
     val totalLabel = JLabel(String.format("%s: %s", if (model.visualizationModel.isSizeAxis()) "Size" else "Count", formattedNumber))
     tooltipContainer.add(nameLabel, TabularLayout.Constraint(0, 0))
     if (node.data is NativeCallStackSet) {
       val native = node.data as NativeCallStackSet
-      tooltipContainer.add(JLabel(String.format("Module: %s", native.moduleName)),
-                           TabularLayout.Constraint(tooltipContainer.componentCount, 0))
+      tooltipContainer.add(
+        JLabel(String.format("Module: %s", native.moduleName)),
+        TabularLayout.Constraint(tooltipContainer.componentCount, 0),
+      )
       if (native.fileName.isNotEmpty()) {
-        tooltipContainer.add(JLabel(String.format("File: %s", native.fileName)),
-                             TabularLayout.Constraint(tooltipContainer.componentCount, 0))
+        tooltipContainer.add(
+          JLabel(String.format("File: %s", native.fileName)),
+          TabularLayout.Constraint(tooltipContainer.componentCount, 0),
+        )
       }
     }
     tooltipContainer.add(AdtUiUtils.createHorizontalSeparator(), TabularLayout.Constraint(tooltipContainer.componentCount, 0))

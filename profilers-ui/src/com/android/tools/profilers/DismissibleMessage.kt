@@ -32,61 +32,67 @@ import java.awt.font.TextAttribute
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
-
 object DismissibleMessage {
-  /**
-   * @param key Key for use in persistent profiler preferences
-   */
-  @JvmStatic @JvmOverloads
-  fun of(profilers: StudioProfilers, key: String, message: String, learnMoreLink: String,
-         color: Color = secondaryPanelBackground): JPanel =
+  /** @param key Key for use in persistent profiler preferences */
+  @JvmStatic
+  @JvmOverloads
+  fun of(profilers: StudioProfilers, key: String, message: String, learnMoreLink: String, color: Color = secondaryPanelBackground): JPanel =
     of(profilers, key, message, { BrowserUtil.browse(learnMoreLink) }, color)
 
-  @JvmStatic @JvmOverloads
-  fun of(profilers: StudioProfilers, key: String, message: String, learnMore: () -> Unit,
-         color: Color = secondaryPanelBackground): JPanel =
+  @JvmStatic
+  @JvmOverloads
+  fun of(profilers: StudioProfilers, key: String, message: String, learnMore: () -> Unit, color: Color = secondaryPanelBackground): JPanel =
     profilers.ideServices.persistentProfilerPreferences.let { pref ->
       when {
-        pref.getBoolean(key, true) -> JBPanel<Nothing>(BorderLayout()).apply {
-          fun dismiss() {
-            isVisible = false
-            pref.setBoolean(key, false)
-          }
-
-          val label = JBLabel(message).apply {
-            isOpaque = false
-            verticalAlignment = SwingConstants.CENTER
-            toolTipText = message
-          }
-          label.addComponentListener(object : ComponentAdapter() {
-            val textWidth = getFontMetrics(label.font).stringWidth(message)
-            override fun componentResized(e: ComponentEvent) {
-              label.toolTipText = message.takeIf { e.component.width <= textWidth }
+        pref.getBoolean(key, true) ->
+          JBPanel<Nothing>(BorderLayout()).apply {
+            fun dismiss() {
+              isVisible = false
+              pref.setBoolean(key, false)
             }
-          })
 
-          val linkPanel = JBPanel<Nothing>(FlowLayout()).apply {
-            isOpaque = false
-            add(actionLink("Dismiss", ::dismiss))
-            add(actionLink("Learn more", learnMore))
+            val label =
+              JBLabel(message).apply {
+                isOpaque = false
+                verticalAlignment = SwingConstants.CENTER
+                toolTipText = message
+              }
+            label.addComponentListener(
+              object : ComponentAdapter() {
+                val textWidth = getFontMetrics(label.font).stringWidth(message)
+
+                override fun componentResized(e: ComponentEvent) {
+                  label.toolTipText = message.takeIf { e.component.width <= textWidth }
+                }
+              }
+            )
+
+            val linkPanel =
+              JBPanel<Nothing>(FlowLayout()).apply {
+                isOpaque = false
+                add(actionLink("Dismiss", ::dismiss))
+                add(actionLink("Learn more", learnMore))
+              }
+
+            border = JBEmptyBorder(4)
+            background = color
+            add(label, BorderLayout.CENTER)
+            add(linkPanel, BorderLayout.EAST)
           }
-
-          border = JBEmptyBorder(4)
-          background = color
-          add(label, BorderLayout.CENTER)
-          add(linkPanel, BorderLayout.EAST)
-        }
         else -> JBPanel<Nothing>()
       }
     }
 
-  private fun actionLink(text: String, performAction: () -> Unit) = JBLabel(text).apply {
-    isOpaque = false
-    foreground = linkForeground
-    verticalAlignment = SwingConstants.CENTER
-    font = font.deriveFont(font.attributes + (TextAttribute.UNDERLINE to TextAttribute.UNDERLINE_ON))
-    addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) = performAction()
-    })
-  }
+  private fun actionLink(text: String, performAction: () -> Unit) =
+    JBLabel(text).apply {
+      isOpaque = false
+      foreground = linkForeground
+      verticalAlignment = SwingConstants.CENTER
+      font = font.deriveFont(font.attributes + (TextAttribute.UNDERLINE to TextAttribute.UNDERLINE_ON))
+      addMouseListener(
+        object : MouseAdapter() {
+          override fun mouseClicked(e: MouseEvent) = performAction()
+        }
+      )
+    }
 }

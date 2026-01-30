@@ -25,8 +25,8 @@ import com.intellij.openapi.project.Project
 /** A factory for creating [ILayoutPullParser]s. */
 interface ILayoutPullParserFactory {
   /**
-   * Creates a parser for the given XML file and returns it. May return null to indicate that this
-   * factory does not provide a parser for the given file.
+   * Creates a parser for the given XML file and returns it. May return null to indicate that this factory does not provide a parser for the
+   * given file.
    */
   fun create(
     project: Project,

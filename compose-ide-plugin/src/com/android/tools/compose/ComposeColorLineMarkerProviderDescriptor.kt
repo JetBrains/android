@@ -31,6 +31,10 @@ import com.intellij.ui.colorpicker.ColorPickerBuilder
 import com.intellij.ui.colorpicker.MaterialGraphicalColorPipetteProvider
 import com.intellij.ui.picker.ColorListener
 import com.intellij.util.ui.ColorIcon
+import java.awt.Color
+import java.awt.MouseInfo
+import java.awt.event.MouseEvent
+import java.util.Locale
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.idea.codeinsight.utils.getInitializerOrGetterInitializer
@@ -46,16 +50,11 @@ import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UExpression
 import org.jetbrains.uast.UastCallKind
 import org.jetbrains.uast.toUElement
-import java.awt.Color
-import java.awt.MouseInfo
-import java.awt.event.MouseEvent
-import java.util.Locale
 
 private const val ICON_SIZE = 8
 
 /**
- * Resolves the given [KtReferenceExpression] to a [KtCallExpression], potentially traversing
- * through intermediate properties.
+ * Resolves the given [KtReferenceExpression] to a [KtCallExpression], potentially traversing through intermediate properties.
  *
  * @param allowedDepth The maximum depth of resolution allowed. Defaults to 3.
  * @return The resolved [KtCallExpression], or `null` if resolution fails within the allowed depth.
@@ -69,9 +68,7 @@ private fun KtReferenceExpression.resolveAll(allowedDepth: Int = 3): KtCallExpre
     when (@Suppress("UnstableApiUsage") val resolved = current.mainReference.resolve()) {
       is KtCallExpression -> return resolved
       is KtProperty -> {
-        return (resolved.getInitializerOrGetterInitializer() as? KtReferenceExpression)?.resolveAll(
-          allowedDepth - 1
-        )
+        return (resolved.getInitializerOrGetterInitializer() as? KtReferenceExpression)?.resolveAll(allowedDepth - 1)
       }
       else -> current = resolved as? KtReferenceExpression
     }
@@ -89,9 +86,7 @@ class ComposeColorLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() 
     //  - Annotates variable declarations like `val color = Color(0xFF00000)
     //  - Annotates color references, for example where `color` is used.
     val ktCallExpression =
-      (element.parent.parent as? KtCallExpression)
-        ?: ((element.parent as? KtReferenceExpression)?.resolveAll())
-        ?: return null
+      (element.parent.parent as? KtCallExpression) ?: ((element.parent as? KtReferenceExpression)?.resolveAll()) ?: return null
 
     val uElement = ktCallExpression.toUElement(UCallExpression::class.java) ?: return null
     if (!uElement.isColorCall()) return null
@@ -134,13 +129,12 @@ class ComposeColorLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() 
 }
 
 /**
- * Simplified version of [AndroidAnnotatorUtil.ColorRenderer] that does not work on
- * [ResourceReference] but still displays the same color picker.
+ * Simplified version of [AndroidAnnotatorUtil.ColorRenderer] that does not work on [ResourceReference] but still displays the same color
+ * picker.
  *
  * TODO(lukeegan): Implement for ComposeColorConstructor.FLOAT_X4_COLORSPACE Color parameter
  */
-data class ColorIconRenderer(val element: UCallExpression, val color: Color) :
-  GutterIconNavigationHandler<PsiElement> {
+data class ColorIconRenderer(val element: UCallExpression, val color: Color) : GutterIconNavigationHandler<PsiElement> {
 
   val icon = ColorIcon(ICON_SIZE, color)
 
@@ -151,14 +145,7 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) :
     val pickerListener = ColorListener { color, _ ->
       ApplicationManager.getApplication()
         .invokeLater(
-          {
-            WriteCommandAction.runWriteCommandAction(
-              project,
-              "Change Color",
-              null,
-              { setColorTask.invoke(color) },
-            )
-          },
+          { WriteCommandAction.runWriteCommandAction(project, "Change Color", null, { setColorTask.invoke(color) }) },
           project.disposed,
         )
     }
@@ -205,9 +192,7 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) :
             val needsArgumentName = valueArgumentList.arguments.any { it.getArgumentName() != null }
             val hexString = "0x${String.format("%08X", color.rgb)}"
             val argumentText = if (needsArgumentName) "(color = $hexString)" else "($hexString)"
-            valueArgumentList.replace(
-              KtPsiFactory(ktCallExpression.project).createCallArguments(argumentText)
-            )
+            valueArgumentList.replace(KtPsiFactory(ktCallExpression.project).createCallArguments(argumentText))
           }
         }
       ComposeColorConstructor.INT_X3,
@@ -215,21 +200,15 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) :
           val valueArgumentList = ktCallExpression.valueArgumentList
           if (valueArgumentList != null) {
             val needsArgumentName = valueArgumentList.arguments.any { it.getArgumentName() != null }
-            val hasHexFormat =
-              valueArgumentList.arguments.any {
-                it.getArgumentExpression()?.text?.startsWith("0x") ?: false
-              }
+            val hasHexFormat = valueArgumentList.arguments.any { it.getArgumentExpression()?.text?.startsWith("0x") ?: false }
             val red = if (hasHexFormat) color.red.toHexString() else color.red.toString()
             val green = if (hasHexFormat) color.green.toHexString() else color.green.toString()
             val blue = if (hasHexFormat) color.blue.toHexString() else color.blue.toString()
             val alpha = if (hasHexFormat) color.alpha.toHexString() else color.alpha.toString()
 
             val argumentText =
-              if (needsArgumentName) "(red = $red, green = $green, blue = $blue, alpha = $alpha)"
-              else "($red, $green, $blue, $alpha)"
-            valueArgumentList.replace(
-              KtPsiFactory(ktCallExpression.project).createCallArguments(argumentText)
-            )
+              if (needsArgumentName) "(red = $red, green = $green, blue = $blue, alpha = $alpha)" else "($red, $green, $blue, $alpha)"
+            valueArgumentList.replace(KtPsiFactory(ktCallExpression.project).createCallArguments(argumentText))
           }
         }
       ComposeColorConstructor.FLOAT_X3,
@@ -243,16 +222,12 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) :
             val alpha = (color.alpha / 255f).toRoundString()
 
             val argumentText =
-              if (needsArgumentName)
-                "(red = ${red}f, green = ${green}f, blue = ${blue}f, alpha = ${alpha}f)"
+              if (needsArgumentName) "(red = ${red}f, green = ${green}f, blue = ${blue}f, alpha = ${alpha}f)"
               else "(${red}f, ${green}f, ${blue}f, ${alpha}f)"
-            valueArgumentList.replace(
-              KtPsiFactory(ktCallExpression.project).createCallArguments(argumentText)
-            )
+            valueArgumentList.replace(KtPsiFactory(ktCallExpression.project).createCallArguments(argumentText))
           }
         }
-      ComposeColorConstructor.FLOAT_X4_COLORSPACE ->
-        null // TODO: support ComposeColorConstructor.FLOAT_X4_COLORSPACE in the future.
+      ComposeColorConstructor.FLOAT_X4_COLORSPACE -> null // TODO: support ComposeColorConstructor.FLOAT_X4_COLORSPACE in the future.
     }
   }
 }
@@ -279,14 +254,12 @@ enum class ComposeColorConstructor {
 }
 
 private fun getColorInt(arguments: List<KtValueArgument>): Color? {
-  val colorValue =
-    arguments.first().getArgumentExpression()?.evaluateToConstantOrNull<Int>() ?: return null
+  val colorValue = arguments.first().getArgumentExpression()?.evaluateToConstantOrNull<Int>() ?: return null
   return Color(colorValue, true)
 }
 
 private fun getColorLong(arguments: List<KtValueArgument>): Color? {
-  val colorValue =
-    arguments.first().getArgumentExpression()?.evaluateToConstantOrNull<Long>() ?: return null
+  val colorValue = arguments.first().getArgumentExpression()?.evaluateToConstantOrNull<Long>() ?: return null
   return Color(colorValue.toInt(), true)
 }
 
@@ -310,14 +283,8 @@ private fun getColorFloatX4(arguments: List<KtValueArgument>): Color? {
   return floatColorMapToColor(rgbaValues)
 }
 
-/**
- * This function return the name-value pair for the request arguments names by extracting the given
- * ktValueArguments.
- */
-private inline fun <reified T> getNamedValues(
-  requestArgumentNames: List<String>,
-  ktValueArgument: List<KtValueArgument>,
-): Map<String, T>? {
+/** This function return the name-value pair for the request arguments names by extracting the given ktValueArguments. */
+private inline fun <reified T> getNamedValues(requestArgumentNames: List<String>, ktValueArgument: List<KtValueArgument>): Map<String, T>? {
   val namedValues = mutableMapOf<String, T>()
 
   val unnamedValue = mutableListOf<T>()
@@ -347,9 +314,7 @@ private inline fun <reified T> getNamedValues(
   return namedValues
 }
 
-private inline fun <reified T> getArgumentNameValuePair(
-  valueArgument: KtValueArgument
-): Pair<String?, T>? {
+private inline fun <reified T> getArgumentNameValuePair(valueArgument: KtValueArgument): Pair<String?, T>? {
   val name = valueArgument.getArgumentName()?.asName?.asString()
   val value = valueArgument.getArgumentExpression()?.evaluateToConstantOrNull<T>() ?: return null
   return name to value
@@ -359,12 +324,10 @@ private inline fun <reified T> KtExpression.evaluateToConstantOrNull(): T? {
   return analyze(this) { evaluate()?.value as? T ?: return null }
 }
 
-private fun Int.toHexString(): String =
-  "0x${(Integer.toHexString(this)).uppercase(Locale.getDefault())}"
+private fun Int.toHexString(): String = "0x${(Integer.toHexString(this)).uppercase(Locale.getDefault())}"
 
 // Note: toFloat() then toString() is for removing the tail zero(s).
-private fun Float.toRoundString(decimals: Int = 3): String =
-  "%.${decimals}f".format(this).toFloat().toString()
+private fun Float.toRoundString(decimals: Int = 3): String = "%.${decimals}f".format(this).toFloat().toString()
 
 private typealias IntColorMap = Map<String, Int>
 
@@ -389,15 +352,9 @@ private fun floatColorMapToColor(floatColorMap: FloatColorMap): Color? {
 private fun getConstructorType(arguments: List<UExpression>): ComposeColorConstructor? {
   val paramType = arguments.firstOrNull()?.getExpressionType() ?: return null
   return when (arguments.size) {
-    1 ->
-      if (PsiTypes.intType() == paramType) ComposeColorConstructor.INT
-      else ComposeColorConstructor.LONG
-    3 ->
-      if (PsiTypes.intType() == paramType) ComposeColorConstructor.INT_X3
-      else ComposeColorConstructor.FLOAT_X3
-    4 ->
-      if (PsiTypes.intType() == paramType) ComposeColorConstructor.INT_X4
-      else ComposeColorConstructor.FLOAT_X4
+    1 -> if (PsiTypes.intType() == paramType) ComposeColorConstructor.INT else ComposeColorConstructor.LONG
+    3 -> if (PsiTypes.intType() == paramType) ComposeColorConstructor.INT_X3 else ComposeColorConstructor.FLOAT_X3
+    4 -> if (PsiTypes.intType() == paramType) ComposeColorConstructor.INT_X4 else ComposeColorConstructor.FLOAT_X4
     5 -> ComposeColorConstructor.FLOAT_X4_COLORSPACE
     else -> null
   }

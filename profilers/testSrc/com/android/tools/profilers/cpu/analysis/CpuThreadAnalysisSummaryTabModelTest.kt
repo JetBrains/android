@@ -31,46 +31,45 @@ import org.mockito.kotlin.whenever
 class CpuThreadAnalysisSummaryTabModelTest {
   @Test
   fun nodesInRange() {
-    val timeline = DefaultTimeline().apply {
-      dataRange.set(0.0, 100.0)
-      selectionRange.set(10.0, 20.0)
-    }
-    val capture = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(getCaptureNode(123)).thenReturn(ROOT)
-    }
-    val cpuThreadTrackModel = CpuThreadTrackModel(
-      capture,
-      CpuThreadInfo(123, "foo"),
-      timeline,
-      MultiSelectionModel(),
-      Utils::runOnUi)
-    val model = CpuThreadAnalysisSummaryTabModel(timeline.dataRange, timeline.selectionRange).apply {
-      dataSeries.add(cpuThreadTrackModel)
-    }
+    val timeline =
+      DefaultTimeline().apply {
+        dataRange.set(0.0, 100.0)
+        selectionRange.set(10.0, 20.0)
+      }
+    val capture = Mockito.mock(CpuCapture::class.java).apply { whenever(getCaptureNode(123)).thenReturn(ROOT) }
+    val cpuThreadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(123, "foo"), timeline, MultiSelectionModel(), Utils::runOnUi)
+    val model = CpuThreadAnalysisSummaryTabModel(timeline.dataRange, timeline.selectionRange).apply { dataSeries.add(cpuThreadTrackModel) }
     assertThat(model.getTopNodesInSelectionRange(1).map { it.data.name }).containsExactly("3")
     assertThat(model.getTopNodesInSelectionRange(10).map { it.data.name }).containsExactly("3", "1")
   }
 
   companion object {
-    val ROOT = CaptureNode(SingleNameModel("Root")).apply {
-      startGlobal = 0
-      endGlobal = 100
-      depth = 0
-      addChild(CaptureNode(SingleNameModel("1")).apply {
+    val ROOT =
+      CaptureNode(SingleNameModel("Root")).apply {
         startGlobal = 0
-        endGlobal = 30
-        depth = 1
-      })
-      addChild(CaptureNode(SingleNameModel("2")).apply {
-        startGlobal = 2
-        endGlobal = 5
-        depth = 1
-      })
-      addChild(CaptureNode(SingleNameModel("3")).apply {
-        startGlobal = 15
-        endGlobal = 50
-        depth = 1
-      })
-    }
+        endGlobal = 100
+        depth = 0
+        addChild(
+          CaptureNode(SingleNameModel("1")).apply {
+            startGlobal = 0
+            endGlobal = 30
+            depth = 1
+          }
+        )
+        addChild(
+          CaptureNode(SingleNameModel("2")).apply {
+            startGlobal = 2
+            endGlobal = 5
+            depth = 1
+          }
+        )
+        addChild(
+          CaptureNode(SingleNameModel("3")).apply {
+            startGlobal = 15
+            endGlobal = 50
+            depth = 1
+          }
+        )
+      }
   }
 }

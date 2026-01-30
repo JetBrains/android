@@ -18,9 +18,7 @@ package com.android.tools.module
 import com.android.sdklib.AndroidVersion
 import com.google.common.util.concurrent.ListenableFuture
 
-/**
- * Android information about a module, such as its application package, its minSdkVersion, and so on.
- */
+/** Android information about a module, such as its application package, its minSdkVersion, and so on. */
 interface AndroidModuleInfo {
   /** The minimum SDK version for current Android module. */
   val moduleMinApi: Int

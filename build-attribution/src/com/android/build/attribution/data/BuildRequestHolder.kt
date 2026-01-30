@@ -18,7 +18,7 @@ package com.android.build.attribution.data
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 
 /**
- * This class is used to wrap [GradleBuildInvoker.Request] to pass through Build Analyzer process.
- * We need such wrapper to be able to mock it in unit tests that don't need to interact with the request.
+ * This class is used to wrap [GradleBuildInvoker.Request] to pass through Build Analyzer process. We need such wrapper to be able to mock
+ * it in unit tests that don't need to interact with the request.
  */
 open class BuildRequestHolder(val buildRequest: GradleBuildInvoker.Request)

@@ -32,15 +32,14 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
 
-class DataSnapshotTest: SnapshotComparisonTest {
+class DataSnapshotTest : SnapshotComparisonTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val testName: TestName = TestName()
+  @get:Rule val testName: TestName = TestName()
 
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/build-attribution/testData/snapshots/"
+
   override fun getName(): String = testName.methodName
 
   @Before

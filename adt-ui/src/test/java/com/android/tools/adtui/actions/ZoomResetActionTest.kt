@@ -39,9 +39,7 @@ class ZoomResetActionTest {
   @get:Rule val applicationRule = ApplicationRule()
 
   val actionManager: ActionManagerEx = mock(ActionManagerEx::class.java)
-  val dataContext: DataContext by lazy {
-    SimpleDataContext.getSimpleContext(ZOOMABLE_KEY, zoomable)
-  }
+  val dataContext: DataContext by lazy { SimpleDataContext.getSimpleContext(ZOOMABLE_KEY, zoomable) }
   val zoomable: Zoomable = mock(Zoomable::class.java)
 
   val zoomAction = ZoomResetAction
@@ -69,6 +67,5 @@ class ZoomResetActionTest {
     assertEquals("Reset Zoom", otherEvent.presentation.text)
   }
 
-  private fun getActionEvent(place: String) =
-    AnActionEvent.createEvent(dataContext, Presentation(), place, ActionUiKind.NONE, null)
+  private fun getActionEvent(place: String) = AnActionEvent.createEvent(dataContext, Presentation(), place, ActionUiKind.NONE, null)
 }

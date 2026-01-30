@@ -22,12 +22,10 @@ import com.intellij.openapi.editor.Editor
 
 enum class InsertType {
   DOUBLE_QUOTATION,
-  CUSTOM_SUFFIX;
+  CUSTOM_SUFFIX,
 }
 
-/**
- * Add custom behavior after code completion insertion. Mainly used to add double quotation marks to string values
- */
+/** Add custom behavior after code completion insertion. Mainly used to add double quotation marks to string values */
 class GmdDevicePropertyInsertHandler(
   private val myInsertionType: InsertType = InsertType.DOUBLE_QUOTATION,
   private val myCustomSuffix: String = "",

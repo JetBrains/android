@@ -24,21 +24,28 @@ import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
+import javax.swing.JPanel
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
 import perfetto.protos.PerfettoTrace
-import javax.swing.JPanel
 
 class AndroidFrameTimelineTooltipViewTest {
   @Test
   fun `tooltip updates on change`() {
-    val timeline = DefaultTimeline().apply {
-      dataRange.set(0.0, 4000.0)
-      viewRange.set(0.0, 4000.0)
-    }
-    val model = AndroidFrameTimelineModel(listOf(FAKE_EVENT_0, FAKE_EVENT_1), listOf(), timeline.viewRange,
-                                          FAKE_SELECTION_MODEL as MultiSelectionModel<CpuAnalyzable<*>>, FAKE_CAPTURE)
+    val timeline =
+      DefaultTimeline().apply {
+        dataRange.set(0.0, 4000.0)
+        viewRange.set(0.0, 4000.0)
+      }
+    val model =
+      AndroidFrameTimelineModel(
+        listOf(FAKE_EVENT_0, FAKE_EVENT_1),
+        listOf(),
+        timeline.viewRange,
+        FAKE_SELECTION_MODEL as MultiSelectionModel<CpuAnalyzable<*>>,
+        FAKE_CAPTURE,
+      )
     val tooltip = AndroidFrameTimelineTooltip(timeline, model)
     val tooltipView = AndroidFrameTimelineTooltipView(JPanel(), tooltip)
     run {
@@ -77,22 +84,35 @@ class AndroidFrameTimelineTooltipViewTest {
 }
 
 private val FAKE_EVENT_0 =
-  AndroidFrameTimelineEvent(42L, 42L,
-                            1000L, 2000L, 3000L, "",
-                            PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
-                            PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
-                            onTimeFinish = false, gpuComposition = false, 1)
+  AndroidFrameTimelineEvent(
+    42L,
+    42L,
+    1000L,
+    2000L,
+    3000L,
+    "",
+    PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
+    PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
+    onTimeFinish = false,
+    gpuComposition = false,
+    1,
+  )
 
 private val FAKE_EVENT_1 =
-  AndroidFrameTimelineEvent(43L, 43L,
-                            1500L, 3000L, 3500L, "",
-                            PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
-                            PerfettoTrace.FrameTimelineEvent.JankType.JANK_BUFFER_STUFFING,
-                            onTimeFinish = false, gpuComposition = false, 0)
-
+  AndroidFrameTimelineEvent(
+    43L,
+    43L,
+    1500L,
+    3000L,
+    3500L,
+    "",
+    PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
+    PerfettoTrace.FrameTimelineEvent.JankType.JANK_BUFFER_STUFFING,
+    onTimeFinish = false,
+    gpuComposition = false,
+    0,
+  )
 
 private val FAKE_SELECTION_MODEL = Mockito.mock(MultiSelectionModel::class.java)
 private val CAPTURE_RANGE = Range(1000.0, 10000.0)
-private val FAKE_CAPTURE = Mockito.mock(SystemTraceCpuCapture::class.java).apply {
-  whenever(range).thenReturn(CAPTURE_RANGE)
-}
+private val FAKE_CAPTURE = Mockito.mock(SystemTraceCpuCapture::class.java).apply { whenever(range).thenReturn(CAPTURE_RANGE) }

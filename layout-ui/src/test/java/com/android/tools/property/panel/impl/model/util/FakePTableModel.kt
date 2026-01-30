@@ -21,11 +21,7 @@ import com.android.tools.property.ptable.PTableItem
 import com.android.tools.property.ptable.PTableModel
 import java.util.Objects
 
-class FakePTableModel(
-  expanded: Boolean,
-  values: Map<String, String>,
-  groups: List<PTableGroupItem>,
-) : PTableModel {
+class FakePTableModel(expanded: Boolean, values: Map<String, String>, groups: List<PTableGroupItem>) : PTableModel {
   override var editedItem: PTableItem? = null
   override val items = mutableListOf<PTableItem>()
   var refreshCalled = false
@@ -61,8 +57,7 @@ class FakePTableModel(
 class TestTableItem(override val name: String, override val value: String?) : PTableItem {
   override fun hashCode(): Int = Objects.hash(name, value)
 
-  override fun equals(other: Any?): Boolean =
-    other is TestTableItem && name == other.name && value == other.value
+  override fun equals(other: Any?): Boolean = other is TestTableItem && name == other.name && value == other.value
 }
 
 class TestGroupItem(override val name: String, items: Map<String, String>) : PTableGroupItem {

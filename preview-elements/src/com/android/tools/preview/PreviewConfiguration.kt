@@ -70,8 +70,8 @@ constructor(
 ) {
   companion object {
     /**
-     * Cleans the given values and creates a PreviewConfiguration. The cleaning ensures that the
-     * user inputted value are within reasonable values before the PreviewConfiguration is created
+     * Cleans the given values and creates a PreviewConfiguration. The cleaning ensures that the user inputted value are within reasonable
+     * values before the PreviewConfiguration is created
      */
     @JvmStatic
     fun cleanAndGet(
@@ -90,12 +90,8 @@ constructor(
       // we will handle and any other error.
       PreviewConfiguration(
         apiLevel = apiLevel ?: UNDEFINED_API_LEVEL,
-        width =
-          width?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(MIN_DIMENSION_DP, MAX_DIMENSION_DP)
-            ?: UNDEFINED_DIMENSION,
-        height =
-          height?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(MIN_DIMENSION_DP, MAX_DIMENSION_DP)
-            ?: UNDEFINED_DIMENSION,
+        width = width?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(MIN_DIMENSION_DP, MAX_DIMENSION_DP) ?: UNDEFINED_DIMENSION,
+        height = height?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(MIN_DIMENSION_DP, MAX_DIMENSION_DP) ?: UNDEFINED_DIMENSION,
         locale = locale ?: "",
         fontScale = max(0f, fontScale ?: 1f),
         uiMode = uiMode ?: 0,
@@ -125,20 +121,15 @@ fun ConfigurablePreviewElement<*>.applyTo(
     // layoutlib).
     // The background is composited in studio by using an image transformation as opposed to giving
     // it to Layoutlib to paint it behind the content.
-    (displaySettings.background as? PreviewDisplaySettings.Background.Image)?.image?.let {
-      background ->
-      renderConfiguration.setImageTransformation(
-        Configuration.ImageTransformationType.GLASSES_BACKGROUND_IMAGE,
-        background,
-      )
+    (displaySettings.background as? PreviewDisplaySettings.Background.Image)?.image?.let { background ->
+      renderConfiguration.setImageTransformation(Configuration.ImageTransformationType.GLASSES_BACKGROUND_IMAGE, background)
     }
   }
 }
 
 /**
- * If specified in the [ConfigurablePreviewElement], this method will return the `widthDp` and
- * `heightDp` dimensions as a [Pair] as long as the device frame is disabled (i.e. `showDecorations`
- * is false).
+ * If specified in the [ConfigurablePreviewElement], this method will return the `widthDp` and `heightDp` dimensions as a [Pair] as long as
+ * the device frame is disabled (i.e. `showDecorations` is false).
  */
 @AndroidDpCoordinate
 private fun ConfigurablePreviewElement<*>.getCustomDeviceSize(): Dimension? =
@@ -149,11 +140,9 @@ private fun ConfigurablePreviewElement<*>.getCustomDeviceSize(): Dimension? =
 /**
  * Applies the [PreviewConfiguration] to the given [Configuration].
  *
- * [highestApiTarget] should return the highest api target available for a given [Configuration].
- * [devicesProvider] should return all the devices available for a [Configuration].
- * [defaultDeviceProvider] should return which device to use for a [Configuration] if the device
- * specified in the [PreviewConfiguration.deviceSpec] is not available or does not exist in the
- * devices returned by [devicesProvider].
+ * [highestApiTarget] should return the highest api target available for a given [Configuration]. [devicesProvider] should return all the
+ * devices available for a [Configuration]. [defaultDeviceProvider] should return which device to use for a [Configuration] if the device
+ * specified in the [PreviewConfiguration.deviceSpec] is not available or does not exist in the devices returned by [devicesProvider].
  *
  * If [customSize] is not null, the dimensions will be forced in the resulting configuration.
  */
@@ -171,14 +160,10 @@ private fun PreviewConfiguration.applyTo(
   }
 
   renderConfiguration.startBulkEditing()
-  renderConfiguration.setImageTransformation(
-    Configuration.ImageTransformationType.COLOR_BLIND_MODE,
-    colorBlindImageTransformation,
-  )
+  renderConfiguration.setImageTransformation(Configuration.ImageTransformationType.COLOR_BLIND_MODE, colorBlindImageTransformation)
 
   if (apiLevel != UNDEFINED_API_LEVEL) {
-    val newTarget =
-      renderConfiguration.settings.targets.firstOrNull { it.version.apiLevel == apiLevel }
+    val newTarget = renderConfiguration.settings.targets.firstOrNull { it.version.apiLevel == apiLevel }
     highestApiTarget(renderConfiguration)?.let {
       updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, apiLevel, newTarget))
     }
@@ -199,8 +184,7 @@ private fun PreviewConfiguration.applyTo(
       null
     }
   renderConfiguration.cutoutOverlay = deviceConfig?.cutout?.overlay ?: FrameworkOverlay.CUTOUT_NONE
-  renderConfiguration.isGestureNav =
-    deviceConfig == null || deviceConfig.navigation == Navigation.gesture
+  renderConfiguration.isGestureNav = deviceConfig == null || deviceConfig.navigation == Navigation.gesture
 
   val deviceFromSpec = deviceConfig?.createDeviceInstance() ?: allDevices.findByIdOrName(deviceSpec)
   val device = deviceFromSpec ?: defaultDeviceProvider(renderConfiguration)
@@ -257,13 +241,7 @@ fun ConfigurablePreviewElement<*>.applyConfigurationForTest(
   devicesProvider: (Configuration) -> Collection<Device>,
   defaultDeviceProvider: (Configuration) -> Device?,
 ) {
-  configuration.applyTo(
-    renderConfiguration,
-    highestApiTarget,
-    devicesProvider,
-    defaultDeviceProvider,
-    getCustomDeviceSize(),
-  )
+  configuration.applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider, getCustomDeviceSize())
 }
 
 /** Value used to indicate that the UI mode has not been set. */

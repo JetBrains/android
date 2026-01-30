@@ -23,14 +23,19 @@ import org.jetbrains.android.AndroidTestCase
 class AndroidGradleSpellcheckingStrategyTest : AndroidTestCase() {
   fun testNoTypoInDependencyApplicationStatement() {
     myFixture.enableInspections(setOf(GrazieSpellCheckingInspection::class.java))
-    val virtualFile = myFixture.addFileToProject(
-      "build.gradle",
-      //language=Groovy
-      """
-        dependencies {
-          implementation 'com.example:xyzy:1.0'
-        }
-      """.trimIndent()).virtualFile
+    val virtualFile =
+      myFixture
+        .addFileToProject(
+          "build.gradle",
+          // language=Groovy
+          """
+          dependencies {
+            implementation 'com.example:xyzy:1.0'
+          }
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(virtualFile)
     val typos = myFixture.doHighlighting(SpellCheckerSeveritiesProvider.TYPO)
     assertThat(typos).isEmpty()
@@ -38,14 +43,19 @@ class AndroidGradleSpellcheckingStrategyTest : AndroidTestCase() {
 
   fun testNoTypoInDependencyCallExpression() {
     myFixture.enableInspections(setOf(GrazieSpellCheckingInspection::class.java))
-    val virtualFile = myFixture.addFileToProject(
-      "build.gradle",
-      //language=Groovy
-      """
-        dependencies {
-          implementation('com.example:xyzy:1.0')
-        }
-      """.trimIndent()).virtualFile
+    val virtualFile =
+      myFixture
+        .addFileToProject(
+          "build.gradle",
+          // language=Groovy
+          """
+          dependencies {
+            implementation('com.example:xyzy:1.0')
+          }
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(virtualFile)
     val typos = myFixture.doHighlighting(SpellCheckerSeveritiesProvider.TYPO)
     assertThat(typos).isEmpty()
@@ -53,14 +63,19 @@ class AndroidGradleSpellcheckingStrategyTest : AndroidTestCase() {
 
   fun testTypoInPrintApplicationStatement() {
     myFixture.enableInspections(setOf(GrazieSpellCheckingInspection::class.java))
-    val virtualFile = myFixture.addFileToProject(
-      "build.gradle",
-      //language=Groovy
-      """
-        dependencies {
-          print 'com.example:xyzy:1.0'
-        }
-      """.trimIndent()).virtualFile
+    val virtualFile =
+      myFixture
+        .addFileToProject(
+          "build.gradle",
+          // language=Groovy
+          """
+          dependencies {
+            print 'com.example:xyzy:1.0'
+          }
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(virtualFile)
     val typos = myFixture.doHighlighting(SpellCheckerSeveritiesProvider.TYPO)
     assertThat(typos).hasSize(1)
@@ -69,14 +84,19 @@ class AndroidGradleSpellcheckingStrategyTest : AndroidTestCase() {
 
   fun testTypoInPrintCallExpression() {
     myFixture.enableInspections(setOf(GrazieSpellCheckingInspection::class.java))
-    val virtualFile = myFixture.addFileToProject(
-      "build.gradle",
-      //language=Groovy
-      """
-        dependencies {
-          print('com.example:xyzy:1.0')
-        }
-      """.trimIndent()).virtualFile
+    val virtualFile =
+      myFixture
+        .addFileToProject(
+          "build.gradle",
+          // language=Groovy
+          """
+          dependencies {
+            print('com.example:xyzy:1.0')
+          }
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(virtualFile)
     val typos = myFixture.doHighlighting(SpellCheckerSeveritiesProvider.TYPO)
     assertThat(typos).hasSize(1)

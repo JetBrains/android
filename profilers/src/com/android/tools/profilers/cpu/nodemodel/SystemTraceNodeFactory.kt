@@ -16,8 +16,8 @@
 package com.android.tools.profilers.cpu.nodemodel
 
 /**
- * This Factory returns instances of {@link SystemTraceNodeModel}s, guaranteeing that nodes that
- * represents a same object would be mapped to a single instance.
+ * This Factory returns instances of {@link SystemTraceNodeModel}s, guaranteeing that nodes that represents a same object would be mapped to
+ * a single instance.
  */
 class SystemTraceNodeFactory {
   private val nodeMap = mutableMapOf<String, SystemTraceNodeModel>()

@@ -28,26 +28,19 @@ import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerUtils
 
 class LiveTaskHandler(private val sessionsManager: SessionsManager) : ProfilerTaskHandler(sessionsManager) {
 
-  /**
-   * Returns whether the task supports a given session artifact (backing data construct).
-   */
+  /** Returns whether the task supports a given session artifact (backing data construct). */
   override fun supportsArtifact(artifact: SessionArtifact<*>?): Boolean {
     return artifact is LiveViewSessionArtifact
   }
 
-
-  /**
-   * Task behavior on start.
-   */
+  /** Task behavior on start. */
   override fun startTask(args: TaskArgs) {
     val studioProfilers = sessionsManager.studioProfilers
     val liveStage = LiveStage(studioProfilers, ::stopTask)
     studioProfilers.stage = liveStage
   }
 
-  /**
-   * Ends live view task by ending the session.
-   */
+  /** Ends live view task by ending the session. */
   override fun stopTask() {
     sessionsManager.endSelectedSession()
   }
@@ -76,15 +69,11 @@ class LiveTaskHandler(private val sessionsManager: SessionsManager) : ProfilerTa
 
   override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = LiveTaskArgs(false, artifact)
 
-  /**
-   * Returns the name of the task.
-   */
+  /** Returns the name of the task. */
   override fun getTaskName(): String {
     return "Live View"
   }
 
-  /**
-   * Always returns true since live view task is available regardless of devices feature level and process
-   */
+  /** Always returns true since live view task is available regardless of devices feature level and process */
   override fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError? = null
 }

@@ -51,16 +51,14 @@ import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
 
-class StudioLabsSettingsConfigurable :
-  SearchableConfigurable, Promo, Configurable.NoScroll, Configurable.NoMargin {
+class StudioLabsSettingsConfigurable : SearchableConfigurable, Promo, Configurable.NoScroll, Configurable.NoMargin {
   @VisibleForTesting val panelList = getStudioLabsFeaturePanelList()
 
   override fun getDisplayName(): @NlsContexts.ConfigurableName String = "Studio Labs"
 
   override fun getId(): @NonNls String = "studio.settings.StudioLabsConfigurable"
 
-  override fun getHelpTopic(): String =
-    AndroidWebHelpProvider.HELP_PREFIX + "studio/preview/gemini/labs"
+  override fun getHelpTopic(): String = AndroidWebHelpProvider.HELP_PREFIX + "studio/preview/gemini/labs"
 
   override fun createComponent(): JComponent {
     log(PageInteraction.OPENED)
@@ -121,9 +119,8 @@ class StudioLabsSettingsConfigurable :
     }
 
     /**
-     * Returns feature panels to display on Studio Labs page. If
-     * [StudioFlags.STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED] is set to true, returns a fake
-     * feature panel list for internal testing.
+     * Returns feature panels to display on Studio Labs page. If [StudioFlags.STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED] is set to true,
+     * returns a fake feature panel list for internal testing.
      */
     private fun getStudioLabsFeaturePanelList(): List<StudioLabsFeaturePanelUi> = buildList {
       // Add a pane for every feature that should be in labs.

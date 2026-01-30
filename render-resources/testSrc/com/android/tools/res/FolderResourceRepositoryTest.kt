@@ -20,9 +20,9 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils
 import com.android.tools.res.apk.TEST_DATA_DIR
+import kotlin.io.path.absolutePathString
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import kotlin.io.path.absolutePathString
 
 class FolderResourceRepositoryTest {
   @Test

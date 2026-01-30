@@ -24,11 +24,7 @@ import org.jetbrains.android.dom.CustomLogicResourceDomFileDescription
 
 /** Describes files in [ResourceFolderType.XML] that has preference class as root tag. */
 class PreferenceClassDomFileDescription :
-  CustomLogicResourceDomFileDescription<PreferenceElement>(
-    PreferenceElement::class.java,
-    ResourceFolderType.XML,
-    "preference",
-  ) {
+  CustomLogicResourceDomFileDescription<PreferenceElement>(PreferenceElement::class.java, ResourceFolderType.XML, "preference") {
 
   object Util {
     @JvmStatic

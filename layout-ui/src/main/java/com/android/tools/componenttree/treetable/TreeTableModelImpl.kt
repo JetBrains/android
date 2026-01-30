@@ -51,13 +51,7 @@ private fun <T> NodeType<T>.canInsert(item: Any, data: Transferable): Boolean {
 }
 
 /** Type safe access to generic accessor */
-private fun <T> NodeType<T>.insert(
-  item: Any,
-  data: Transferable,
-  before: Any?,
-  isMove: Boolean,
-  draggedFromTree: List<Any>,
-): Boolean {
+private fun <T> NodeType<T>.insert(item: Any, data: Transferable, before: Any?, isMove: Boolean, draggedFromTree: List<Any>): Boolean {
   return insert(clazz.cast(item), data, before, isMove, draggedFromTree)
 }
 
@@ -76,10 +70,7 @@ private fun <T> NodeType<T>.createDragImage(item: Any): Image? {
   return createDragImage(clazz.cast(item))
 }
 
-/**
- * Implementation of the tree model specified in the
- * [com.android.tools.componenttree.api.ComponentTreeBuilder].
- */
+/** Implementation of the tree model specified in the [com.android.tools.componenttree.api.ComponentTreeBuilder]. */
 class TreeTableModelImpl(
   val columns: List<ColumnInfo>,
   private val nodeTypeLookupMap: Map<Class<*>, NodeType<*>>,
@@ -90,9 +81,7 @@ class TreeTableModelImpl(
 
   // region ComponentTreeModel implementation
   override var treeRoot: Any? by
-    Delegates.observable(null) { _, oldRoot, newRoot ->
-      hierarchyChanged(newRoot, newRoot != oldRoot, emptyList())
-    }
+    Delegates.observable(null) { _, oldRoot, newRoot -> hierarchyChanged(newRoot, newRoot != oldRoot, emptyList()) }
 
   override fun hierarchyChanged(changedNode: Any?, toExpand: List<Any?>) {
     hierarchyChanged(changedNode, false, toExpand)
@@ -160,8 +149,7 @@ class TreeTableModelImpl(
   val allNodes: Sequence<*>
     get() = treeRoot?.flatten() ?: emptySequence<Nothing>()
 
-  private fun Any.flatten(): Sequence<*> =
-    children(this).asSequence().filterNotNull().flatMap { it.flatten() }.plus(this)
+  private fun Any.flatten(): Sequence<*> = children(this).asSequence().filterNotNull().flatMap { it.flatten() }.plus(this)
 
   /** Return true if this [node] can accept [data] being inserted into [node]. */
   fun canInsert(node: Any?, data: Transferable): Boolean {
@@ -169,13 +157,7 @@ class TreeTableModelImpl(
   }
 
   /** Insert [data] into [node] either before [before] or at the end if [before] is null. */
-  fun insert(
-    node: Any?,
-    data: Transferable,
-    before: Any? = null,
-    isMove: Boolean,
-    draggedFromTree: List<Any>,
-  ): Boolean {
+  fun insert(node: Any?, data: Transferable, before: Any? = null, isMove: Boolean, draggedFromTree: List<Any>): Boolean {
     return node?.let { typeOf(it).insert(it, data, before, isMove, draggedFromTree) } ?: false
   }
 
@@ -194,10 +176,7 @@ class TreeTableModelImpl(
     return node?.let { typeOf(it).createDragImage(it) }
   }
 
-  /**
-   * Compute a search string (for SpeedSearch) using the relevant [NodeType] for the specified tree
-   * [node].
-   */
+  /** Compute a search string (for SpeedSearch) using the relevant [NodeType] for the specified tree [node]. */
   fun toSearchString(node: Any?): String {
     return node?.let { typeOf(node).toSearchString(node) } ?: ""
   }
@@ -229,23 +208,14 @@ class TreeTableModelImpl(
   fun computeDepth(node: Any): Int = generateSequence(node) { parent(it) }.count()
 
   private fun fireTreeChange(changedNode: Any?, rootChanged: Boolean, toExpand: List<Any?>) {
-    val event =
-      TreeTableModelEvent(
-        this,
-        toPath(changedNode),
-        rootChanged,
-        toExpand.mapNotNull { toPath(it) },
-      )
+    val event = TreeTableModelEvent(this, toPath(changedNode), rootChanged, toExpand.mapNotNull { toPath(it) })
     modelListeners.forEach { (it as? TreeTableModelImplListener)?.treeChanged(event) }
   }
 
   private fun toPath(node: Any?): TreePath? =
-    node?.let {
-      TreePath(generateSequence(node) { parent(it) }.toList().asReversed().toTypedArray())
-    }
+    node?.let { TreePath(generateSequence(node) { parent(it) }.toList().asReversed().toTypedArray()) }
 
-  private fun fireColumnDataChanged() =
-    modelListeners.forEach { (it as? TreeTableModelImplListener)?.columnDataChanged() }
+  private fun fireColumnDataChanged() = modelListeners.forEach { (it as? TreeTableModelImplListener)?.columnDataChanged() }
 
   fun fireTreeStructureChange(newRoot: Any?) {
     val path = newRoot?.let { TreePath(newRoot) }

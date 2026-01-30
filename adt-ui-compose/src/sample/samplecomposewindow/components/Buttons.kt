@@ -28,8 +28,8 @@ import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 
 /**
- * This sample composable showcasing the different button components was adapted from the public
- * Jewel repository standalone sample. See: https://github.com/JetBrains/jewel
+ * This sample composable showcasing the different button components was adapted from the public Jewel repository standalone sample. See:
+ * https://github.com/JetBrains/jewel
  */
 @Composable
 fun Buttons() {

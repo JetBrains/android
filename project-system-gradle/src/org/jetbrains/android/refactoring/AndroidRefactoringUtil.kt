@@ -31,9 +31,5 @@ import com.intellij.openapi.project.Project
 fun syncBeforeFinishingRefactoring(project: Project, trigger: GradleSyncStats.Trigger, listener: GradleSyncListener?) {
   assert(ApplicationManager.getApplication().isDispatchThread)
 
-  GradleSyncInvoker.getInstance().requestProjectSync(
-    project,
-    GradleSyncInvoker.Request(trigger),
-    listener
-  )
+  GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(trigger), listener)
 }

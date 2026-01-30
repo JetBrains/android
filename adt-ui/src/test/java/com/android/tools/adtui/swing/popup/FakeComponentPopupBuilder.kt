@@ -47,8 +47,7 @@ open class FakeComponentPopupBuilder(
 
   // Section for implemented overrides
   override fun createPopup(): JBPopup =
-    FakeComponentPopup(content, preferableFocusComponent, isFocusable, isRequestFocus)
-      .also(factory::addPopup)
+    FakeComponentPopup(content, preferableFocusComponent, isFocusable, isRequestFocus).also(factory::addPopup)
 
   override fun setFocusable(focusable: Boolean) = this.also { isFocusable = focusable }
 
@@ -129,8 +128,7 @@ open class FakeComponentPopupBuilder(
 
   override fun setKeyEventHandler(handler: BooleanFunction<in KeyEvent>) = this
 
-  override fun setDimensionServiceKey(project: Project?, key: String?, useForXYLocation: Boolean) =
-    this
+  override fun setDimensionServiceKey(project: Project?, key: String?, useForXYLocation: Boolean) = this
 
   override fun setCancelOnMouseOutCallback(shouldCancel: MouseChecker) = this
 

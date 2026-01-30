@@ -20,10 +20,7 @@ import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 
-/**
- * Represents the distance between two points in swing space Corresponds to the [SwingCoordinate]
- * attribute
- */
+/** Represents the distance between two points in swing space Corresponds to the [SwingCoordinate] attribute */
 @JvmInline
 value class SwingLength(val value: Float) {
   operator fun plus(rhs: SwingLength) = SwingLength(value + rhs.value)
@@ -57,5 +54,4 @@ fun max(a: SwingLength, b: SwingLength) = SwingLength(max(a.value, b.value))
 
 fun min(a: SwingLength, b: SwingLength) = SwingLength(min(a.value, b.value))
 
-fun interpolate(start: SwingLength, end: SwingLength, fraction: Float) =
-  start + (end - start) * fraction
+fun interpolate(start: SwingLength, end: SwingLength, fraction: Float) = start + (end - start) * fraction

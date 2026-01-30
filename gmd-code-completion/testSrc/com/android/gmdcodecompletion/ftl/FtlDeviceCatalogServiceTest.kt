@@ -57,9 +57,7 @@ class FtlDeviceCatalogServiceTest {
     ftlDeviceCatalogService.updateDeviceCatalogTaskAction(project, mockProgressIndicator)
 
     assertTrue(ftlDeviceCatalogService.state.isCacheFresh())
-    assertTrue(
-      matchFtlDeviceCatalog(ftlDeviceCatalogService.state.myDeviceCatalog, fullAndroidDeviceCatalog)
-    )
+    assertTrue(matchFtlDeviceCatalog(ftlDeviceCatalogService.state.myDeviceCatalog, fullAndroidDeviceCatalog))
     verify(mockCloudAuthenticator).androidDeviceCatalog
   }
 

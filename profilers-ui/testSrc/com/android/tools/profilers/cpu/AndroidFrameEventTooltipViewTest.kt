@@ -24,23 +24,32 @@ import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEvent
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
+import org.junit.Test
 
 class AndroidFrameEventTooltipViewTest {
   private val multiSelectionModel = MultiSelectionModel<CpuAnalyzable<*>>()
+
   @Test
   fun testUpdatesOnRangeChange() {
-    val timeline = DefaultTimeline().apply {
-      dataRange.set(0.0, MICROS_TO_MILLIS * 3.0)
-      viewRange.set(0.0, MICROS_TO_MILLIS * 3.0)
-    }
-    val model = AndroidFrameEventTrackModel("App", timeline.viewRange,
-                                            listOf(RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS }),
-                                                   RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS_1 })),
-                                            RangedSeries(timeline.viewRange, LazyDataSeries { listOf() }),
-                                            multiSelectionModel, mapOf())
+    val timeline =
+      DefaultTimeline().apply {
+        dataRange.set(0.0, MICROS_TO_MILLIS * 3.0)
+        viewRange.set(0.0, MICROS_TO_MILLIS * 3.0)
+      }
+    val model =
+      AndroidFrameEventTrackModel(
+        "App",
+        timeline.viewRange,
+        listOf(
+          RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS }),
+          RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS_1 }),
+        ),
+        RangedSeries(timeline.viewRange, LazyDataSeries { listOf() }),
+        multiSelectionModel,
+        mapOf(),
+      )
     val tooltip = AndroidFrameEventTooltip(timeline, model)
     val tooltipView = AndroidFrameEventTooltipView(JPanel(), tooltip)
 
@@ -72,11 +81,15 @@ class AndroidFrameEventTooltipViewTest {
 
   private companion object {
     val MICROS_TO_MILLIS = TimeUnit.MILLISECONDS.toMicros(1)
-    val FRAME_EVENTS = listOf<SeriesData<AndroidFrameEvent>>(
-      SeriesData(0, AndroidFrameEvent.Padding),
-      SeriesData(MICROS_TO_MILLIS, AndroidFrameEvent.Data(123, 1000, 2000)))
-    val FRAME_EVENTS_1 = listOf<SeriesData<AndroidFrameEvent>>(
-      SeriesData(0, AndroidFrameEvent.Padding),
-      SeriesData(MICROS_TO_MILLIS, AndroidFrameEvent.Data(234, 1500, 1000)))
+    val FRAME_EVENTS =
+      listOf<SeriesData<AndroidFrameEvent>>(
+        SeriesData(0, AndroidFrameEvent.Padding),
+        SeriesData(MICROS_TO_MILLIS, AndroidFrameEvent.Data(123, 1000, 2000)),
+      )
+    val FRAME_EVENTS_1 =
+      listOf<SeriesData<AndroidFrameEvent>>(
+        SeriesData(0, AndroidFrameEvent.Padding),
+        SeriesData(MICROS_TO_MILLIS, AndroidFrameEvent.Data(234, 1500, 1000)),
+      )
   }
 }

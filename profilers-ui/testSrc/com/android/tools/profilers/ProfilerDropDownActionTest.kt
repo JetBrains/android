@@ -34,8 +34,7 @@ private val ICON = StudioIcons.Profiler.Sessions.ALLOCATIONS
 
 class ProfilerDropDownActionTest {
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   enum class TestValues {
     DEFAULT,
@@ -68,15 +67,7 @@ class ProfilerDropDownActionTest {
   fun `icons for entries are correctly set when available`(): Unit =
     runBlocking(AndroidDispatchers.uiThread) {
       val flow = MutableStateFlow(selectionOf(TestValues.ONE))
-      val dropdown =
-        ProfilerDropDownAction(
-          "testName",
-          null,
-          null,
-          flow,
-          { value -> if (value == TestValues.TWO) ICON else null },
-          {},
-        )
+      val dropdown = ProfilerDropDownAction("testName", null, null, flow, { value -> if (value == TestValues.TWO) ICON else null }, {})
 
       initUi(dropdown)
 
@@ -88,8 +79,7 @@ class ProfilerDropDownActionTest {
         val presentation = children.templatePresentation
         if (presentation.text == TestValues.TWO.toString()) {
           assertThat(presentation.icon).isEqualTo(ICON)
-        }
-        else {
+        } else {
           assertThat(presentation.icon).isNull()
         }
       }
@@ -99,10 +89,7 @@ class ProfilerDropDownActionTest {
     val panel = JPanel(BorderLayout())
     val fakeUi = FakeUi(panel)
     val actionGroups = DefaultActionGroup().apply { add(dropdown) }
-    val toolbar =
-      ActionManager.getInstance().createActionToolbar("ProfilerTest", actionGroups, true).apply {
-        targetComponent = panel
-      }
+    val toolbar = ActionManager.getInstance().createActionToolbar("ProfilerTest", actionGroups, true).apply { targetComponent = panel }
     panel.add(toolbar.component, BorderLayout.CENTER)
     fakeUi.updateToolbars()
     return fakeUi

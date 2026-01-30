@@ -35,8 +35,8 @@ fun loadClassBytes(c: Class<*>): ByteArray {
 }
 
 /**
- * Sets up a new [TestClassLoader]. We take the already compiled classes in the test project, and
- * save it to a byte array, applying the transformations.
+ * Sets up a new [TestClassLoader]. We take the already compiled classes in the test project, and save it to a byte array, applying the
+ * transformations.
  */
 fun setupTestClassLoaderWithTransformation(
   classDefinitions: Map<String, Class<*>>,
@@ -47,11 +47,7 @@ fun setupTestClassLoaderWithTransformation(
   // Create a SimpleRemapper that renames all the classes in `classDefinitions` from their old
   // names to the new ones.
   val classNameRemapper =
-    SimpleRemapper(
-      classDefinitions
-        .map { (newClassName, clazz) -> Type.getInternalName(clazz) to newClassName }
-        .toMap()
-    )
+    SimpleRemapper(classDefinitions.map { (newClassName, clazz) -> Type.getInternalName(clazz) to newClassName }.toMap())
   val redefinedClasses =
     classDefinitions
       .map { (newClassName, clazz) ->
@@ -61,16 +57,8 @@ fun setupTestClassLoaderWithTransformation(
         val classOutputWriter = ClassWriter(ClassWriter.COMPUTE_FRAMES)
         // Move the class
         val remapper =
-          ClassRemapper(
-            classTransformation(
-              TraceClassVisitor(classOutputWriter, PrintWriter(afterTransformTrace))
-            ),
-            classNameRemapper,
-          )
-        classReader.accept(
-          TraceClassVisitor(remapper, PrintWriter(beforeTransformTrace)),
-          ClassReader.EXPAND_FRAMES,
-        )
+          ClassRemapper(classTransformation(TraceClassVisitor(classOutputWriter, PrintWriter(afterTransformTrace))), classNameRemapper)
+        classReader.accept(TraceClassVisitor(remapper, PrintWriter(beforeTransformTrace)), ClassReader.EXPAND_FRAMES)
 
         newClassName to classOutputWriter.toByteArray()
       }

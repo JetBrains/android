@@ -47,5 +47,4 @@ class FakeTraceProcessorServiceTest {
     val loadOk = fakeService.loadTrace(1, CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), fakeIdeProfilerServices)
     Truth.assertThat(loadOk).isFalse()
   }
-
 }

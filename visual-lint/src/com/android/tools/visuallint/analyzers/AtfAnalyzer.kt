@@ -43,10 +43,7 @@ object AtfAnalyzer : VisualLintAnalyzer() {
   }
 
   /** Analyze the given [RenderResult] for issues related to ATF that overlaps with visual lint. */
-  override fun findIssues(
-    renderResult: RenderResult,
-    configuration: Configuration,
-  ): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
     when (val validatorResult = renderResult.validatorResult) {
       is ValidatorHierarchy -> {
         if (!validatorResult.isHierarchyBuilt) {
@@ -57,12 +54,7 @@ object AtfAnalyzer : VisualLintAnalyzer() {
         val policy =
           ValidatorData.Policy(
             EnumSet.of(ValidatorData.Type.ACCESSIBILITY, ValidatorData.Type.RENDER),
-            EnumSet.of(
-              ValidatorData.Level.ERROR,
-              ValidatorData.Level.WARNING,
-              ValidatorData.Level.INFO,
-              ValidatorData.Level.VERBOSE,
-            ),
+            EnumSet.of(ValidatorData.Level.ERROR, ValidatorData.Level.WARNING, ValidatorData.Level.INFO, ValidatorData.Level.VERBOSE),
           )
 
         val validated = ValidatorUtil.generateResults(policy, validatorResult)
@@ -76,10 +68,7 @@ object AtfAnalyzer : VisualLintAnalyzer() {
   }
 }
 
-private fun validateAndUpdateLint(
-  renderResult: RenderResult,
-  validatorResult: ValidatorResult,
-): MutableList<VisualLintIssueContent> {
+private fun validateAndUpdateLint(renderResult: RenderResult, validatorResult: ValidatorResult): MutableList<VisualLintIssueContent> {
   val issues = ArrayList<VisualLintIssueContent>()
   val accessibilityToViewInfo = mutableMapOf<AccessibilityNodeInfo, ViewInfo>()
   val viewToViewInfo = mutableMapOf<View, ViewInfo>()
@@ -95,17 +84,11 @@ private fun validateAndUpdateLint(
   }
   validatorResult.issues.forEach {
     if (
-      (it.mLevel == ValidatorData.Level.ERROR || it.mLevel == ValidatorData.Level.WARNING) &&
-        it.mType == ValidatorData.Type.ACCESSIBILITY
+      (it.mLevel == ValidatorData.Level.ERROR || it.mLevel == ValidatorData.Level.WARNING) && it.mType == ValidatorData.Type.ACCESSIBILITY
     ) {
-      val viewInfo =
-        viewInfoFromSrcId(validatorResult, it.mSrcId, accessibilityToViewInfo, viewToViewInfo)
+      val viewInfo = viewInfoFromSrcId(validatorResult, it.mSrcId, accessibilityToViewInfo, viewToViewInfo)
       val description = it.describe()
-      issues.add(
-        VisualLintIssueContent(view = viewInfo, message = it.summarize(), atfIssue = it) {
-          HtmlBuilder().addHtml(description)
-        }
-      )
+      issues.add(VisualLintIssueContent(view = viewInfo, message = it.summarize(), atfIssue = it) { HtmlBuilder().addHtml(description) })
     }
   }
   return issues
@@ -133,9 +116,7 @@ private const val TOUCH_TARGET_SIZE = "TOUCH_TARGET_SIZE"
 private const val LOW_CONTRAST = "LOW_CONTRAST"
 
 fun ValidatorData.Issue.isLowContrast(): Boolean {
-  return mSourceClass == "TextContrastCheck" ||
-    mSourceClass == "ImageContrastCheck" ||
-    mCategory == LOW_CONTRAST
+  return mSourceClass == "TextContrastCheck" || mSourceClass == "ImageContrastCheck" || mCategory == LOW_CONTRAST
 }
 
 fun ValidatorData.Issue.summarize() =

@@ -32,7 +32,11 @@ fun StartTaskError(error: StartTaskSelectionError) {
     subText = DEBUGGABLE_REBUILD_INSTRUCTION_TOOLTIP
   }
 
-  NotificationWithTooltip(notificationText = getStartTaskErrorNotificationText(error),
-                          tooltipMainText = getStartTaskErrorMessage(errorCode), tooltipSubText = subText,
-                          iconKey = StudioIconsCompose.Common.Error, iconDescription = START_TASK_SELECTION_ERROR_ICON_DESC)
+  NotificationWithTooltip(
+    notificationText = getStartTaskErrorNotificationText(error),
+    tooltipMainText = getStartTaskErrorMessage(errorCode),
+    tooltipSubText = subText,
+    iconKey = StudioIconsCompose.Common.Error,
+    iconDescription = START_TASK_SELECTION_ERROR_ICON_DESC,
+  )
 }

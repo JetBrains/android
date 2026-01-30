@@ -21,13 +21,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.application
 
 /**
- * If you are writing Android plugin code and are in a situation where you want to
- * use the `Application` or `Project` as a parent disposable, then use this class instead.
+ * If you are writing Android plugin code and are in a situation where you want to use the `Application` or `Project` as a parent
+ * disposable, then use this class instead.
  *
- * Background: the [IntelliJ SDK Docs](https://plugins.jetbrains.com/docs/intellij/disposers.html)
- * say to never use `Application` nor `Project` as parent disposables, because this can prevent
- * plugin unloading. Technically, we do not care about Android plugin unloading in Android Studio.
- * However, JetBrains cares about plugin unloading in their fork of the Android plugin in IntelliJ.
+ * Background: the [IntelliJ SDK Docs](https://plugins.jetbrains.com/docs/intellij/disposers.html) say to never use `Application` nor
+ * `Project` as parent disposables, because this can prevent plugin unloading. Technically, we do not care about Android plugin unloading in
+ * Android Studio. However, JetBrains cares about plugin unloading in their fork of the Android plugin in IntelliJ.
  */
 @Service
 class AndroidPluginDisposable private constructor() : Disposable {

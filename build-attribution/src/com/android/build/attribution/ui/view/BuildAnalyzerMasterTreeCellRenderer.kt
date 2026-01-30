@@ -55,7 +55,7 @@ class BuildAnalyzerMasterTreeCellRenderer private constructor() : NodeRenderer()
     expanded: Boolean,
     leaf: Boolean,
     row: Int,
-    hasFocus: Boolean
+    hasFocus: Boolean,
   ) {
     cleanup()
 
@@ -73,28 +73,30 @@ class BuildAnalyzerMasterTreeCellRenderer private constructor() : NodeRenderer()
   }
 
   private fun customize(nodePresentation: BuildAnalyzerTreeNodePresentation, selected: Boolean, hasFocus: Boolean) {
-    icon = when (nodePresentation.nodeIconState) {
-      NodeIconState.NO_ICON -> null
-      NodeIconState.EMPTY_PLACEHOLDER -> EmptyIcon.ICON_16
-      NodeIconState.WARNING_ICON -> if (selected && hasFocus && !ExperimentalUI.isNewUI()) generateWhiteIcon(warningIcon()) else warningIcon()
-    }
+    icon =
+      when (nodePresentation.nodeIconState) {
+        NodeIconState.NO_ICON -> null
+        NodeIconState.EMPTY_PLACEHOLDER -> EmptyIcon.ICON_16
+        NodeIconState.WARNING_ICON ->
+          if (selected && hasFocus && !ExperimentalUI.isNewUI()) generateWhiteIcon(warningIcon()) else warningIcon()
+      }
     this.selected = selected
     append(nodePresentation.mainText, SimpleTextAttributes.REGULAR_ATTRIBUTES, true)
     append(" ${nodePresentation.suffix}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
 
-    durationTextPresentation = nodePresentation.rightAlignedSuffix.let { text ->
-      val metrics = getFontMetrics(rightAlignedFont)
-      val stringWidth = metrics.stringWidth(text)
-      val durationOffset = metrics.height / 2
-      ipad = JBUI.insetsRight(stringWidth + durationOffset + durationOffset / 2)
-      RightAlignedDurationTextPresentation(
-        durationText = text,
-        durationWidth = stringWidth,
-        durationOffset = durationOffset,
-        durationColor = if (selected) UIUtil.getTreeSelectionForeground(hasFocus)
-        else SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor
-      )
-    }
+    durationTextPresentation =
+      nodePresentation.rightAlignedSuffix.let { text ->
+        val metrics = getFontMetrics(rightAlignedFont)
+        val stringWidth = metrics.stringWidth(text)
+        val durationOffset = metrics.height / 2
+        ipad = JBUI.insetsRight(stringWidth + durationOffset + durationOffset / 2)
+        RightAlignedDurationTextPresentation(
+          durationText = text,
+          durationWidth = stringWidth,
+          durationOffset = durationOffset,
+          durationColor = if (selected) UIUtil.getTreeSelectionForeground(hasFocus) else SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor,
+        )
+      }
   }
 
   override fun paintComponent(g: Graphics) {
@@ -122,13 +124,11 @@ class BuildAnalyzerMasterTreeCellRenderer private constructor() : NodeRenderer()
     val durationText: String,
     val durationColor: Color,
     val durationWidth: Int,
-    val durationOffset: Int
+    val durationOffset: Int,
   )
 }
 
-/**
- * Tasks tree node presentation used by [BuildAnalyzerMasterTreeCellRenderer] to render the node.
- */
+/** Tasks tree node presentation used by [BuildAnalyzerMasterTreeCellRenderer] to render the node. */
 data class BuildAnalyzerTreeNodePresentation(
   /** Node main text rendered in standard font. */
   val mainText: String,
@@ -137,7 +137,7 @@ data class BuildAnalyzerTreeNodePresentation(
   /** Text that is rendered on the right side. Used to show the execution time. */
   val rightAlignedSuffix: String = "",
   /** What kind of icon should be rendered on the left of the node. */
-  val nodeIconState: NodeIconState = NodeIconState.NO_ICON
+  val nodeIconState: NodeIconState = NodeIconState.NO_ICON,
 ) {
   enum class NodeIconState {
     /** No Icon should be rendered for this node. */
@@ -147,6 +147,6 @@ data class BuildAnalyzerTreeNodePresentation(
     EMPTY_PLACEHOLDER,
 
     /** Render warning icon for this node. */
-    WARNING_ICON
+    WARNING_ICON,
   }
 }

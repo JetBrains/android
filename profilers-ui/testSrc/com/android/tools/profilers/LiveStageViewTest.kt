@@ -28,39 +28,35 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.cpu.CpuUsageView
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FlexibleLegendPanel
+import com.android.tools.profilers.memory.LiveMemoryFootprintModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.ui.components.JBLabel
-import com.android.tools.profilers.memory.LiveMemoryFootprintModel
+import javax.swing.JComponent
+import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import javax.swing.JComponent
-import javax.swing.JPanel
 
 class LiveStageViewTest {
   private val myTimer = FakeTimer()
   private val myComponents = FakeIdeProfilerComponents()
   private val myIdeServices = FakeIdeProfilerServices()
-  private val myTransportService = FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S,
-                                                        Common.Process.ExposureLevel.PROFILEABLE)
+  private val myTransportService =
+    FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
 
-  @get:Rule
-  val myGrpcChannel = FakeGrpcChannel("LiveStageViewTest", myTransportService, FakeEventService())
+  @get:Rule val myGrpcChannel = FakeGrpcChannel("LiveStageViewTest", myTransportService, FakeEventService())
 
-  @get:Rule
-  val myEdtRule = EdtRule()
+  @get:Rule val myEdtRule = EdtRule()
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var myProfilersView: StudioProfilersView
   private lateinit var myStage: LiveStage
@@ -78,13 +74,13 @@ class LiveStageViewTest {
     myProfilersView = SessionProfilersView(spyProfilers, myComponents, disposableRule.disposable)
   }
 
-  private fun getJPanels() : List<JPanel> {
+  private fun getJPanels(): List<JPanel> {
     val liveStageView = LiveStageView(myProfilersView, myStage)
     val treeWalker = TreeWalker(liveStageView.component)
     return treeWalker.descendants().filterIsInstance(JPanel::class.java)
   }
 
-  private fun getTreeWalkerTopPanel(jPanels : List<JPanel>) : TreeWalker {
+  private fun getTreeWalkerTopPanel(jPanels: List<JPanel>): TreeWalker {
     // First from JPanel should be top panel
     val mainPanel = jPanels[0]
     val treeWalkerMainPanel = TreeWalker(mainPanel)
@@ -107,7 +103,7 @@ class LiveStageViewTest {
     assertThat(jPanels.size).isGreaterThan(1)
   }
 
-  /** Test main panel of LiveStage view has topPanel, which is a tabular layout **/
+  /** Test main panel of LiveStage view has topPanel, which is a tabular layout * */
   @Test
   fun testLiveStageViewTopPanel() {
     val jPanels = getJPanels()
@@ -144,7 +140,7 @@ class LiveStageViewTest {
     val topLevelToolBar = TreeWalker(result.components[0])
     val topPanelAxisComponents = topLevelToolBar.descendants().filterIsInstance(CommonButton::class.java)
     assertThat(topPanelAxisComponents.size).isGreaterThan(0)
-    val stopRecordingButton = topPanelAxisComponents.stream().filter{i -> "Stop Recording" == i.toolTipText }.findAny()
+    val stopRecordingButton = topPanelAxisComponents.stream().filter { i -> "Stop Recording" == i.toolTipText }.findAny()
     assertThat(stopRecordingButton.isPresent).isTrue()
   }
 
@@ -154,7 +150,7 @@ class LiveStageViewTest {
     assertThat(topPanelAxisComponents.size).isEqualTo(1)
   }
 
-  /** Test main panel has top panel, top panel has the liveViews as child **/
+  /** Test main panel has top panel, top panel has the liveViews as child * */
   @Test
   fun testLiveStageViewPanel() {
     val topPanelComponents = getTreeWalkerTopPanel(getJPanels()).descendants().filterIsInstance(JPanel::class.java)
@@ -170,7 +166,7 @@ class LiveStageViewTest {
     assertThat(viewPanelComponents.size).isGreaterThan(1)
   }
 
-  /** Test View Panel has CPU Live view **/
+  /** Test View Panel has CPU Live view * */
   @Test
   fun testLiveStageCpuLiveView() {
     val topPanelComponents = getTreeWalkerTopPanel(getJPanels()).descendants().filterIsInstance(JPanel::class.java)
@@ -191,7 +187,7 @@ class LiveStageViewTest {
     assertThat(cpuUsageViewComponents.size).isEqualTo(1)
   }
 
-  /** Testing View Panel has Memory Live view **/
+  /** Testing View Panel has Memory Live view * */
   @Test
   fun testLiveStageMemoryLiveView() {
     val topPanelComponents = getTreeWalkerTopPanel(getJPanels()).descendants().filterIsInstance(JPanel::class.java)

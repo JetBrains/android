@@ -23,10 +23,8 @@ import com.android.tools.adtui.model.TooltipModel
 
 class VsyncTooltip(val timeline: Timeline, private val vsyncValues: RangedSeries<Long>) : TooltipModel, AspectModel<VsyncTooltip.Aspect>() {
   enum class Aspect {
-    /**
-     * The hovering VSYNC value changed.
-     */
-    VALUE_CHANGED,
+    /** The hovering VSYNC value changed. */
+    VALUE_CHANGED
   }
 
   var activeVsyncValue = 0L

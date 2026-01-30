@@ -60,17 +60,19 @@ class DetailedMemoryChart {
   private val objectsAxis: ClampedAxisComponentModel
   private val rangeSelectionModel: RangeSelectionModel
 
-  constructor(memoryUsage: DetailedMemoryUsage,
-              legends: MemoryStageLegends,
-              timeline: Timeline,
-              memoryAxis: ClampedAxisComponentModel,
-              objectsAxis: ClampedAxisComponentModel,
-              rangeSelectionModel: RangeSelectionModel,
-              tooltipPanel: JPanel,
-              viewComponent: JComponent,
-              isLiveAllocationTrackingReady: Boolean,
-              shouldShowTooltip: () -> Boolean,
-              fillEndSupplier: DoubleSupplier) {
+  constructor(
+    memoryUsage: DetailedMemoryUsage,
+    legends: MemoryStageLegends,
+    timeline: Timeline,
+    memoryAxis: ClampedAxisComponentModel,
+    objectsAxis: ClampedAxisComponentModel,
+    rangeSelectionModel: RangeSelectionModel,
+    tooltipPanel: JPanel,
+    viewComponent: JComponent,
+    isLiveAllocationTrackingReady: Boolean,
+    shouldShowTooltip: () -> Boolean,
+    fillEndSupplier: DoubleSupplier,
+  ) {
     this.memoryUsage = memoryUsage
     this.legends = legends
     this.timeline = timeline
@@ -79,36 +81,41 @@ class DetailedMemoryChart {
     this.rangeSelectionModel = rangeSelectionModel
 
     this.rangeSelectionComponent = makeRangeSelectionComponent()
-    this.lineChart = makeLineChart(memoryUsage, isLiveAllocationTrackingReady, fillEndSupplier);
+    this.lineChart = makeLineChart(memoryUsage, isLiveAllocationTrackingReady, fillEndSupplier)
     this.overlay = OverlayComponent(rangeSelectionComponent)
-    this.overlayPanel = transparentPanel().apply {
-      border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
-      add(overlay, BorderLayout.CENTER)
-    }
+    this.overlayPanel =
+      transparentPanel().apply {
+        border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
+        add(overlay, BorderLayout.CENTER)
+      }
 
-    this.tooltip = RangeTooltipComponent(this.timeline,
-                                         tooltipPanel,
-                                         viewComponent) {
-      rangeSelectionComponent.shouldShowSeekComponent() && shouldShowTooltip()
-    }.apply {
-      // TODO: Probably this needs to be refactored.
-      //       We register in both of them because mouse events received by overly will not be received by overlyPanel.
-      registerListenersOn(overlay)
-      registerListenersOn(overlayPanel)
-    }
+    this.tooltip =
+      RangeTooltipComponent(this.timeline, tooltipPanel, viewComponent) {
+          rangeSelectionComponent.shouldShowSeekComponent() && shouldShowTooltip()
+        }
+        .apply {
+          // TODO: Probably this needs to be refactored.
+          //       We register in both of them because mouse events received by overly will not be received by overlyPanel.
+          registerListenersOn(overlay)
+          registerListenersOn(overlayPanel)
+        }
   }
 
   fun makeMonitorPanel(overlayPanel: JBPanel<*>) =
     transparentPanel(TabularLayout("*", "*")).apply {
-      val axisPanel = transparentPanel().apply {
-        add(makeAxis(memoryAxis, AxisComponent.AxisOrientation.RIGHT), BorderLayout.WEST)
-        add(makeAxis(objectsAxis, AxisComponent.AxisOrientation.LEFT), BorderLayout.EAST)
-      }
-      val legendPanel = FlexibleLegendPanel(memoryUsage, legends, lineChart).also {
-        addComponentListener(object : ComponentAdapter() {
-          override fun componentResized(e: ComponentEvent?) = it.adapt(width)
-        })
-      }
+      val axisPanel =
+        transparentPanel().apply {
+          add(makeAxis(memoryAxis, AxisComponent.AxisOrientation.RIGHT), BorderLayout.WEST)
+          add(makeAxis(objectsAxis, AxisComponent.AxisOrientation.LEFT), BorderLayout.EAST)
+        }
+      val legendPanel =
+        FlexibleLegendPanel(memoryUsage, legends, lineChart).also {
+          addComponentListener(
+            object : ComponentAdapter() {
+              override fun componentResized(e: ComponentEvent?) = it.adapt(width)
+            }
+          )
+        }
       border = ProfilerLayout.MONITOR_BORDER
       add(legendPanel, TabularLayout.Constraint(0, 0))
       add(overlayPanel, TabularLayout.Constraint(0, 0))
@@ -117,9 +124,7 @@ class DetailedMemoryChart {
       add(transparentPanel().apply { add(lineChart, BorderLayout.CENTER) }, TabularLayout.Constraint(0, 0))
     }
 
-  fun makeRangeSelectionComponent() = RangeSelectionComponent(rangeSelectionModel).apply {
-    setCursorSetter(AdtUiUtils::setTooltipCursor)
-  }
+  fun makeRangeSelectionComponent() = RangeSelectionComponent(rangeSelectionModel).apply { setCursorSetter(AdtUiUtils::setTooltipCursor) }
 
   fun makeLineChart(memoryUsage: DetailedMemoryUsage, isLiveAllocationTrackingReady: Boolean, fillEndSupplier: DoubleSupplier): LineChart {
     return memoryUsage.let { memUsage ->
@@ -132,21 +137,29 @@ class DetailedMemoryChart {
           configureStackedFilledLine(ProfilerColors.MEMORY_STACK_CAPTURED, memUsage.stackSeries)
           configureStackedFilledLine(ProfilerColors.MEMORY_CODE_CAPTURED, memUsage.codeSeries)
           configureStackedFilledLine(ProfilerColors.MEMORY_OTHERS_CAPTURED, memUsage.otherSeries)
-          configure(memUsage.objectsSeries, LineConfig(ProfilerColors.MEMORY_OBJECTS_CAPTURED)
-            .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE))
-        }
-        else {
+          configure(
+            memUsage.objectsSeries,
+            LineConfig(ProfilerColors.MEMORY_OBJECTS_CAPTURED)
+              .setStroke(LineConfig.DEFAULT_DASH_STROKE)
+              .setLegendIconType(LegendConfig.IconType.DASHED_LINE),
+          )
+        } else {
           configureStackedFilledLine(ProfilerColors.MEMORY_JAVA, memUsage.javaSeries)
           configureStackedFilledLine(ProfilerColors.MEMORY_NATIVE, memUsage.nativeSeries)
           configureStackedFilledLine(ProfilerColors.MEMORY_GRAPHICS, memUsage.graphicsSeries)
           configureStackedFilledLine(ProfilerColors.MEMORY_STACK, memUsage.stackSeries)
           configureStackedFilledLine(ProfilerColors.MEMORY_CODE, memUsage.codeSeries)
           configureStackedFilledLine(ProfilerColors.MEMORY_OTHERS, memUsage.otherSeries)
-          configure(memUsage.objectsSeries, LineConfig(ProfilerColors.MEMORY_OBJECTS)
-            .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE))
+          configure(
+            memUsage.objectsSeries,
+            LineConfig(ProfilerColors.MEMORY_OBJECTS)
+              .setStroke(LineConfig.DEFAULT_DASH_STROKE)
+              .setLegendIconType(LegendConfig.IconType.DASHED_LINE),
+          )
         }
 
-        // The "Total" series is only added in the LineChartModel so it can calculate the max Y value across all the series. We don't want to
+        // The "Total" series is only added in the LineChartModel so it can calculate the max Y value across all the series. We don't want
+        // to
         // draw it as an extra line so we hide it by setting it to transparent.
         configure(memUsage.totalMemorySeries, LineConfig(JBColor.BLACK))
         setRenderOffset(0, LineConfig.DEFAULT_DASH_STROKE.lineWidth.toInt() / 2)
@@ -162,18 +175,17 @@ class DetailedMemoryChart {
   }
 }
 
-internal class FlexibleLegendPanel(usage: DetailedMemoryUsage,
-                                   legends: MemoryStageLegends,
-                                   lineChart: LineChart) : JBPanel<FlexibleLegendPanel>(
-  BorderLayout()) {
+internal class FlexibleLegendPanel(usage: DetailedMemoryUsage, legends: MemoryStageLegends, lineChart: LineChart) :
+  JBPanel<FlexibleLegendPanel>(BorderLayout()) {
   private val fullLegend = makeLegendComponent(usage, legends, lineChart, true)
   private val compactLegend = makeLegendComponent(usage, legends, lineChart, false)
 
   init {
-    val label = JLabel("MEMORY").apply {
-      border = ProfilerLayout.MONITOR_LABEL_PADDING
-      verticalAlignment = SwingConstants.TOP
-    }
+    val label =
+      JLabel("MEMORY").apply {
+        border = ProfilerLayout.MONITOR_LABEL_PADDING
+        verticalAlignment = SwingConstants.TOP
+      }
     isOpaque = false
     add(label, BorderLayout.WEST)
     add(fullLegend, BorderLayout.EAST)
@@ -186,14 +198,18 @@ internal class FlexibleLegendPanel(usage: DetailedMemoryUsage,
   }
 
   private companion object {
-    private fun makeLegendComponent(memoryUsage: DetailedMemoryUsage,
-                                    legends: MemoryStageLegends,
-                                    lineChart: LineChart, full: Boolean): LegendComponent {
+    private fun makeLegendComponent(
+      memoryUsage: DetailedMemoryUsage,
+      legends: MemoryStageLegends,
+      lineChart: LineChart,
+      full: Boolean,
+    ): LegendComponent {
       return LegendComponent.Builder(legends)
         .setRightPadding(ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING)
         .setShowValues(full)
         .setExcludedLegends(*(if (full) emptyArray() else arrayOf("Total")))
-        .build().apply {
+        .build()
+        .apply {
           configure(legends.javaLegend, LegendConfig(lineChart.getLineConfig(memoryUsage.javaSeries)))
           configure(legends.nativeLegend, LegendConfig(lineChart.getLineConfig(memoryUsage.nativeSeries)))
           configure(legends.graphicsLegend, LegendConfig(lineChart.getLineConfig(memoryUsage.graphicsSeries)))
@@ -207,9 +223,7 @@ internal class FlexibleLegendPanel(usage: DetailedMemoryUsage,
   }
 }
 
-internal fun transparentPanel(layout: LayoutManager = BorderLayout()) = JBPanel<Nothing>(layout).apply {
-  isOpaque = false
-}
+internal fun transparentPanel(layout: LayoutManager = BorderLayout()) = JBPanel<Nothing>(layout).apply { isOpaque = false }
 
 internal fun makeAxis(model: AxisComponentModel, orientation: AxisComponent.AxisOrientation) =
   AxisComponent(model, orientation, true).apply {

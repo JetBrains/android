@@ -33,7 +33,6 @@ import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
@@ -41,27 +40,24 @@ import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createDevice
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createProcess
 import com.google.common.truth.Truth.assertThat
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 @RunWith(Parameterized::class)
 class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
   private val myTimer = FakeTimer()
-  private val ideProfilerServices = FakeIdeProfilerServices().apply {
-    enableTaskBasedUx(true)
-  }
-  private val myTransportService = FakeTransportService(myTimer, false,  ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
+  private val ideProfilerServices = FakeIdeProfilerServices().apply { enableTaskBasedUx(true) }
+  private val myTransportService = FakeTransportService(myTimer, false, ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("CallstackSampleTaskHandlerTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("CallstackSampleTaskHandlerTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -69,11 +65,7 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
 
   @Before
   fun setup() {
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     myCallstackSampleTaskHandler = CallstackSampleTaskHandler(myManager)
     myProfilers.addTaskHandler(ProfilerTaskType.CALLSTACK_SAMPLE, myCallstackSampleTaskHandler)
@@ -84,29 +76,40 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
 
   @Test
   fun testSupportsArtifactWithCallstackSampleSessionArtifact() {
-    val callstackSampleSessionArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
-                                                                                                        Common.Session.getDefaultInstance(),
-                                                                                                        1L, 100L,
-                                                                                                        createDefaultSimpleperfTraceConfiguration())
+    val callstackSampleSessionArtifact =
+      SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(
+        myProfilers,
+        Common.Session.getDefaultInstance(),
+        1L,
+        100L,
+        createDefaultSimpleperfTraceConfiguration(),
+      )
     assertThat(myCallstackSampleTaskHandler.supportsArtifact(callstackSampleSessionArtifact)).isTrue()
   }
 
   @Test
   fun testSupportsArtifactWithNonCallstackSampleSessionArtifact() {
-    val heapProfdSessionArtifact = HeapProfdSessionArtifact(myProfilers, Common.Session.getDefaultInstance(),
-                                                            Common.SessionMetaData.getDefaultInstance(),
-                                                            Trace.TraceInfo.getDefaultInstance())
+    val heapProfdSessionArtifact =
+      HeapProfdSessionArtifact(
+        myProfilers,
+        Common.Session.getDefaultInstance(),
+        Common.SessionMetaData.getDefaultInstance(),
+        Trace.TraceInfo.getDefaultInstance(),
+      )
     assertThat(myCallstackSampleTaskHandler.supportsArtifact(heapProfdSessionArtifact)).isFalse()
   }
 
   @Test
   fun testStartTaskInvokedOnEnterWithAliveSession() {
     TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.CALLSTACK_SAMPLE)
-    val callstackSampleSessionArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
-                                                                                                        Common.Session.getDefaultInstance(),
-                                                                                                        1L,
-                                                                                                        100L,
-                                                                                                        createDefaultSimpleperfTraceConfiguration())
+    val callstackSampleSessionArtifact =
+      SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(
+        myProfilers,
+        Common.Session.getDefaultInstance(),
+        1L,
+        100L,
+        createDefaultSimpleperfTraceConfiguration(),
+      )
     val cpuTaskArgs = CpuTaskArgs(false, callstackSampleSessionArtifact)
     myCallstackSampleTaskHandler.enter(cpuTaskArgs)
     // The session is alive, so startTask and thus startCapture should be called.
@@ -127,22 +130,18 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
   fun testStartTaskWithUnsetStage() {
     // To start the task and thus the capture, the stage must be set up before. Here we will test the case where startTask is invoked
     // without the stage being set precondition being met.
-    val exception = assertFailsWith<Throwable> {
-      myCallstackSampleTaskHandler.startTask(CpuTaskArgs(false, null))
-    }
+    val exception = assertFailsWith<Throwable> { myCallstackSampleTaskHandler.startTask(CpuTaskArgs(false, null)) }
     assertThat(myCallstackSampleTaskHandler.stage).isNull()
-    assertThat(exception.message).isEqualTo(
-      "There was an error with the Callstack Sample task. Error message: Cannot start the task as the InterimStage was null.")
+    assertThat(exception.message)
+      .isEqualTo("There was an error with the Callstack Sample task. Error message: Cannot start the task as the InterimStage was null.")
   }
 
   @Test
   fun testStopTaskSuccessfullyTerminatesRecording() {
     TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.CALLSTACK_SAMPLE)
     // First start the task successfully.
-    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE) as StartTrace)
-      .startStatus = Trace.TraceStartStatus.newBuilder()
-      .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
-      .build()
+    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE) as StartTrace).startStatus =
+      Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.SUCCESS).build()
     myCallstackSampleTaskHandler.setupStage()
     myCallstackSampleTaskHandler.startTask(CpuTaskArgs(false, null))
     assertThat(myCallstackSampleTaskHandler.stage!!.recordingModel.isRecording).isTrue()
@@ -150,10 +149,8 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
     // Wait for successful start event to be consumed.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     // Stop the task successfully.
-    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_TRACE) as StopTrace)
-      .stopStatus = Trace.TraceStopStatus.newBuilder()
-      .setStatus(Trace.TraceStopStatus.Status.SUCCESS)
-      .build()
+    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_TRACE) as StopTrace).stopStatus =
+      Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.SUCCESS).build()
     myCallstackSampleTaskHandler.stopTask()
     // Wait for successful end event to be consumed.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -164,10 +161,8 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
   fun testStopTaskSuccessfullyTerminatesTaskSession() {
     TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.CALLSTACK_SAMPLE)
     // First start the task successfully.
-    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE) as StartTrace)
-      .startStatus = Trace.TraceStartStatus.newBuilder()
-      .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
-      .build()
+    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE) as StartTrace).startStatus =
+      Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.SUCCESS).build()
     myCallstackSampleTaskHandler.setupStage()
     myCallstackSampleTaskHandler.startTask(CpuTaskArgs(false, null))
     assertThat(myManager.isSessionAlive).isTrue()
@@ -175,10 +170,8 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
     // Wait for successful start event to be consumed.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     // Stop the task successfully.
-    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_TRACE) as StopTrace)
-      .stopStatus = Trace.TraceStopStatus.newBuilder()
-      .setStatus(Trace.TraceStopStatus.Status.SUCCESS)
-      .build()
+    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_TRACE) as StopTrace).stopStatus =
+      Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.SUCCESS).build()
     myCallstackSampleTaskHandler.stopTask()
     // Wait for successful end event to be consumed.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -192,11 +185,14 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
 
     // Create a fake CpuCaptureSessionArtifact that uses a Simplperf (Callstack Sample) configuration.
-    val callstackSampleSessionArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
-                                                                                                        Common.Session.getDefaultInstance(),
-                                                                                                        1L,
-                                                                                                        100L,
-                                                                                                        createDefaultSimpleperfTraceConfiguration())
+    val callstackSampleSessionArtifact =
+      SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(
+        myProfilers,
+        Common.Session.getDefaultInstance(),
+        1L,
+        100L,
+        createDefaultSimpleperfTraceConfiguration(),
+      )
     val cpuTaskArgs = CpuTaskArgs(false, callstackSampleSessionArtifact)
     // The session is not alive (dead) so loadTask and thus loadCapture should be called.
     val argsSuccessfullyUsed = myCallstackSampleTaskHandler.enter(cpuTaskArgs)
@@ -211,11 +207,14 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
 
-    val callstackSampleSessionArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
-                                                                                                        Common.Session.getDefaultInstance(),
-                                                                                                        1L,
-                                                                                                        100L,
-                                                                                                        createDefaultSimpleperfTraceConfiguration())
+    val callstackSampleSessionArtifact =
+      SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(
+        myProfilers,
+        Common.Session.getDefaultInstance(),
+        1L,
+        100L,
+        createDefaultSimpleperfTraceConfiguration(),
+      )
     val cpuTaskArgs = CpuTaskArgs(false, callstackSampleSessionArtifact)
     val argsSuccessfullyUsed = myCallstackSampleTaskHandler.loadTask(cpuTaskArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
@@ -229,13 +228,13 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
 
-    val exception = assertFailsWith<Throwable> {
-      myCallstackSampleTaskHandler.loadTask(CpuTaskArgs(false, null))
-    }
+    val exception = assertFailsWith<Throwable> { myCallstackSampleTaskHandler.loadTask(CpuTaskArgs(false, null)) }
 
-    assertThat(exception.message).isEqualTo(
-      "There was an error with the Callstack Sample task. Error message: The task arguments (CpuTaskArgs) supplied do not contains a " +
-      "valid artifact to load.")
+    assertThat(exception.message)
+      .isEqualTo(
+        "There was an error with the Callstack Sample task. Error message: The task arguments (CpuTaskArgs) supplied do not contains a " +
+          "valid artifact to load."
+      )
 
     // Verify that the artifact doSelect behavior was not called by checking if the stage was not set to CpuProfilerStage.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
@@ -244,12 +243,26 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
   @Test
   fun testCreateArgsSuccessfully() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to SessionArtifactUtils.createSessionItem(myProfilers, selectedSession, 1, listOf(
-        SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, selectedSession, 1, 100L,
-                                                                       5L, 500L,
-                                                                       createDefaultSimpleperfTraceConfiguration()))),
-    )
+    val sessionIdToSessionItems =
+      mapOf(
+        1L to
+          SessionArtifactUtils.createSessionItem(
+            myProfilers,
+            selectedSession,
+            1,
+            listOf(
+              SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(
+                myProfilers,
+                selectedSession,
+                1,
+                100L,
+                5L,
+                500L,
+                createDefaultSimpleperfTraceConfiguration(),
+              )
+            ),
+          )
+      )
 
     val cpuTaskArgs = myCallstackSampleTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(cpuTaskArgs).isNotNull()
@@ -266,12 +279,26 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
     // By setting a session id that does not match any of the session items, the task artifact will not be found in the call to createArgs
     // will fail to be constructed.
     val selectedSession = Common.Session.newBuilder().setSessionId(0).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to SessionArtifactUtils.createSessionItem(myProfilers, selectedSession, 1, listOf(
-        SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, selectedSession, 1, 100L,
-                                                                       5L, 500L,
-                                                                       createDefaultSimpleperfTraceConfiguration()))),
-    )
+    val sessionIdToSessionItems =
+      mapOf(
+        1L to
+          SessionArtifactUtils.createSessionItem(
+            myProfilers,
+            selectedSession,
+            1,
+            listOf(
+              SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(
+                myProfilers,
+                selectedSession,
+                1,
+                100L,
+                5L,
+                500L,
+                createDefaultSimpleperfTraceConfiguration(),
+              )
+            ),
+          )
+      )
 
     assertThrows(IllegalStateException::class.java) {
       myCallstackSampleTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession) as CpuTaskArgs
@@ -284,8 +311,10 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
     val process = createProcess(true)
     val nDevice = createDevice(AndroidVersion.VersionCodes.N)
     assertNotNull(myCallstackSampleTaskHandler.checkSupportForDeviceAndProcess(nDevice, process))
-    assertEquals(myCallstackSampleTaskHandler.checkSupportForDeviceAndProcess(nDevice, process)!!.startTaskSelectionErrorCode,
-                 StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN)
+    assertEquals(
+      myCallstackSampleTaskHandler.checkSupportForDeviceAndProcess(nDevice, process)!!.startTaskSelectionErrorCode,
+      StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN,
+    )
     val oDevice = createDevice(AndroidVersion.VersionCodes.O)
     assertNull(myCallstackSampleTaskHandler.checkSupportForDeviceAndProcess(oDevice, process))
     val pDevice = createDevice(AndroidVersion.VersionCodes.P)
@@ -297,8 +326,8 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
     assertThat(myCallstackSampleTaskHandler.getTaskName()).isEqualTo("Callstack Sample")
   }
 
-  private fun createDefaultSimpleperfTraceConfiguration() = Trace.TraceConfiguration.newBuilder().setSimpleperfOptions(
-    Trace.SimpleperfOptions.getDefaultInstance()).build()
+  private fun createDefaultSimpleperfTraceConfiguration() =
+    Trace.TraceConfiguration.newBuilder().setSimpleperfOptions(Trace.SimpleperfOptions.getDefaultInstance()).build()
 
   companion object {
     @JvmStatic

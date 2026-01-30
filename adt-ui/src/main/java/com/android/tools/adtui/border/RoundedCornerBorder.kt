@@ -26,8 +26,7 @@ import java.awt.RenderingHints
 import java.awt.geom.RoundRectangle2D
 import javax.swing.border.LineBorder
 
-class RoundedCornerBorder(private val cornerRadius: Float, private val backgroundColor: Color) :
-  LineBorder(null, 0, true) {
+class RoundedCornerBorder(private val cornerRadius: Float, private val backgroundColor: Color) : LineBorder(null, 0, true) {
 
   override fun paintBorder(c: Component, g: Graphics, x: Int, y: Int, width: Int, height: Int) {
     with(g as Graphics2D) {
@@ -36,10 +35,7 @@ class RoundedCornerBorder(private val cornerRadius: Float, private val backgroun
 
       setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
-      setRenderingHint(
-        RenderingHints.KEY_ALPHA_INTERPOLATION,
-        RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY,
-      )
+      setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY)
 
       setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
 
@@ -54,15 +50,7 @@ class RoundedCornerBorder(private val cornerRadius: Float, private val backgroun
 
       val arcSize = JBUIScale.scale(cornerRadius)
       color = backgroundColor
-      val roundedRect =
-        RoundRectangle2D.Float(
-          x.toFloat(),
-          y.toFloat(),
-          width.toFloat(),
-          height.toFloat(),
-          arcSize,
-          arcSize,
-        )
+      val roundedRect = RoundRectangle2D.Float(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat(), arcSize, arcSize)
       fill(roundedRect)
 
       // Restore the graphics' original state

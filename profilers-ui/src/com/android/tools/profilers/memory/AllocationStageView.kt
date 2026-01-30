@@ -44,110 +44,113 @@ import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.JPanel
 
-class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationStage)
-  : BaseStreamingMemoryProfilerStageView<AllocationStage>(profilersView, stage) {
+class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationStage) :
+  BaseStreamingMemoryProfilerStageView<AllocationStage>(profilersView, stage) {
 
-  private val capturePanel = CapturePanel(profilersView,
-                                          stage.captureSelection,
-                                          captureElapsedTimeLabel,
-                                          stage.rangeSelectionModel.selectionRange,
-                                          ideComponents,
-                                          stage.timeline,
-                                          false)
+  private val capturePanel =
+    CapturePanel(
+      profilersView,
+      stage.captureSelection,
+      captureElapsedTimeLabel,
+      stage.rangeSelectionModel.selectionRange,
+      ideComponents,
+      stage.timeline,
+      false,
+    )
 
   private val garbageCollectionComponent = GarbageCollectionComponent()
 
-  @VisibleForTesting
-  val timelineComponent = AllocationTimelineComponent(this, buildTimeAxis(profilersView.studioProfilers))
+  @VisibleForTesting val timelineComponent = AllocationTimelineComponent(this, buildTimeAxis(profilersView.studioProfilers))
 
   private val titleLabel = JBLabel().apply { border = JBUI.Borders.empty(0, 5, 0, 0) }
 
   @VisibleForTesting
-  val selectAllButton = CommonButton(StudioIcons.Profiler.Toolbar.SELECT_ENTIRE_RANGE).apply {
-    toolTipText = "Track allocations over the entire range"
-    addActionListener { stage.selectAll() }
-  }
+  val selectAllButton =
+    CommonButton(StudioIcons.Profiler.Toolbar.SELECT_ENTIRE_RANGE).apply {
+      toolTipText = "Track allocations over the entire range"
+      addActionListener { stage.selectAll() }
+    }
 
   @VisibleForTesting
-  val stopButton = CommonButton(
-    if (profilersView.studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
-      StudioIcons.Profiler.Toolbar.STOP_SESSION
-    }
-    else {
-      StudioIcons.Profiler.Toolbar.STOP_RECORDING
-    }
-  ).apply {
-    disabledIcon = IconLoader.getDisabledIcon(icon)
-    toolTipText = "Stop recording Java / Kotlin allocations"
-    addActionListener {
-      if (getStage().studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
-        stage.stopTask.invoke()
+  val stopButton =
+    CommonButton(
+        if (profilersView.studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+          StudioIcons.Profiler.Toolbar.STOP_SESSION
+        } else {
+          StudioIcons.Profiler.Toolbar.STOP_RECORDING
+        }
+      )
+      .apply {
+        disabledIcon = IconLoader.getDisabledIcon(icon)
+        toolTipText = "Stop recording Java / Kotlin allocations"
+        addActionListener {
+          if (getStage().studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+            stage.stopTask.invoke()
+          } else {
+            stage.stopTracking()
+          }
+          hideLiveButtons()
+        }
       }
-      else {
-        stage.stopTracking()
-      }
-      hideLiveButtons()
+
+  @VisibleForTesting
+  val forceGcButton = garbageCollectionComponent.makeGarbageCollectionButton(stage.memoryDataProvider, profilersView.studioProfilers)
+
+  @VisibleForTesting val samplingMenu = AllocationSamplingMenu(stage)
+
+  private val instanceDetailsSplitter =
+    JBSplitter(false).apply {
+      border = DEFAULT_VERTICAL_BORDERS
+      isOpaque = true
+      firstComponent = capturePanel.classSetView.component
+      secondComponent = capturePanel.instanceDetailsView.component
     }
-  }
 
-  @VisibleForTesting
-  val forceGcButton = garbageCollectionComponent.makeGarbageCollectionButton(
-    stage.memoryDataProvider, profilersView.studioProfilers)
-
-  @VisibleForTesting
-  val samplingMenu = AllocationSamplingMenu(stage)
-
-  private val instanceDetailsSplitter = JBSplitter(false).apply {
-    border = DEFAULT_VERTICAL_BORDERS
-    isOpaque = true
-    firstComponent = capturePanel.classSetView.component
-    secondComponent = capturePanel.instanceDetailsView.component
-  }
-
-  private val instanceDetailsWrapper = JBPanel<Nothing>(BorderLayout()).apply {
-    val headingPanel = JBPanel<Nothing>(BorderLayout()).apply {
-      border = DEFAULT_HORIZONTAL_BORDERS
-      add(titleLabel, BorderLayout.WEST)
-      add(CloseButton { stage.captureSelection.selectClassSet(null) }, BorderLayout.EAST)
+  private val instanceDetailsWrapper =
+    JBPanel<Nothing>(BorderLayout()).apply {
+      val headingPanel =
+        JBPanel<Nothing>(BorderLayout()).apply {
+          border = DEFAULT_HORIZONTAL_BORDERS
+          add(titleLabel, BorderLayout.WEST)
+          add(CloseButton { stage.captureSelection.selectClassSet(null) }, BorderLayout.EAST)
+        }
+      add(headingPanel, BorderLayout.NORTH)
+      add(instanceDetailsSplitter, BorderLayout.CENTER)
     }
-    add(headingPanel, BorderLayout.NORTH)
-    add(instanceDetailsSplitter, BorderLayout.CENTER)
-  }
 
-  private val chartCaptureSplitter = JBSplitter(true).apply {
-    border = DEFAULT_VERTICAL_BORDERS
-    firstComponent = capturePanel.component
-    secondComponent = instanceDetailsWrapper
-  }
+  private val chartCaptureSplitter =
+    JBSplitter(true).apply {
+      border = DEFAULT_VERTICAL_BORDERS
+      firstComponent = capturePanel.component
+      secondComponent = instanceDetailsWrapper
+    }
 
-  private val trackingPanel = JBSplitter(true).apply {
-    firstComponent = timelineComponent
-    secondComponent = chartCaptureSplitter
-    proportion = .2f
-  }
-  @VisibleForTesting
-  var loadingPanel: LoadingPanel? = null
+  private val trackingPanel =
+    JBSplitter(true).apply {
+      firstComponent = timelineComponent
+      secondComponent = chartCaptureSplitter
+      proportion = .2f
+    }
+  @VisibleForTesting var loadingPanel: LoadingPanel? = null
   private val mainPanelLayout = CardLayout()
-  private val mainPanel = JPanel(mainPanelLayout).apply {
-    add(trackingPanel, CARD_TRACKING)
-  }
+  private val mainPanel = JPanel(mainPanelLayout).apply { add(trackingPanel, CARD_TRACKING) }
 
   init {
-    fun updateInstanceDetailsSplitter() = when (val cs = stage.captureSelection.selectedClassSet) {
-      null -> instanceDetailsWrapper.isVisible = false
-      else -> {
-        titleLabel.text = "Instance List - ${cs.name}"
-        instanceDetailsWrapper.isVisible = true
+    fun updateInstanceDetailsSplitter() =
+      when (val cs = stage.captureSelection.selectedClassSet) {
+        null -> instanceDetailsWrapper.isVisible = false
+        else -> {
+          titleLabel.text = "Instance List - ${cs.name}"
+          instanceDetailsWrapper.isVisible = true
+        }
       }
-    }
 
     fun updateLabel() {
       val elapsedUs = stage.minTrackingTimeUs.toLong() - TimeUnit.NANOSECONDS.toMicros(stage.studioProfilers.session.startTimestamp)
       captureElapsedTimeLabel.text = "Recorded Java / Kotlin Allocations: ${TimeFormatter.getSimplifiedClockString(elapsedUs)}"
     }
 
-    stage.captureSelection.aspect.addDependency(this)
-      .onChange(CaptureSelectionAspect.CURRENT_CLASS, ::updateInstanceDetailsSplitter)
+    stage.captureSelection.aspect.addDependency(this).onChange(CaptureSelectionAspect.CURRENT_CLASS, ::updateInstanceDetailsSplitter)
     stage.timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE, ::adjustSelectAllButton)
     stage.timeline.dataRange.addDependency(this).onChange(Range.Aspect.RANGE) {
       adjustSelectAllButton()
@@ -164,8 +167,7 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
     updateInstanceDetailsSplitter()
     if (stage.isStatic) {
       showTrackingeUi()
-    }
-    else {
+    } else {
       stage.aspect.addDependency(this).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS) { showTrackingeUi() }
       if (stage.hasAgentError) showErrorPanel() else showLoadingPanel()
     }
@@ -178,19 +180,21 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
     }
   }
 
-  override fun getToolbar() = JBPanel<Nothing>(BorderLayout()).apply {
-    val toolbar = JBPanel<Nothing>(createToolbarLayout()).apply {
-      add(captureElapsedTimeLabel)
-      add(FlatSeparator())
-      add(selectAllButton)
-      add(stopButton)
-      add(forceGcButton)
-      add(FlatSeparator())
-      add(samplingMenu)
+  override fun getToolbar() =
+    JBPanel<Nothing>(BorderLayout()).apply {
+      val toolbar =
+        JBPanel<Nothing>(createToolbarLayout()).apply {
+          add(captureElapsedTimeLabel)
+          add(FlatSeparator())
+          add(selectAllButton)
+          add(stopButton)
+          add(forceGcButton)
+          add(FlatSeparator())
+          add(samplingMenu)
+        }
+      add(toolbar, BorderLayout.WEST)
+      hideLiveButtons()
     }
-    add(toolbar, BorderLayout.WEST)
-    hideLiveButtons()
-  }
 
   private fun hideLiveButtons() {
     if (stage.hasEndedTracking) {
@@ -211,16 +215,15 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
 
   private fun getLoadingFailureErrorMessage(): String {
     return if (profilersView.studioProfilers.device?.isEmulator == true)
-      "There was an error loading this feature. Try cold booting the virtual device." else
-        "There was an error loading this feature. Try restarting the device."
+      "There was an error loading this feature. Try cold booting the virtual device."
+    else "There was an error loading this feature. Try restarting the device."
   }
 
   private fun showErrorPanel() {
     hideLiveButtons()
     val errorMessagePanel = JPanel(BorderLayout())
     val message = getLoadingFailureErrorMessage()
-    val htmlText =
-      "<html><div style='text-align: center;'> ${StringUtil.escapeXmlEntities(message)} </div></html>"
+    val htmlText = "<html><div style='text-align: center;'> ${StringUtil.escapeXmlEntities(message)} </div></html>"
     val errorText = JBLabel(htmlText)
     errorText.horizontalAlignment = JBLabel.CENTER
     errorText.fontColor = UIUtil.FontColor.BRIGHTER
@@ -232,14 +235,15 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
 
   private fun showLoadingPanel() {
     if (loadingPanel == null)
-      profilersView.ideProfilerComponents.createLoadingPanel(-1).apply {
-        setLoadingText("Setting up allocation tracking")
-      }.let {
-        loadingPanel = it
-        it.startLoading()
-        mainPanel.add(it.component, CARD_LOADING)
-        mainPanelLayout.show(mainPanel, CARD_LOADING)
-      }
+      profilersView.ideProfilerComponents
+        .createLoadingPanel(-1)
+        .apply { setLoadingText("Setting up allocation tracking") }
+        .let {
+          loadingPanel = it
+          it.startLoading()
+          mainPanel.add(it.component, CARD_LOADING)
+          mainPanelLayout.show(mainPanel, CARD_LOADING)
+        }
   }
 
   private fun hideLoadingPanel() {
@@ -252,17 +256,17 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
 
   // Customize the time axis to start from 0
   override fun buildTimeAxis(profilers: StudioProfilers): JComponent {
-    fun rebase(r: Range) = Range(0.0, r.max - r.min).apply {
-      r.addDependency(this).onChange(Range.Aspect.RANGE) { max = r.max - r.min }
-    }
-    val model = ResizingAxisComponentModel.Builder(rebase(profilers.timeline.viewRange), TimeAxisFormatter.DEFAULT)
-      .setGlobalRange(rebase(profilers.timeline.dataRange))
-      .build()
-    val timeAxis = AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM, true).apply {
-      setShowAxisLine(false)
-      minimumSize = Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT)
-      preferredSize = Dimension(Int.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT)
-    }
+    fun rebase(r: Range) = Range(0.0, r.max - r.min).apply { r.addDependency(this).onChange(Range.Aspect.RANGE) { max = r.max - r.min } }
+    val model =
+      ResizingAxisComponentModel.Builder(rebase(profilers.timeline.viewRange), TimeAxisFormatter.DEFAULT)
+        .setGlobalRange(rebase(profilers.timeline.dataRange))
+        .build()
+    val timeAxis =
+      AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM, true).apply {
+        setShowAxisLine(false)
+        minimumSize = Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT)
+        preferredSize = Dimension(Int.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT)
+      }
     return JBPanel<Nothing>(BorderLayout()).apply {
       background = ProfilerColors.DEFAULT_BACKGROUND
       add(timeAxis, BorderLayout.CENTER)
@@ -276,8 +280,8 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
   }
 }
 
-class AllocationTimelineComponent(stageView: AllocationStageView, timeAxis: JComponent)
-  : BaseMemoryTimelineComponent<AllocationStage>(stageView, timeAxis) {
+class AllocationTimelineComponent(stageView: AllocationStageView, timeAxis: JComponent) :
+  BaseMemoryTimelineComponent<AllocationStage>(stageView, timeAxis) {
 
   val gcDurationDataRenderer = makeGcDurationDataRenderer().also(::registerRenderer)
   val allocationSamplingRateRenderer = makeAllocationSamplingRateRenderer().also(::registerRenderer)
@@ -290,27 +294,29 @@ class AllocationTimelineComponent(stageView: AllocationStageView, timeAxis: JCom
   }
 }
 
-class AllocationSamplingMenu(private val stage: AllocationStage): JBPanel<AllocationSamplingMenu>(BorderLayout()) {
+class AllocationSamplingMenu(private val stage: AllocationStage) : JBPanel<AllocationSamplingMenu>(BorderLayout()) {
   private val label = JBLabel("Allocation Tracking")
   val combobox = ProfilerCombobox<LiveAllocationSamplingMode>()
   private val observer = AspectObserver()
-  private val logger get() = Logger.getInstance(AllocationStageView::class.java)
+  private val logger
+    get() = Logger.getInstance(AllocationStageView::class.java)
 
   init {
     combobox.apply {
       model = DefaultComboBoxModel(arrayOf(FULL, SAMPLED))
-      renderer = object : ProfilerComboboxCellRenderer<LiveAllocationSamplingMode>() {
-        override fun customizeCellRenderer(list: JList<out LiveAllocationSamplingMode>,
-                                           value: LiveAllocationSamplingMode?,
-                                           index: Int,
-                                           selected: Boolean,
-                                           hasFocus: Boolean) {
-          append(value?.displayName ?: "-----")
+      renderer =
+        object : ProfilerComboboxCellRenderer<LiveAllocationSamplingMode>() {
+          override fun customizeCellRenderer(
+            list: JList<out LiveAllocationSamplingMode>,
+            value: LiveAllocationSamplingMode?,
+            index: Int,
+            selected: Boolean,
+            hasFocus: Boolean,
+          ) {
+            append(value?.displayName ?: "-----")
+          }
         }
-      }
-      addActionListener {
-        stage.requestLiveAllocationSamplingModeUpdate(model.selectedItem as LiveAllocationSamplingMode)
-      }
+      addActionListener { stage.requestLiveAllocationSamplingModeUpdate(model.selectedItem as LiveAllocationSamplingMode) }
     }
     stage.aspect.addDependency(observer).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE, ::onSamplingModeChanged)
     onSamplingModeChanged()
@@ -320,8 +326,12 @@ class AllocationSamplingMenu(private val stage: AllocationStage): JBPanel<Alloca
     add(combobox, BorderLayout.CENTER)
   }
 
-  private fun onSamplingModeChanged() = when (val mode = stage.liveAllocationSamplingMode) {
-    FULL, SAMPLED -> { combobox.model.selectedItem = mode }
-    NONE -> {}
-  }
+  private fun onSamplingModeChanged() =
+    when (val mode = stage.liveAllocationSamplingMode) {
+      FULL,
+      SAMPLED -> {
+        combobox.model.selectedItem = mode
+      }
+      NONE -> {}
+    }
 }

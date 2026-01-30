@@ -18,8 +18,5 @@ package com.android.tools.property.ptable.impl
 import javax.swing.event.TableModelEvent
 import javax.swing.table.TableModel
 
-/**
- * A [TableModelEvent] that includes a hint to the table about which row to edit after updating the
- * table with this model change.
- */
+/** A [TableModelEvent] that includes a hint to the table about which row to edit after updating the table with this model change. */
 class PTableModelEvent(source: TableModel, val nextEditedRow: Int) : TableModelEvent(source)

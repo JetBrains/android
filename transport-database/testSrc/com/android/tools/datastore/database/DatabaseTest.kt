@@ -19,19 +19,19 @@ import com.android.tools.datastore.DataStoreDatabase
 import com.android.tools.datastore.FakeLogService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
-import org.junit.After
-import org.junit.Before
-import org.junit.Ignore
-import org.junit.Test
 import java.io.File
 import java.lang.reflect.Modifier
 import java.sql.SQLException
 import java.util.*
 import java.util.function.Consumer
+import org.junit.After
+import org.junit.Before
+import org.junit.Ignore
+import org.junit.Test
 
 /**
- * This is a base datastore test class. This class setups a table for each of the test as well as creates
- * two default test to check each table for errors.
+ * This is a base datastore test class. This class setups a table for each of the test as well as creates two default test to check each
+ * table for errors.
  *
  * Note: This class is marked ignore so it is not picked up by JUnit Runner. Abstract classes can not be initialized.
  */
@@ -109,8 +109,8 @@ abstract class DatabaseTest<T : DataStoreTable<*>> {
   }
 
   /**
-   * Gets the method count we expect to test for each table. This allows the test to validate
-   * that we are not missing any calls when checking for sql connection closed, or an exception being thrown.
+   * Gets the method count we expect to test for each table. This allows the test to validate that we are not missing any calls when
+   * checking for sql connection closed, or an exception being thrown.
    */
   protected fun getMethodCount(table: T): Int {
     val baseClassMethods = HashSet<String>()
@@ -121,18 +121,13 @@ abstract class DatabaseTest<T : DataStoreTable<*>> {
     return table.javaClass.methods.count { Modifier.isPublic(it.modifiers) && !baseClassMethods.contains(it.name) }
   }
 
-  /**
-   * Create a table used by the [errorIsHandled] and [closedConnectionIsHandled] test.
-   */
+  /** Create a table used by the [errorIsHandled] and [closedConnectionIsHandled] test. */
   protected abstract fun createTable(): T
 
   /**
-   * This method should return a list of calls into a specified table.
-   * Each call will be called 2 times. In one test the sql connection will be closed before calling
-   * each of the consumers. In the other test an exception will be thrown while the function is calling
-   * execute on the prepared statement.
-   * The number of consumers returned should match all public functions that make sql queries for a specific
-   * table.
+   * This method should return a list of calls into a specified table. Each call will be called 2 times. In one test the sql connection will
+   * be closed before calling each of the consumers. In the other test an exception will be thrown while the function is calling execute on
+   * the prepared statement. The number of consumers returned should match all public functions that make sql queries for a specific table.
    */
   protected abstract fun getTableQueryMethodsForVerification(): List<Consumer<T>>
 }

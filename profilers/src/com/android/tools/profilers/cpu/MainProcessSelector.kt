@@ -20,33 +20,41 @@ import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import java.util.function.Function
 
 /**
- * Selects the main process from a list of process, using a number of optional methods: name, id, IDE dialog for the user.
- * Used on capture/tracing technologies that supports multiple processes, in order to select the one which data will be based on.
+ * Selects the main process from a list of process, using a number of optional methods: name, id, IDE dialog for the user. Used on
+ * capture/tracing technologies that supports multiple processes, in order to select the one which data will be based on.
  *
  * <p>Can return null if not process were found with the methods/hints passed.
  */
-class MainProcessSelector(
-  val nameHint: String = "",
-  val idHint: Int = 0,
-  private val profilerServices: IdeProfilerServices? = null) {
+class MainProcessSelector(val nameHint: String = "", val idHint: Int = 0, private val profilerServices: IdeProfilerServices? = null) {
 
   fun apply(processList: List<ProcessModel>): Int? {
     // 1) Use name hint if available.
     if (nameHint.isNotBlank()) {
-      processList.find { nameHint.endsWith(it.getSafeProcessName()) }?.let { return it.id }
+      processList
+        .find { nameHint.endsWith(it.getSafeProcessName()) }
+        ?.let {
+          return it.id
+        }
     }
 
     // 2) If we don't have a process based on named find one based on id.
     if (idHint > 0) {
-      processList.find { idHint == it.id }?.let { return it.id }
+      processList
+        .find { idHint == it.id }
+        ?.let {
+          return it.id
+        }
     }
 
     // 3) Ask the user for input.
     if (profilerServices != null) {
-      val selection = profilerServices.openListBoxChooserDialog("Select a process",
-                                                "Select the process you want to analyze.",
-                                                processList,
-                                                Function { t: ProcessModel -> "${t.getSafeProcessName()} (pid: ${t.id})" })
+      val selection =
+        profilerServices.openListBoxChooserDialog(
+          "Select a process",
+          "Select the process you want to analyze.",
+          processList,
+          Function { t: ProcessModel -> "${t.getSafeProcessName()} (pid: ${t.id})" },
+        )
       if (selection != null) {
         return selection.id
       } else {
@@ -59,7 +67,5 @@ class MainProcessSelector(
   }
 }
 
-/**
- * Exception thrown when the user aborts the process selection dialog.
- */
+/** Exception thrown when the user aborts the process selection dialog. */
 class ProcessSelectorDialogAbortedException : RuntimeException()

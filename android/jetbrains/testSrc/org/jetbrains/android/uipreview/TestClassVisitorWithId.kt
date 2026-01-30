@@ -19,6 +19,6 @@ import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 
-internal class TestClassVisitorWithId(val id: String): ClassVisitor(Opcodes.ASM9, null), ClassVisitorUniqueIdProvider {
+internal class TestClassVisitorWithId(val id: String) : ClassVisitor(Opcodes.ASM9, null), ClassVisitorUniqueIdProvider {
   override val uniqueId: String = id
 }

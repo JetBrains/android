@@ -51,8 +51,7 @@ class PropertyCheckBox(model: BooleanPropertyEditorModel, context: EditorContext
   }
 }
 
-private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorModel) :
-  JCheckBox(), UiDataProvider {
+private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorModel) : JCheckBox(), UiDataProvider {
   private var stateChangeFromModel = false
 
   @VisibleForTesting
@@ -101,9 +100,7 @@ private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorMod
     sink[HelpSupport.PROPERTY_ITEM] = propertyModel.property
   }
 
-  private fun toStateValue(value: String?) =
-    value?.compareTo(SdkConstants.VALUE_TRUE, ignoreCase = true) == 0
+  private fun toStateValue(value: String?) = value?.compareTo(SdkConstants.VALUE_TRUE, ignoreCase = true) == 0
 
-  private fun fromStateValue(selected: Boolean) =
-    if (selected) SdkConstants.VALUE_TRUE else SdkConstants.VALUE_FALSE
+  private fun fromStateValue(selected: Boolean) = if (selected) SdkConstants.VALUE_TRUE else SdkConstants.VALUE_FALSE
 }

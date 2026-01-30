@@ -25,18 +25,17 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * Track renderer for System Trace CPU frequency counters.
- */
+/** Track renderer for System Trace CPU frequency counters. */
 class CpuFrequencyTrackRenderer : TrackRenderer<CpuFrequencyTrackModel> {
   override fun render(trackModel: TrackModel<CpuFrequencyTrackModel, *>): JComponent {
     return JPanel(BorderLayout()).apply {
       val lineChartModel = trackModel.dataModel
-      val lineChart = LineChart(lineChartModel).apply {
-        val backgroundColor = DataVisualizationColors.paletteManager.getBackgroundColor(trackModel.title.hashCode())
-        configure(lineChartModel.cpuFrequencySeries, LineConfig(backgroundColor).setFilled(true).setStepped(true))
-        setFillEndGap(true)
-      }
+      val lineChart =
+        LineChart(lineChartModel).apply {
+          val backgroundColor = DataVisualizationColors.paletteManager.getBackgroundColor(trackModel.title.hashCode())
+          configure(lineChartModel.cpuFrequencySeries, LineConfig(backgroundColor).setFilled(true).setStepped(true))
+          setFillEndGap(true)
+        }
       add(lineChart)
     }
   }

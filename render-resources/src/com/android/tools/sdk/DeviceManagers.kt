@@ -24,22 +24,19 @@ import com.android.utils.ILogger
 import com.intellij.openapi.application.ApplicationManager
 
 /**
- * Service that allows certain [Device]s to be excluded from the device manager.
- * Currently only used to exclude the XR devices on the stable Android Studio version.
+ * Service that allows certain [Device]s to be excluded from the device manager. Currently only used to exclude the XR devices on the stable
+ * Android Studio version.
  */
 interface DeviceManagerDeviceFilter {
-  /**
-   * For a [Device] return if it should be exposed by the [DeviceManager].
-   */
+  /** For a [Device] return if it should be exposed by the [DeviceManager]. */
   fun isSupportedDevice(device: Device): Boolean
 
   companion object {
-    /**
-     * Default filter when the [DeviceManager] is running outside of Android Studio.
-     */
-    private val NO_FILTER = object: DeviceManagerDeviceFilter {
-      override fun isSupportedDevice(device: Device): Boolean = true
-    }
+    /** Default filter when the [DeviceManager] is running outside of Android Studio. */
+    private val NO_FILTER =
+      object : DeviceManagerDeviceFilter {
+        override fun isSupportedDevice(device: Device): Boolean = true
+      }
 
     @JvmStatic
     fun getInstance(): DeviceManagerDeviceFilter =
@@ -55,21 +52,15 @@ class DeviceManagerCache(val logger: ILogger) {
       deviceManagers.computeIfAbsent(sdkHandler) {
         UserDevicesXmlHandler.backupUnsupportedUserDevicesXml(sdkHandler, logger)
 
-        DeviceManager.createInstance(sdkHandler, logger) { device ->
-          DeviceManagerDeviceFilter.getInstance().isSupportedDevice(device)
-        }
+        DeviceManager.createInstance(sdkHandler, logger) { device -> DeviceManagerDeviceFilter.getInstance().isSupportedDevice(device) }
       }
     }
 }
 
-/**
- * The [DeviceManagerCache] wrapper.
- */
+/** The [DeviceManagerCache] wrapper. */
 object DeviceManagers {
   private val logger = LogWrapper(Logger.getInstance(DeviceManager::class.java))
   val cache = DeviceManagerCache(logger)
 
-  @JvmStatic
-  fun getDeviceManager(sdkHandler: AndroidSdkHandler): DeviceManager =
-    cache.getDeviceManager(sdkHandler)
+  @JvmStatic fun getDeviceManager(sdkHandler: AndroidSdkHandler): DeviceManager = cache.getDeviceManager(sdkHandler)
 }

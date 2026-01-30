@@ -17,18 +17,13 @@ package com.android.tools.profilers.taskbased.home
 
 import com.intellij.util.messages.Topic
 
-/**
- * Listener of events requesting that the Profiler home tab be open.
- */
+/** Listener of events requesting that the Profiler home tab be open. */
 fun interface OpenHomeTabListener {
 
-  /**
-   * Opens the Profiler home tab.
-   */
+  /** Opens the Profiler home tab. */
   fun openHomeTab()
 
   companion object {
-    @JvmField
-    val TOPIC = Topic("Command to open the Profiler home tab", OpenHomeTabListener::class.java)
+    @JvmField val TOPIC = Topic("Command to open the Profiler home tab", OpenHomeTabListener::class.java)
   }
 }

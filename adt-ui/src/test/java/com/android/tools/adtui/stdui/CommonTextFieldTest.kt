@@ -158,7 +158,6 @@ class CommonTextFieldTest {
   }
 
   private fun acquireFocus() {
-    (KeyboardFocusManager.getCurrentKeyboardFocusManager() as FakeKeyboardFocusManager).focusOwner =
-      field
+    (KeyboardFocusManager.getCurrentKeyboardFocusManager() as FakeKeyboardFocusManager).focusOwner = field
   }
 }

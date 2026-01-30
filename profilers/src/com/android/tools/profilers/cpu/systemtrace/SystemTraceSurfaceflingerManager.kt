@@ -27,44 +27,35 @@ class SystemTraceSurfaceflingerManager(systemTraceModel: SystemTraceModelAdapter
   val bufferQueueValues: List<SeriesData<Long>>
 
   /**
-   * It's prefixed with SurfaceView if the BufferQueue belongs to an android.view.SurfaceView. No prefix otherwise.
-   * To avoid matching the transaction counter (prefixed with TX), we only match the SurfaceView prefix.
+   * It's prefixed with SurfaceView if the BufferQueue belongs to an android.view.SurfaceView. No prefix otherwise. To avoid matching the
+   * transaction counter (prefixed with TX), we only match the SurfaceView prefix.
    */
   private val bufferQueueRegex = Regex("(SurfaceView - )?$mainProcessName/.+#\\d")
 
-  /**
-   * Extracts the top level trace events from the main thread and builds a data series for surfaceflinger.
-   */
+  /** Extracts the top level trace events from the main thread and builds a data series for surfaceflinger. */
   private fun buildSfEvents(surfaceflingerProcess: ProcessModel): List<SeriesData<SurfaceflingerEvent>> {
     val mainThread = surfaceflingerProcess.getMainThread() ?: return emptyList()
     return buildSfEventsFromThread(mainThread)
   }
 
   private fun buildSfEventsFromThread(mainThread: ThreadModel): List<SeriesData<SurfaceflingerEvent>> =
-    mainThread.traceEvents.padded({ it.startTimestampUs }, { it.endTimestampUs },
-                                  { SurfaceflingerEvent(it.startTimestampUs, it.endTimestampUs,
-                                                        SurfaceflingerEvent.Type.PROCESSING, it.name) },
-                                  { start, end -> SurfaceflingerEvent(start, end, SurfaceflingerEvent.Type.IDLE)})
+    mainThread.traceEvents.padded(
+      { it.startTimestampUs },
+      { it.endTimestampUs },
+      { SurfaceflingerEvent(it.startTimestampUs, it.endTimestampUs, SurfaceflingerEvent.Type.PROCESSING, it.name) },
+      { start, end -> SurfaceflingerEvent(start, end, SurfaceflingerEvent.Type.IDLE) },
+    )
 
-  /**
-   * Extracts the VSYNC-sf counter and builds a data series for [vsyncCounterValues].
-   */
+  /** Extracts the VSYNC-sf counter and builds a data series for [vsyncCounterValues]. */
   private fun buildVsyncCounter(surfaceflingerProcess: ProcessModel): List<SeriesData<Long>> {
     val counter = surfaceflingerProcess.counterByName[VSYNC_COUNTER_NAME] ?: return emptyList()
-    return counter.valuesByTimestampUs
-      .map { SeriesData(it.key, it.value.toLong()) }
-      .toList()
+    return counter.valuesByTimestampUs.map { SeriesData(it.key, it.value.toLong()) }.toList()
   }
 
-  /**
-   * Extracts the BufferQueue counter and builds a data series for [bufferQueueValues].
-   */
+  /** Extracts the BufferQueue counter and builds a data series for [bufferQueueValues]. */
   private fun buildBufferQueueCounter(surfaceflingerProcess: ProcessModel): List<SeriesData<Long>> {
-    val counter = surfaceflingerProcess.counterByName.filterKeys { bufferQueueRegex.matches(it) }.values.firstOrNull()
-                  ?: return emptyList()
-    return counter.valuesByTimestampUs
-      .map { SeriesData(it.key, it.value.toLong()) }
-      .toList()
+    val counter = surfaceflingerProcess.counterByName.filterKeys { bufferQueueRegex.matches(it) }.values.firstOrNull() ?: return emptyList()
+    return counter.valuesByTimestampUs.map { SeriesData(it.key, it.value.toLong()) }.toList()
   }
 
   companion object {

@@ -34,17 +34,21 @@ import java.util.EnumMap
  * resource repository does not track changes in the resource files in the [resFolder], they are loaded once at the time of creation.
  */
 class FolderResourceRepository(private val resFolder: File) : LocalResourceRepository<File>(""), LoadableResourceRepository {
-  private val resourcePathPrefix = RepositoryLoader.portableFileName(resFolder.path) + '/';
+  private val resourcePathPrefix = RepositoryLoader.portableFileName(resFolder.path) + '/'
+
   private val resourcePathBase = PathString(resourcePathPrefix)
   private val resourceTable: MutableMap<ResourceType, ListMultimap<String, ResourceItem>> = EnumMap(ResourceType::class.java)
+
   init {
-    val loader = object : RepositoryLoader<FolderResourceRepository>(resFolder.toPath(), null, this.namespace) {
-      override fun addResourceItem(item: BasicResourceItem, repository: FolderResourceRepository) {
-        resourceTable.computeIfAbsent(item.resourceType) { LinkedListMultimap.create() }.put(item.name, item)
+    val loader =
+      object : RepositoryLoader<FolderResourceRepository>(resFolder.toPath(), null, this.namespace) {
+        override fun addResourceItem(item: BasicResourceItem, repository: FolderResourceRepository) {
+          resourceTable.computeIfAbsent(item.resourceType) { LinkedListMultimap.create() }.put(item.name, item)
+        }
       }
-    }
     loader.loadRepositoryContents(this)
   }
+
   override fun accept(visitor: ResourceVisitor): ResourceVisitor.VisitResult {
     if (visitor.shouldVisitNamespace(namespace)) {
       return acceptByResources(resourceTable, visitor)
@@ -57,6 +61,7 @@ class FolderResourceRepository(private val resFolder: File) : LocalResourceRepos
   override fun getPackageName(): String? = namespace.packageName
 
   override fun getLibraryName(): String? = null
+
   override fun getOrigin(): Path = resFolder.toPath()
 
   override fun getResourceUrl(relativeResourcePath: String): String = resourcePathPrefix + relativeResourcePath

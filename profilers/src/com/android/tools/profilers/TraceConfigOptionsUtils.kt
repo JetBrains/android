@@ -22,8 +22,7 @@ import perfetto.protos.PerfettoConfig
 object TraceConfigOptionsUtils {
 
   /**
-   * Helper function to add default trace options to the TraceConfiguration
-   * based on the type of trace/trace technology being configured.
+   * Helper function to add default trace options to the TraceConfiguration based on the type of trace/trace technology being configured.
    */
   @JvmStatic
   fun addDefaultTraceOptions(configBuilder: Trace.TraceConfiguration.Builder, traceType: TraceType) {

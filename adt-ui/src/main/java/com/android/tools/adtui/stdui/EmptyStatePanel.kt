@@ -53,12 +53,7 @@ class UrlData(val text: String, val url: String)
  * @param suffixIcon optional, an icon that will be displayed after the [text], `null` by default
  * @param callback the callback to be run when the action is triggered
  */
-class ActionData(
-  val text: String,
-  val icon: Icon? = null,
-  val suffixIcon: Icon? = null,
-  val callback: (InputEvent) -> Unit,
-)
+class ActionData(val text: String, val icon: Icon? = null, val suffixIcon: Icon? = null, val callback: (InputEvent) -> Unit)
 
 sealed class Chunk
 
@@ -71,14 +66,12 @@ class LabelData(vararg val chunks: Chunk)
 object NewLineChunk : Chunk()
 
 /**
- * An opinionated panel that makes it easy to generate UI that conforms to
- * https://jetbrains.github.io/ui/principles/empty_state/
+ * An opinionated panel that makes it easy to generate UI that conforms to https://jetbrains.github.io/ui/principles/empty_state/
  *
- * @param helpUrlData If present, shows a link at the bottom of the empty state text, offering users
- *   a change to click on a link that takes them to a browser page where they can read more about
- *   what is causing the empty state / what they can do.
- * @param actionData If present, shows links below empty text and url (if present), which when
- *   clicked run the callbacks passed to ActionData.
+ * @param helpUrlData If present, shows a link at the bottom of the empty state text, offering users a change to click on a link that takes
+ *   them to a browser page where they can read more about what is causing the empty state / what they can do.
+ * @param actionData If present, shows links below empty text and url (if present), which when clicked run the callbacks passed to
+ *   ActionData.
  */
 class EmptyStatePanel
 @JvmOverloads
@@ -91,8 +84,7 @@ constructor(
 ) : JPanel(BorderLayout()) {
 
   init {
-    val instructionsPanel =
-      createInstructionsPanel(this, reason, helpUrlData, *actionData, textColor = textColor)
+    val instructionsPanel = createInstructionsPanel(this, reason, helpUrlData, *actionData, textColor = textColor)
     instructionsPanel.addExtraActions(extraActions)
     add(instructionsPanel)
   }
@@ -147,14 +139,7 @@ private fun createInstructionsPanel(
   actionData.filterNotNull().forEach {
     instructions.add(NewRowInstruction(12))
     it.icon?.let { icon -> instructions.add(IconInstruction(icon, 5, null)) }
-    instructions.add(
-      HyperlinkInstruction(
-        font = textMetrics.font,
-        text = it.text,
-        suffixIcon = it.suffixIcon,
-        action = it.callback,
-      )
-    )
+    instructions.add(HyperlinkInstruction(font = textMetrics.font, text = it.text, suffixIcon = it.suffixIcon, action = it.callback))
   }
 
   return InstructionsPanel.Builder(*instructions.toTypedArray())
@@ -164,22 +149,15 @@ private fun createInstructionsPanel(
 }
 
 /**
- * Adds an [com.intellij.openapi.actionSystem.ActionToolbar] that includes the given [extraActions].
- * We use a toolbar to ensure that the actions will be updated when there are events in the IDE. The
- * actions will have their text shown.
+ * Adds an [com.intellij.openapi.actionSystem.ActionToolbar] that includes the given [extraActions]. We use a toolbar to ensure that the
+ * actions will be updated when there are events in the IDE. The actions will have their text shown.
  */
 private fun InstructionsPanel.addExtraActions(extraActions: List<AnAction>) {
   if (extraActions.isEmpty()) return
-  extraActions.forEach {
-    it.templatePresentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
-  }
-  val toolbar =
-    ActionManager.getInstance()
-      .createActionToolbar("empty panel actions", DefaultActionGroup(extraActions), false)
+  extraActions.forEach { it.templatePresentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true) }
+  val toolbar = ActionManager.getInstance().createActionToolbar("empty panel actions", DefaultActionGroup(extraActions), false)
   toolbar.targetComponent = this
   toolbar.layoutStrategy = NOWRAP_STRATEGY
-  val extraActionsPanel = panel {
-    row { cell(toolbar.component).align(AlignX.CENTER + AlignY.TOP) }
-  }
+  val extraActionsPanel = panel { row { cell(toolbar.component).align(AlignX.CENTER + AlignY.TOP) } }
   add(extraActionsPanel, TabularLayout.Constraint(2, 1))
 }

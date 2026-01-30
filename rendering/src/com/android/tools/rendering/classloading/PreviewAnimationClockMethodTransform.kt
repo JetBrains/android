@@ -19,38 +19,22 @@ import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 
-private const val COMPOSE_ANIMATION_SUBSCRIBER =
-  "com/android/tools/idea/compose/preview/animation/ComposeAnimationSubscriber"
+private const val COMPOSE_ANIMATION_SUBSCRIBER = "com/android/tools/idea/compose/preview/animation/ComposeAnimationSubscriber"
 
 /**
- * [ClassVisitor] that intercepts calls to PreviewAnimationClock's notifySubscribe and
- * notifyUnsubscribe and redirects them to corresponding methods in ComposePreviewAnimationManager.
+ * [ClassVisitor] that intercepts calls to PreviewAnimationClock's notifySubscribe and notifyUnsubscribe and redirects them to corresponding
+ * methods in ComposePreviewAnimationManager.
  */
-class PreviewAnimationClockMethodTransform(delegate: ClassVisitor) :
-  ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
+class PreviewAnimationClockMethodTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   private var isPreviewAnimationClockClass: Boolean = false
   override val uniqueId: String = PreviewAnimationClockMethodTransform::class.qualifiedName!!
 
-  override fun visit(
-    version: Int,
-    access: Int,
-    name: String,
-    signature: String?,
-    superName: String,
-    interfaces: Array<String>,
-  ) {
-    isPreviewAnimationClockClass =
-      name == "androidx/compose/ui/tooling/animation/PreviewAnimationClock"
+  override fun visit(version: Int, access: Int, name: String, signature: String?, superName: String, interfaces: Array<String>) {
+    isPreviewAnimationClockClass = name == "androidx/compose/ui/tooling/animation/PreviewAnimationClock"
     super.visit(version, access, name, signature, superName, interfaces)
   }
 
-  override fun visitMethod(
-    access: Int,
-    name: String,
-    desc: String,
-    signature: String?,
-    exceptions: Array<String>?,
-  ): MethodVisitor {
+  override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<String>?): MethodVisitor {
     val mv = super.visitMethod(access, name, desc, signature, exceptions)
     if (!isPreviewAnimationClockClass) return mv
     if (name == "notifySubscribe") {
@@ -65,13 +49,7 @@ class PreviewAnimationClockMethodTransform(delegate: ClassVisitor) :
       )
     } else if (name == "notifyUnsubscribe") {
       mv.visitVarInsn(Opcodes.ALOAD, 1) // Animation object
-      mv.visitMethodInsn(
-        Opcodes.INVOKESTATIC,
-        COMPOSE_ANIMATION_SUBSCRIBER,
-        "animationUnsubscribed",
-        "(Ljava/lang/Object;)V",
-        false,
-      )
+      mv.visitMethodInsn(Opcodes.INVOKESTATIC, COMPOSE_ANIMATION_SUBSCRIBER, "animationUnsubscribed", "(Ljava/lang/Object;)V", false)
     }
     return mv
   }

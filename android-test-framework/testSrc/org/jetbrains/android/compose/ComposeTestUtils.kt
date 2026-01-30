@@ -32,14 +32,10 @@ private const val DEFAULT_COMPOSE_LIB_VERSION = "1.7.1"
 
 private enum class ComposeLib(private val libPath: String) {
   Runtime("androidx/compose/runtime/runtime-android/%s/runtime-android-%s.aar"),
-  RuntimeSaveable(
-    "androidx/compose/runtime/runtime-saveable-android/%s/runtime-saveable-android-%s.aar"
-  ),
+  RuntimeSaveable("androidx/compose/runtime/runtime-saveable-android/%s/runtime-saveable-android-%s.aar"),
   Ui("androidx/compose/ui/ui-android/%s/ui-android-%s.aar"),
   UiGraphics("androidx/compose/ui/ui-graphics-android/%s/ui-graphics-android-%s.aar"),
-  UiToolingPreview(
-    "androidx/compose/ui/ui-tooling-preview-android/%s/ui-tooling-preview-android-%s.aar"
-  );
+  UiToolingPreview("androidx/compose/ui/ui-tooling-preview-android/%s/ui-tooling-preview-android-%s.aar");
 
   fun getLibPath(version: String) = libPath.format(version, version)
 }
@@ -48,9 +44,7 @@ fun CodeInsightTestFixture.addComposeRuntimeDep(version: String = DEFAULT_COMPOS
   addLibDep(ComposeLib.Runtime, version)
 }
 
-fun CodeInsightTestFixture.addComposeRuntimeSaveableDep(
-  version: String = DEFAULT_COMPOSE_LIB_VERSION
-) {
+fun CodeInsightTestFixture.addComposeRuntimeSaveableDep(version: String = DEFAULT_COMPOSE_LIB_VERSION) {
   addLibDep(ComposeLib.RuntimeSaveable, version)
 }
 
@@ -62,9 +56,7 @@ fun CodeInsightTestFixture.addComposeUiGraphicsDep(version: String = DEFAULT_COM
   addLibDep(ComposeLib.UiGraphics, version)
 }
 
-fun CodeInsightTestFixture.addComposeUiToolingPreviewDep(
-  version: String = DEFAULT_COMPOSE_LIB_VERSION
-) {
+fun CodeInsightTestFixture.addComposeUiToolingPreviewDep(version: String = DEFAULT_COMPOSE_LIB_VERSION) {
   addLibDep(ComposeLib.UiToolingPreview, version)
 }
 
@@ -180,12 +172,7 @@ fun CodeInsightTestFixture.stubConfigurationAsLibrary() {
     }
     """
       .trimIndent()
-  this.stubClassAsLibrary(
-    "configuration",
-    SdkConstants.CLASS_CONFIGURATION,
-    JavaFileType.INSTANCE,
-    fileContents,
-  )
+  this.stubClassAsLibrary("configuration", SdkConstants.CLASS_CONFIGURATION, JavaFileType.INSTANCE, fileContents)
 }
 
 /**
@@ -209,21 +196,11 @@ fun CodeInsightTestFixture.stubDevicesAsLibrary(devicesPackageName: String) {
     }
     """
       .trimIndent()
-  this.stubClassAsLibrary(
-    "devices",
-    "$devicesPackageName.Devices",
-    KotlinFileType.INSTANCE,
-    fileContents,
-  )
+  this.stubClassAsLibrary("devices", "$devicesPackageName.Devices", KotlinFileType.INSTANCE, fileContents)
 }
 
 /** Seems to only work properly in memory/light fixtures. Such as AndroidProjectRule#inMemory */
-private fun CodeInsightTestFixture.stubClassAsLibrary(
-  libraryName: String,
-  fqClassName: String,
-  fileType: FileType,
-  fileContents: String,
-) {
+private fun CodeInsightTestFixture.stubClassAsLibrary(libraryName: String, fqClassName: String, fileType: FileType, fileContents: String) {
   val filePath = fqClassName.replace('.', '/') + '.' + fileType.defaultExtension
   tempDirFixture.createFile("external/$libraryName/$filePath", fileContents)
   val libraryDir = tempDirFixture.findOrCreateDir("external/$libraryName")

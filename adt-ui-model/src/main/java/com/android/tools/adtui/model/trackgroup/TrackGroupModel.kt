@@ -21,8 +21,7 @@ import com.android.tools.adtui.model.DragAndDropListModel
 import java.util.concurrent.atomic.AtomicInteger
 
 /** Data model for TrackGroup, a collapsible UI component that contains a list of Tracks. */
-class TrackGroupModel private constructor(builder: Builder) :
-  DragAndDropListModel<TrackModel<*, *>>() {
+class TrackGroupModel private constructor(builder: Builder) : DragAndDropListModel<TrackModel<*, *>>() {
   val title: String = builder.title
   val titleHelpText: String? = builder.titleHelpText
   val titleHelpLinkText: String? = builder.titleHelpLinkText
@@ -32,8 +31,7 @@ class TrackGroupModel private constructor(builder: Builder) :
   private val selector: Selector? = builder.selector
   val boxSelectionModel: BoxSelectionModel? = builder.boxSelectionModel
   val allDisplayToggles: List<String> = builder.toggles.keys.toList()
-  val displayToggleChangeListeners: Map<String, Runnable> =
-    builder.toggles.mapValues { (_, rec) -> rec.second }
+  val displayToggleChangeListeners: Map<String, Runnable> = builder.toggles.mapValues { (_, rec) -> rec.second }
   var activeDisplayToggles: Set<String> = builder.toggles.filterValues { it.first }.keys.toSet()
 
   private val observer = AspectObserver()
@@ -57,10 +55,7 @@ class TrackGroupModel private constructor(builder: Builder) :
    * @param <R> renderer enum type
    */
   @JvmOverloads
-  fun <M, R : Enum<*>> addTrackModel(
-    builder: TrackModel.Builder<M, R>,
-    shouldPresent: (Set<String>) -> Boolean = { true },
-  ) {
+  fun <M, R : Enum<*>> addTrackModel(builder: TrackModel.Builder<M, R>, shouldPresent: (Set<String>) -> Boolean = { true }) {
     // add() is disabled in DragAndDropListModel to support dynamically reordering elements. Use
     // insertOrderedElement() instead.
     val trackModel = builder.setId(TRACK_ID_GENERATOR.getAndIncrement()).build()
@@ -83,8 +78,7 @@ class TrackGroupModel private constructor(builder: Builder) :
     when {
       tag !in allDisplayToggles -> throw IllegalArgumentException("Unrecognized tag $tag")
       active != tag in activeDisplayToggles -> {
-        activeDisplayToggles =
-          if (active) (activeDisplayToggles + tag) else (activeDisplayToggles - tag)
+        activeDisplayToggles = if (active) (activeDisplayToggles + tag) else (activeDisplayToggles - tag)
         clearOrderedElements()
         trackModelConfigs.forEach { (track, shouldPresent) ->
           if (shouldPresent(activeDisplayToggles)) {
@@ -99,15 +93,10 @@ class TrackGroupModel private constructor(builder: Builder) :
       }
     }
 
-  /**
-   * Add [TrackGroupActionListener] to be fired when a track group action, e.g. moving up, is
-   * performed.
-   */
-  fun addActionListener(actionListener: TrackGroupActionListener) =
-    actionListenerList.add(actionListener)
+  /** Add [TrackGroupActionListener] to be fired when a track group action, e.g. moving up, is performed. */
+  fun addActionListener(actionListener: TrackGroupActionListener) = actionListenerList.add(actionListener)
 
-  fun <M : Any> select(models: Set<TrackModel<M, *>>): Iterable<Map.Entry<Any, Set<M>>> =
-    selector!!.apply(models)
+  fun <M : Any> select(models: Set<TrackModel<M, *>>): Iterable<Map.Entry<Any, Set<M>>> = selector!!.apply(models)
 
   class Builder {
     internal var title = ""
@@ -123,10 +112,7 @@ class TrackGroupModel private constructor(builder: Builder) :
     /** @param title string to be displayed in the header */
     fun setTitle(title: String) = this.also { this.title = title }
 
-    /**
-     * @param titleHelpText string to be displayed as tooltip next to the header. Supports HTML
-     *   tags.
-     */
+    /** @param titleHelpText string to be displayed as tooltip next to the header. Supports HTML tags. */
     fun setTitleHelpText(titleHelpText: String) = this.also { this.titleHelpText = titleHelpText }
 
     /**
@@ -141,24 +127,16 @@ class TrackGroupModel private constructor(builder: Builder) :
         this.titleHelpLinkUrl = titleHelpLinkUrl
       }
 
-    fun setCollapsedInitially(collapsedInitially: Boolean) =
-      this.also { this.collapsedInitially = collapsedInitially }
+    fun setCollapsedInitially(collapsedInitially: Boolean) = this.also { this.collapsedInitially = collapsedInitially }
 
     fun setHideHeader(hideHeader: Boolean) = this.also { this.hideHeader = hideHeader }
 
-    /**
-     * @param selector how this model handles selection, or null if it is not supposed to be
-     *   selectable.
-     */
+    /** @param selector how this model handles selection, or null if it is not supposed to be selectable. */
     fun setSelector(selector: Selector?) = this.also { this.selector = selector }
 
-    fun setBoxSelectionModel(rangeSelectionModel: BoxSelectionModel?) =
-      this.also { boxSelectionModel = rangeSelectionModel }
+    fun setBoxSelectionModel(rangeSelectionModel: BoxSelectionModel?) = this.also { boxSelectionModel = rangeSelectionModel }
 
-    /**
-     * Add a display toggle that can be dynamically turned on or off, affecting which tracks are
-     * displayed
-     */
+    /** Add a display toggle that can be dynamically turned on or off, affecting which tracks are displayed */
     @JvmOverloads
     fun addDisplayToggle(title: String, isOnByDefault: Boolean, onChanged: Runnable = Runnable {}) =
       this.also { toggles += title to (isOnByDefault to onChanged) }
@@ -181,8 +159,7 @@ class TrackGroupModel private constructor(builder: Builder) :
 
     fun makeItemSelector() =
       object : Selector {
-        override fun <M : Any> apply(selections: Set<TrackModel<M, *>>) =
-          selections.map { entry(it.id, setOf(it.dataModel)) }
+        override fun <M : Any> apply(selections: Set<TrackModel<M, *>>) = selections.map { entry(it.id, setOf(it.dataModel)) }
       }
 
     private fun <K, V> entry(k: K, v: V) =

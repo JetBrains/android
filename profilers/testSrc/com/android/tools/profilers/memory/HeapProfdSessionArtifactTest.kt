@@ -29,42 +29,45 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil
+import java.io.ByteArrayOutputStream
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.ByteArrayOutputStream
-import java.io.File
 
 class HeapProfdSessionArtifactTest {
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("HeapProfdSessionArtifactTestChannel", transportService)
+  @get:Rule var grpcChannel = FakeGrpcChannel("HeapProfdSessionArtifactTestChannel", transportService)
 
   private lateinit var profilers: StudioProfilers
 
   @Before
   fun setup() {
-    profilers = StudioProfilers(
-      ProfilerClient(grpcChannel.channel),
-      FakeIdeProfilerServices(),
-      FakeTimer()
-    )
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), FakeTimer())
   }
 
-  fun generateSessionArtifacts() : List<SessionArtifact<*>> {
+  fun generateSessionArtifacts(): List<SessionArtifact<*>> {
     val nativeHeapTimestamp = 30L
-    val nativeHeapInfo = Trace.TraceData.newBuilder().setTraceStarted(Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(
-      Trace.TraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(
-        nativeHeapTimestamp + 1))).build()
-    val nativeHeapData = ProfilersTestData.generateMemoryTraceData(
-      nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
-      .setPid(ProfilersTestData.SESSION_DATA.pid).build()
+    val nativeHeapInfo =
+      Trace.TraceData.newBuilder()
+        .setTraceStarted(
+          Trace.TraceData.TraceStarted.newBuilder()
+            .setTraceInfo(Trace.TraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(nativeHeapTimestamp + 1))
+        )
+        .build()
+    val nativeHeapData =
+      ProfilersTestData.generateMemoryTraceData(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
+        .setPid(ProfilersTestData.SESSION_DATA.pid)
+        .build()
     transportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId, nativeHeapData)
-    return HeapProfdSessionArtifact.getSessionArtifacts(profilers, ProfilersTestData.SESSION_DATA,
-                                                                 Common.SessionMetaData.getDefaultInstance())
+    return HeapProfdSessionArtifact.getSessionArtifacts(
+      profilers,
+      ProfilersTestData.SESSION_DATA,
+      Common.SessionMetaData.getDefaultInstance(),
+    )
   }
 
   @Test

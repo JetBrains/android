@@ -25,9 +25,7 @@ import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalog
 import com.android.gmdcodecompletion.removeDoubleQuote
 import com.intellij.codeInsight.lookup.LookupElement
 
-/**
- * Generates lookup suggestion list for managed virtual GMDs
- */
+/** Generates lookup suggestion list for managed virtual GMDs */
 object ManagedVirtualLookupElementProvider : BaseLookupElementProvider() {
 
   private fun String.removeAtdFlag() = this.replace("-$ATD_FLAG", "")
@@ -38,10 +36,12 @@ object ManagedVirtualLookupElementProvider : BaseLookupElementProvider() {
   // short names for Android OS image source for managed virtual devices
   private val SYSTEM_IMAGE_SOURCE = listOf("aosp-atd", "aosp", "google-atd", "google")
 
-  override fun generateDevicePropertyValueSuggestionList(configurationParameterName: ConfigurationParameterName,
-                                                         deviceProperties: CurrentDeviceProperties,
-                                                         minAndTargetApiLevel: MinAndTargetApiLevel,
-                                                         deviceCatalog: GmdDeviceCatalog): Collection<LookupElement> {
+  override fun generateDevicePropertyValueSuggestionList(
+    configurationParameterName: ConfigurationParameterName,
+    deviceProperties: CurrentDeviceProperties,
+    minAndTargetApiLevel: MinAndTargetApiLevel,
+    deviceCatalog: GmdDeviceCatalog,
+  ): Collection<LookupElement> {
     deviceCatalog as ManagedVirtualDeviceCatalog
     return when (configurationParameterName) {
       DEVICE_ID -> generateManagedVirtualDeviceIdSuggestion(deviceProperties, minAndTargetApiLevel, deviceCatalog)
@@ -53,9 +53,11 @@ object ManagedVirtualLookupElementProvider : BaseLookupElementProvider() {
     }
   }
 
-  private fun generateManagedVirtualDeviceIdSuggestion(deviceProperties: CurrentDeviceProperties,
-                                                       minAndTargetApiLevel: MinAndTargetApiLevel,
-                                                       deviceCatalog: ManagedVirtualDeviceCatalog): Collection<LookupElement> {
+  private fun generateManagedVirtualDeviceIdSuggestion(
+    deviceProperties: CurrentDeviceProperties,
+    minAndTargetApiLevel: MinAndTargetApiLevel,
+    deviceCatalog: ManagedVirtualDeviceCatalog,
+  ): Collection<LookupElement> {
     var specifiedApiLevel: Int? = deviceProperties[API_LEVEL]?.toIntOrNull()
     val apiPreview = deviceProperties[API_PREVIEW]?.removeDoubleQuote()
     if (specifiedApiLevel != null && apiPreview != null) return emptyList()
@@ -68,11 +70,15 @@ object ManagedVirtualLookupElementProvider : BaseLookupElementProvider() {
     return generateGmdDeviceIdSuggestionHelper(minAndTargetApiLevel, specifiedApiLevel ?: -1, deviceCatalog.devices)
   }
 
-  private fun generateManagedVirtualDeviceApiLevelSuggestion(deviceProperties: CurrentDeviceProperties,
-                                                             minAndTargetApiLevel: MinAndTargetApiLevel,
-                                                             deviceCatalog: ManagedVirtualDeviceCatalog): Collection<LookupElement> {
-    return managedVirtualDeviceApiInfoSuggestionHelper(deviceProperties, minAndTargetApiLevel,
-                                                       deviceCatalog) { validApiInfoList, deviceId, targetSdk ->
+  private fun generateManagedVirtualDeviceApiLevelSuggestion(
+    deviceProperties: CurrentDeviceProperties,
+    minAndTargetApiLevel: MinAndTargetApiLevel,
+    deviceCatalog: ManagedVirtualDeviceCatalog,
+  ): Collection<LookupElement> {
+    return managedVirtualDeviceApiInfoSuggestionHelper(deviceProperties, minAndTargetApiLevel, deviceCatalog) {
+      validApiInfoList,
+      deviceId,
+      targetSdk ->
       var apiList = validApiInfoList.map { it.apiLevel }.toSet()
 
       if (deviceId.isNotEmpty() && deviceCatalog.devices.contains(deviceId)) {
@@ -84,11 +90,15 @@ object ManagedVirtualLookupElementProvider : BaseLookupElementProvider() {
     }
   }
 
-  private fun generateManagedVirtualDeviceApiPreviewSuggestion(deviceProperties: CurrentDeviceProperties,
-                                                               minAndTargetApiLevel: MinAndTargetApiLevel,
-                                                               deviceCatalog: ManagedVirtualDeviceCatalog): Collection<LookupElement> {
-    return managedVirtualDeviceApiInfoSuggestionHelper(deviceProperties, minAndTargetApiLevel,
-                                                       deviceCatalog) { validApiInfoList, deviceId, targetSdk ->
+  private fun generateManagedVirtualDeviceApiPreviewSuggestion(
+    deviceProperties: CurrentDeviceProperties,
+    minAndTargetApiLevel: MinAndTargetApiLevel,
+    deviceCatalog: ManagedVirtualDeviceCatalog,
+  ): Collection<LookupElement> {
+    return managedVirtualDeviceApiInfoSuggestionHelper(deviceProperties, minAndTargetApiLevel, deviceCatalog) {
+      validApiInfoList,
+      deviceId,
+      targetSdk ->
       var apiPreviewList = validApiInfoList.filter { it.apiPreview != "" }.map { Pair(it.apiPreview, it.apiLevel) }.toSet()
 
       if (deviceId.isNotEmpty() && deviceCatalog.devices.contains(deviceId)) {
@@ -97,48 +107,67 @@ object ManagedVirtualLookupElementProvider : BaseLookupElementProvider() {
       }
 
       return@managedVirtualDeviceApiInfoSuggestionHelper apiPreviewList.map { apiPreview ->
-        GmdCodeCompletionLookupElement(myValue = apiPreview.first, myScore = if (targetSdk == apiPreview.second) 1u else 0u,
-                                       myInsertHandler = GmdDevicePropertyInsertHandler())
+        GmdCodeCompletionLookupElement(
+          myValue = apiPreview.first,
+          myScore = if (targetSdk == apiPreview.second) 1u else 0u,
+          myInsertHandler = GmdDevicePropertyInsertHandler(),
+        )
       }
     }
   }
 
-  private fun generateManagedVirtualDeviceImageSource(deviceProperties: CurrentDeviceProperties,
-                                                      deviceCatalog: ManagedVirtualDeviceCatalog): Collection<LookupElement> {
+  private fun generateManagedVirtualDeviceImageSource(
+    deviceProperties: CurrentDeviceProperties,
+    deviceCatalog: ManagedVirtualDeviceCatalog,
+  ): Collection<LookupElement> {
     val apiLevel = deviceProperties[API_LEVEL]?.toIntOrNull()
     val apiPreview = deviceProperties[API_PREVIEW]?.removeDoubleQuote()
     val require64Bit = deviceProperties[REQUIRE64BIT]?.toBoolean() ?: false
     if (apiLevel != null && apiPreview != null) return emptyList()
     // Drop any image source that is not consistent with existing device definition
-    val imageSources = deviceCatalog.apiLevels.filter {
-      (apiLevel == null || apiLevel == it.apiLevel) &&
-      (apiPreview == null || it.apiPreview == apiPreview) &&
-      it.require64Bit == require64Bit
-    }.map { it.imageSource }.toSet()
+    val imageSources =
+      deviceCatalog.apiLevels
+        .filter {
+          (apiLevel == null || apiLevel == it.apiLevel) &&
+            (apiPreview == null || it.apiPreview == apiPreview) &&
+            it.require64Bit == require64Bit
+        }
+        .map { it.imageSource }
+        .toSet()
 
-    val mergedResult = (imageSources + SYSTEM_IMAGE_SOURCE.filter { shortImageSource ->
-      imageSources.any { fullImageSource ->
-        hasMatchingImageSource(fullImageSource, shortImageSource)
-      }
-    }).toSet()
+    val mergedResult =
+      (imageSources +
+          SYSTEM_IMAGE_SOURCE.filter { shortImageSource ->
+            imageSources.any { fullImageSource -> hasMatchingImageSource(fullImageSource, shortImageSource) }
+          })
+        .toSet()
     return mergedResult.map {
-      GmdCodeCompletionLookupElement(myValue = it, myScore = (SYSTEM_IMAGE_SOURCE.indexOf(it) + 1).toUInt(),
-                                     myInsertHandler = GmdDevicePropertyInsertHandler())
+      GmdCodeCompletionLookupElement(
+        myValue = it,
+        myScore = (SYSTEM_IMAGE_SOURCE.indexOf(it) + 1).toUInt(),
+        myInsertHandler = GmdDevicePropertyInsertHandler(),
+      )
     }
   }
 
-  private fun generateManagedVirtualDeviceRequire64Bit(deviceProperties: CurrentDeviceProperties,
-                                                       deviceCatalog: ManagedVirtualDeviceCatalog): Collection<LookupElement> {
+  private fun generateManagedVirtualDeviceRequire64Bit(
+    deviceProperties: CurrentDeviceProperties,
+    deviceCatalog: ManagedVirtualDeviceCatalog,
+  ): Collection<LookupElement> {
     val apiLevel = deviceProperties[API_LEVEL]?.toIntOrNull()
     val apiPreview = deviceProperties[API_PREVIEW]?.removeDoubleQuote()
     val imageSource = deviceProperties[SYS_IMAGE_SOURCE]?.removeDoubleQuote()
     // API level and API preview should not be present at the same time for a given device
     if (apiLevel != null && apiPreview != null) return emptyList()
-    val requires64Bit = deviceCatalog.apiLevels.filter {
-      (apiLevel == null || apiLevel == it.apiLevel) &&
-      (apiPreview == null || apiPreview == it.apiPreview) &&
-      hasMatchingImageSource(imageSource, it.imageSource)
-    }.map { it.require64Bit }.toSet()
+    val requires64Bit =
+      deviceCatalog.apiLevels
+        .filter {
+          (apiLevel == null || apiLevel == it.apiLevel) &&
+            (apiPreview == null || apiPreview == it.apiPreview) &&
+            hasMatchingImageSource(imageSource, it.imageSource)
+        }
+        .map { it.require64Bit }
+        .toSet()
     return requires64Bit.map { GmdCodeCompletionLookupElement(myValue = it.toString()) }
   }
 
@@ -149,12 +178,12 @@ object ManagedVirtualLookupElementProvider : BaseLookupElementProvider() {
    * @param deviceCatalog managed virtual devicess device catalog
    * @param callback function that generate the final suggestion list
    */
-  private fun managedVirtualDeviceApiInfoSuggestionHelper(deviceProperties: CurrentDeviceProperties,
-                                                          minAndTargetApiLevel: MinAndTargetApiLevel,
-                                                          deviceCatalog: ManagedVirtualDeviceCatalog,
-                                                          callback: (validApiInfoList: List<ManagedVirtualDeviceCatalog.ApiVersionInfo>,
-                                                                     deviceId: String,
-                                                                     targetSdk: Int) -> Collection<LookupElement>
+  private fun managedVirtualDeviceApiInfoSuggestionHelper(
+    deviceProperties: CurrentDeviceProperties,
+    minAndTargetApiLevel: MinAndTargetApiLevel,
+    deviceCatalog: ManagedVirtualDeviceCatalog,
+    callback:
+      (validApiInfoList: List<ManagedVirtualDeviceCatalog.ApiVersionInfo>, deviceId: String, targetSdk: Int) -> Collection<LookupElement>,
   ): Collection<LookupElement> {
     // Return if API preview is set
     if (deviceProperties[API_LEVEL] != null || deviceProperties[API_PREVIEW] != null) return emptyList()
@@ -163,10 +192,13 @@ object ManagedVirtualLookupElementProvider : BaseLookupElementProvider() {
     val require64Bit = deviceProperties[REQUIRE64BIT]?.toBoolean() ?: false
     val imageSource = deviceProperties[SYS_IMAGE_SOURCE]?.removeDoubleQuote()
 
-    val validApiInfoList = deviceCatalog.apiLevels.filter {
-      it.apiLevel > 0 && it.apiLevel >= minAndTargetApiLevel.minSdk &&
-      it.require64Bit == require64Bit && hasMatchingImageSource(imageSource, it.imageSource)
-    }
+    val validApiInfoList =
+      deviceCatalog.apiLevels.filter {
+        it.apiLevel > 0 &&
+          it.apiLevel >= minAndTargetApiLevel.minSdk &&
+          it.require64Bit == require64Bit &&
+          hasMatchingImageSource(imageSource, it.imageSource)
+      }
 
     return callback(validApiInfoList, deviceId, minAndTargetApiLevel.targetSdk)
   }
@@ -174,8 +206,7 @@ object ManagedVirtualLookupElementProvider : BaseLookupElementProvider() {
   // Returns true if deviceImageSource is a subset of currentImageSource. Else returns false
   private fun hasMatchingImageSource(deviceImageSource: String?, currentImageSource: String): Boolean {
     return (deviceImageSource == null ||
-            (deviceImageSource.contains(currentImageSource.removeAtdFlag()) &&
-             (!currentImageSource.contains(ATD_FLAG) ||
-              (currentImageSource.contains(ATD_FLAG) && deviceImageSource.contains(ATD_FLAG)))))
+      (deviceImageSource.contains(currentImageSource.removeAtdFlag()) &&
+        (!currentImageSource.contains(ATD_FLAG) || (currentImageSource.contains(ATD_FLAG) && deviceImageSource.contains(ATD_FLAG)))))
   }
 }

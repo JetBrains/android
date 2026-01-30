@@ -16,20 +16,13 @@
 package com.android.tools.preview
 
 /**
- * Some preview elements can generate multiple other preview elements, such as preview elements with
- * preview parameters. This interface represents the unique preview element that is instantiated.
- * The [instanceId] should be unique.
+ * Some preview elements can generate multiple other preview elements, such as preview elements with preview parameters. This interface
+ * represents the unique preview element that is instantiated. The [instanceId] should be unique.
  */
 interface PreviewElementInstance<T> : ConfigurablePreviewElement<T> {
   /** Unique identifier that can be used for filtering. */
   val instanceId: String
 
-  /**
-   * Derives a new [PreviewElementInstance] from an existing one, replacing the
-   * [PreviewDisplaySettings] and the [PreviewConfiguration].
-   */
-  fun createDerivedInstance(
-    displaySettings: PreviewDisplaySettings,
-    config: PreviewConfiguration,
-  ): PreviewElementInstance<T>
+  /** Derives a new [PreviewElementInstance] from an existing one, replacing the [PreviewDisplaySettings] and the [PreviewConfiguration]. */
+  fun createDerivedInstance(displaySettings: PreviewDisplaySettings, config: PreviewConfiguration): PreviewElementInstance<T>
 }

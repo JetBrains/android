@@ -26,21 +26,23 @@ import com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * Track renderer for System Trace battery drain counters.
- */
+/** Track renderer for System Trace battery drain counters. */
 class BatteryDrainTrackRenderer : TrackRenderer<BatteryDrainTrackModel> {
   override fun render(trackModel: TrackModel<BatteryDrainTrackModel, *>): JComponent {
-    val lineChart = LineChart(trackModel.dataModel).apply {
-      configure(trackModel.dataModel.batteryDrainCounterSeries,
-                LineConfig(DataVisualizationColors.paletteManager.getBackgroundColor(trackModel.title.hashCode())).setFilled(true))
-      setFillEndGap(true)
-    }
+    val lineChart =
+      LineChart(trackModel.dataModel).apply {
+        configure(
+          trackModel.dataModel.batteryDrainCounterSeries,
+          LineConfig(DataVisualizationColors.paletteManager.getBackgroundColor(trackModel.title.hashCode())).setFilled(true),
+        )
+        setFillEndGap(true)
+      }
     val negValuePresent = trackModel.dataModel.axisComponentModel.range.min < 0 || trackModel.dataModel.axisComponentModel.range.max < 0
-    val leftAxis = AxisComponent(trackModel.dataModel.axisComponentModel, AxisComponent.AxisOrientation.RIGHT, !negValuePresent).apply {
-      setShowAxisLine(false)
-      setHideTickAtMin(true)
-    }
+    val leftAxis =
+      AxisComponent(trackModel.dataModel.axisComponentModel, AxisComponent.AxisOrientation.RIGHT, !negValuePresent).apply {
+        setShowAxisLine(false)
+        setHideTickAtMin(true)
+      }
     return JPanel(TabularLayout("*", "*")).apply {
       add(leftAxis, TabularLayout.Constraint(0, 0))
       add(lineChart, TabularLayout.Constraint(0, 0))

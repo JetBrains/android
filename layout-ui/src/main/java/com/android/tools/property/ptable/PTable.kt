@@ -24,8 +24,7 @@ import javax.swing.JComponent
 /**
  * A properties table with 2 columns: name and value.
  *
- * This interface hides the implementation detail of the properties table in [PTableImpl].
- * Expandable groups are supported.
+ * This interface hides the implementation detail of the properties table in [PTableImpl]. Expandable groups are supported.
  */
 interface PTable {
 
@@ -35,16 +34,10 @@ interface PTable {
   /** The table model */
   val tableModel: PTableModel
 
-  /**
-   * A context where the consumer can store a reference to a model that otherwise would be hard to
-   * identify
-   */
+  /** A context where the consumer can store a reference to a model that otherwise would be hard to identify */
   val context: Any?
 
-  /**
-   * Returns the number of items in the table. Note this will change after a group is
-   * expanded/collapsed
-   */
+  /** Returns the number of items in the table. Note this will change after a group is expanded/collapsed */
   val itemCount: Int
 
   /** The font used in the table */
@@ -68,10 +61,9 @@ interface PTable {
   /**
    * The grid color used in the table.
    *
-   * Note: The 2 columns are NOT divided by a grid line, since the implementation would always show
-   * a vertical line after each column. We don't want a line after the value column. If a consumer
-   * of this interface wants a vertical grid line between the 2 columns, the consumer must draw this
-   * line. Here is the color used for the horizontal grid lines.
+   * Note: The 2 columns are NOT divided by a grid line, since the implementation would always show a vertical line after each column. We
+   * don't want a line after the value column. If a consumer of this interface wants a vertical grid line between the 2 columns, the
+   * consumer must draw this line. Here is the color used for the horizontal grid lines.
    */
   val gridLineColor: Color
 
@@ -90,25 +82,14 @@ interface PTable {
   /** Returns true if the expanded item handler popup is currently showing */
   fun isExpandedRendererPopupShowing(): Boolean
 
-  /**
-   * Return true if the [column] of [item] is currently expanded to show the full value that doesn't
-   * normally fit in the cell.
-   */
+  /** Return true if the [column] of [item] is currently expanded to show the full value that doesn't normally fit in the cell. */
   fun isExpandedRendererItem(item: PTableItem, column: PTableColumn): Boolean
 
   /** Toggles the expansion state of the specified [PTableGroupItem] */
   fun toggle(item: PTableGroupItem)
 
-  /**
-   * Set the row height to the preferred height of the [cellEditor] corresponding to the [item] and
-   * optionally [scrollIntoView]
-   */
-  fun updateRowHeight(
-    item: PTableItem,
-    column: PTableColumn,
-    cellEditor: JComponent,
-    scrollIntoView: Boolean,
-  )
+  /** Set the row height to the preferred height of the [cellEditor] corresponding to the [item] and optionally [scrollIntoView] */
+  fun updateRowHeight(item: PTableItem, column: PTableColumn, cellEditor: JComponent, scrollIntoView: Boolean)
 
   /** Start editing the specified row, and stop editing if row is -1. */
   fun startEditing(row: Int)
@@ -129,15 +110,7 @@ interface PTable {
       updatingUI: () -> Unit = {},
       nameColumnFraction: ColumnFraction = ColumnFraction(),
     ): PTable {
-      return PTableImpl(
-        tableModel,
-        context,
-        rendererProvider,
-        editorProvider,
-        customToolTipHook,
-        updatingUI,
-        nameColumnFraction,
-      )
+      return PTableImpl(tableModel, context, rendererProvider, editorProvider, customToolTipHook, updatingUI, nameColumnFraction)
     }
   }
 }

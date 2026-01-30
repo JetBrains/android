@@ -23,11 +23,8 @@ import javax.swing.BoundedRangeModel
 import javax.swing.JPanel
 import javax.swing.JTable
 
-/**
- * JPanel responsible for creating and managing the horizontal scroll bar for the component tree.
- */
-class ColumnTreeScrollPanel(private val tree: TreeTableTree, private val table: TreeTableImpl) :
-  JPanel(BorderLayout()) {
+/** JPanel responsible for creating and managing the horizontal scroll bar for the component tree. */
+class ColumnTreeScrollPanel(private val tree: TreeTableTree, private val table: TreeTableImpl) : JPanel(BorderLayout()) {
 
   private val scrollbar = ColumnTreeScrollBar(table)
 

@@ -21,15 +21,11 @@ import com.android.tools.adtui.model.StateChartModel
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.model.TooltipModel
 
-class AndroidFrameEventTooltip(
-  val timeline: Timeline,
-  private val model: AndroidFrameEventTrackModel
-) : TooltipModel, AspectModel<AndroidFrameEventTooltip.Aspect>() {
+class AndroidFrameEventTooltip(val timeline: Timeline, private val model: AndroidFrameEventTrackModel) :
+  TooltipModel, AspectModel<AndroidFrameEventTooltip.Aspect>() {
   enum class Aspect {
-    /**
-     * The hovering frame event value changed.
-     */
-    VALUE_CHANGED,
+    /** The hovering frame event value changed. */
+    VALUE_CHANGED
   }
 
   val androidFramePhase: AndroidFramePhase = model.androidFramePhase
@@ -42,9 +38,10 @@ class AndroidFrameEventTooltip(
   }
 
   private fun updateValue() {
-    val newFrameEvent = model.activeSeriesIndex.takeIf(model.series.indices::contains)?.let {
-      model.series[it].getSeriesForRange(timeline.tooltipRange).firstOrNull()?.value
-    } ?: AndroidFrameEvent.Padding
+    val newFrameEvent =
+      model.activeSeriesIndex.takeIf(model.series.indices::contains)?.let {
+        model.series[it].getSeriesForRange(timeline.tooltipRange).firstOrNull()?.value
+      } ?: AndroidFrameEvent.Padding
     if (newFrameEvent != activeFrameEvent) {
       activeFrameEvent = newFrameEvent
       changed(Aspect.VALUE_CHANGED)

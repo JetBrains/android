@@ -12,10 +12,9 @@ import kotlin.properties.Delegates
 /**
  * A custom Android View that can display an integer encoded as colors.
  *
- * Functions as a [LinearLayout] of [TextView]s that dynamically resizes as more are needed to encode
- * integers with the given number of total bits and bits per color channel. Configure initial values using
- * the [maxBits] and [bitsPerChannel] custom attribute values. Must also contain at least one [TextView] child
- * in the layout which will be used as a prototype for additional [TextView]s if necessary.
+ * Functions as a [LinearLayout] of [TextView]s that dynamically resizes as more are needed to encode integers with the given number of
+ * total bits and bits per color channel. Configure initial values using the [maxBits] and [bitsPerChannel] custom attribute values. Must
+ * also contain at least one [TextView] child in the layout which will be used as a prototype for additional [TextView]s if necessary.
  */
 open class EncodedIntegerView(context: Context, attrs: AttributeSet) : LinearLayout(context, attrs) {
   private val textViewChildren
@@ -30,8 +29,7 @@ open class EncodedIntegerView(context: Context, attrs: AttributeSet) : LinearLay
       try {
         maxBits = getInt(R.styleable.EncodedIntegerView_maxBits, Int.SIZE_BITS)
         bitsPerChannel = getInt(R.styleable.EncodedIntegerView_bitsPerChannel, 8)
-      }
-      finally {
+      } finally {
         recycle()
       }
     }
@@ -39,9 +37,7 @@ open class EncodedIntegerView(context: Context, attrs: AttributeSet) : LinearLay
 
   /** Shows the color values as strings in each child [TextView] iff [textVisible] is [true]. */
   fun setTextVisible(textVisible: Boolean) {
-    textViewChildren.forEach {
-      if (textVisible) it.setTextToBackgroundColor() else it.text = null
-    }
+    textViewChildren.forEach { if (textVisible) it.setTextToBackgroundColor() else it.text = null }
   }
 
   /** Displays the given integer as colors in the child [TextView]s. */
@@ -55,7 +51,7 @@ open class EncodedIntegerView(context: Context, attrs: AttributeSet) : LinearLay
   }
 
   /** Computes the colors to use to display the given integer. */
-  protected open fun computeColors(n: Int) : List<Int>? = n.toColors(maxBits, bitsPerChannel)
+  protected open fun computeColors(n: Int): List<Int>? = n.toColors(maxBits, bitsPerChannel)
 
   protected open fun onConfigurationReloaded() {}
 
@@ -66,10 +62,12 @@ open class EncodedIntegerView(context: Context, attrs: AttributeSet) : LinearLay
     } else {
       val prototype = getChildAt(0) as TextView
       repeat(targetNumChildren - childCount) {
-        addView(TextView(context, /* attrs = */ null, /* defStyleAttr = */ 0, R.style.encoded_integer_view_block).apply {
-          layoutParams = prototype.layoutParams
-          gravity = prototype.gravity
-        })
+        addView(
+          TextView(context, /* attrs= */ null, /* defStyleAttr= */ 0, R.style.encoded_integer_view_block).apply {
+            layoutParams = prototype.layoutParams
+            gravity = prototype.gravity
+          }
+        )
       }
     }
   }

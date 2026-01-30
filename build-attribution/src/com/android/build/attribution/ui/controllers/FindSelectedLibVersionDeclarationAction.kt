@@ -47,8 +47,7 @@ class FindSelectedLibVersionDeclarationAction(
   private val selectionSupplier: Supplier<JetifierWarningDetailsView.DirectDependencyDescriptor?>,
   private val project: Project,
   private val analytics: BuildAttributionUiAnalytics,
-) : AnAction(
-  "Find Version Declarations") {
+) : AnAction("Find Version Declarations") {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
@@ -76,63 +75,69 @@ class FindSelectedLibVersionDeclarationAction(
     val processPresentation = FindUsagesProcessPresentation(usageViewPresentation)
     processPresentation.isShowNotFoundMessage = true
     processPresentation.isShowPanelIfOnlyOneUsage = false
-    val factory = Factory<UsageSearcher> {
-      object : UsageInfoSearcherAdapter() {
-        override fun generate(processor: Processor<in Usage>) {
-          processUsages(processor, project)
-        }
+    val factory =
+      Factory<UsageSearcher> {
+        object : UsageInfoSearcherAdapter() {
+          override fun generate(processor: Processor<in Usage>) {
+            processUsages(processor, project)
+          }
 
-        override fun findUsages(): Array<UsageInfo> {
-          return findVersionDeclarations(project, selectedDependency)
+          override fun findUsages(): Array<UsageInfo> {
+            return findVersionDeclarations(project, selectedDependency)
+          }
         }
       }
-    }
-    val listener = object : UsageViewManager.UsageViewStateListener {
-      override fun usageViewCreated(usageView: UsageView) = Unit
-      override fun findingUsagesFinished(usageView: UsageView?) = analytics.findLibraryVersionDeclarationActionUsed(watch.elapsed())
-    }
-    val target = object : UsageTarget {
-      override fun getName(): String = fullNameWithoutVersion
-      override fun getPresentation(): ItemPresentation = object : ItemPresentation {
-        override fun getPresentableText(): String = fullNameWithoutVersion
-        override fun getIcon(unused: Boolean): Icon = PlatformIcons.LIBRARY_ICON
-      }
+    val listener =
+      object : UsageViewManager.UsageViewStateListener {
+        override fun usageViewCreated(usageView: UsageView) = Unit
 
-      override fun isValid(): Boolean = true
-      override fun findUsages() = Unit
-    }
+        override fun findingUsagesFinished(usageView: UsageView?) = analytics.findLibraryVersionDeclarationActionUsed(watch.elapsed())
+      }
+    val target =
+      object : UsageTarget {
+        override fun getName(): String = fullNameWithoutVersion
+
+        override fun getPresentation(): ItemPresentation =
+          object : ItemPresentation {
+            override fun getPresentableText(): String = fullNameWithoutVersion
+
+            override fun getIcon(unused: Boolean): Icon = PlatformIcons.LIBRARY_ICON
+          }
+
+        override fun isValid(): Boolean = true
+
+        override fun findUsages() = Unit
+      }
     UsageViewManager.getInstance(project)
       .searchAndShowUsages(arrayOf(target), factory, processPresentation, usageViewPresentation, listener)
   }
-
 }
 
 fun findVersionDeclarations(project: Project, selectedDependency: JetifierWarningDetailsView.DirectDependencyDescriptor): Array<UsageInfo> {
   val selectedParsed = ArtifactDependencySpecImpl.create(selectedDependency.fullName) ?: return emptyArray()
   val rootBuildModel = ProjectBuildModel.get(project).projectBuildModel ?: return emptyArray()
-  val modelsForSearch = ProjectBuildModel.get(project).projectSettingsModel?.let {
-    selectedDependency.projects.mapNotNull { gradleProjectPath -> it.moduleModel(gradleProjectPath) }
-  } ?: listOf(rootBuildModel)
-  return modelsForSearch.asSequence()
+  val modelsForSearch =
+    ProjectBuildModel.get(project).projectSettingsModel?.let {
+      selectedDependency.projects.mapNotNull { gradleProjectPath -> it.moduleModel(gradleProjectPath) }
+    } ?: listOf(rootBuildModel)
+  return modelsForSearch
+    .asSequence()
     .flatMap { model -> model.dependencies().artifacts() }
-    .filter { dependency ->
-      dependency.spec.let {
-        it.group == selectedParsed.group && it.name == selectedParsed.name
-      }
-    }
+    .filter { dependency -> dependency.spec.let { it.group == selectedParsed.group && it.name == selectedParsed.name } }
     .mapNotNull { dependency ->
       val versionElement = dependency.version().resultModel.rawElement
-      fun extractDependencyPsi() = when (val dependencyElement = dependency.completeModel().resultModel.rawElement) {
-        is GradleDslLiteral -> dependencyElement.expression
-        else -> dependencyElement?.psiElement
-      }
+      fun extractDependencyPsi() =
+        when (val dependencyElement = dependency.completeModel().resultModel.rawElement) {
+          is GradleDslLiteral -> dependencyElement.expression
+          else -> dependencyElement?.psiElement
+        }
       when (versionElement) {
         null -> // Version declaration is not found, return dependency declaration.
-          extractDependencyPsi()
+        extractDependencyPsi()
         is FakeArtifactElement -> // Version declared as part of dependency declaration, return dependency declaration.
-          extractDependencyPsi()
+        extractDependencyPsi()
         else -> // Version declared in a separate element, return it's psi.
-          versionElement.psiElement
+        versionElement.psiElement
       }
     }
     .map { UsageInfo(it) }

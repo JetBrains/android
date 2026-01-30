@@ -36,13 +36,15 @@ object ProfilerTaskLauncher {
    * tasks are 1:1.
    */
   @JvmStatic
-  fun launchProfilerTask(selectedTaskType: ProfilerTaskType,
-                         isStartupTask: Boolean,
-                         taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
-                         session: Common.Session,
-                         sessionIdToSessionItems: Map<Long, SessionItem>,
-                         openTaskTab: BiConsumer<ProfilerTaskType, TaskArgs>,
-                         ideProfilerServices: IdeProfilerServices) {
+  fun launchProfilerTask(
+    selectedTaskType: ProfilerTaskType,
+    isStartupTask: Boolean,
+    taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
+    session: Common.Session,
+    sessionIdToSessionItems: Map<Long, SessionItem>,
+    openTaskTab: BiConsumer<ProfilerTaskType, TaskArgs>,
+    ideProfilerServices: IdeProfilerServices,
+  ) {
     if (!taskHandlers.containsKey(selectedTaskType)) {
       getLogger().error("The task type, " + selectedTaskType.description + ", " + "does not have a corresponding task handler.")
       return
@@ -54,8 +56,7 @@ object ProfilerTaskLauncher {
       val args = taskHandler.createArgs(isStartupTask, sessionIdToSessionItems, session)
       // Open the task tab with the selected task and constructed task arguments.
       openTaskTab.accept(selectedTaskType, args)
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       ideProfilerServices.showNotification(TaskNotifications.LAUNCH_TASK_FAILURE)
     }
   }

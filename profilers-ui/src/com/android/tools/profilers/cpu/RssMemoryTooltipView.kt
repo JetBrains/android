@@ -26,11 +26,9 @@ import javax.swing.JPanel
 class RssMemoryTooltipView(parent: JComponent, val tooltip: RssMemoryTooltip) : TooltipView(tooltip.timeline) {
   private val content = JPanel(TabularLayout("*").setVGap(12))
 
-  @VisibleForTesting
-  val descriptionLabel = createTooltipLabel()
+  @VisibleForTesting val descriptionLabel = createTooltipLabel()
 
-  @VisibleForTesting
-  val valueLabel = createTooltipLabel()
+  @VisibleForTesting val valueLabel = createTooltipLabel()
 
   override fun createTooltip(): JComponent {
     return content
@@ -53,19 +51,23 @@ class RssMemoryTooltipView(parent: JComponent, val tooltip: RssMemoryTooltip) : 
 
   private fun getDescriptionText(counterName: String) =
     when (counterName) {
-      "mem.rss" -> "The total of all physical memory in use by the process,<br>" +
-                   "including allocations, file mappings and shared memory.<br><br>" +
-                   "/proc/&lt;pid&gt;/status reports this value as \"VmRSS\"."
-      "mem.rss.anon" -> "The amount of physical memory the process is using for normal<br>" +
-                        "memory allocations (those backed by the swap file, and that<br>" +
-                        "are not shared).<br><br>" +
-                        "/proc/&lt;pid&gt;/status reports this value as \"RssAnon\"."
-      "mem.rss.file" -> "The amount of physical memory the process is using for file mappings -<br>" +
-                        "that is, memory which is used for files that have been mapped into<br>" +
-                        "a region of memory by the memory manager.<br><br>" +
-                        "/proc/&lt;pid&gt;/status reports this value as \"RssFile\""
-      "mem.rss.shmem" -> "The amount of physical memory the process is using for interprocess sharing.<br><br>" +
-                         "/proc/&lt;pid&gt;/status reports this value as \"RssShmem\"."
+      "mem.rss" ->
+        "The total of all physical memory in use by the process,<br>" +
+          "including allocations, file mappings and shared memory.<br><br>" +
+          "/proc/&lt;pid&gt;/status reports this value as \"VmRSS\"."
+      "mem.rss.anon" ->
+        "The amount of physical memory the process is using for normal<br>" +
+          "memory allocations (those backed by the swap file, and that<br>" +
+          "are not shared).<br><br>" +
+          "/proc/&lt;pid&gt;/status reports this value as \"RssAnon\"."
+      "mem.rss.file" ->
+        "The amount of physical memory the process is using for file mappings -<br>" +
+          "that is, memory which is used for files that have been mapped into<br>" +
+          "a region of memory by the memory manager.<br><br>" +
+          "/proc/&lt;pid&gt;/status reports this value as \"RssFile\""
+      "mem.rss.shmem" ->
+        "The amount of physical memory the process is using for interprocess sharing.<br><br>" +
+          "/proc/&lt;pid&gt;/status reports this value as \"RssShmem\"."
       else -> ""
     }
 

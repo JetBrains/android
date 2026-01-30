@@ -107,10 +107,7 @@ class SampleModelTest {
     }
     server.createContext("/test-sample-project/zipball/HEAD", zipBytes.toByteArray())
 
-    testSuccessfulSampleImport(
-      expectedFilesList =
-        listOf(FN_BUILD_GRADLE, FN_GRADLE_WRAPPER_UNIX, FN_SETTINGS_GRADLE, "src/source1.java")
-    )
+    testSuccessfulSampleImport(expectedFilesList = listOf(FN_BUILD_GRADLE, FN_GRADLE_WRAPPER_UNIX, FN_SETTINGS_GRADLE, "src/source1.java"))
   }
 
   @Test
@@ -137,10 +134,7 @@ class SampleModelTest {
     }
     server.createContext("/test-sample-project/zipball/HEAD", zipBytes.toByteArray())
 
-    testSuccessfulSampleImport(
-      expectedFilesList =
-        listOf(FN_BUILD_GRADLE, FN_GRADLE_WRAPPER_UNIX, FN_SETTINGS_GRADLE, "src/source1.java")
-    )
+    testSuccessfulSampleImport(expectedFilesList = listOf(FN_BUILD_GRADLE, FN_GRADLE_WRAPPER_UNIX, FN_SETTINGS_GRADLE, "src/source1.java"))
   }
 
   @Test
@@ -174,8 +168,7 @@ class SampleModelTest {
         listOf(
           "Could not make gradle wrapper executable for sample: myTestImportSampleProject. Command line builds may not work properly."
         ),
-      expectedErrorsLogged =
-        listOf("Could not find gradle wrapper. Command line builds may not work properly.")
+      expectedErrorsLogged = listOf("Could not find gradle wrapper. Command line builds may not work properly."),
     )
   }
 
@@ -209,7 +202,7 @@ class SampleModelTest {
 
     testFailedSampleImport(
       expectedMessages = listOf("Could not find sample root \"project3\" in Git repository"),
-      expectedErrorsLogged = emptyList()
+      expectedErrorsLogged = emptyList(),
     )
   }
 
@@ -229,15 +222,10 @@ class SampleModelTest {
 
     // creating project zip
     val zipBytes = ByteArrayOutputStream()
-    ZipOutputStream(zipBytes).use { zip ->
-      zip.createZipEntry("project1/src/source1.java", "//source java file 1".toByteArray())
-    }
+    ZipOutputStream(zipBytes).use { zip -> zip.createZipEntry("project1/src/source1.java", "//source java file 1".toByteArray()) }
     server.createContext("/test-sample-project/zipball/HEAD", zipBytes.toByteArray())
 
-    testFailedSampleImport(
-      expectedMessages = listOf("Failed to find any projects in Git repository"),
-      expectedErrorsLogged = emptyList()
-    )
+    testFailedSampleImport(expectedMessages = listOf("Failed to find any projects in Git repository"), expectedErrorsLogged = emptyList())
   }
 
   @Test
@@ -264,7 +252,7 @@ class SampleModelTest {
       """
             .trimIndent()
         ),
-      expectedErrorsLogged = emptyList()
+      expectedErrorsLogged = emptyList(),
     )
   }
 
@@ -285,9 +273,7 @@ class SampleModelTest {
     testFailedSampleImport(
       expectedMessages = emptyList(),
       expectedErrorsLogged =
-        listOf(
-          "SampleImportWizard did not collect expected information and will not complete. Please report this error."
-        )
+        listOf("SampleImportWizard did not collect expected information and will not complete. Please report this error."),
     )
   }
 
@@ -308,9 +294,7 @@ class SampleModelTest {
     testFailedSampleImport(
       expectedMessages = emptyList(),
       expectedErrorsLogged =
-        listOf(
-          "SampleImportWizard did not collect expected information and will not complete. Please report this error."
-        )
+        listOf("SampleImportWizard did not collect expected information and will not complete. Please report this error."),
     )
   }
 
@@ -323,16 +307,14 @@ class SampleModelTest {
     testFailedSampleImport(
       expectedMessages = emptyList(),
       expectedErrorsLogged =
-        listOf(
-          "SampleImportWizard did not collect expected information and will not complete. Please report this error."
-        )
+        listOf("SampleImportWizard did not collect expected information and will not complete. Please report this error."),
     )
   }
 
   private fun testSuccessfulSampleImport(
     expectedFilesList: List<String>,
     expectedMessages: List<String> = emptyList(),
-    expectedErrorsLogged: List<String> = emptyList()
+    expectedErrorsLogged: List<String> = emptyList(),
   ) {
     val messagesShown = mutableListOf<String>()
     TestDialogManager.setTestDialog { message ->
@@ -355,10 +337,7 @@ class SampleModelTest {
     Truth.assertThat(loggedUsages).isEqualTo(listOf(TEST_PROJECT_ID))
   }
 
-  private fun testFailedSampleImport(
-    expectedMessages: List<String>,
-    expectedErrorsLogged: List<String>
-  ) {
+  private fun testFailedSampleImport(expectedMessages: List<String>, expectedErrorsLogged: List<String>) {
     val messagesShown = mutableListOf<String>()
     TestDialogManager.setTestDialog { message ->
       messagesShown.add(message)

@@ -50,10 +50,9 @@ private val VERTICAL_PANEL_MARGINS
   get() = JBUI.insets(0, 4, 4, 0)
 
 /**
- * Provides the floating action toolbar for editor. It provides support for pan and zoom
- * specifically, and arbitrary actions can be added in additional toolbar segments.
- * [actionPlacePrefix] is used to provide additional toolbar place information. [component] is used
- * for data-context retrieval. See [ActionToolbar.setTargetComponent].
+ * Provides the floating action toolbar for editor. It provides support for pan and zoom specifically, and arbitrary actions can be added in
+ * additional toolbar segments. [actionPlacePrefix] is used to provide additional toolbar place information. [component] is used for
+ * data-context retrieval. See [ActionToolbar.setTargetComponent].
  */
 abstract class EditorActionsFloatingToolbarProvider(
   private val component: JComponent,
@@ -97,8 +96,8 @@ abstract class EditorActionsFloatingToolbarProvider(
       }
 
   /**
-   * The Zoom Label toolbar panel. It should only be visible for a short time after changing zoom
-   * level and stay visible while interacting with zoom controls.
+   * The Zoom Label toolbar panel. It should only be visible for a short time after changing zoom level and stay visible while interacting
+   * with zoom controls.
    */
   private var hiddenZoomLabelComponent: JComponent? = null
 
@@ -106,9 +105,7 @@ abstract class EditorActionsFloatingToolbarProvider(
   private var hiddenZoomLabelTimer: Timer? =
     ApplicationManager.getApplication()
       .takeUnless { it.isUnitTestMode }
-      ?.let {
-        Timer(2000) { hiddenZoomLabelComponent?.isVisible = false }.apply { isRepeats = false }
-      }
+      ?.let { Timer(2000) { hiddenZoomLabelComponent?.isVisible = false }.apply { isRepeats = false } }
 
   init {
     Disposer.register(parentDisposable, this)
@@ -127,15 +124,10 @@ abstract class EditorActionsFloatingToolbarProvider(
 
     val actionGroups = getActionGroups()
     val actionManager = ActionManager.getInstance()
-    val zoomActionGroup =
-      actionGroups.zoomControlsGroup?.let {
-        createToolbar(toolbarPlace, actionManager, it, component)
-      }
+    val zoomActionGroup = actionGroups.zoomControlsGroup?.let { createToolbar(toolbarPlace, actionManager, it, component) }
     val zoomLabelToolbar =
       actionGroups.zoomLabelGroup?.let {
-        createToolbar(labelPlace, actionManager, it, component).apply {
-          component.border = JBUI.Borders.empty(2)
-        }
+        createToolbar(labelPlace, actionManager, it, component).apply { component.border = JBUI.Borders.empty(2) }
       }
     zoomToolbars.apply {
       clear()
@@ -147,9 +139,7 @@ abstract class EditorActionsFloatingToolbarProvider(
       }
     }
     otherToolbars.clear()
-    actionGroups.otherGroups.associateWithTo(otherToolbars) {
-      createToolbar(otherPlace, actionManager, it, component)
-    }
+    actionGroups.otherGroups.associateWithTo(otherToolbars) { createToolbar(otherPlace, actionManager, it, component) }
 
     floatingToolbar.removeAll()
     if (zoomActionGroup != null || otherToolbars.isNotEmpty() || zoomLabelToolbar != null) {
@@ -187,9 +177,7 @@ abstract class EditorActionsFloatingToolbarProvider(
       zoomControlsPanel.revalidate()
     }
 
-    pauseZoomLabelTimerWhileInteractingOn(
-      listOfNotNull(zoomLabelToolbar as? JPanel, zoomActionGroup as? JPanel)
-    )
+    pauseZoomLabelTimerWhileInteractingOn(listOfNotNull(zoomLabelToolbar as? JPanel, zoomActionGroup as? JPanel))
   }
 
   override fun dispose() {
@@ -206,18 +194,15 @@ abstract class EditorActionsFloatingToolbarProvider(
     hiddenZoomLabelTimer?.restart()
   }
 
-  protected fun panningChanged() = invokeLater {
-    otherToolbars.values.forEach { it.updateActionsAsync() }
-  }
+  protected fun panningChanged() = invokeLater { otherToolbars.values.forEach { it.updateActionsAsync() } }
 
   abstract fun getActionGroups(): EditorActionsToolbarActionGroups
 
   /**
-   * Sets mouse listeners to the given [JPanel]s. It will pause & restart the Zoom Label panel timer
-   * while the mouse is on these [panels].
+   * Sets mouse listeners to the given [JPanel]s. It will pause & restart the Zoom Label panel timer while the mouse is on these [panels].
    *
-   * The effect is that the [hiddenZoomLabelComponent] will only go invisible after a period of time
-   * has happened without interacting with these [panels].
+   * The effect is that the [hiddenZoomLabelComponent] will only go invisible after a period of time has happened without interacting with
+   * these [panels].
    */
   private fun pauseZoomLabelTimerWhileInteractingOn(panels: List<JPanel>) {
     val mouseListener =
@@ -250,17 +235,10 @@ abstract class EditorActionsFloatingToolbarProvider(
 }
 
 private fun JComponent.wrapInDesignSurfaceUI(): JPanel {
-  return DesignSurfaceToolbarUI.createPanel(this).apply {
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
-  }
+  return DesignSurfaceToolbarUI.createPanel(this).apply { layout = BoxLayout(this, BoxLayout.Y_AXIS) }
 }
 
-private fun createToolbar(
-  place: String,
-  actionManager: ActionManager,
-  actionGroup: ActionGroup,
-  target: JComponent,
-): ActionToolbar {
+private fun createToolbar(place: String, actionManager: ActionManager, actionGroup: ActionGroup, target: JComponent): ActionToolbar {
   // Place must be "DesignSurface" to get the correct variation for zoom icons.
   val toolbar =
     actionManager.createActionToolbar(place, actionGroup, false).apply {

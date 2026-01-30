@@ -30,19 +30,13 @@ import com.android.utils.HtmlBuilder
 abstract class VisualLintAnalyzer {
   abstract val type: VisualLintErrorType
 
-  /**
-   * Analyze the given [RenderResult] for visual lint issues and return found
-   * [VisualLintIssueContent]s
-   */
+  /** Analyze the given [RenderResult] for visual lint issues and return found [VisualLintIssueContent]s */
   fun analyze(renderResult: RenderResult): List<VisualLintIssueContent> {
     val configuration = renderResult.renderContext?.configuration ?: return emptyList()
     return findIssues(renderResult, configuration)
   }
 
-  abstract fun findIssues(
-    renderResult: RenderResult,
-    configuration: Configuration,
-  ): List<VisualLintIssueContent>
+  abstract fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent>
 
   data class VisualLintIssueContent(
     val view: ViewInfo?,
@@ -59,9 +53,7 @@ abstract class VisualLintAnalyzer {
     fun simpleName(view: ViewInfo): String {
       if (view.cookie is TagSnapshot) {
         return (view.cookie as TagSnapshot).tagName.substringAfterLast('.')
-      } else if (
-        view.accessibilityObject is AccessibilityNodeInfo && view.className == "android.view.View"
-      ) {
+      } else if (view.accessibilityObject is AccessibilityNodeInfo && view.className == "android.view.View") {
         return "Composable"
       }
       return view.className.substringAfterLast('.')
@@ -70,10 +62,7 @@ abstract class VisualLintAnalyzer {
     fun nameWithId(viewInfo: ViewInfo): String {
       val tagSnapshot = (viewInfo.cookie as? TagSnapshot)
       val name = simpleName(viewInfo)
-      val id =
-        tagSnapshot?.getAttribute(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI)?.let {
-          ResourceUrl.parse(it)?.name
-        }
+      val id = tagSnapshot?.getAttribute(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI)?.let { ResourceUrl.parse(it)?.name }
       return id?.let { "$id <$name>" } ?: name
     }
 

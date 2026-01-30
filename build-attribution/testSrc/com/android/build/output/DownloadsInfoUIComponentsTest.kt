@@ -44,6 +44,7 @@ import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.ComponentWithEmptyText
+import java.awt.Dimension
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.After
@@ -52,15 +53,13 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.mock
-import java.awt.Dimension
 
 private val gradleVersion_7_2 = GradleVersion.version("7.2")
 private val gradleVersion_8_0 = GradleVersion.version("8.0")
 
 class DownloadsInfoPresentableEventTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val buildStartTimestampMs = System.currentTimeMillis()
   private lateinit var buildDisposable: CheckedDisposable
@@ -80,16 +79,15 @@ class DownloadsInfoPresentableEventTest {
     val event = DownloadsInfoPresentableBuildEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0, dataModel)
 
     assertThat(event.buildId).isSameAs(buildId)
-    //Time is not used for this type of event. 0 is a default value for such case.
+    // Time is not used for this type of event. 0 is a default value for such case.
     assertThat(event.eventTime).isEqualTo(0)
-    //This is what is shown as tree item.
+    // This is what is shown as tree item.
     assertThat(event.message).isEqualTo("Download info")
-    //Description is text output on execution console. Since we have custom console, we don't have it.
+    // Description is text output on execution console. Since we have custom console, we don't have it.
     assertThat(event.description).isNull()
-    //Hint is an additional text shown in grey after node name. Is not updatable currently, so do not use.
+    // Hint is an additional text shown in grey after node name. Is not updatable currently, so do not use.
     assertThat(event.hint).isNull()
-    val executionConsole = event.presentationData.executionConsole
-      ?.also { Disposer.register(projectRule.testRootDisposable, it) }
+    val executionConsole = event.presentationData.executionConsole?.also { Disposer.register(projectRule.testRootDisposable, it) }
     assertThat(executionConsole).isInstanceOf(DownloadsInfoExecutionConsole::class.java)
   }
 
@@ -98,10 +96,7 @@ class DownloadsInfoPresentableEventTest {
     val event = DownloadsInfoPresentableBuildEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0, dataModel)
 
     val icon = event.presentationData.nodeIcon as LayeredIcon
-    assertThat(icon.allLayers).isEqualTo(arrayOf(
-      AllIcons.Actions.Download,
-      AnimatedIcon.Default.INSTANCE
-    ))
+    assertThat(icon.allLayers).isEqualTo(arrayOf(AllIcons.Actions.Download, AnimatedIcon.Default.INSTANCE))
     fun assertIconStill() {
       assertWithMessage("Download icon layer shown").that(icon.isLayerEnabled(0)).isTrue()
       assertWithMessage("Loading icon layer shown").that(icon.isLayerEnabled(1)).isFalse()
@@ -137,11 +132,9 @@ class DownloadsInfoPresentableEventTest {
 class DownloadsInfoExecutionConsoleTest {
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val buildStartTimestampMs = System.currentTimeMillis()
   private lateinit var buildId: ExternalSystemTaskId
@@ -150,9 +143,16 @@ class DownloadsInfoExecutionConsoleTest {
   private val featureSurveysMock: FeatureSurveys = mock()
 
   private val reposTable: TableView<*>
-    get() = TreeWalker(executionConsole.component).descendants().filter { it.name == "repositories table" }.filterIsInstance<TableView<*>>().single()
+    get() =
+      TreeWalker(executionConsole.component)
+        .descendants()
+        .filter { it.name == "repositories table" }
+        .filterIsInstance<TableView<*>>()
+        .single()
+
   private val requestsTable: TableView<*>
-    get() = TreeWalker(executionConsole.component).descendants().filter { it.name == "requests table" }.filterIsInstance<TableView<*>>().single()
+    get() =
+      TreeWalker(executionConsole.component).descendants().filter { it.name == "requests table" }.filterIsInstance<TableView<*>>().single()
 
   @Before
   fun setUp() {
@@ -172,17 +172,16 @@ class DownloadsInfoExecutionConsoleTest {
   @Test
   fun testEmptyUi() {
     assertThat((executionConsole.component as ComponentWithEmptyText).emptyText.text).isEqualTo("No download requests")
-    assertWithMessage("None of the component should be visible.")
-      .that (executionConsole.component.components.any { it.isVisible }).isFalse()
+    assertWithMessage("None of the component should be visible.").that(executionConsole.component.components.any { it.isVisible }).isFalse()
   }
 
   @Test
   fun testEmptyUiForOlderGradle() {
     val executionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_7_2)
     Disposer.register(projectRule.testRootDisposable, executionConsole)
-    assertThat((executionConsole.component as ComponentWithEmptyText).emptyText.text).isEqualTo("Minimal Gradle version providing downloads data is 7.3")
-    assertWithMessage("None of the component should be visible.")
-      .that (executionConsole.component.components.any { it.isVisible }).isFalse()
+    assertThat((executionConsole.component as ComponentWithEmptyText).emptyText.text)
+      .isEqualTo("Minimal Gradle version providing downloads data is 7.3")
+    assertWithMessage("None of the component should be visible.").that(executionConsole.component.components.any { it.isVisible }).isFalse()
   }
 
   @Test
@@ -190,8 +189,7 @@ class DownloadsInfoExecutionConsoleTest {
     val executionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs, null)
 
     assertThat((executionConsole.component as ComponentWithEmptyText).emptyText.text).isEqualTo("No download requests")
-    assertWithMessage("None of the component should be visible.")
-      .that (executionConsole.component.components.any { it.isVisible }).isFalse()
+    assertWithMessage("None of the component should be visible.").that(executionConsole.component.components.any { it.isVisible }).isFalse()
   }
 
   @Test
@@ -200,7 +198,8 @@ class DownloadsInfoExecutionConsoleTest {
     executionConsole.uiModel.updateDownloadRequests(listOf(DownloadRequestItem(downloadProcessKey, GOOGLE)))
 
     assertWithMessage("Components should become visible on data arrival.")
-      .that(executionConsole.component.components.all { it.isVisible }).isTrue()
+      .that(executionConsole.component.components.all { it.isVisible })
+      .isTrue()
     assertThat(reposTable.rowCount).isEqualTo(2)
     assertThat(requestsTable.rowCount).isEqualTo(1)
   }
@@ -215,14 +214,15 @@ class DownloadsInfoExecutionConsoleTest {
     assertThat(reposTable.rowCount).isEqualTo(3)
     assertThat(requestsTable.rowCount).isEqualTo(2)
 
-    reposTable.setRowSelectionInterval(1,1)
+    reposTable.setRowSelectionInterval(1, 1)
 
     assertThat(reposTable.rowCount).isEqualTo(3)
     assertThat(requestsTable.rowCount).isEqualTo(1)
 
-    val interactions = tracker.usages
-      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
-      .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
+    val interactions =
+      tracker.usages
+        .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
+        .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
     assertThat(interactions).isEqualTo(listOf(BuildOutputDownloadsInfoEvent.Interaction.SELECT_REPOSITORY_ROW))
   }
 
@@ -230,22 +230,22 @@ class DownloadsInfoExecutionConsoleTest {
   fun testRequestsUpdatedOnRepoSelectionWithBulkUpdate() {
     val downloadProcessKey1 = DownloadRequestKey(1000, url1)
     val downloadProcessKey2 = DownloadRequestKey(1150, url3)
-    executionConsole.uiModel.updateDownloadRequests(listOf(
-      DownloadRequestItem(downloadProcessKey1, GOOGLE),
-      DownloadRequestItem(downloadProcessKey2, MAVEN_CENTRAL)
-    ))
+    executionConsole.uiModel.updateDownloadRequests(
+      listOf(DownloadRequestItem(downloadProcessKey1, GOOGLE), DownloadRequestItem(downloadProcessKey2, MAVEN_CENTRAL))
+    )
 
     assertThat(reposTable.rowCount).isEqualTo(3)
     assertThat(requestsTable.rowCount).isEqualTo(2)
 
-    reposTable.setRowSelectionInterval(1,1)
+    reposTable.setRowSelectionInterval(1, 1)
 
     assertThat(reposTable.rowCount).isEqualTo(3)
     assertThat(requestsTable.rowCount).isEqualTo(1)
 
-    val interactions = tracker.usages
-      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
-      .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
+    val interactions =
+      tracker.usages
+        .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
+        .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
     assertThat(interactions).isEqualTo(listOf(BuildOutputDownloadsInfoEvent.Interaction.SELECT_REPOSITORY_ROW))
   }
 
@@ -260,9 +260,10 @@ class DownloadsInfoExecutionConsoleTest {
     page.isVisible = true
     ui.layoutAndDispatchEvents()
 
-    val interactions = tracker.usages
-      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
-      .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
+    val interactions =
+      tracker.usages
+        .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
+        .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
     assertThat(interactions).isEqualTo(listOf(BuildOutputDownloadsInfoEvent.Interaction.OPEN_DOWNLOADS_INFO_UI))
     Mockito.verify(featureSurveysMock, Mockito.times(1)).triggerSurveyByName("DOWNLOAD_INFO_VIEW_SURVEY")
   }
@@ -281,9 +282,10 @@ class DownloadsInfoExecutionConsoleTest {
     page.isVisible = true
     ui.layoutAndDispatchEvents()
 
-    val interactions = tracker.usages
-      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
-      .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
+    val interactions =
+      tracker.usages
+        .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
+        .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
     assertThat(interactions).isEqualTo(listOf(BuildOutputDownloadsInfoEvent.Interaction.OPEN_DOWNLOADS_INFO_UI))
     Mockito.verifyNoInteractions(featureSurveysMock)
   }

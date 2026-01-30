@@ -15,7 +15,5 @@
  */
 package com.android.tools.profilers.cpu.config
 
-/**
- * Configuration used when a trace is imported and the configuration is unknown.
- */
+/** Configuration used when a trace is imported and the configuration is unknown. */
 class ImportedConfiguration : UnspecifiedConfiguration("Imported")

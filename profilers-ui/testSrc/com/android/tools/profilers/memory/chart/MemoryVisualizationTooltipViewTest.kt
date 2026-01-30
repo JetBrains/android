@@ -32,23 +32,20 @@ import com.android.tools.profilers.memory.MemoryCaptureObjectTestUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import javax.swing.JLabel
+import javax.swing.JLayeredPane
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JLabel
-import javax.swing.JLayeredPane
 
 class MemoryVisualizationTooltipViewTest {
   private val timer = FakeTimer()
 
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("MEMORY_TEST_CHANNEL", FakeTransportService(timer))
+  @get:Rule val grpcChannel = FakeGrpcChannel("MEMORY_TEST_CHANNEL", FakeTransportService(timer))
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var fakeIdeProfilerComponents: FakeIdeProfilerComponents
   private lateinit var stage: MainMemoryProfilerStage
@@ -72,10 +69,8 @@ class MemoryVisualizationTooltipViewTest {
     visualizationModel.axisFilter = MemoryVisualizationModel.XAxisFilter.TOTAL_COUNT
     simpleNode = ClassifierSetHNode(visualizationModel, heapSet, 0)
     val range = Range(0.0, simpleNode.end.toDouble())
-    val chart = HTreeChart.Builder<ClassifierSetHNode>(simpleNode, range, HeapSetNodeHRenderer())
-      .setGlobalXRange(range)
-      .setRootVisible(false)
-      .build()
+    val chart =
+      HTreeChart.Builder<ClassifierSetHNode>(simpleNode, range, HeapSetNodeHRenderer()).setGlobalXRange(range).setRootVisible(false).build()
     tooltip = MemoryVisualizationTooltipView(chart, JLayeredPane(), VisualizationTooltipModel(range, visualizationModel))
   }
 

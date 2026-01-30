@@ -21,18 +21,26 @@ import com.android.build.attribution.data.GarbageCollectionData
 
 class GarbageCollectionAnalyzerResultMessageConverter {
   companion object {
-    fun transform(garbageCollectionAnalyzerResult: GarbageCollectionAnalyzer.Result)
-      : BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult {
+    fun transform(
+      garbageCollectionAnalyzerResult: GarbageCollectionAnalyzer.Result
+    ): BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult {
       val garbageCollectionAnalyzerResultBuilder = BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.newBuilder()
       garbageCollectionAnalyzerResultBuilder.addAllGarbageCollectionData(
-        (garbageCollectionAnalyzerResult.garbageCollectionData).map(Companion::transformGarbageCollectionDatum))
+        (garbageCollectionAnalyzerResult.garbageCollectionData).map(Companion::transformGarbageCollectionDatum)
+      )
       if (garbageCollectionAnalyzerResult.javaVersion != null) {
         garbageCollectionAnalyzerResultBuilder.javaVersion = garbageCollectionAnalyzerResult.javaVersion
       }
       when (garbageCollectionAnalyzerResult.isSettingSet) {
-        true -> garbageCollectionAnalyzerResultBuilder.isSettingSet = BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.TRUE
-        false -> garbageCollectionAnalyzerResultBuilder.isSettingSet = BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.FALSE
-        null -> garbageCollectionAnalyzerResultBuilder.isSettingSet = BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.UNKNOWN
+        true ->
+          garbageCollectionAnalyzerResultBuilder.isSettingSet =
+            BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.TRUE
+        false ->
+          garbageCollectionAnalyzerResultBuilder.isSettingSet =
+            BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.FALSE
+        null ->
+          garbageCollectionAnalyzerResultBuilder.isSettingSet =
+            BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.UNKNOWN
       }
       return garbageCollectionAnalyzerResultBuilder.build()
     }
@@ -41,28 +49,30 @@ class GarbageCollectionAnalyzerResultMessageConverter {
       garbageCollectionAnalyzerResult: BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult
     ): GarbageCollectionAnalyzer.Result {
       val garbageCollectionData: MutableList<GarbageCollectionData> = mutableListOf()
-      val isSettingSet = when (garbageCollectionAnalyzerResult.isSettingSet) {
-        BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.TRUE -> true
-        BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.FALSE -> false
-        BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.UNKNOWN -> null
-        BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.UNRECOGNIZED -> throw IllegalStateException(
-          "Unrecognized setting state")
-        null -> throw IllegalStateException("Unrecognized setting state")
-
-      }
-      val javaVersion = when (garbageCollectionAnalyzerResult.javaVersion) {
-        0 -> null
-        else -> garbageCollectionAnalyzerResult.javaVersion
-      }
+      val isSettingSet =
+        when (garbageCollectionAnalyzerResult.isSettingSet) {
+          BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.TRUE -> true
+          BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.FALSE -> false
+          BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.UNKNOWN -> null
+          BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.UNRECOGNIZED ->
+            throw IllegalStateException("Unrecognized setting state")
+          null -> throw IllegalStateException("Unrecognized setting state")
+        }
+      val javaVersion =
+        when (garbageCollectionAnalyzerResult.javaVersion) {
+          0 -> null
+          else -> garbageCollectionAnalyzerResult.javaVersion
+        }
       garbageCollectionAnalyzerResult.garbageCollectionDataList.forEach {
         garbageCollectionData.add(GarbageCollectionData(it.name, it.collectionTimeMs))
       }
       return GarbageCollectionAnalyzer.Result(garbageCollectionData, javaVersion, isSettingSet)
     }
 
-    private fun transformGarbageCollectionDatum(garbageCollectionDatum: GarbageCollectionData) = BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.GarbageCollectionData.newBuilder()
-      .setCollectionTimeMs(garbageCollectionDatum.collectionTimeMs)
-      .setName(garbageCollectionDatum.name)
-      .build()
+    private fun transformGarbageCollectionDatum(garbageCollectionDatum: GarbageCollectionData) =
+      BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.GarbageCollectionData.newBuilder()
+        .setCollectionTimeMs(garbageCollectionDatum.collectionTimeMs)
+        .setName(garbageCollectionDatum.name)
+        .build()
   }
 }

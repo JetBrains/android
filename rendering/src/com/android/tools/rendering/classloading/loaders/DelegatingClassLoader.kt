@@ -18,9 +18,8 @@ package com.android.tools.rendering.classloading.loaders
 import org.jetbrains.org.objectweb.asm.ClassReader
 
 /**
- * A [DelegatingClassLoader.Loader] that has a static mapping of the FQCN and the byte array
- * representation. Mainly useful for testing or cases where the elements can be loaded ahead of time
- * and retained.
+ * A [DelegatingClassLoader.Loader] that has a static mapping of the FQCN and the byte array representation. Mainly useful for testing or
+ * cases where the elements can be loaded ahead of time and retained.
  */
 class StaticLoader(private val classes: Map<String, ByteArray>) : DelegatingClassLoader.Loader {
   constructor(vararg pairs: Pair<String, ByteArray>) : this(mapOf(*pairs))
@@ -34,32 +33,28 @@ object NopLoader : DelegatingClassLoader.Loader {
 }
 
 /**
- * A [ClassLoader] that delegates the loading of the classes to a [DelegatingClassLoader.Loader].
- * This allows the creation of class loaders that do loading differently without using inheritance.
+ * A [ClassLoader] that delegates the loading of the classes to a [DelegatingClassLoader.Loader]. This allows the creation of class loaders
+ * that do loading differently without using inheritance.
  */
-open class DelegatingClassLoader(parent: ClassLoader?, private val loader: Loader) :
-  ClassLoader(parent) {
+open class DelegatingClassLoader(parent: ClassLoader?, private val loader: Loader) : ClassLoader(parent) {
   /** Interface to be implemented by classes that can load classes. */
   interface Loader {
-    /**
-     * Loads a class and returns the [ByteArray] representation or null if it could not be loaded.
-     */
+    /** Loads a class and returns the [ByteArray] representation or null if it could not be loaded. */
     fun loadClass(fqcn: String): ByteArray?
   }
 
   /**
-   * Cache of the classes that were renamed during [findClass]. This allows [loadClass] to ask for
-   * the renamed name directly in future calls.
+   * Cache of the classes that were renamed during [findClass]. This allows [loadClass] to ask for the renamed name directly in future
+   * calls.
    */
   private val renamedClasses = mutableMapOf<String, String>()
 
   /**
-   * Loads the class contents with the given name or throws [ClassNotFoundException] if the class
-   * can not be found by this [DelegatingClassLoader].
+   * Loads the class contents with the given name or throws [ClassNotFoundException] if the class can not be found by this
+   * [DelegatingClassLoader].
    */
   @Throws(ClassNotFoundException::class)
-  fun loadClassBytes(name: String): ByteArray =
-    loader.loadClass(name) ?: throw ClassNotFoundException(name)
+  fun loadClassBytes(name: String): ByteArray = loader.loadClass(name) ?: throw ClassNotFoundException(name)
 
   @Throws(ClassNotFoundException::class)
   final override fun loadClass(name: String): Class<*> {

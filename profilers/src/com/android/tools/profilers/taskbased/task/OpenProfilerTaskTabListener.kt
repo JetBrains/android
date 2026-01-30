@@ -17,18 +17,13 @@ package com.android.tools.profilers.taskbased.task
 
 import com.intellij.util.messages.Topic
 
-/**
- * Listener of events requesting that a Profiler tab for an existing task be opened.
- */
+/** Listener of events requesting that a Profiler tab for an existing task be opened. */
 fun interface OpenProfilerTaskTabListener {
 
-  /**
-   * Opens an existing Profiler task tab. There is at most one existing task tab at any time that can be opened.
-   */
+  /** Opens an existing Profiler task tab. There is at most one existing task tab at any time that can be opened. */
   fun openProfilerTaskTab()
 
   companion object {
-    @JvmField
-    val TOPIC = Topic("Command to open an existing Profiler task tab", OpenProfilerTaskTabListener::class.java)
+    @JvmField val TOPIC = Topic("Command to open an existing Profiler task tab", OpenProfilerTaskTabListener::class.java)
   }
 }

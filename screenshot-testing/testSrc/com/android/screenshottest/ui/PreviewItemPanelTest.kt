@@ -22,46 +22,46 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBLabel
+import java.awt.Container
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Rule
-import org.junit.Test
-import java.awt.Container
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.mockito.Mockito.mock
 
 class PreviewItemPanelTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  var temporaryFolder = TemporaryFolder()
+  @get:Rule var temporaryFolder = TemporaryFolder()
 
   @Test
   fun verifyInitialization() = runInEdtAndWait {
-    val details = PreviewDetails(
-      testId = "test.id",
-      className = "TestClass",
-      methodName = "testMethod",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.PASSED
-    )
+    val details =
+      PreviewDetails(
+        testId = "test.id",
+        className = "TestClass",
+        methodName = "testMethod",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.PASSED,
+      )
     val panel = PreviewItemPanel(details)
     assertEquals(details, panel.previewData)
   }
 
   @Test
   fun verifyDetailsPanelHidden() = runInEdtAndWait {
-    val details = PreviewDetails(
-      testId = "test.id",
-      className = "TestClass",
-      methodName = "testMethod",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.PASSED
-    )
+    val details =
+      PreviewDetails(
+        testId = "test.id",
+        className = "TestClass",
+        methodName = "testMethod",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.PASSED,
+      )
     val panel = PreviewItemPanel(details, showDetails = false)
 
     // Expect only 1 component (the image panel)
@@ -70,14 +70,15 @@ class PreviewItemPanelTest {
 
   @Test
   fun verifyDetailsLabels() = runInEdtAndWait {
-    val details = PreviewDetails(
-      testId = "test.id",
-      className = "TestClass",
-      methodName = "testMethod",
-      previewName = "MyPreview",
-      testResult = AndroidTestCaseResult.FAILED,
-      diffPercent = "0.01" // 99% match
-    )
+    val details =
+      PreviewDetails(
+        testId = "test.id",
+        className = "TestClass",
+        methodName = "testMethod",
+        previewName = "MyPreview",
+        testResult = AndroidTestCaseResult.FAILED,
+        diffPercent = "0.01", // 99% match
+      )
     val panel = PreviewItemPanel(details, showDetails = true)
 
     val labels = findAllLabels(panel)
@@ -93,14 +94,15 @@ class PreviewItemPanelTest {
 
   @Test
   fun verifyPlaceholderForMissingNewImage() = runInEdtAndWait {
-    val details = PreviewDetails(
-      testId = "test.id",
-      className = "TestClass",
-      methodName = "testMethod",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.FAILED,
-      srcImagePath = null
-    )
+    val details =
+      PreviewDetails(
+        testId = "test.id",
+        className = "TestClass",
+        methodName = "testMethod",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.FAILED,
+        srcImagePath = null,
+      )
     val panel = PreviewItemPanel(details)
     panel.showImageForView(ScreenshotViewType.NEW)
 
@@ -112,14 +114,15 @@ class PreviewItemPanelTest {
 
   @Test
   fun verifyPlaceholderForPassedDiff() = runInEdtAndWait {
-    val details = PreviewDetails(
-      testId = "test.id",
-      className = "TestClass",
-      methodName = "testMethod",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.PASSED,
-      diffImagePath = null
-    )
+    val details =
+      PreviewDetails(
+        testId = "test.id",
+        className = "TestClass",
+        methodName = "testMethod",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.PASSED,
+        diffImagePath = null,
+      )
     val panel = PreviewItemPanel(details)
     panel.showImageForView(ScreenshotViewType.DIFF)
 
@@ -131,14 +134,15 @@ class PreviewItemPanelTest {
 
   @Test
   fun verifyPlaceholderForFailedDiff() = runInEdtAndWait {
-    val details = PreviewDetails(
-      testId = "test.id",
-      className = "TestClass",
-      methodName = "testMethod",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.FAILED,
-      diffImagePath = null
-    )
+    val details =
+      PreviewDetails(
+        testId = "test.id",
+        className = "TestClass",
+        methodName = "testMethod",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.FAILED,
+        diffImagePath = null,
+      )
     val panel = PreviewItemPanel(details)
     panel.showImageForView(ScreenshotViewType.DIFF)
 
@@ -150,14 +154,15 @@ class PreviewItemPanelTest {
 
   @Test
   fun verifyPlaceholderForReferenceImage() = runInEdtAndWait {
-    val details = PreviewDetails(
-      testId = "test.id",
-      className = "TestClass",
-      methodName = "testMethod",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.PASSED,
-      destImagePath = null
-    )
+    val details =
+      PreviewDetails(
+        testId = "test.id",
+        className = "TestClass",
+        methodName = "testMethod",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.PASSED,
+        destImagePath = null,
+      )
     val panel = PreviewItemPanel(details)
     panel.showImageForView(ScreenshotViewType.REFERENCE)
 
@@ -173,24 +178,26 @@ class PreviewItemPanelTest {
 
     val srcPath = temporaryFolder.newFile("image.png").absolutePath
     val diffPath = temporaryFolder.newFile("diff.png").absolutePath
-    val details = PreviewDetails(
-      testId = "test.id",
-      className = "TestClass",
-      methodName = "testMethod",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.FAILED,
-      srcImagePath = srcPath,
-      diffImagePath = diffPath
-    )
+    val details =
+      PreviewDetails(
+        testId = "test.id",
+        className = "TestClass",
+        methodName = "testMethod",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.FAILED,
+        srcImagePath = srcPath,
+        diffImagePath = diffPath,
+      )
 
-    val panel = PreviewItemPanel(
-      previewData = details,
-      appExecutorService = MoreExecutors.newDirectExecutorService(),
-      createImageIcon = { _ ->
-        imageCreationCount++
-        mock()
-      }
-    )
+    val panel =
+      PreviewItemPanel(
+        previewData = details,
+        appExecutorService = MoreExecutors.newDirectExecutorService(),
+        createImageIcon = { _ ->
+          imageCreationCount++
+          mock()
+        },
+      )
 
     panel.showImageForView(ScreenshotViewType.NEW)
 
@@ -199,11 +206,7 @@ class PreviewItemPanelTest {
     // We request the SAME path. The 'if (current == new)' check should prevent execution.
     panel.showImageForView(ScreenshotViewType.NEW)
 
-    assertEquals(
-      "Subsequent load for same path should be skipped (Cached)",
-      1,
-      imageCreationCount
-    )
+    assertEquals("Subsequent load for same path should be skipped (Cached)", 1, imageCreationCount)
 
     // Switch to DIFF view (different path)
     panel.showImageForView(ScreenshotViewType.DIFF)
@@ -213,23 +216,25 @@ class PreviewItemPanelTest {
 
   @Test
   fun testUpdateData() = runInEdtAndWait {
-    val details1 = PreviewDetails(
-      testId = "id1",
-      className = "Class1",
-      methodName = "method1",
-      previewName = "preview1",
-      testResult = AndroidTestCaseResult.PASSED
-    )
+    val details1 =
+      PreviewDetails(
+        testId = "id1",
+        className = "Class1",
+        methodName = "method1",
+        previewName = "preview1",
+        testResult = AndroidTestCaseResult.PASSED,
+      )
     val panel = PreviewItemPanel(details1)
 
-    val details2 = PreviewDetails(
-      testId = "id2",
-      className = "Class2",
-      methodName = "method2",
-      previewName = "preview2",
-      testResult = AndroidTestCaseResult.FAILED,
-      diffPercent = "0.05"
-    )
+    val details2 =
+      PreviewDetails(
+        testId = "id2",
+        className = "Class2",
+        methodName = "method2",
+        previewName = "preview2",
+        testResult = AndroidTestCaseResult.FAILED,
+        diffPercent = "0.05",
+      )
 
     panel.updateData(details2, ScreenshotViewType.NEW)
 
@@ -247,28 +252,30 @@ class PreviewItemPanelTest {
     val path1 = temporaryFolder.newFile("image1.png").absolutePath
     val path2 = temporaryFolder.newFile("image2.png").absolutePath
 
-    val details = PreviewDetails(
-      testId = "id",
-      className = "Class",
-      methodName = "method",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.PASSED,
-      srcImagePath = path1
-    )
+    val details =
+      PreviewDetails(
+        testId = "id",
+        className = "Class",
+        methodName = "method",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.PASSED,
+        srcImagePath = path1,
+      )
 
     // We need to control the order of execution for the async loads.
     // However, since we use DirectExecutor, they happen immediately.
     // To simulate stale loads, we can manually manipulate the fields if needed,
     // but the current implementation of loadImage already handles it by checking currentImagePath.
 
-    val panel = PreviewItemPanel(
-      previewData = details,
-      appExecutorService = executor,
-      createImageIcon = { path ->
-        imageCreationCount++
-        mock()
-      }
-    )
+    val panel =
+      PreviewItemPanel(
+        previewData = details,
+        appExecutorService = executor,
+        createImageIcon = { path ->
+          imageCreationCount++
+          mock()
+        },
+      )
 
     panel.loadImage(path1, "id")
     assertEquals(1, imageCreationCount)
@@ -282,21 +289,9 @@ class PreviewItemPanelTest {
     var callbackCount = 0
     val executor = MoreExecutors.newDirectExecutorService()
     val path = temporaryFolder.newFile("image.png").absolutePath
-    val details =
-      PreviewDetails(
-        testId = "id",
-        className = "Class",
-        methodName = "m",
-        previewName = "p",
-        srcImagePath = path
-      )
+    val details = PreviewDetails(testId = "id", className = "Class", methodName = "m", previewName = "p", srcImagePath = path)
 
-    val panel =
-      PreviewItemPanel(
-        previewData = details,
-        appExecutorService = executor,
-        createImageIcon = { mock() }
-      )
+    val panel = PreviewItemPanel(previewData = details, appExecutorService = executor, createImageIcon = { mock() })
 
     panel.updateData(details, ScreenshotViewType.NEW) { callbackCount++ }
 
@@ -308,25 +303,27 @@ class PreviewItemPanelTest {
   fun verifyImageReloadsAfterPlaceholder() = runInEdtAndWait {
     var imageCreationCount = 0
     val srcPath = temporaryFolder.newFile("image.png").absolutePath
-    val details = PreviewDetails(
-      testId = "test.id",
-      className = "TestClass",
-      methodName = "testMethod",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.PASSED,
-      srcImagePath = srcPath,
-      diffImagePath = null
-    )
+    val details =
+      PreviewDetails(
+        testId = "test.id",
+        className = "TestClass",
+        methodName = "testMethod",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.PASSED,
+        srcImagePath = srcPath,
+        diffImagePath = null,
+      )
 
-    val panel = PreviewItemPanel(
-      previewData = details,
-      showDetails = false, // Disable details to avoid finding the "Match: " label
-      appExecutorService = MoreExecutors.newDirectExecutorService(),
-      createImageIcon = { _ ->
-        imageCreationCount++
-        mock()
-      }
-    )
+    val panel =
+      PreviewItemPanel(
+        previewData = details,
+        showDetails = false, // Disable details to avoid finding the "Match: " label
+        appExecutorService = MoreExecutors.newDirectExecutorService(),
+        createImageIcon = { _ ->
+          imageCreationCount++
+          mock()
+        },
+      )
 
     // 1. Initial load
     panel.showImageForView(ScreenshotViewType.NEW)

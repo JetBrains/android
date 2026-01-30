@@ -15,9 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters.classifiers
 
-/**
- * Native method [ClassifierSet] that represents a leaf node in a heapprofd trace.
- */
+/** Native method [ClassifierSet] that represents a leaf node in a heapprofd trace. */
 class NativeAllocationMethodSet(allocationFunction: String) : ClassifierSet(allocationFunction) {
   public override fun createSubClassifier(): Classifier {
     // Do nothing, as this is a leaf node.
@@ -25,7 +23,6 @@ class NativeAllocationMethodSet(allocationFunction: String) : ClassifierSet(allo
   }
 
   companion object {
-    @JvmStatic
-    fun createDefaultClassifier(): Classifier = NativeAllocationMethodClassifier.newInstance()
+    @JvmStatic fun createDefaultClassifier(): Classifier = NativeAllocationMethodClassifier.newInstance()
   }
 }

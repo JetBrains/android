@@ -22,8 +22,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import icons.StudioIcons.LayoutEditor.Toolbar.PAN_TOOL
 import icons.StudioIcons.LayoutEditor.Toolbar.PAN_TOOL_SELECTED
 
-object PanSurfaceAction :
-  ToggleAction("Pan screen (hold SPACE bar and drag)", "Click and drag the surface.", PAN_TOOL) {
+object PanSurfaceAction : ToggleAction("Pan screen (hold SPACE bar and drag)", "Click and drag the surface.", PAN_TOOL) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {

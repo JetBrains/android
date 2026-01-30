@@ -34,62 +34,73 @@ import org.junit.Test
 
 class FtlLookupElementProviderTest {
 
-  private fun ftlTestHelper(configurationParameterName: ConfigurationParameterName, currentDeviceProperties: CurrentDeviceProperties,
-                            deviceCatalog: GmdDeviceCatalog, expectedResult: List<GmdCodeCompletionLookupElement>) {
-    val result = FtlLookupElementProvider.generateDevicePropertyValueSuggestionList(configurationParameterName,
-                                                                                    currentDeviceProperties,
-                                                                                    testMinAndTargetApiLevel,
-                                                                                    deviceCatalog)
+  private fun ftlTestHelper(
+    configurationParameterName: ConfigurationParameterName,
+    currentDeviceProperties: CurrentDeviceProperties,
+    deviceCatalog: GmdDeviceCatalog,
+    expectedResult: List<GmdCodeCompletionLookupElement>,
+  ) {
+    val result =
+      FtlLookupElementProvider.generateDevicePropertyValueSuggestionList(
+        configurationParameterName,
+        currentDeviceProperties,
+        testMinAndTargetApiLevel,
+        deviceCatalog,
+      )
     verifyConfigurationLookupElementProviderResult(result, expectedResult)
   }
 
   @Test
   fun testGenerateFtlLocaleSuggestion() {
     val testDeviceCatalog = FtlDeviceCatalog().apply { this.locale.putAll(testFtlDeviceLocale) }
-    val expectedResult = listOf(
-      GmdCodeCompletionLookupElement(myValue = "lang1",
-                                     myScore = 0u,
-                                     myPresentation = LookupElementPresentation().apply {
-                                       itemText = "lang1"
-                                       tailText = "  langName1  region1"
-                                     }),
-      GmdCodeCompletionLookupElement(myValue = "lang2",
-                                     myScore = 0u,
-                                     myPresentation = LookupElementPresentation().apply {
-                                       itemText = "lang2"
-                                       tailText = "  langName2  region2"
-                                     }),
-      GmdCodeCompletionLookupElement(myValue = "lang3",
-                                     myScore = 0u,
-                                     myPresentation = LookupElementPresentation().apply {
-                                       itemText = "lang3"
-                                       tailText = "  langName3  region3"
-                                     })
-    )
+    val expectedResult =
+      listOf(
+        GmdCodeCompletionLookupElement(
+          myValue = "lang1",
+          myScore = 0u,
+          myPresentation =
+            LookupElementPresentation().apply {
+              itemText = "lang1"
+              tailText = "  langName1  region1"
+            },
+        ),
+        GmdCodeCompletionLookupElement(
+          myValue = "lang2",
+          myScore = 0u,
+          myPresentation =
+            LookupElementPresentation().apply {
+              itemText = "lang2"
+              tailText = "  langName2  region2"
+            },
+        ),
+        GmdCodeCompletionLookupElement(
+          myValue = "lang3",
+          myScore = 0u,
+          myPresentation =
+            LookupElementPresentation().apply {
+              itemText = "lang3"
+              tailText = "  langName3  region3"
+            },
+        ),
+      )
     ftlTestHelper(LOCALE, hashMapOf(), testDeviceCatalog, expectedResult)
   }
 
   @Test
   fun testGenerateFtlOrientationSuggestion() {
     val testDeviceCatalog = FtlDeviceCatalog().apply { this.orientation.addAll(testFtlDeviceOrientation) }
-    val expectedResult = listOf(
-      GmdCodeCompletionLookupElement(myValue = "default",
-                                     myScore = 0u,
-                                     myInsertHandler = GmdDevicePropertyInsertHandler()),
-      GmdCodeCompletionLookupElement(myValue = "horizontal",
-                                     myScore = 0u,
-                                     myInsertHandler = GmdDevicePropertyInsertHandler()),
-      GmdCodeCompletionLookupElement(myValue = "vertical",
-                                     myScore = 0u,
-                                     myInsertHandler = GmdDevicePropertyInsertHandler())
-    )
+    val expectedResult =
+      listOf(
+        GmdCodeCompletionLookupElement(myValue = "default", myScore = 0u, myInsertHandler = GmdDevicePropertyInsertHandler()),
+        GmdCodeCompletionLookupElement(myValue = "horizontal", myScore = 0u, myInsertHandler = GmdDevicePropertyInsertHandler()),
+        GmdCodeCompletionLookupElement(myValue = "vertical", myScore = 0u, myInsertHandler = GmdDevicePropertyInsertHandler()),
+      )
     ftlTestHelper(ORIENTATION, hashMapOf(), testDeviceCatalog, expectedResult)
   }
 
   @Test
   fun testGenerateDeviceIdSuggestion_apiLevelTooLow() {
-    val testFtlDeviceInfoMap = hashMapOf(
-      "testdevice2" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.minSdk - 1)))
+    val testFtlDeviceInfoMap = hashMapOf("testdevice2" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.minSdk - 1)))
     val testDeviceCatalog = FtlDeviceCatalog().apply { this.devices.putAll(testFtlDeviceInfoMap) }
     ftlTestHelper(DEVICE_ID, hashMapOf(), testDeviceCatalog, emptyList())
   }
@@ -97,155 +108,191 @@ class FtlLookupElementProviderTest {
   @Test
   fun testGenerateDeviceIdSuggestion_matchSpecifiedApi() {
     val currentDeviceProperties: CurrentDeviceProperties = hashMapOf(API_LEVEL to "25")
-    val deviceMap = mapOf(
-      "device1" to AndroidDeviceInfo(
-        deviceName = "Phone1",
-        deviceForm = "physical",
-        formFactor = "phone",
-        brand = "Google",
-        supportedApis = listOf(24)
-      ),
-      "device2" to AndroidDeviceInfo(
-        deviceName = "Phone2",
-        deviceForm = "virtual",
-        formFactor = "tablet",
-        brand = "Samsung",
-        supportedApis = listOf(25)
-      ),
-    )
+    val deviceMap =
+      mapOf(
+        "device1" to
+          AndroidDeviceInfo(
+            deviceName = "Phone1",
+            deviceForm = "physical",
+            formFactor = "phone",
+            brand = "Google",
+            supportedApis = listOf(24),
+          ),
+        "device2" to
+          AndroidDeviceInfo(
+            deviceName = "Phone2",
+            deviceForm = "virtual",
+            formFactor = "tablet",
+            brand = "Samsung",
+            supportedApis = listOf(25),
+          ),
+      )
     val testDeviceCatalog = FtlDeviceCatalog().apply { this.devices.putAll(deviceMap) }
-    val expectedResult = listOf(
-      GmdCodeCompletionLookupElement(myValue = "device2",
-                                     myScore = 35u,
-                                     myInsertHandler = GmdDevicePropertyInsertHandler(),
-                                     myPresentation = LookupElementPresentation().apply {
-                                       itemText = "device2"
-                                       tailText = "  Phone2  virtual"
-                                     })
-    )
+    val expectedResult =
+      listOf(
+        GmdCodeCompletionLookupElement(
+          myValue = "device2",
+          myScore = 35u,
+          myInsertHandler = GmdDevicePropertyInsertHandler(),
+          myPresentation =
+            LookupElementPresentation().apply {
+              itemText = "device2"
+              tailText = "  Phone2  virtual"
+            },
+        )
+      )
     ftlTestHelper(DEVICE_ID, currentDeviceProperties, testDeviceCatalog, expectedResult)
   }
 
   @Test
   fun testGenerateDeviceIdSuggestion_matchTargetApi() {
-    val deviceMap = mapOf(
-      "device1" to AndroidDeviceInfo(
-        deviceName = "Phone1",
-        deviceForm = "physical",
-        formFactor = "phone",
-        brand = "Google",
-        supportedApis = listOf(testMinAndTargetApiLevel.targetSdk - 1)
-      ),
-      "device2" to AndroidDeviceInfo(
-        deviceName = "Phone2",
-        deviceForm = "virtual",
-        formFactor = "tablet",
-        brand = "Samsung",
-        supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)
-      ),
-    )
+    val deviceMap =
+      mapOf(
+        "device1" to
+          AndroidDeviceInfo(
+            deviceName = "Phone1",
+            deviceForm = "physical",
+            formFactor = "phone",
+            brand = "Google",
+            supportedApis = listOf(testMinAndTargetApiLevel.targetSdk - 1),
+          ),
+        "device2" to
+          AndroidDeviceInfo(
+            deviceName = "Phone2",
+            deviceForm = "virtual",
+            formFactor = "tablet",
+            brand = "Samsung",
+            supportedApis = listOf(testMinAndTargetApiLevel.targetSdk),
+          ),
+      )
     val testDeviceCatalog = FtlDeviceCatalog().apply { this.devices.putAll(deviceMap) }
-    val expectedResult = listOf(
-      GmdCodeCompletionLookupElement(myValue = "device2",
-                                     myScore = 99u,
-                                     myInsertHandler = GmdDevicePropertyInsertHandler(),
-                                     myPresentation = LookupElementPresentation().apply {
-                                       itemText = "device2"
-                                       tailText = "  Phone2  "
-                                     }),
-      GmdCodeCompletionLookupElement(myValue = "device1",
-                                     myScore = 44u,
-                                     myInsertHandler = GmdDevicePropertyInsertHandler(),
-                                     myPresentation = LookupElementPresentation().apply {
-                                       itemText = "device1"
-                                       tailText = "  Phone1  "
-                                     }),
-    )
+    val expectedResult =
+      listOf(
+        GmdCodeCompletionLookupElement(
+          myValue = "device2",
+          myScore = 99u,
+          myInsertHandler = GmdDevicePropertyInsertHandler(),
+          myPresentation =
+            LookupElementPresentation().apply {
+              itemText = "device2"
+              tailText = "  Phone2  "
+            },
+        ),
+        GmdCodeCompletionLookupElement(
+          myValue = "device1",
+          myScore = 44u,
+          myInsertHandler = GmdDevicePropertyInsertHandler(),
+          myPresentation =
+            LookupElementPresentation().apply {
+              itemText = "device1"
+              tailText = "  Phone1  "
+            },
+        ),
+      )
     ftlTestHelper(DEVICE_ID, hashMapOf(), testDeviceCatalog, expectedResult)
   }
 
   @Test
   fun testGenerateDeviceIdSuggestion_brandPriority() {
-    val deviceMap = mapOf(
-      "device1" to AndroidDeviceInfo(
-        deviceName = "Phone1",
-        formFactor = "phone",
-        brand = "Samsung",
-        supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)
-      ),
-      "device2" to AndroidDeviceInfo(
-        deviceName = "Phone2",
-        formFactor = "tablet",
-        brand = "Google",
-        supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)
-      ),
-    )
+    val deviceMap =
+      mapOf(
+        "device1" to
+          AndroidDeviceInfo(
+            deviceName = "Phone1",
+            formFactor = "phone",
+            brand = "Samsung",
+            supportedApis = listOf(testMinAndTargetApiLevel.targetSdk),
+          ),
+        "device2" to
+          AndroidDeviceInfo(
+            deviceName = "Phone2",
+            formFactor = "tablet",
+            brand = "Google",
+            supportedApis = listOf(testMinAndTargetApiLevel.targetSdk),
+          ),
+      )
     val testDeviceCatalog = FtlDeviceCatalog().apply { this.devices.putAll(deviceMap) }
-    val expectedResult = listOf(
-      GmdCodeCompletionLookupElement(myValue = "device2",
-                                     myScore = 107u,
-                                     myInsertHandler = GmdDevicePropertyInsertHandler(),
-                                     myPresentation = LookupElementPresentation().apply {
-                                       itemText = "device2"
-                                       tailText = "  Phone2  "
-                                     }),
-      GmdCodeCompletionLookupElement(myValue = "device1",
-                                     myScore = 100u,
-                                     myInsertHandler = GmdDevicePropertyInsertHandler(),
-                                     myPresentation = LookupElementPresentation().apply {
-                                       itemText = "device1"
-                                       tailText = "  Phone1  "
-                                     }),
-    )
+    val expectedResult =
+      listOf(
+        GmdCodeCompletionLookupElement(
+          myValue = "device2",
+          myScore = 107u,
+          myInsertHandler = GmdDevicePropertyInsertHandler(),
+          myPresentation =
+            LookupElementPresentation().apply {
+              itemText = "device2"
+              tailText = "  Phone2  "
+            },
+        ),
+        GmdCodeCompletionLookupElement(
+          myValue = "device1",
+          myScore = 100u,
+          myInsertHandler = GmdDevicePropertyInsertHandler(),
+          myPresentation =
+            LookupElementPresentation().apply {
+              itemText = "device1"
+              tailText = "  Phone1  "
+            },
+        ),
+      )
     ftlTestHelper(DEVICE_ID, hashMapOf(), testDeviceCatalog, expectedResult)
   }
 
   @Test
   fun testGenerateDeviceIdSuggestion_deviceForm() {
-    val deviceMap = mapOf(
-      "device1" to AndroidDeviceInfo(
-        deviceName = "Phone1",
-        formFactor = "tablet",
-        brand = "Google",
-        supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)
-      ),
-      "device2" to AndroidDeviceInfo(
-        deviceName = "Phone2",
-        formFactor = "phone",
-        brand = "Google",
-        supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)
-      ),
-    )
+    val deviceMap =
+      mapOf(
+        "device1" to
+          AndroidDeviceInfo(
+            deviceName = "Phone1",
+            formFactor = "tablet",
+            brand = "Google",
+            supportedApis = listOf(testMinAndTargetApiLevel.targetSdk),
+          ),
+        "device2" to
+          AndroidDeviceInfo(
+            deviceName = "Phone2",
+            formFactor = "phone",
+            brand = "Google",
+            supportedApis = listOf(testMinAndTargetApiLevel.targetSdk),
+          ),
+      )
     val testDeviceCatalog = FtlDeviceCatalog().apply { this.devices.putAll(deviceMap) }
-    val expectedResult = listOf(
-      GmdCodeCompletionLookupElement(myValue = "device2",
-                                     myScore = 108u,
-                                     myInsertHandler = GmdDevicePropertyInsertHandler(),
-                                     myPresentation = LookupElementPresentation().apply {
-                                       itemText = "device2"
-                                       tailText = "  Phone2  "
-                                     }),
-      GmdCodeCompletionLookupElement(myValue = "device1",
-                                     myScore = 107u,
-                                     myInsertHandler = GmdDevicePropertyInsertHandler(),
-                                     myPresentation = LookupElementPresentation().apply {
-                                       itemText = "device1"
-                                       tailText = "  Phone1  "
-                                     }),
-    )
+    val expectedResult =
+      listOf(
+        GmdCodeCompletionLookupElement(
+          myValue = "device2",
+          myScore = 108u,
+          myInsertHandler = GmdDevicePropertyInsertHandler(),
+          myPresentation =
+            LookupElementPresentation().apply {
+              itemText = "device2"
+              tailText = "  Phone2  "
+            },
+        ),
+        GmdCodeCompletionLookupElement(
+          myValue = "device1",
+          myScore = 107u,
+          myInsertHandler = GmdDevicePropertyInsertHandler(),
+          myPresentation =
+            LookupElementPresentation().apply {
+              itemText = "device1"
+              tailText = "  Phone1  "
+            },
+        ),
+      )
     ftlTestHelper(DEVICE_ID, hashMapOf(), testDeviceCatalog, expectedResult)
   }
 
   @Test
   fun testGenerateApiLevelSuggestion_filterWithMinSdk() {
-    val testDeviceCatalog = FtlDeviceCatalog().apply {
-      this.apiLevels.addAll(listOf(31, 33, 32, 19))
-    }
-    val expectedResult = listOf(
-      GmdCodeCompletionLookupElement(myValue = "33", myScore = 1u),
-      GmdCodeCompletionLookupElement(myValue = "31", myScore = 0u),
-      GmdCodeCompletionLookupElement(myValue = "32", myScore = 0u),
-    )
+    val testDeviceCatalog = FtlDeviceCatalog().apply { this.apiLevels.addAll(listOf(31, 33, 32, 19)) }
+    val expectedResult =
+      listOf(
+        GmdCodeCompletionLookupElement(myValue = "33", myScore = 1u),
+        GmdCodeCompletionLookupElement(myValue = "31", myScore = 0u),
+        GmdCodeCompletionLookupElement(myValue = "32", myScore = 0u),
+      )
     ftlTestHelper(API_LEVEL, hashMapOf(), testDeviceCatalog, expectedResult)
   }
 
@@ -253,19 +300,14 @@ class FtlLookupElementProviderTest {
   fun testGenerateApiLevelSuggestion_filterWithDeviceSupportedApiAndMinSdk() {
     val testDeviceId = "device1"
     val currentDeviceProperties: CurrentDeviceProperties = hashMapOf(DEVICE_ID to testDeviceId)
-    val testDeviceCatalog = FtlDeviceCatalog().apply {
-      this.apiLevels.addAll(listOf(31, 33, 32, 19))
-      this.devices[testDeviceId] = AndroidDeviceInfo(
-        deviceName = "Phone1",
-        formFactor = "tablet",
-        brand = "Google",
-        supportedApis = listOf(19, 20, 21)
-      )
-    }
-    val expectedResult = listOf(
-      GmdCodeCompletionLookupElement(myValue = "20", myScore = 0u),
-      GmdCodeCompletionLookupElement(myValue = "21", myScore = 0u),
-    )
+    val testDeviceCatalog =
+      FtlDeviceCatalog().apply {
+        this.apiLevels.addAll(listOf(31, 33, 32, 19))
+        this.devices[testDeviceId] =
+          AndroidDeviceInfo(deviceName = "Phone1", formFactor = "tablet", brand = "Google", supportedApis = listOf(19, 20, 21))
+      }
+    val expectedResult =
+      listOf(GmdCodeCompletionLookupElement(myValue = "20", myScore = 0u), GmdCodeCompletionLookupElement(myValue = "21", myScore = 0u))
     ftlTestHelper(API_LEVEL, currentDeviceProperties, testDeviceCatalog, expectedResult)
   }
 
@@ -273,20 +315,18 @@ class FtlLookupElementProviderTest {
   fun testGenerateApiLevelSuggestion_filterWithDeviceSupportedApiAndTargetSdk() {
     val testDeviceId = "device1"
     val currentDeviceProperties: CurrentDeviceProperties = hashMapOf(DEVICE_ID to testDeviceId)
-    val testDeviceCatalog = FtlDeviceCatalog().apply {
-      this.apiLevels.addAll(listOf(31, 33, 32, 19))
-      this.devices[testDeviceId] = AndroidDeviceInfo(
-        deviceName = "Phone1",
-        formFactor = "tablet",
-        brand = "Google",
-        supportedApis = listOf(19, 20, 21, 33)
+    val testDeviceCatalog =
+      FtlDeviceCatalog().apply {
+        this.apiLevels.addAll(listOf(31, 33, 32, 19))
+        this.devices[testDeviceId] =
+          AndroidDeviceInfo(deviceName = "Phone1", formFactor = "tablet", brand = "Google", supportedApis = listOf(19, 20, 21, 33))
+      }
+    val expectedResult =
+      listOf(
+        GmdCodeCompletionLookupElement(myValue = "33", myScore = 1u),
+        GmdCodeCompletionLookupElement(myValue = "20", myScore = 0u),
+        GmdCodeCompletionLookupElement(myValue = "21", myScore = 0u),
       )
-    }
-    val expectedResult = listOf(
-      GmdCodeCompletionLookupElement(myValue = "33", myScore = 1u),
-      GmdCodeCompletionLookupElement(myValue = "20", myScore = 0u),
-      GmdCodeCompletionLookupElement(myValue = "21", myScore = 0u),
-    )
     ftlTestHelper(API_LEVEL, currentDeviceProperties, testDeviceCatalog, expectedResult)
   }
 }

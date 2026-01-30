@@ -38,17 +38,13 @@ import javax.swing.table.TableRowSorter
 /**
  * A view that consists of a paginated [JBTable] and pagination controls.
  *
- * @param pageSizeValues page size values to pre-populate in the dropdown. When empty, the dropdown
- *   will be hidden.
- * @property tableModel model to create the paginated table. When its initial page size is set to
- *   one of the pre-populated values, it will be pre-selected in the dropdown.
+ * @param pageSizeValues page size values to pre-populate in the dropdown. When empty, the dropdown will be hidden.
+ * @property tableModel model to create the paginated table. When its initial page size is set to one of the pre-populated values, it will
+ *   be pre-selected in the dropdown.
  * @property table the underlying [JBTable]
  * @property component view component that wraps a table and the pagination controls.
  */
-class PaginatedTableView(
-  val tableModel: AbstractPaginatedTableModel,
-  pageSizeValues: Array<Int> = emptyArray(),
-) {
+class PaginatedTableView(val tableModel: AbstractPaginatedTableModel, pageSizeValues: Array<Int> = emptyArray()) {
   val table: JBTable
   val component: JComponent
 
@@ -92,10 +88,7 @@ class PaginatedTableView(
       }
   }
 
-  private fun updateColumnComparators(
-    sortKeys: List<RowSorter.SortKey>,
-    rowSorter: DefaultRowSorter<*, *>,
-  ) =
+  private fun updateColumnComparators(sortKeys: List<RowSorter.SortKey>, rowSorter: DefaultRowSorter<*, *>) =
     sortKeys.forEach {
       rowSorter.setComparator(it.column) { o1, o2 ->
         when (tableModel.getColumnClass(it.column)) {

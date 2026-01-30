@@ -15,9 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
-/**
- * CPU profiler's abstraction of thread states w/ capture state info.
- */
+/** CPU profiler's abstraction of thread states w/ capture state info. */
 enum class ThreadState(val displayName: String, val isCaptured: Boolean = false) {
   RUNNING("Running"),
   RUNNING_CAPTURED("Running", true),
@@ -29,9 +27,8 @@ enum class ThreadState(val displayName: String, val isCaptured: Boolean = false)
   WAITING_CAPTURED("Waiting", true),
 
   // These values are captured from Atrace as such we only have a captured state.
-  NO_ACTIVITY("No thread activity", true),  // Perfetto's empty state.
+  NO_ACTIVITY("No thread activity", true), // Perfetto's empty state.
   RUNNABLE_CAPTURED("Runnable", true),
   WAITING_IO_CAPTURED("Waiting on IO", true),
-
-  UNKNOWN("Unknown");
+  UNKNOWN("Unknown"),
 }

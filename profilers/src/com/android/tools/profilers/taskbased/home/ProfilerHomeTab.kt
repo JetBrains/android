@@ -17,9 +17,7 @@ package com.android.tools.profilers.taskbased.home
 
 import com.intellij.openapi.project.Project
 
-/**
- * Helper for opening Profiler home tab.
- */
+/** Helper for opening Profiler home tab. */
 object ProfilerHomeTab {
 
   /**

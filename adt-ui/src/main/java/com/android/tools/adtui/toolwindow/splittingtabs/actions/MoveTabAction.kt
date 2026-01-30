@@ -50,9 +50,7 @@ internal abstract class MoveTabAction private constructor(private val direction:
     val thisIndex = contentManager.getIndexOfContent(content)
     val otherIndex = thisIndex + direction.offset
     val otherContent = contentManager.getContent(otherIndex) ?: return
-    contentManager.removeContent(otherContent, false, false, false).doWhenDone {
-      contentManager.addContent(otherContent, thisIndex)
-    }
+    contentManager.removeContent(otherContent, false, false, false).doWhenDone { contentManager.addContent(otherContent, thisIndex) }
   }
 
   /** Move a tab left */

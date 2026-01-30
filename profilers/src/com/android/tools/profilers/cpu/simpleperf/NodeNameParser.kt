@@ -24,8 +24,8 @@ import java.util.regex.Pattern
 import java.util.stream.IntStream
 
 /**
- * Responsible for parsing full method/function names (String) obtained from symbol tables collected when profiling using simpleperf.
- * The names are parsed into [CaptureNodeModel] instances containing the class name, method name and signature.
+ * Responsible for parsing full method/function names (String) obtained from symbol tables collected when profiling using simpleperf. The
+ * names are parsed into [CaptureNodeModel] instances containing the class name, method name and signature.
  */
 object NodeNameParser {
   private val JAVA_SEPARATOR_PATTERN = Pattern.compile("\\.")
@@ -35,16 +35,14 @@ object NodeNameParser {
   private val logger = Logger.getInstance(NodeNameParser::class.java)
 
   /**
-   * Parses a string representing a full symbol name into its corresponding model. For example:
-   * "namespace::Class::Fun<int>(params)" is parsed into a [CppFunctionModel]
-   * "java.util.String.toString" is parsed into a [JavaMethodModel]
-   * "ioctl" is parsed into a [SyscallModel]
+   * Parses a string representing a full symbol name into its corresponding model. For example: "namespace::Class::Fun<int>(params)" is
+   * parsed into a [CppFunctionModel] "java.util.String.toString" is parsed into a [JavaMethodModel] "ioctl" is parsed into a [SyscallModel]
    *
-   * @param fullName      name to be parsed into a [CaptureNodeModel].
+   * @param fullName name to be parsed into a [CaptureNodeModel].
    * @param isUserWritten whether the symbol is part of the user-written code.
-   * @param fileName      name of the ELF file containing the instruction corresponding to the function. Null if it doesn't apply.
-   * @param vAddress      virtual address of the instruction in `fileName`.
-  </int> */
+   * @param fileName name of the ELF file containing the instruction corresponding to the function. Null if it doesn't apply.
+   * @param vAddress virtual address of the instruction in `fileName`. </int>
+   */
   @JvmStatic
   @JvmOverloads
   fun parseNodeName(fullName: String, isUserWritten: Boolean, fileName: String? = null, vAddress: Long = -1): CaptureNodeModel {
@@ -64,17 +62,17 @@ object NodeNameParser {
   }
 
   /**
-   * C++ function names are usually in the format namespace::Class::Fun(params). Sometimes, they also include
-   * return type and template information, e.g. void namespace::Class::Fun<int>(params). We need to handle all the cases and parse
-   * the function name into a [CppFunctionModel].
-  </int> */
+   * C++ function names are usually in the format namespace::Class::Fun(params). Sometimes, they also include return type and template
+   * information, e.g. void namespace::Class::Fun<int>(params). We need to handle all the cases and parse the function name into a
+   * [CppFunctionModel]. </int>
+   */
   @JvmStatic
   @JvmOverloads
   fun createCppFunctionModel(
     functionFullName: String,
     isUserWritten: Boolean,
     fileName: String? = null,
-    vAddress: Long = -1
+    vAddress: Long = -1,
   ): CppFunctionModel {
     val paramsEndIndex = functionFullName.lastIndexOf(')')
     val paramsStartIndex = if (paramsEndIndex < 0) -1 else findMatchingOpeningParenthesisIndex(functionFullName, paramsEndIndex)
@@ -131,8 +129,8 @@ object NodeNameParser {
 
   /**
    * @param functionFullName - a function full name where to search for the occurrence index.
-   * @param separator        - a separator which should be searched.
-   * @param lastIndex        - whether to return the last occurrence index or the first.
+   * @param separator - a separator which should be searched.
+   * @param lastIndex - whether to return the last occurrence index or the first.
    * @return occurrence index of {@param separator} which is outside of all CPP templates in the given {@param functionFullName}.
    */
   private fun separatorIndexOutsideOfTemplateInfo(functionFullName: String, separator: String, lastIndex: Boolean): Int {
@@ -169,7 +167,7 @@ object NodeNameParser {
 
     // It is possible that we didn't find any separators.
     if (instances.isEmpty()) {
-      return -1;
+      return -1
     }
 
     return if (lastIndex) instances.last() else instances.first()
@@ -177,8 +175,8 @@ object NodeNameParser {
 
   /**
    * @param functionName - the given function name, i.e "myMethod", "my_method", "myMethod<int>", "operator<<", "my_operator"
-   * @return true, if the given {@param functionName} describes an operator overloading.
-  </int> */
+   * @return true, if the given {@param functionName} describes an operator overloading. </int>
+   */
   private fun isOperatorOverload(functionName: String): Boolean {
     val operator = "operator"
     return functionName == operator || functionName.startsWith(operator) && !isCppIdentifierChar(functionName[operator.length])
@@ -191,17 +189,17 @@ object NodeNameParser {
 
   /**
    * Simplifies a C++ symbol (e.g. function name, or namespace) by removing the template instantiation information including template
-   * arguments. Essentially, removes angle brackets and everything between them. For example:
-   * "Type1<int> Type2<float>::FuncTemplate<Type3></Type3><2>>(Type4<bool>)" -> "Type1 Type2::FuncTemplate(Type4)"
+   * arguments. Essentially, removes angle brackets and everything between them. For example: "Type1<int>
+   * Type2<float>::FuncTemplate<Type3></Type3><2>>(Type4<bool>)" -> "Type1 Type2::FuncTemplate(Type4)"
    *
-   * If it can't find matching angle brackets, falls back to the full symbol string.
-  </bool></float></int> */
+   * If it can't find matching angle brackets, falls back to the full symbol string. </bool></float></int>
+   */
   private fun removeTemplateInfo(fullSymbol: String): String {
     val filteredName = StringBuilder()
 
     var open = 0
 
-    fullSymbol.forEach {ch ->
+    fullSymbol.forEach { ch ->
       // Start of template info section
       if (ch == '<') {
         open++
@@ -262,6 +260,7 @@ object NodeNameParser {
 
   /**
    * Receives a full method name and returns a [JavaMethodModel] containing its class name and its (simple) name.
+   *
    * @param fullName The method's full qualified name (e.g. java.lang.Object.equals)
    */
   private fun createJavaMethodModel(fullName: String): JavaMethodModel {

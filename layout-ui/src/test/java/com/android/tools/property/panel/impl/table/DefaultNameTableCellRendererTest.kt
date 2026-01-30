@@ -31,13 +31,13 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.ui.NewUI
 import icons.StudioIcons
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.SwingUtilities
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
 private const val TOOLTIP_PROPERTY = "JComponent.helpTooltip"
 
@@ -50,28 +50,16 @@ class DefaultNameTableCellRendererTest {
     val table = createTable() as PTable
     val jTable = table.component as JTable
     val item = table.item(1)
-    val component =
-      renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, false, false, false)
+    val component = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, false, false, false)
     val rect = jTable.getCellRect(0, 0, true)
     component.setBounds(0, 0, rect.width, rect.height)
     component.doLayout()
     val event = MouseEvent(table.component, 0, 0L, 0, rect.width / 2, rect.height / 2, 1, false)
-    val control =
-      SwingUtilities.getDeepestComponentAt(component, event.x - rect.x, event.y - rect.y)
-        as? JComponent
+    val control = SwingUtilities.getDeepestComponentAt(component, event.x - rect.x, event.y - rect.y) as? JComponent
     control!!.getToolTipText(event)
     val installed = jTable.getClientProperty(TOOLTIP_PROPERTY) as HelpTooltip
-    assertThat(
-        installed.javaClass.getDeclaredField("title").also { it.isAccessible = true }.get(installed)
-      )
-      .isNull()
-    assertThat(
-        installed.javaClass
-          .getDeclaredField("description")
-          .also { it.isAccessible = true }
-          .get(installed)
-      )
-      .isEqualTo("Help on id")
+    assertThat(installed.javaClass.getDeclaredField("title").also { it.isAccessible = true }.get(installed)).isNull()
+    assertThat(installed.javaClass.getDeclaredField("description").also { it.isAccessible = true }.get(installed)).isEqualTo("Help on id")
 
     // Cleanup by removing the tooltip:
     HelpTooltip.dispose(jTable)
@@ -83,14 +71,10 @@ class DefaultNameTableCellRendererTest {
     val renderer = DefaultNameTableCellRenderer()
     val table = createTable() as PTable
     val item = table.item(1)
-    val unselected =
-      renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, false, false, false)
-        as DefaultNameComponent
+    val unselected = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, false, false, false) as DefaultNameComponent
     assertThat(unselected.icon).isSameAs(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE)
 
-    val selected =
-      renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, true, true, false)
-        as DefaultNameComponent
+    val selected = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, true, true, false) as DefaultNameComponent
     assertThat(IconTester.hasOnlyWhiteColors(selected.icon!!)).isEqualTo(!NewUI.isEnabled())
   }
 

@@ -40,13 +40,11 @@ import org.jetbrains.annotations.VisibleForTesting
 /**
  * A [JPanel] that can split itself in the specified [SplitOrientation].
  *
- * The split is performed by inserting a [OnePixelSplitter] between the component and its parent.
- * The original component is set as the [OnePixelSplitter.setFirstComponent] and a new
- * SplittingPanel is assigned to [OnePixelSplitter.setSecondComponent].
+ * The split is performed by inserting a [OnePixelSplitter] between the component and its parent. The original component is set as the
+ * [OnePixelSplitter.setFirstComponent] and a new SplittingPanel is assigned to [OnePixelSplitter.setSecondComponent].
  *
- * Any SplittingPanel in the hierarchy can also be closed. Closing a panel is accomplished by
- * removing the parent OnePixelSplitter and attaching the child SplittingPanel that is not being
- * closed to the hierarchy where the parent was attached to.
+ * Any SplittingPanel in the hierarchy can also be closed. Closing a panel is accomplished by removing the parent OnePixelSplitter and
+ * attaching the child SplittingPanel that is not being closed to the hierarchy where the parent was attached to.
  *
  * This code was inspired by `org.jetbrains.plugins.terminal.TerminalContainer`
  */
@@ -56,8 +54,7 @@ internal class SplittingPanel(
   private val childComponentFactory: ChildComponentFactory,
 ) : BorderLayoutPanel(), SplittingTabsStateProvider, Disposable {
 
-  private val popupActionGroup =
-    DefaultActionGroup(SplitPanelAction(VERTICAL), SplitPanelAction(HORIZONTAL), ClosePanelAction())
+  private val popupActionGroup = DefaultActionGroup(SplitPanelAction(VERTICAL), SplitPanelAction(HORIZONTAL), ClosePanelAction())
 
   val component = childComponentFactory.createChildComponent(clientState, popupActionGroup)
 
@@ -73,12 +70,7 @@ internal class SplittingPanel(
 
   fun split(orientation: SplitOrientation) {
     val parent = parent
-    val splitter =
-      createSplitter(
-        orientation,
-        this,
-        SplittingPanel(content, clientState = null, childComponentFactory),
-      )
+    val splitter = createSplitter(orientation, this, SplittingPanel(content, clientState = null, childComponentFactory))
 
     if (parent is OnePixelSplitter) {
       if (parent.firstComponent == this) {
@@ -102,8 +94,7 @@ internal class SplittingPanel(
     val parent = parent
     if (parent is OnePixelSplitter) {
       val grandparent = parent.parent
-      val other =
-        if (parent.firstComponent == this) parent.secondComponent else parent.firstComponent
+      val other = if (parent.firstComponent == this) parent.secondComponent else parent.firstComponent
       if (grandparent is OnePixelSplitter) {
         if (grandparent.firstComponent == parent) {
           grandparent.firstComponent = other
@@ -123,11 +114,7 @@ internal class SplittingPanel(
     }
   }
 
-  private fun createSplitter(
-    orientation: SplitOrientation,
-    first: SplittingPanel,
-    second: SplittingPanel,
-  ): OnePixelSplitter {
+  private fun createSplitter(orientation: SplitOrientation, first: SplittingPanel, second: SplittingPanel): OnePixelSplitter {
     return OnePixelSplitter(orientation.toSplitter(), 0.5f, 0.1f, 0.9f).apply {
       firstComponent = first
       secondComponent = second
@@ -142,15 +129,13 @@ internal class SplittingPanel(
 
   override fun getState(): String? = (component as? SplittingTabsStateProvider)?.getState()
 
-  private inner class SplitPanelAction(private val orientation: SplitOrientation) :
-    DumbAwareAction(orientation::text, orientation.icon) {
+  private inner class SplitPanelAction(private val orientation: SplitOrientation) : DumbAwareAction(orientation::text, orientation.icon) {
     override fun actionPerformed(e: AnActionEvent) {
       split(orientation)
     }
   }
 
-  private inner class ClosePanelAction :
-    DumbAwareAction(lazyMessage("SplittingTabsToolWindow.close"), AllIcons.Actions.Close) {
+  private inner class ClosePanelAction : DumbAwareAction(lazyMessage("SplittingTabsToolWindow.close"), AllIcons.Actions.Close) {
     override fun actionPerformed(e: AnActionEvent) {
       close()
     }
@@ -186,14 +171,11 @@ internal class SplittingPanel(
     ): JComponent =
       when {
         panelState == null -> SplittingPanel(content, clientState = null, childComponentFactory)
-        panelState.isLeaf() ->
-          SplittingPanel(content, panelState.clientState, childComponentFactory)
+        panelState.isLeaf() -> SplittingPanel(content, panelState.clientState, childComponentFactory)
         else -> {
           OnePixelSplitter(panelState.orientation!!.toSplitter(), panelState.proportion!!).also {
-            it.firstComponent =
-              buildComponentFromState(content, panelState.first!!, childComponentFactory)
-            it.secondComponent =
-              buildComponentFromState(content, panelState.second!!, childComponentFactory)
+            it.firstComponent = buildComponentFromState(content, panelState.first!!, childComponentFactory)
+            it.secondComponent = buildComponentFromState(content, panelState.second!!, childComponentFactory)
           }
         }
       }

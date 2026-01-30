@@ -22,9 +22,9 @@ import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.psi.PsiFile
 
 /**
- * The platform's [OrderEntryFix] modifies the IDE's project model directly, which does not do the right thing for
- * Android projects whose project model comes from build files using some non-(IDE)-native build system.  This filter
- * disables these fixes for all modules with an Android facet.
+ * The platform's [OrderEntryFix] modifies the IDE's project model directly, which does not do the right thing for Android projects whose
+ * project model comes from build files using some non-(IDE)-native build system. This filter disables these fixes for all modules with an
+ * Android facet.
  */
 class AndroidOrderEntryFixIntentionActionFilter : IntentionActionFilter {
   override fun accept(intentionAction: IntentionAction, file: PsiFile?): Boolean {

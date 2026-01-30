@@ -48,11 +48,9 @@ import org.junit.Test
 class ConfigurationCachingCompatibilityAnalyzerTest {
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
-  @get:Rule
-  val separateOldAgpTestsRule = SeparateOldAgpTestsRule()
+  @get:Rule val separateOldAgpTestsRule = SeparateOldAgpTestsRule()
 
-  @get:Rule
-  val myProjectRule = AndroidGradleProjectRule("tools/adt/idea/build-attribution/testData")
+  @get:Rule val myProjectRule = AndroidGradleProjectRule("tools/adt/idea/build-attribution/testData")
 
   @Before
   fun setUp() {
@@ -76,17 +74,16 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
       // Add plugins application to `app/build.gradle`.
       val appBuildFile = FileUtils.join(projectRoot, "app", SdkConstants.FN_BUILD_GRADLE)
       appBuildFile.readText().let { content ->
-        val newContent = if (useNewPluginsDsl)
-          content.patchApplyWithNewDsl(pluginsApply)
-        else content.patchApplyWithOldDsl(pluginsApply)
+        val newContent = if (useNewPluginsDsl) content.patchApplyWithNewDsl(pluginsApply) else content.patchApplyWithOldDsl(pluginsApply)
         FileUtil.writeToFile(appBuildFile, newContent)
       }
       // Add dependencies to buildscript in `./build.gradle`.
       val rootBuildFile = FileUtils.join(projectRoot, SdkConstants.FN_BUILD_GRADLE)
       rootBuildFile.readText().let { content ->
-        val newContent = content
-          .replace(oldValue = "dependencies {", newValue = "dependencies {\n$dependencies")
-          .replace(oldValue = "allprojects {", newValue = "$pluginsSectionInRoot\n\nallprojects {")
+        val newContent =
+          content
+            .replace(oldValue = "dependencies {", newValue = "dependencies {\n$dependencies")
+            .replace(oldValue = "allprojects {", newValue = "$pluginsSectionInRoot\n\nallprojects {")
 
         FileUtil.writeToFile(rootBuildFile, newContent)
       }
@@ -100,21 +97,29 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     }
   }
 
-  private fun String.patchApplyWithOldDsl(pluginsApply: String) = this.replace(
-    oldValue = "apply plugin: 'com.android.application'",
-    newValue = """
+  private fun String.patchApplyWithOldDsl(pluginsApply: String) =
+    this.replace(
+      oldValue = "apply plugin: 'com.android.application'",
+      newValue =
+        """
           apply plugin: 'com.android.application'
           $pluginsApply
-        """.trimIndent())
+        """
+          .trimIndent(),
+    )
 
-  private fun String.patchApplyWithNewDsl(pluginsApply: String) = this.replace(
-    oldValue = "apply plugin: 'com.android.application'",
-    newValue = """
+  private fun String.patchApplyWithNewDsl(pluginsApply: String) =
+    this.replace(
+      oldValue = "apply plugin: 'com.android.application'",
+      newValue =
+        """
       plugins {
           id 'com.android.application'
           $pluginsApply
       }
-        """.trimIndent())
+        """
+          .trimIndent(),
+    )
 
   @Test
   fun testProjectWithLatestAGPOnly() {
@@ -127,12 +132,11 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     assertThat(result).isInstanceOf(NoIncompatiblePlugins::class.java)
   }
 
-
   @Test
   fun testNewKotlinNotDetected() {
     projectSetup(
       dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION_FOR_TESTS\"",
-      pluginsApply = "apply plugin: 'kotlin-android'"
+      pluginsApply = "apply plugin: 'kotlin-android'",
     )
 
     val result = runBuildAndGetAnalyzerResult()
@@ -145,18 +149,23 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     projectSetup(
       agpVersion = AgpVersionInBuildAttributionTest.AGP_71_GRADLE_75,
       dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72\"",
-      pluginsApply = "apply plugin: 'kotlin-android'"
+      pluginsApply = "apply plugin: 'kotlin-android'",
     )
 
     val result = runBuildAndGetAnalyzerResult()
 
     assertThat(result).isInstanceOf(IncompatiblePluginsDetected::class.java)
     (result as IncompatiblePluginsDetected).upgradePluginWarnings.let { warnings ->
-      assertThat(warnings).isEqualTo(listOf(IncompatiblePluginWarning(
-        plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
-        currentVersion = Version.parse("1.3.72"),
-        pluginInfo = kotlinPluginInfo()
-      )))
+      assertThat(warnings)
+        .isEqualTo(
+          listOf(
+            IncompatiblePluginWarning(
+              plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
+              currentVersion = Version.parse("1.3.72"),
+              pluginInfo = kotlinPluginInfo(),
+            )
+          )
+        )
     }
   }
 
@@ -169,7 +178,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
       dependencies = "",
       pluginsApply = "id 'org.jetbrains.kotlin.android'",
       pluginsSectionInRoot = "plugins { id 'org.jetbrains.kotlin.android' version '$KOTLIN_VERSION_FOR_TESTS' apply false }",
-      useNewPluginsDsl = true
+      useNewPluginsDsl = true,
     )
 
     replacePluginDataToMarkKotlinPluginAsNotSupportingCC()
@@ -177,11 +186,16 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
 
     assertThat(result).isInstanceOf(IncompatiblePluginsDetected::class.java)
     (result as IncompatiblePluginsDetected).upgradePluginWarnings.let { warnings ->
-      assertThat(warnings).isEqualTo(listOf(IncompatiblePluginWarning(
-        plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
-        currentVersion = Version.parse(KOTLIN_VERSION_FOR_TESTS),
-        pluginInfo = kotlinPluginInfo()
-      )))
+      assertThat(warnings)
+        .isEqualTo(
+          listOf(
+            IncompatiblePluginWarning(
+              plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
+              currentVersion = Version.parse(KOTLIN_VERSION_FOR_TESTS),
+              pluginInfo = kotlinPluginInfo(),
+            )
+          )
+        )
     }
   }
 
@@ -192,18 +206,23 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
       agpVersion = AgpVersionInBuildAttributionTest.AGP_71_GRADLE_75,
       dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72\"",
       pluginsApply = "id 'kotlin-android'",
-      useNewPluginsDsl = true
+      useNewPluginsDsl = true,
     )
 
     val result = runBuildAndGetAnalyzerResult()
 
     assertThat(result).isInstanceOf(IncompatiblePluginsDetected::class.java)
     (result as IncompatiblePluginsDetected).upgradePluginWarnings.let { warnings ->
-      assertThat(warnings).isEqualTo(listOf(IncompatiblePluginWarning(
-        plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
-        currentVersion = Version.parse("1.3.72"),
-        pluginInfo = kotlinPluginInfo()
-      )))
+      assertThat(warnings)
+        .isEqualTo(
+          listOf(
+            IncompatiblePluginWarning(
+              plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
+              currentVersion = Version.parse("1.3.72"),
+              pluginInfo = kotlinPluginInfo(),
+            )
+          )
+        )
     }
   }
 
@@ -213,18 +232,23 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     projectSetup(
       agpVersion = AgpVersionInBuildAttributionTest.AGP_71_GRADLE_75,
       dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72\"",
-      pluginsApply = "apply plugin: org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"
+      pluginsApply = "apply plugin: org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper",
     )
 
     val result = runBuildAndGetAnalyzerResult()
 
     assertThat(result).isInstanceOf(IncompatiblePluginsDetected::class.java)
     (result as IncompatiblePluginsDetected).upgradePluginWarnings.let { warnings ->
-      assertThat(warnings).isEqualTo(listOf(IncompatiblePluginWarning(
-        plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
-        currentVersion = Version.parse("1.3.72"),
-        pluginInfo = kotlinPluginInfo()
-      )))
+      assertThat(warnings)
+        .isEqualTo(
+          listOf(
+            IncompatiblePluginWarning(
+              plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
+              currentVersion = Version.parse("1.3.72"),
+              pluginInfo = kotlinPluginInfo(),
+            )
+          )
+        )
     }
   }
 
@@ -255,19 +279,24 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     val result = runBuildAndGetAnalyzerResult()
     assertThat(result).isInstanceOf(NoIncompatiblePlugins::class.java)
 
-    val buildRequest = (myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl)
-      .currentBuildRequest
+    val buildRequest =
+      (myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl).currentBuildRequest
 
     ConfigurationCacheTestBuildFlowRunner.getInstance(myProjectRule.project)
       .scheduleRebuildWithCCOptionAndRunOnSuccess(buildRequest.data, true, {}, {})
 
     // test metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
-      .map { use -> use.studioEvent.buildAttributionStats.let { it.buildType to it.buildAnalysisStatus } }
-    assertThat(buildAttributionEvents).isEqualTo(listOf(
-      BuildAttributionStats.BuildType.REGULAR_BUILD to BuildAttributionStats.BuildAnalysisStatus.SUCCESS,
-      BuildAttributionStats.BuildType.CONFIGURATION_CACHE_TRIAL_FLOW_BUILD to BuildAttributionStats.BuildAnalysisStatus.SUCCESS,
-    ))
+    val buildAttributionEvents =
+      tracker.usages
+        .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
+        .map { use -> use.studioEvent.buildAttributionStats.let { it.buildType to it.buildAnalysisStatus } }
+    assertThat(buildAttributionEvents)
+      .isEqualTo(
+        listOf(
+          BuildAttributionStats.BuildType.REGULAR_BUILD to BuildAttributionStats.BuildAnalysisStatus.SUCCESS,
+          BuildAttributionStats.BuildType.CONFIGURATION_CACHE_TRIAL_FLOW_BUILD to BuildAttributionStats.BuildAnalysisStatus.SUCCESS,
+        )
+      )
   }
 
   @Test
@@ -276,26 +305,31 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     projectSetup(
       agpVersion = AgpVersionInBuildAttributionTest.AGP_71_GRADLE_75,
       dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72\"",
-      pluginsApply = "apply plugin: 'kotlin-android'"
+      pluginsApply = "apply plugin: 'kotlin-android'",
     )
 
     val result = runBuildAndGetAnalyzerResult()
 
     assertThat(result).isInstanceOf(IncompatiblePluginsDetected::class.java)
 
-    val buildRequest = (myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl)
-      .currentBuildRequest
+    val buildRequest =
+      (myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl).currentBuildRequest
 
     ConfigurationCacheTestBuildFlowRunner.getInstance(myProjectRule.project)
       .scheduleRebuildWithCCOptionAndRunOnSuccess(buildRequest.data, true, {}, {})
 
     // test metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
-      .map { use -> use.studioEvent.buildAttributionStats.let { it.buildType to it.buildAnalysisStatus } }
-    assertThat(buildAttributionEvents).isEqualTo(listOf(
-      BuildAttributionStats.BuildType.REGULAR_BUILD to BuildAttributionStats.BuildAnalysisStatus.SUCCESS,
-      BuildAttributionStats.BuildType.CONFIGURATION_CACHE_TRIAL_FLOW_BUILD to BuildAttributionStats.BuildAnalysisStatus.BUILD_FAILURE,
-    ))
+    val buildAttributionEvents =
+      tracker.usages
+        .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
+        .map { use -> use.studioEvent.buildAttributionStats.let { it.buildType to it.buildAnalysisStatus } }
+    assertThat(buildAttributionEvents)
+      .isEqualTo(
+        listOf(
+          BuildAttributionStats.BuildType.REGULAR_BUILD to BuildAttributionStats.BuildAnalysisStatus.SUCCESS,
+          BuildAttributionStats.BuildType.CONFIGURATION_CACHE_TRIAL_FLOW_BUILD to BuildAttributionStats.BuildAnalysisStatus.BUILD_FAILURE,
+        )
+      )
   }
 
   private fun runBuildAndGetAnalyzerResult(): ConfigurationCachingCompatibilityProjectResult {
@@ -310,17 +344,21 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
   private fun replacePluginDataToMarkKotlinPluginAsNotSupportingCC() {
     val originalKotlinPluginInfo = kotlinPluginInfo()
     val nextVersion = Version.parse(KOTLIN_VERSION_FOR_TESTS).nextPrefix().prefixVersion()
-    ApplicationManager.getApplication().replaceService(KnownGradlePluginsService::class.java, object : KnownGradlePluginsService {
-      override val gradlePluginsData: GradlePluginsData
-        get() = GradlePluginsData(listOf(originalKotlinPluginInfo.copy(configurationCachingCompatibleFrom = nextVersion)))
+    ApplicationManager.getApplication()
+      .replaceService(
+        KnownGradlePluginsService::class.java,
+        object : KnownGradlePluginsService {
+          override val gradlePluginsData: GradlePluginsData
+            get() = GradlePluginsData(listOf(originalKotlinPluginInfo.copy(configurationCachingCompatibleFrom = nextVersion)))
 
-      override fun asyncRefresh() = Unit
-    }, myProjectRule.project)
+          override fun asyncRefresh() = Unit
+        },
+        myProjectRule.project,
+      )
   }
 
-  private fun kotlinPluginInfo(): GradlePluginsData.PluginInfo = ApplicationManager.getApplication()
-    .getService(KnownGradlePluginsService::class.java)
-    .gradlePluginsData
-    .pluginsInfo
-    .find { it.pluginArtifact?.name == "kotlin-gradle-plugin" }!!
+  private fun kotlinPluginInfo(): GradlePluginsData.PluginInfo =
+    ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).gradlePluginsData.pluginsInfo.find {
+      it.pluginArtifact?.name == "kotlin-gradle-plugin"
+    }!!
 }

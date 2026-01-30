@@ -24,26 +24,24 @@ import org.jetbrains.org.objectweb.asm.Opcodes
 private const val JAVA_OBJECT_FQN = "java.lang.Object"
 
 /**
- * Interface to implement by classes able to locate [PseudoClass] from a class FQN. An
- * implementation of this class should read all the [PseudoClass] information without loading the
- * class in memory via the class loader.
+ * Interface to implement by classes able to locate [PseudoClass] from a class FQN. An implementation of this class should read all the
+ * [PseudoClass] information without loading the class in memory via the class loader.
  */
 interface PseudoClassLocator {
   fun locatePseudoClass(classFqn: String): PseudoClass
 }
 
 /**
- * [PseudoClassLocator] without any resolution. It returns [PseudoClass.objectPseudoClass] for every
- * request. Mainly used for testing or for when there is no [PseudoClass]es available.
+ * [PseudoClassLocator] without any resolution. It returns [PseudoClass.objectPseudoClass] for every request. Mainly used for testing or for
+ * when there is no [PseudoClass]es available.
  */
 object NopClassLocator : PseudoClassLocator {
   override fun locatePseudoClass(classFqn: String): PseudoClass = PseudoClass.objectPseudoClass()
 }
 
 /**
- * An object that represents a class file without using the class loader. This contains the minimum
- * information needed to be able to parse class files hierarchies without loading the class in
- * memory.
+ * An object that represents a class file without using the class loader. This contains the minimum information needed to be able to parse
+ * class files hierarchies without loading the class in memory.
  *
  * @param name the class name
  * @param superName the super class name
@@ -120,13 +118,8 @@ private constructor(
     return name.hashCode()
   }
 
-  /**
-   * Returns a new [PseudoClass] with the same contents but the new given name. This allows renaming
-   * [PseudoClass]es.
-   */
-  fun withNewName(newName: String) =
-    if (newName != name) PseudoClass(newName, superName, isInterface, interfaces, classLocator)
-    else this
+  /** Returns a new [PseudoClass] with the same contents but the new given name. This allows renaming [PseudoClass]es. */
+  fun withNewName(newName: String) = if (newName != name) PseudoClass(newName, superName, isInterface, interfaces, classLocator) else this
 
   override fun toString(): String =
     MoreObjects.toStringHelper(PseudoClass::class.java)
@@ -138,18 +131,10 @@ private constructor(
 
   companion object {
     @TestOnly
-    fun forTest(
-      name: String,
-      superName: String,
-      isInterface: Boolean,
-      interfaces: List<String>,
-      locator: PseudoClassLocator,
-    ) = PseudoClass(name, superName, isInterface, interfaces, locator)
+    fun forTest(name: String, superName: String, isInterface: Boolean, interfaces: List<String>, locator: PseudoClassLocator) =
+      PseudoClass(name, superName, isInterface, interfaces, locator)
 
-    /**
-     * Returns a [PseudoClass] from the given class file [ByteArray] using the [classLocator] to
-     * resolve any additional classes.
-     */
+    /** Returns a [PseudoClass] from the given class file [ByteArray] using the [classLocator] to resolve any additional classes. */
     fun fromByteArray(classBytes: ByteArray?, classLocator: PseudoClassLocator): PseudoClass {
       if (classBytes == null) return objectPseudoClass
 
@@ -193,13 +178,11 @@ private constructor(
       return objectPseudoClass
     }
 
-    private val objectPseudoClass =
-      PseudoClass(JAVA_OBJECT_FQN, JAVA_OBJECT_FQN, false, listOf(), NopClassLocator)
+    private val objectPseudoClass = PseudoClass(JAVA_OBJECT_FQN, JAVA_OBJECT_FQN, false, listOf(), NopClassLocator)
   }
 }
 
-class ClassWriterWithPseudoClassLocator(flags: Int, private val classLocator: PseudoClassLocator) :
-  ClassWriter(flags) {
+class ClassWriterWithPseudoClassLocator(flags: Int, private val classLocator: PseudoClassLocator) : ClassWriter(flags) {
   override fun getCommonSuperClass(type1: String, type2: String): String {
     // Avoid class loading in cases where it's not necessary
     if (OBJECT_TYPE == type1 || OBJECT_TYPE == type2) {

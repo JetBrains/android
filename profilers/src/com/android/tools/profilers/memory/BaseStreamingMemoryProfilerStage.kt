@@ -50,18 +50,21 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
 private fun Long.nanosToMicros() = TimeUnit.NANOSECONDS.toMicros(this)
+
 private typealias DataSeriesConstructor<T> = (ProfilerClient, Common.Session, FeatureTracker, BaseMemoryProfilerStage) -> DataSeries<T>
 
-/**
- * This class implements common functionalities of a memory stage with a timeline
- */
-abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
-                                                captureObjectLoader: CaptureObjectLoader = CaptureObjectLoader())
-  : BaseMemoryProfilerStage(profilers, captureObjectLoader) {
-  protected val logger get() = Logger.getInstance(this.javaClass)
+/** This class implements common functionalities of a memory stage with a timeline */
+abstract class BaseStreamingMemoryProfilerStage(
+  profilers: StudioProfilers,
+  captureObjectLoader: CaptureObjectLoader = CaptureObjectLoader(),
+) : BaseMemoryProfilerStage(profilers, captureObjectLoader) {
+  protected val logger
+    get() = Logger.getInstance(this.javaClass)
+
   protected val sessionData = profilers.session
   var isTrackingAllocations = false
     protected set
+
   val aspect = AspectModel<MemoryProfilerAspect>()
 
   val memoryDataProvider = MemoryDataProvider(profilers, timeline)
@@ -76,40 +79,45 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   val tooltipLegends = memoryDataProvider.tooltipLegends
   val eventMonitor = EventMonitor(profilers)
 
-  private val allocationSamplingRateUpdatable = object : Updatable {
-    override fun update(elapsedNs: Long) {
-      if (isLiveAllocationTrackingReady) {
-        getLiveAllocationSamplingModeFromData()?.let { liveAllocationSamplingMode = it }
+  private val allocationSamplingRateUpdatable =
+    object : Updatable {
+      override fun update(elapsedNs: Long) {
+        if (isLiveAllocationTrackingReady) {
+          getLiveAllocationSamplingModeFromData()?.let { liveAllocationSamplingMode = it }
+        }
       }
     }
-  }
 
-  private val captureElapsedTimeUpdatable = object : Updatable {
-    override fun update(elapsedNs: Long) {
-      if (isTrackingAllocations) {
-        captureSelection.aspect.changed(CaptureSelectionAspect.CURRENT_CAPTURE_ELAPSED_TIME)
+  private val captureElapsedTimeUpdatable =
+    object : Updatable {
+      override fun update(elapsedNs: Long) {
+        if (isTrackingAllocations) {
+          captureSelection.aspect.changed(CaptureSelectionAspect.CURRENT_CAPTURE_ELAPSED_TIME)
+        }
       }
     }
-  }
 
-  val rangeSelectionModel = RangeSelectionModel(timeline.selectionRange, timeline.viewRange).apply {
-    addListener(object : RangeSelectionListener {
-      override fun selectionCreated() {
-        selectCaptureFromSelectionRange()
-        profilers.ideServices.featureTracker.trackSelectRange()
-        profilers.ideServices.temporaryProfilerPreferences.setBoolean(HAS_USED_MEMORY_CAPTURE, true)
-      }
+  val rangeSelectionModel =
+    RangeSelectionModel(timeline.selectionRange, timeline.viewRange).apply {
+      addListener(
+        object : RangeSelectionListener {
+          override fun selectionCreated() {
+            selectCaptureFromSelectionRange()
+            profilers.ideServices.featureTracker.trackSelectRange()
+            profilers.ideServices.temporaryProfilerPreferences.setBoolean(HAS_USED_MEMORY_CAPTURE, true)
+          }
 
-      override fun selectionCleared() = selectCaptureFromSelectionRange()
-    })
-  }
+          override fun selectionCleared() = selectCaptureFromSelectionRange()
+        }
+      )
+    }
 
   var liveAllocationSamplingMode = LiveAllocationSamplingMode.NONE
     @VisibleForTesting
     set(mode) {
       if (mode != field) {
-        field = mode;
-        aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE);
+        field = mode
+        aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE)
       }
     }
 
@@ -117,11 +125,19 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
 
   private val updatables
     get() =
-      listOf(detailedMemoryUsage, memoryAxis, objectsAxis, gcStatsModel, allocationSamplingRateDurations,
-             allocationSamplingRateUpdatable, captureElapsedTimeUpdatable) +
-      captureSeries
+      listOf(
+        detailedMemoryUsage,
+        memoryAxis,
+        objectsAxis,
+        gcStatsModel,
+        allocationSamplingRateDurations,
+        allocationSamplingRateUpdatable,
+        captureElapsedTimeUpdatable,
+      ) + captureSeries
 
-  val isLiveAllocationTrackingReady get() = MemoryProfiler.isUsingLiveAllocation(studioProfilers, sessionData)
+  val isLiveAllocationTrackingReady
+    get() = MemoryProfiler.isUsingLiveAllocation(studioProfilers, sessionData)
+
   val isLiveAllocationTrackingSupported
     get() = MemoryDataProvider.getIsLiveAllocationTrackingSupported(studioProfilers)
 
@@ -130,8 +146,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
       setAttachedSeries(detailedMemoryUsage.objectsSeries, Interpolatable.SegmentInterpolator)
       setAttachPredicate { data ->
         // Only attach to the object series if live allocation is disabled or the gc event happens within full-tracking mode.
-        !isLiveAllocationTrackingReady ||
-        MemoryProfiler.hasOnlyFullAllocationTrackingWithinRegion(profilers, sessionData, data.x, data.x)
+        !isLiveAllocationTrackingReady || MemoryProfiler.hasOnlyFullAllocationTrackingWithinRegion(profilers, sessionData, data.x, data.x)
       }
     }
     allocationSamplingRateDurations.apply {
@@ -139,12 +154,12 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
       setAttachPredicate { data ->
         // The DurationData should attach to the Objects series at both the start and end of the FULL tracking mode region.
         (data.value.previousRate != null && data.value.previousRate!!.samplingNumInterval == FULL.value) ||
-        data.value.currentRate.samplingNumInterval == FULL.value
+          data.value.currentRate.samplingNumInterval == FULL.value
       }
       setRenderSeriesPredicate { data, series ->
         // Only show the object series if live allocation is not enabled or if the current sampling rate is FULL.
         series.name != detailedMemoryUsage.objectsSeries.name ||
-        (!isLiveAllocationTrackingReady || data.value.currentRate.samplingNumInterval == FULL.value)
+          (!isLiveAllocationTrackingReady || data.value.currentRate.samplingNumInterval == FULL.value)
       }
     }
 
@@ -156,12 +171,11 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     eventMonitor.enter()
     updatables.forEach(studioProfilers.updater::register)
     studioProfilers.ideServices.featureTracker.trackEnterStage(stageType)
-    studioProfilers.sessionsManager.addDependency(this)
-      .onChange(SessionAspect.SESSIONS) {
-        if (studioProfilers.stage == this) {
-          queryAndSelectCaptureObject(studioProfilers.ideServices.mainExecutor)
-        }
+    studioProfilers.sessionsManager.addDependency(this).onChange(SessionAspect.SESSIONS) {
+      if (studioProfilers.stage == this) {
+        queryAndSelectCaptureObject(studioProfilers.ideServices.mainExecutor)
       }
+    }
   }
 
   override fun onExit() {
@@ -172,21 +186,22 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     studioProfilers.sessionsManager.removeDependencies(this)
   }
 
-  /**
-   * Trigger a change to the sampling mode that should be used for live allocation tracking.
-   */
+  /** Trigger a change to the sampling mode that should be used for live allocation tracking. */
   fun requestLiveAllocationSamplingModeUpdate(mode: LiveAllocationSamplingMode) {
     try {
       val samplingRate = MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(mode.value).build()
       studioProfilers.client.transportClient.execute(
-        Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder()
-                                                           .setStreamId(sessionData.streamId)
-                                                           .setPid(sessionData.pid)
-                                                           .setType(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING)
-                                                           .setMemoryAllocSampling(samplingRate))
-          .build())
-    }
-    catch (e: StatusRuntimeException) {
+        Transport.ExecuteRequest.newBuilder()
+          .setCommand(
+            Commands.Command.newBuilder()
+              .setStreamId(sessionData.streamId)
+              .setPid(sessionData.pid)
+              .setType(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING)
+              .setMemoryAllocSampling(samplingRate)
+          )
+          .build()
+      )
+    } catch (e: StatusRuntimeException) {
       logger.debug(e)
     }
   }
@@ -196,12 +211,11 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   }
 
   /**
-   * Toggle a behavior where if there is currently no CaptureObject selected, the model will attempt to select the next CaptureObject
-   * that has been created.
+   * Toggle a behavior where if there is currently no CaptureObject selected, the model will attempt to select the next CaptureObject that
+   * has been created.
    *
-   * @param loadJoiner if specified, the joiner executor will be passed down to [CaptureObjectLoader.loadCapture] so that
-   * the load operation of the CaptureObject will be joined and the CURRENT_LOAD_CAPTURE aspect would
-   * be fired via the desired executor.
+   * @param loadJoiner if specified, the joiner executor will be passed down to [CaptureObjectLoader.loadCapture] so that the load operation
+   *   of the CaptureObject will be joined and the CURRENT_LOAD_CAPTURE aspect would be fired via the desired executor.
    */
   fun enableSelectLatestCapture(enable: Boolean, loadJoiner: Executor?) {
     if (enable)
@@ -209,13 +223,12 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
         queryAndSelectCaptureObject(loadJoiner ?: MoreExecutors.directExecutor())
       }
     // Removing the aspect observers on Ranges.
-    else
-      timeline.dataRange.removeDependencies(this)
+    else timeline.dataRange.removeDependencies(this)
   }
 
   /**
-   * Returns the capture object whose range overlaps with a given range. If multiple captures overlap with it,
-   * the first object found is returned.
+   * Returns the capture object whose range overlaps with a given range. If multiple captures overlap with it, the first object found is
+   * returned.
    */
   open fun getIntersectingCaptureDuration(range: Range): CaptureDurationData<out CaptureObject?>? {
     var durationData: CaptureDurationData<out CaptureObject?>? = null
@@ -237,10 +250,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     return durationData
   }
 
-  /**
-   * Select the capture corresponding to the selected range in the timeline.
-   * This is called when the timeline selection changes.
-   */
+  /** Select the capture corresponding to the selected range in the timeline. This is called when the timeline selection changes. */
   protected abstract fun selectCaptureFromSelectionRange()
 
   /**
@@ -251,32 +261,26 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     val dataRange = timeline.dataRange
     if (pendingCaptureStartTime != INVALID_START_TIME) {
       val pendingCaptureStartTimeUs = pendingCaptureStartTime.nanosToMicros()
-      val captureToSelect = captureSeries
-        .flatMap { it.series.getSeriesForRange(dataRange) }
-        .findLast { it.x == pendingCaptureStartTimeUs }
-      if (captureToSelect != null &&
-          (captureToSelect.value.durationUs != Long.MAX_VALUE || captureToSelect.value.selectableWhenMaxDuration)) {
+      val captureToSelect = captureSeries.flatMap { it.series.getSeriesForRange(dataRange) }.findLast { it.x == pendingCaptureStartTimeUs }
+      if (
+        captureToSelect != null && (captureToSelect.value.durationUs != Long.MAX_VALUE || captureToSelect.value.selectableWhenMaxDuration)
+      ) {
         onCaptureToSelect(captureToSelect, executor)
       }
     }
   }
 
-  /**
-   * Perform selecting the given capture.
-   * This is called when selecting the latest capture is enabled.
-   */
+  /** Perform selecting the given capture. This is called when selecting the latest capture is enabled. */
   protected abstract fun onCaptureToSelect(data: SeriesData<CaptureDurationData<out CaptureObject>>, loadJoiner: Executor)
 
   protected fun <T : DurationData> makeModel(series: DataSeries<T>) = DurationDataModel(RangedSeries(timeline.viewRange, series))
 
-  protected inline fun <T : DurationData> makeModel(make: DataSeriesConstructor<T>) =
-    makeModel(applyDataSeriesConstructor(make))
+  protected inline fun <T : DurationData> makeModel(make: DataSeriesConstructor<T>) = makeModel(applyDataSeriesConstructor(make))
 
   protected inline fun <T : DurationData> applyDataSeriesConstructor(f: DataSeriesConstructor<T>) =
     f(studioProfilers.client, sessionData, studioProfilers.ideServices.featureTracker, this)
 
   protected fun getDeviceForSelectedSession() = MemoryDataProvider.getDeviceForSelectedSession(studioProfilers)
-
 
   // This method is factored out just for testing the allocation sampling mode after the stage has exited,
   // because `exit()` unregisters all updatables, leaving the field `liveAllocationSamplingMode` stale.
@@ -296,16 +300,15 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   }
 
   enum class LiveAllocationSamplingMode(val value: Int, val displayName: String) {
-    NONE(0, "None"),        // 0 is a special value for disabling tracking.
+    NONE(0, "None"), // 0 is a special value for disabling tracking.
     SAMPLED(10, "Sampled"), // Sample every 10 allocations
-    FULL(1, "Full");        // Sample every allocation
+    FULL(1, "Full"); // Sample every allocation
 
     companion object {
       private val SamplingRateMap = values().associateBy { it.value }
       private val NameMap = values().associateBy { it.displayName }
 
-      @JvmStatic
-      fun getModeFromFrequency(frequency: Int): LiveAllocationSamplingMode = SamplingRateMap[frequency] ?: SAMPLED
+      @JvmStatic fun getModeFromFrequency(frequency: Int): LiveAllocationSamplingMode = SamplingRateMap[frequency] ?: SAMPLED
 
       @JvmStatic
       fun getModeFromDisplayName(displayName: String): LiveAllocationSamplingMode =

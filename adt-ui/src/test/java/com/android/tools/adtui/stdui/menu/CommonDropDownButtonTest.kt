@@ -48,9 +48,7 @@ class CommonDropDownButtonTest {
     // Listeners should be hooked up after creating the dropdown.
     val dropdown = CommonDropDownButton(parent)
     for (action in actions) {
-      assertThat<PropertyChangeListener>(action.propertyChangeListeners)
-        .asList()
-        .containsExactly(dropdown)
+      assertThat<PropertyChangeListener>(action.propertyChangeListeners).asList().containsExactly(dropdown)
     }
 
     // Modifying the first child should clear listeners on grandChild1
@@ -62,9 +60,7 @@ class CommonDropDownButtonTest {
     child2.addChildrenActions(grandChild2)
     actions = Arrays.asList(parent, child1, child2, grandChild2)
     for (action in actions) {
-      assertThat<PropertyChangeListener>(action.propertyChangeListeners)
-        .asList()
-        .containsExactly(dropdown)
+      assertThat<PropertyChangeListener>(action.propertyChangeListeners).asList().containsExactly(dropdown)
     }
   }
 

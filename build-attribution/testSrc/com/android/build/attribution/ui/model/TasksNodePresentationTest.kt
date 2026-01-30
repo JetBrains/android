@@ -23,7 +23,6 @@ import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.N
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-
 class TasksNodePresentationTest {
 
   val timeDistributionBuilder = TimeDistributionBuilder()
@@ -36,12 +35,13 @@ class TasksNodePresentationTest {
     timeDistributionBuilder.registerTimeEntry(task.executionTime.supplement().timeMs)
     timeDistributionBuilder.seal()
 
-    val expectedPresentation = BuildAnalyzerTreeNodePresentation(
-      mainText = ":app:resources",
-      suffix = "",
-      nodeIconState = NodeIconState.EMPTY_PLACEHOLDER,
-      rightAlignedSuffix = "1.2s 12.0%"
-    )
+    val expectedPresentation =
+      BuildAnalyzerTreeNodePresentation(
+        mainText = ":app:resources",
+        suffix = "",
+        nodeIconState = NodeIconState.EMPTY_PLACEHOLDER,
+        rightAlignedSuffix = "1.2s 12.0%",
+      )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
 
@@ -54,12 +54,13 @@ class TasksNodePresentationTest {
     timeDistributionBuilder.registerTimeEntry(task.executionTime.supplement().timeMs)
     timeDistributionBuilder.seal()
 
-    val expectedPresentation = BuildAnalyzerTreeNodePresentation(
-      mainText = ":app:resources",
-      suffix = "",
-      nodeIconState = NodeIconState.WARNING_ICON,
-      rightAlignedSuffix = "1.2s 12.0%"
-    )
+    val expectedPresentation =
+      BuildAnalyzerTreeNodePresentation(
+        mainText = ":app:resources",
+        suffix = "",
+        nodeIconState = NodeIconState.WARNING_ICON,
+        rightAlignedSuffix = "1.2s 12.0%",
+      )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
 
@@ -74,12 +75,13 @@ class TasksNodePresentationTest {
     timeDistributionBuilder.registerTimeEntry(plugin.criticalPathDuration.supplement().timeMs)
     timeDistributionBuilder.seal()
 
-    val expectedPresentation = BuildAnalyzerTreeNodePresentation(
-      mainText = "resources.plugin",
-      suffix = "",
-      nodeIconState = NodeIconState.NO_ICON,
-      rightAlignedSuffix = "0.9s 85.5%"
-    )
+    val expectedPresentation =
+      BuildAnalyzerTreeNodePresentation(
+        mainText = "resources.plugin",
+        suffix = "",
+        nodeIconState = NodeIconState.NO_ICON,
+        rightAlignedSuffix = "0.9s 85.5%",
+      )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
 
@@ -95,12 +97,13 @@ class TasksNodePresentationTest {
     timeDistributionBuilder.registerTimeEntry(plugin.criticalPathDuration.supplement().timeMs)
     timeDistributionBuilder.seal()
 
-    val expectedPresentation = BuildAnalyzerTreeNodePresentation(
-      mainText = "resources.plugin",
-      suffix = "1 warning",
-      nodeIconState = NodeIconState.NO_ICON,
-      rightAlignedSuffix = "0.8s  8.4%"
-    )
+    val expectedPresentation =
+      BuildAnalyzerTreeNodePresentation(
+        mainText = "resources.plugin",
+        suffix = "1 warning",
+        nodeIconState = NodeIconState.NO_ICON,
+        rightAlignedSuffix = "0.8s  8.4%",
+      )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
 
@@ -112,12 +115,13 @@ class TasksNodePresentationTest {
     timeDistributionBuilder.registerTimeEntry(task.executionTime.supplement().timeMs)
     timeDistributionBuilder.seal()
 
-    val expectedPresentation = BuildAnalyzerTreeNodePresentation(
-      mainText = ":app:resources",
-      suffix = "",
-      nodeIconState = NodeIconState.EMPTY_PLACEHOLDER,
-      rightAlignedSuffix = "1.2s 12.0%"
-    )
+    val expectedPresentation =
+      BuildAnalyzerTreeNodePresentation(
+        mainText = ":app:resources",
+        suffix = "",
+        nodeIconState = NodeIconState.EMPTY_PLACEHOLDER,
+        rightAlignedSuffix = "1.2s 12.0%",
+      )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
 
@@ -130,12 +134,13 @@ class TasksNodePresentationTest {
     timeDistributionBuilder.registerTimeEntry(task.executionTime.supplement().timeMs)
     timeDistributionBuilder.seal()
 
-    val expectedPresentation = BuildAnalyzerTreeNodePresentation(
-      mainText = ":app:resources",
-      suffix = "",
-      nodeIconState = NodeIconState.WARNING_ICON,
-      rightAlignedSuffix = "1.2s 12.0%"
-    )
+    val expectedPresentation =
+      BuildAnalyzerTreeNodePresentation(
+        mainText = ":app:resources",
+        suffix = "",
+        nodeIconState = NodeIconState.WARNING_ICON,
+        rightAlignedSuffix = "1.2s 12.0%",
+      )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
 }

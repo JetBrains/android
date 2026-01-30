@@ -46,19 +46,14 @@ internal class NotificationManagerTest {
           AndroidProjectBuilder(
             projectType = { IdeAndroidProjectType.PROJECT_TYPE_APP },
             namespace = { "com.example.app" },
-            androidModuleDependencyList = {
-              listOf(AndroidModuleDependency(moduleGradlePath = ":lib", variant = "debug"))
-            },
+            androidModuleDependencyList = { listOf(AndroidModuleDependency(moduleGradlePath = ":lib", variant = "debug")) },
           ),
       ),
       AndroidModuleModelBuilder(
         gradlePath = ":lib",
         selectedBuildVariant = "debug",
         projectBuilder =
-          AndroidProjectBuilder(
-            namespace = { "com.example.lib" },
-            projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
-          ),
+          AndroidProjectBuilder(namespace = { "com.example.lib" }, projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY }),
       ),
     )
 
@@ -86,13 +81,7 @@ internal class NotificationManagerTest {
         .collect {}
     }
 
-    assertEquals(
-      1,
-      ModuleClassLoaderOverlays.getInstance(app).modificationTracker.modificationCount,
-    )
-    assertEquals(
-      1,
-      ModuleClassLoaderOverlays.getInstance(lib).modificationTracker.modificationCount,
-    )
+    assertEquals(1, ModuleClassLoaderOverlays.getInstance(app).modificationTracker.modificationCount)
+    assertEquals(1, ModuleClassLoaderOverlays.getInstance(lib).modificationTracker.modificationCount)
   }
 }

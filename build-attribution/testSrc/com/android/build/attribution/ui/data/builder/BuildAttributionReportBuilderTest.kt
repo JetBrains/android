@@ -32,16 +32,19 @@ class BuildAttributionReportBuilderTest : AbstractBuildAttributionReportBuilderT
 
   @Test
   fun testBuildSummary() {
-    val analyzerResults = object : MockResultsProvider() {
-      override fun getBuildFinishedTimestamp(): Long = 12345
-      override fun getTotalBuildTimeMs(): Long = 1500
-      override fun getTasksDeterminingBuildDuration(): List<TaskData> {
-        return listOf(
-          TaskData("taskA", ":app", pluginA, 0, 123, TaskData.TaskExecutionMode.FULL, emptyList()),
-          TaskData("taskB", ":app", pluginA, 0, 456, TaskData.TaskExecutionMode.FULL, emptyList())
-        )
+    val analyzerResults =
+      object : MockResultsProvider() {
+        override fun getBuildFinishedTimestamp(): Long = 12345
+
+        override fun getTotalBuildTimeMs(): Long = 1500
+
+        override fun getTasksDeterminingBuildDuration(): List<TaskData> {
+          return listOf(
+            TaskData("taskA", ":app", pluginA, 0, 123, TaskData.TaskExecutionMode.FULL, emptyList()),
+            TaskData("taskB", ":app", pluginA, 0, 456, TaskData.TaskExecutionMode.FULL, emptyList()),
+          )
+        }
       }
-    }
 
     val report = BuildAttributionReportBuilder(analyzerResults).build()
 
@@ -49,5 +52,4 @@ class BuildAttributionReportBuilderTest : AbstractBuildAttributionReportBuilderT
     assertThat(report.buildSummary.totalBuildDuration.timeMs).isEqualTo(1500)
     assertThat(report.buildSummary.criticalPathDuration).isEqualTo(TimeWithPercentage(123 + 456, 1500))
   }
-
 }

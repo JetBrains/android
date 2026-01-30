@@ -30,63 +30,61 @@ import java.awt.BorderLayout
 import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 
-class DownloadsInfoPageView(
-  val pageModel: DownloadsInfoPageModel,
-  val actionHandlers: ViewActionHandlers,
-  val disposable: Disposable,
-  ) : BuildAnalyzerDataPageView {
+class DownloadsInfoPageView(val pageModel: DownloadsInfoPageModel, val actionHandlers: ViewActionHandlers, val disposable: Disposable) :
+  BuildAnalyzerDataPageView {
 
-  val resultsTable = TableView(pageModel.repositoriesTableModel).apply {
-    setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION)
-    setShowGrid(false)
-    tableHeader.reorderingAllowed = false
-    setEmptyState(pageModel.repositoriesTableEmptyText)
-    selectionModel.addListSelectionListener {
-      if (it.valueIsAdjusting) return@addListSelectionListener
-      pageModel.selectedRepositoriesUpdated(selectedObjects)
+  val resultsTable =
+    TableView(pageModel.repositoriesTableModel).apply {
+      setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION)
+      setShowGrid(false)
+      tableHeader.reorderingAllowed = false
+      setEmptyState(pageModel.repositoriesTableEmptyText)
+      selectionModel.addListSelectionListener {
+        if (it.valueIsAdjusting) return@addListSelectionListener
+        pageModel.selectedRepositoriesUpdated(selectedObjects)
+      }
     }
-  }
 
-  val requestsList = TableView(pageModel.requestsListModel).apply {
-    setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
-    setShowGrid(false)
-    tableHeader.reorderingAllowed = false
-    setEmptyState("Select repositories on the left to read request details")
-  }
+  val requestsList =
+    TableView(pageModel.requestsListModel).apply {
+      setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+      setShowGrid(false)
+      tableHeader.reorderingAllowed = false
+      setEmptyState("Select repositories on the left to read request details")
+    }
 
   init {
-    Disposer.register(disposable) {
-      pageModel.recreateTableModels()
-    }
+    Disposer.register(disposable) { pageModel.recreateTableModels() }
   }
 
-  override val component: JPanel = JPanel().apply {
-    name = "downloads-info-view"
-    border = JBUI.Borders.empty(20)
-    layout = BorderLayout(0, JBUI.scale(10))
+  override val component: JPanel =
+    JPanel().apply {
+      name = "downloads-info-view"
+      border = JBUI.Borders.empty(20)
+      layout = BorderLayout(0, JBUI.scale(10))
 
-    val linksHandler = HtmlLinksHandler(actionHandlers)
-    val learnMoreLink = linksHandler.externalLink("Learn more", BuildAnalyzerBrowserLinks.DOWNLOADS)
+      val linksHandler = HtmlLinksHandler(actionHandlers)
+      val learnMoreLink = linksHandler.externalLink("Learn more", BuildAnalyzerBrowserLinks.DOWNLOADS)
 
-    val pageHeaderText = """
+      val pageHeaderText =
+        """
       Incremental builds should not consistently download artifacts. This could indicate use of<BR/>
       dynamic versions of dependencies or other issues in your configuration. $learnMoreLink.<BR/>
       <BR/>
       Time required for Grade to download artifacts from repositories<BR/>
-    """.trimIndent()
-    // Need to wrap in another panel here otherwise some BorderLayout layout magic makes text label be of 0px height.
-    val header = JPanel(BorderLayout()).apply {
-      add(htmlTextLabelWithFixedLines(pageHeaderText, linksHandler), BorderLayout.CENTER)
-    }
-    val splitter = OnePixelSplitter(0.4f)
-    splitter.firstComponent = createScrollPane(resultsTable)
-    if (pageModel.repositoriesTableModel.rowCount > 0) {
-      splitter.secondComponent = createScrollPane(requestsList)
-    }
+    """
+          .trimIndent()
+      // Need to wrap in another panel here otherwise some BorderLayout layout magic makes text label be of 0px height.
+      val header = JPanel(BorderLayout()).apply { add(htmlTextLabelWithFixedLines(pageHeaderText, linksHandler), BorderLayout.CENTER) }
+      val splitter = OnePixelSplitter(0.4f)
+      splitter.firstComponent = createScrollPane(resultsTable)
+      if (pageModel.repositoriesTableModel.rowCount > 0) {
+        splitter.secondComponent = createScrollPane(requestsList)
+      }
 
-    add(header, BorderLayout.NORTH)
-    add(splitter, BorderLayout.CENTER)
-  }
+      add(header, BorderLayout.NORTH)
+      add(splitter, BorderLayout.CENTER)
+    }
 
   override val additionalControls: JPanel = JPanel().apply { name = "downloads-info-view-additional-controls" }
 }

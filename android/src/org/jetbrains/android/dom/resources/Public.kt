@@ -56,10 +56,7 @@ class PublicResourceNameConverter : StringConverter() {
     val xmlAttribute: XmlAttribute = tag.getAttribute("type") ?: return null
     val attributeValue = xmlAttribute.value ?: return null
     val resourceType = ResourceType.fromXmlValue(attributeValue) ?: return null
-    return ResourceReferencePsiElement(
-      element,
-      ResourceReference(resourceNamespace, resourceType, resourceName),
-    )
+    return ResourceReferencePsiElement(element, ResourceReference(resourceNamespace, resourceType, resourceName))
   }
 
   override fun getVariants(context: ConvertContext): Collection<String> {
@@ -70,10 +67,7 @@ class PublicResourceNameConverter : StringConverter() {
     val moduleResources = StudioResourceRepositoryManager.getInstance(facet).moduleResources
     return if (elementType == null) {
       // No type attribute set, show all resources.
-      moduleResources.allResources
-        .stream()
-        .map { obj: ResourceItem -> obj.name }
-        .collect(Collectors.toList())
+      moduleResources.allResources.stream().map { obj: ResourceItem -> obj.name }.collect(Collectors.toList())
     } else {
       // User has already provided the type attribute, so we can filter by ResourceType.
       moduleResources.getResourceNames(ResourceNamespace.RES_AUTO, elementType)

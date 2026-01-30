@@ -33,8 +33,7 @@ class TaskTrackerTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer)
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("TaskTrackerTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskTrackerTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myServices: FakeIdeProfilerServices

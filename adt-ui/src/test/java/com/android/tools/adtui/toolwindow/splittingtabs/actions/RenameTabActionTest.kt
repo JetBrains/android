@@ -38,15 +38,10 @@ class RenameTabActionTest {
 
   @get:Rule val rule = RuleChain(projectRule, EdtRule())
 
-  private val toolWindow by lazy {
-    ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)
-  }
+  private val toolWindow by lazy { ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project) }
   private val contentFactory by lazy { toolWindow.contentManager.factory }
   private val event by lazy {
-    TestActionEvent.createTestEvent(
-      action,
-      SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build(),
-    )
+    TestActionEvent.createTestEvent(action, SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build())
   }
 
   private val action = RenameTabAction()
@@ -81,10 +76,7 @@ class RenameTabActionTest {
             it,
             null,
             object : ChildComponentFactory {
-              override fun createChildComponent(
-                state: String?,
-                popupActionGroup: DefaultActionGroup,
-              ): JComponent = JPanel()
+              override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = JPanel()
             },
           )
       }

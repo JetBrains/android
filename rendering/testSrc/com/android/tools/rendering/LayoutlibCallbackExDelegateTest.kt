@@ -56,11 +56,7 @@ private class LayoutlibCallbackExThrowingImpl : LayoutlibCallbackEx() {
     throw IllegalStateException("Delegate was called")
   }
 
-  override fun loadView(
-    name: String,
-    constructorSignature: Array<out Class<*>?>,
-    constructorArgs: Array<out Any?>?,
-  ): Any? {
+  override fun loadView(name: String, constructorSignature: Array<out Class<*>?>, constructorArgs: Array<out Any?>?): Any? {
     throw IllegalStateException("Delegate was called")
   }
 
@@ -76,10 +72,7 @@ private class LayoutlibCallbackExThrowingImpl : LayoutlibCallbackEx() {
     throw IllegalStateException("Delegate was called")
   }
 
-  override fun getAdapterBinding(
-    viewObject: Any?,
-    attributes: Map<String?, String?>?,
-  ): AdapterBinding? {
+  override fun getAdapterBinding(viewObject: Any?, attributes: Map<String?, String?>?): AdapterBinding? {
     throw IllegalStateException("Delegate was called")
   }
 
@@ -127,20 +120,12 @@ class LayoutlibCallbackExDelegateTest {
 
     assertThrows(IllegalStateException::class.java) { delegate.isUsed() }
     assertThrows(IllegalStateException::class.java) { delegate.loadAndParseRClass() }
-    assertThrows(IllegalStateException::class.java) {
-      delegate.setLogger(IRenderLogger.NULL_LOGGER)
-    }
+    assertThrows(IllegalStateException::class.java) { delegate.setLogger(IRenderLogger.NULL_LOGGER) }
     assertThrows(IllegalStateException::class.java) { delegate.getLayoutEmbeddedParser() }
     assertThrows(IllegalStateException::class.java) { delegate.reset() }
-    assertThrows(IllegalStateException::class.java) {
-      delegate.setAaptDeclaredResources(mutableMapOf())
-    }
-    assertThrows(IllegalStateException::class.java) {
-      delegate.loadView("test", arrayOf(), arrayOf())
-    }
+    assertThrows(IllegalStateException::class.java) { delegate.setAaptDeclaredResources(mutableMapOf()) }
+    assertThrows(IllegalStateException::class.java) { delegate.loadView("test", arrayOf(), arrayOf()) }
     assertThrows(IllegalStateException::class.java) { delegate.resolveResourceId(0) }
-    assertThrows(IllegalStateException::class.java) {
-      delegate.getOrGenerateResourceId(resourceReference)
-    }
+    assertThrows(IllegalStateException::class.java) { delegate.getOrGenerateResourceId(resourceReference) }
   }
 }

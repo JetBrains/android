@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("ApkTestUtil")
+
 package com.android.tools.res.apk
 
 const val TEST_DATA_DIR = "tools/adt/idea/render-resources/testData/apk_resources/"

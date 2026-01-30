@@ -21,17 +21,12 @@ import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter
 
-private const val VIRTUAL_METHOD_DESCRIPTOR =
-  "(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)V"
-private const val STATIC_METHOD_DESCRIPTOR =
-  "(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)V"
+private const val VIRTUAL_METHOD_DESCRIPTOR = "(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)V"
+private const val STATIC_METHOD_DESCRIPTOR = "(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)V"
 
 private val OBJECT_TYPE = Type.getType(java.lang.Object::class.java)
 
-/**
- * Utility method to get the equivalent boxed for this type. If the method does not need boxing, the
- * same type is returned.
- */
+/** Utility method to get the equivalent boxed for this type. If the method does not need boxing, the same type is returned. */
 private fun Type.getBoxedType(): Type {
   return when (this) {
     Type.BOOLEAN_TYPE -> Type.getType(java.lang.Boolean::class.java)
@@ -58,8 +53,8 @@ private class MethodInterceptorVisitor(
   private val shouldIntercept: (String, String) -> Boolean,
 ) : GeneratorAdapter(Opcodes.ASM9, delegate, access, name, descriptor) {
   /**
-   * Creates a local variable with an `Object[]` that will store all the parameters to the call. The
-   * arguments are expected to be currently sitting at the top of the stack as follows:
+   * Creates a local variable with an `Object[]` that will store all the parameters to the call. The arguments are expected to be currently
+   * sitting at the top of the stack as follows:
    * ```
    * ---- Stack Top -----
    *   ARG2
@@ -68,8 +63,8 @@ private class MethodInterceptorVisitor(
    * ---- Stack Bottom ----
    * ```
    *
-   * This method will get the all the arguments and leave them as a reference to an `Object[]` array
-   * at the top of the stack. `other elements` will not be affected.
+   * This method will get the all the arguments and leave them as a reference to an `Object[]` array at the top of the stack. `other
+   * elements` will not be affected.
    *
    * ```
    * ---- Stack Top -----
@@ -90,8 +85,7 @@ private class MethodInterceptorVisitor(
 
     arguments.reversed().forEachIndexed { index, type ->
       // stack: [ar]
-      if (type.size < 2) dupX1()
-      else dupX2() // If the value size is 2, use dupX2 to jump over the two parts of the value.
+      if (type.size < 2) dupX1() else dupX2() // If the value size is 2, use dupX2 to jump over the two parts of the value.
       // stack: [ar, value, ar]
       if (type.size < 2) dupX1() else dupX2()
       // stack: [ar, ar, value, ar]
@@ -110,9 +104,8 @@ private class MethodInterceptorVisitor(
   }
 
   /**
-   * This method does the reverse operation to [buildObjectsArrayFromOperandStackForCall] by reading
-   * a reference to an `Object[]` array from the top of the stack and leaving all the arguments in
-   * the correct order.
+   * This method does the reverse operation to [buildObjectsArrayFromOperandStackForCall] by reading a reference to an `Object[]` array from
+   * the top of the stack and leaving all the arguments in the correct order.
    */
   private fun GeneratorAdapter.pushObjectsFromArrayIntoOperandStack(arguments: Array<Type>) {
     // stack: [ar]
@@ -190,29 +183,20 @@ private class MethodInterceptorVisitor(
       else -> {}
     }
 
-  override fun visitMethodInsn(
-    opcode: Int,
-    owner: String,
-    name: String,
-    descriptor: String,
-    isInterface: Boolean,
-  ) {
-    if (shouldIntercept(owner, name))
-      interceptMethodCall(opcode, owner, name, descriptor, isInterface)
+  override fun visitMethodInsn(opcode: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) {
+    if (shouldIntercept(owner, name)) interceptMethodCall(opcode, owner, name, descriptor, isInterface)
     if (mv != null) mv.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
   }
 }
 
 /**
- * [ClassVisitor] that transform the given classes by replacing certain method call with new calls
- * that will invoke a trampoline method that allows to inspect the call parameters.
+ * [ClassVisitor] that transform the given classes by replacing certain method call with new calls that will invoke a trampoline method that
+ * allows to inspect the call parameters.
  *
- * [shouldInstrument] looks on whether a certain class should be instrumented. If a class is not
- * instrumented, the method calls will not be inspected for that class. [shouldIntercept] will
- * determine if a specific call should be instrumented. For an instrumented class, [shouldIntercept]
- * will be called for every call with the first parameter being the class name of the class being
- * invoked and the second the method being called. If [shouldIntercept] returns false, the call will
- * not be instrumented.
+ * [shouldInstrument] looks on whether a certain class should be instrumented. If a class is not instrumented, the method calls will not be
+ * inspected for that class. [shouldIntercept] will determine if a specific call should be instrumented. For an instrumented class,
+ * [shouldIntercept] will be called for every call with the first parameter being the class name of the class being invoked and the second
+ * the method being called. If [shouldIntercept] returns false, the call will not be instrumented.
  *
  * An example on how this class works would be the following:
  *
@@ -226,12 +210,10 @@ private class MethodInterceptorVisitor(
  * }
  * ```
  *
- * If this [MethodInterceptTransform] is applied, [shouldInstrument] will be called with the
- * parameters ("TestClass", "testMethod"). If [shouldInstrument] returns true, then
- * [shouldIntercept] will be called with the parameters ("java/io/File","delete").
+ * If this [MethodInterceptTransform] is applied, [shouldInstrument] will be called with the parameters ("TestClass", "testMethod"). If
+ * [shouldInstrument] returns true, then [shouldIntercept] will be called with the parameters ("java/io/File","delete").
  *
- * If [shouldInstrument] returns true, then the [virtualTrampolineMethodType] will be called for the
- * `delete` call.
+ * If [shouldInstrument] returns true, then the [virtualTrampolineMethodType] will be called for the `delete` call.
  */
 class MethodInterceptTransform(
   delegate: ClassVisitor,
@@ -257,14 +239,7 @@ class MethodInterceptTransform(
     }
   }
 
-  override fun visit(
-    version: Int,
-    access: Int,
-    name: String?,
-    signature: String?,
-    superName: String?,
-    interfaces: Array<out String>?,
-  ) {
+  override fun visit(version: Int, access: Int, name: String?, signature: String?, superName: String?, interfaces: Array<out String>?) {
     className = name ?: ""
     super.visit(version, access, name, signature, superName, interfaces)
   }

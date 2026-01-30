@@ -58,8 +58,8 @@ private const val WINDOW_MARGIN = 40
 /**
  * Editor for a flags property.
  *
- * Displays the value as text with a flag icon on the right. Clicking the flag will bring up a
- * balloon control where the individual flags can be changed.
+ * Displays the value as text with a flag icon on the right. Clicking the flag will bring up a balloon control where the individual flags
+ * can be changed.
  */
 class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel, context: EditorContext) :
   PropertyTextFieldWithLeftButton(editorModel, context) {
@@ -102,11 +102,8 @@ class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel, context: Edit
 }
 
 /** A panel to be displayed in a balloon control. */
-class FlagPropertyPanel(
-  private val editorModel: FlagPropertyEditorModel,
-  private val restoreFocusTo: JComponent,
-  windowHeight: Int,
-) : AdtSecondaryPanel(VerticalLayout(2)) {
+class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel, private val restoreFocusTo: JComponent, windowHeight: Int) :
+  AdtSecondaryPanel(VerticalLayout(2)) {
   var balloon: Balloon? = null
   val searchField = SearchTextField()
   private val innerPanel = AdtSecondaryPanel(VerticalLayout(2))
@@ -130,8 +127,7 @@ class FlagPropertyPanel(
     if (preferredSize.height + 2 * JBUI.scale(WINDOW_MARGIN) > windowHeight) {
       val otherControlsHeight = preferredSize.height - innerPanel.preferredSize.height
       val preferredHeight = windowHeight - 2 * JBUI.scale(WINDOW_MARGIN) - otherControlsHeight
-      scrollPane.preferredSize =
-        Dimension(-1, max(preferredHeight, JBUI.scale(MIN_SCROLL_PANE_HEIGHT)))
+      scrollPane.preferredSize = Dimension(-1, max(preferredHeight, JBUI.scale(MIN_SCROLL_PANE_HEIGHT)))
     }
   }
 
@@ -249,11 +245,9 @@ class FlagPropertyPanel(
 /**
  * A [DefaultFocusTraversalPolicy] which accept the [searchField] as a possible component.
  *
- * The [searchField] has a NullComponentPeer which disables focus transferal in the
- * [DefaultFocusTraversalPolicy].
+ * The [searchField] has a NullComponentPeer which disables focus transferal in the [DefaultFocusTraversalPolicy].
  */
-class CustomFocusTraversalPolicy(private val searchField: JComponent) :
-  DefaultFocusTraversalPolicy() {
+class CustomFocusTraversalPolicy(private val searchField: JComponent) : DefaultFocusTraversalPolicy() {
   override fun accept(component: Component): Boolean {
     return searchField == component || super.accept(component)
   }

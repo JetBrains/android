@@ -40,7 +40,7 @@ class BuildAttributionIssueReportingDialog(
   project: Project,
   private val analytics: BuildAttributionUiAnalytics,
   private val pluginName: String,
-  private val reportText: String
+  private val reportText: String,
 ) : DialogWrapper(project) {
 
   init {
@@ -50,24 +50,28 @@ class BuildAttributionIssueReportingDialog(
   }
 
   override fun createCenterPanel(): JComponent? {
-    val warningText = "<html><body>" +
-                      "If you are comfortable sharing the information below, copy the report and send it to the developer of plugin " +
-                      "${pluginName}, so they may troubleshoot the detected issues. " +
-                      "Also include a description of what you were doing at the time." +
-                      "</body></html>"
+    val warningText =
+      "<html><body>" +
+        "If you are comfortable sharing the information below, copy the report and send it to the developer of plugin " +
+        "${pluginName}, so they may troubleshoot the detected issues. " +
+        "Also include a description of what you were doing at the time." +
+        "</body></html>"
 
-    val messageArea = JEditorPane("text/plain", reportText).apply {
-      border = JBUI.Borders.empty(3)
-      isEditable = false
-      background = UIUtil.getComboBoxDisabledBackground()
-    }
+    val messageArea =
+      JEditorPane("text/plain", reportText).apply {
+        border = JBUI.Borders.empty(3)
+        isEditable = false
+        background = UIUtil.getComboBoxDisabledBackground()
+      }
     return JBUI.Panels.simplePanel(10, 10).apply {
       addToTop(JLabel(warningText, warningIcon(), SwingConstants.LEFT))
-      addToCenter(ScrollPaneFactory.createScrollPane(
-        messageArea,
-        ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
-      ))
+      addToCenter(
+        ScrollPaneFactory.createScrollPane(
+          messageArea,
+          ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+          ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER,
+        )
+      )
       preferredSize = JBDimension(700, 600)
     }
   }
@@ -95,4 +99,3 @@ class BuildAttributionIssueReportingDialog(
     }
   }
 }
-

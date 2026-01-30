@@ -27,14 +27,13 @@ interface Zoomable {
   val scale: Double
 
   /**
-   * A factor gives a chance to adjust [scale] value in different visual components. The visual size
-   * is [scale] * [screenScalingFactor]. This value must be positive.
+   * A factor gives a chance to adjust [scale] value in different visual components. The visual size is [scale] * [screenScalingFactor].
+   * This value must be positive.
    */
   val screenScalingFactor: Double
 
   /**
-   * Executes a zoom on the content of the component. See [ZoomType] for the different types of zoom
-   * available.
+   * Executes a zoom on the content of the component. See [ZoomType] for the different types of zoom available.
    *
    * @return True if the scaling was changed, false if this was a noop.
    */
@@ -46,23 +45,16 @@ interface Zoomable {
   /** @return true if it is possible to zoom out on the component, false otherwise. */
   fun canZoomOut(): Boolean
 
-  /**
-   * @return true if it is possible to apply zoom-to-fit action on the component, false otherwise.
-   */
+  /** @return true if it is possible to apply zoom-to-fit action on the component, false otherwise. */
   fun canZoomToFit(): Boolean
 
-  /**
-   * @return true if it is possible to apply zoom-to-actual action on the component, false
-   *   otherwise.
-   */
+  /** @return true if it is possible to apply zoom-to-actual action on the component, false otherwise. */
   fun canZoomToActual(): Boolean
 
   /**
-   * Executes a zoom on the content of the component. See [ZoomType] for the different types of zoom
-   * available.
+   * Executes a zoom on the content of the component. See [ZoomType] for the different types of zoom available.
    *
-   * If type is [ZoomType.IN], zoom toward the given view coordinates. If [x] or [y] are negative,
-   * zoom toward the center of the viewport.
+   * If type is [ZoomType.IN], zoom toward the given view coordinates. If [x] or [y] are negative, zoom toward the center of the viewport.
    *
    * @return True if the scaling was changed, false if this was a noop.
    */

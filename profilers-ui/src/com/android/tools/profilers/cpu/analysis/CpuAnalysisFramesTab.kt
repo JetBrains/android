@@ -25,51 +25,62 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
-class CpuAnalysisFramesTab(profilersView: StudioProfilersView,
-                           model: CpuAnalysisFramesTabModel
-) : CpuAnalysisTab<CpuAnalysisFramesTabModel>(profilersView, model) {
+class CpuAnalysisFramesTab(profilersView: StudioProfilersView, model: CpuAnalysisFramesTabModel) :
+  CpuAnalysisTab<CpuAnalysisFramesTabModel>(profilersView, model) {
   init {
     layout = BorderLayout()
     val tableContainer = JPanel(BorderLayout())
     fun initializeTable(model: PaginatedTableModel<FrameEventRow>) {
-      val table = PaginatedTableView(model, PAGE_SIZE_VALUES).apply {
-        table.apply {
-          showVerticalLines = true
-          showHorizontalLines = true
-          emptyText.text = "No frames in the selected range"
-          setColumnRenderers<FrameEventTableColumn> { when (it) {
-            FrameEventTableColumn.FRAME_NUMBER -> CustomBorderTableCellRenderer()
-            FrameEventTableColumn.TOTAL_TIME, FrameEventTableColumn.APP,
-            FrameEventTableColumn.GPU, FrameEventTableColumn.COMPOSITION -> DurationRenderer()
-          } }
+      val table =
+        PaginatedTableView(model, PAGE_SIZE_VALUES).apply {
+          table.apply {
+            showVerticalLines = true
+            showHorizontalLines = true
+            emptyText.text = "No frames in the selected range"
+            setColumnRenderers<FrameEventTableColumn> {
+              when (it) {
+                FrameEventTableColumn.FRAME_NUMBER -> CustomBorderTableCellRenderer()
+                FrameEventTableColumn.TOTAL_TIME,
+                FrameEventTableColumn.APP,
+                FrameEventTableColumn.GPU,
+                FrameEventTableColumn.COMPOSITION -> DurationRenderer()
+              }
+            }
 
-          changeRangeOnSelection(model, { profilersView.studioProfilers.stage.timeline.viewRange },
-                                 { it.startTimeUs.toDouble() }, { it.endTimeUs.toDouble() })
+            changeRangeOnSelection(
+              model,
+              { profilersView.studioProfilers.stage.timeline.viewRange },
+              { it.startTimeUs.toDouble() },
+              { it.endTimeUs.toDouble() },
+            )
+          }
         }
-      }
       tableContainer.removeAll()
       tableContainer.add(table.component)
     }
 
     if (model.tableModels.size > 1) {
       // Add a dropdown list when there are multiple layers.
-      val layerDropdownList = ComboBox(model.tableModels.toTypedArray()).apply {
-        addActionListener {
-          initializeTable(this.selectedItem as PaginatedTableModel<FrameEventRow>)
+      val layerDropdownList =
+        ComboBox(model.tableModels.toTypedArray()).apply {
+          addActionListener { initializeTable(this.selectedItem as PaginatedTableModel<FrameEventRow>) }
         }
-      }
-      add(JPanel(BorderLayout()).apply {
-        border = JBUI.Borders.emptyLeft(8)
-        add(JBLabel("Select layer: "), BorderLayout.WEST)
-        add(layerDropdownList, BorderLayout.CENTER)
-      }, BorderLayout.NORTH)
+      add(
+        JPanel(BorderLayout()).apply {
+          border = JBUI.Borders.emptyLeft(8)
+          add(JBLabel("Select layer: "), BorderLayout.WEST)
+          add(layerDropdownList, BorderLayout.CENTER)
+        },
+        BorderLayout.NORTH,
+      )
     }
     initializeTable(model.tableModels[0])
     add(tableContainer, BorderLayout.CENTER)
   }
 
-  override fun onRemoved() { }
-  override fun onReattached() { }
+  override fun onRemoved() {}
+
+  override fun onReattached() {}
 
   companion object {
     val PAGE_SIZE_VALUES = arrayOf(10, 25, 50, 100)

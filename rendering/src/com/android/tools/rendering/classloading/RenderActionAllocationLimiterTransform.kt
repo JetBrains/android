@@ -27,9 +27,8 @@ import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter
 class TooManyAllocationsException(message: String) : RuntimeException(message)
 
 /**
- * Static class invoked from user code to check the number of allocations per render action. Every
- * new render action will increment `RenderAsyncActionExecutor#executedRenderActionCount` so this
- * class can check if a new action has started executing.
+ * Static class invoked from user code to check the number of allocations per render action. Every new render action will increment
+ * `RenderAsyncActionExecutor#executedRenderActionCount` so this class can check if a new action has started executing.
  */
 object AllocationLimiterTransformChecker {
   private val accumulator =
@@ -44,8 +43,7 @@ object AllocationLimiterTransformChecker {
   @JvmStatic
   fun checkAllocation(maxAllocations: Long) {
     val lastRenderActionsCount = lastRenderActionsExecutedCount.get()
-    val currentRenderActionsCount =
-      RenderService.getRenderAsyncActionExecutor().executedRenderActionCount
+    val currentRenderActionsCount = RenderService.getRenderAsyncActionExecutor().executedRenderActionCount
 
     val accumulator =
       if (lastRenderActionsCount != currentRenderActionsCount) {
@@ -54,71 +52,47 @@ object AllocationLimiterTransformChecker {
         0L
       } else accumulator.get()
 
-    if (accumulator > maxAllocations)
-      throw TooManyAllocationsException(
-        "$maxAllocations allocations exceeded in a single render action"
-      )
+    if (accumulator > maxAllocations) throw TooManyAllocationsException("$maxAllocations allocations exceeded in a single render action")
 
     this.accumulator.set(accumulator + 1)
   }
 }
 
 object AllocationLimiterTransformThreadLocalRandom {
-  @JvmStatic
-  fun nextInt(min: Int, max: Int): Int =
-    java.util.concurrent.ThreadLocalRandom.current().nextInt(min, max)
+  @JvmStatic fun nextInt(min: Int, max: Int): Int = java.util.concurrent.ThreadLocalRandom.current().nextInt(min, max)
 }
 
 /**
- * Class transformation that inserts checks of the number of allocations in a single render action
- * (see [RenderService]).
+ * Class transformation that inserts checks of the number of allocations in a single render action (see [RenderService]).
  *
  * @param delegate the [ClassVisitor] to generate the output of this transformation.
- * @param checkPercentage the percentage in the [1, 100] range to do interrupt checks. The interrupt
- *   condition will only be checked in 1% of the loops.
- * @param maxAllocationsPerRenderAction number of allocations allowed in a single render action. If
- *   this number is exceeded, the user code will throw [TooManyAllocationsException]. The
- *   allocations are sampled, so this number refers to the sampled number of allocations. If
- *   `checkPercentage` is 1% and this parameter is 100, the number of actual allocations might reach
- *   10_000.
- * @param shouldInstrument callback that receives class and method name determines whether it should
- *   be transformed.
+ * @param checkPercentage the percentage in the [1, 100] range to do interrupt checks. The interrupt condition will only be checked in 1% of
+ *   the loops.
+ * @param maxAllocationsPerRenderAction number of allocations allowed in a single render action. If this number is exceeded, the user code
+ *   will throw [TooManyAllocationsException]. The allocations are sampled, so this number refers to the sampled number of allocations. If
+ *   `checkPercentage` is 1% and this parameter is 100, the number of actual allocations might reach 10_000.
+ * @param shouldInstrument callback that receives class and method name determines whether it should be transformed.
  */
 class RenderActionAllocationLimiterTransform
 @JvmOverloads
 constructor(
   delegate: ClassVisitor,
   private val checkPercentage: Int = 1,
-  private val maxAllocationsPerRenderAction: Long =
-    java.lang.Long.getLong("preview.allocation.limiter.max.threshold.count", 100_000),
-  private val shouldInstrument: (String, String) -> Boolean = { className, _ ->
-    !className.startsWith("androidx/")
-  },
+  private val maxAllocationsPerRenderAction: Long = java.lang.Long.getLong("preview.allocation.limiter.max.threshold.count", 100_000),
+  private val shouldInstrument: (String, String) -> Boolean = { className, _ -> !className.startsWith("androidx/") },
 ) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   init {
-    if (checkPercentage !in 1..100)
-      throw IllegalArgumentException("checkPercentage must be in [1, 100]")
+    if (checkPercentage !in 1..100) throw IllegalArgumentException("checkPercentage must be in [1, 100]")
   }
 
-  override val uniqueId: String =
-    "${RenderActionAllocationLimiterTransform::className},$checkPercentage,$shouldInstrument"
+  override val uniqueId: String = "${RenderActionAllocationLimiterTransform::className},$checkPercentage,$shouldInstrument"
   private val allocationCheckerType = Type.getType(AllocationLimiterTransformChecker::class.java)
-  private val allocationCheckMethod =
-    AllocationLimiterTransformChecker::checkAllocation.javaMethod!!.toMethodType()
-  private val threadLocalRandomType =
-    Type.getType(AllocationLimiterTransformThreadLocalRandom::class.java)
-  private val threadLocalRandomNextIntMethod =
-    AllocationLimiterTransformThreadLocalRandom::nextInt.javaMethod!!.toMethodType()
+  private val allocationCheckMethod = AllocationLimiterTransformChecker::checkAllocation.javaMethod!!.toMethodType()
+  private val threadLocalRandomType = Type.getType(AllocationLimiterTransformThreadLocalRandom::class.java)
+  private val threadLocalRandomNextIntMethod = AllocationLimiterTransformThreadLocalRandom::nextInt.javaMethod!!.toMethodType()
   private var className = ""
 
-  override fun visit(
-    version: Int,
-    access: Int,
-    name: String?,
-    signature: String?,
-    superName: String?,
-    interfaces: Array<out String>?,
-  ) {
+  override fun visit(version: Int, access: Int, name: String?, signature: String?, superName: String?, interfaces: Array<out String>?) {
     className = name ?: ""
     super.visit(version, access, name, signature, superName, interfaces)
   }

@@ -28,8 +28,7 @@ class JBPopupRule : ExternalResource() {
   val fakePopupFactory = FakeJBPopupFactory(disposable)
 
   override fun before() {
-    ApplicationManager.getApplication()
-      .replaceService(JBPopupFactory::class.java, fakePopupFactory, disposable)
+    ApplicationManager.getApplication().replaceService(JBPopupFactory::class.java, fakePopupFactory, disposable)
   }
 
   override fun after() {

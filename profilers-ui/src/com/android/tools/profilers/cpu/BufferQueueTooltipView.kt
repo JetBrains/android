@@ -26,8 +26,7 @@ import javax.swing.JPanel
 class BufferQueueTooltipView(parent: JComponent, val tooltip: BufferQueueTooltip) : TooltipView(tooltip.timeline) {
   private val content = JPanel(TabularLayout("*").setVGap(12))
 
-  @VisibleForTesting
-  val valueLabel: JLabel = createTooltipLabel()
+  @VisibleForTesting val valueLabel: JLabel = createTooltipLabel()
 
   override fun createTooltip(): JComponent {
     return content

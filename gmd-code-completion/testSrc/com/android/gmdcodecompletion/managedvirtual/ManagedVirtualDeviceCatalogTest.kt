@@ -31,19 +31,17 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.TestApplicationManager
+import java.util.EnumSet
 import org.mockito.Answers
 import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
 import org.mockito.kotlin.whenever
-import java.util.EnumSet
 
 class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
-  @Mock
-  private lateinit var mockDeviceManager: DeviceManager
+  @Mock private lateinit var mockDeviceManager: DeviceManager
 
-  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-  private lateinit var mockAndroidSdks: AndroidSdks
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS) private lateinit var mockAndroidSdks: AndroidSdks
 
   private val packages = RepositoryPackages()
 
@@ -96,27 +94,30 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
     testAbiInfo: String = "",
     deviceManager: DeviceManager? = mockDeviceManager,
     androidSdks: AndroidSdks? = mockAndroidSdks,
-    callback: () -> Unit) = managedVirtualDeviceCatalogTestHelper(deviceManager, androidSdks) {
-    if (testSystemImageString.isNotEmpty()) {
-      repoManager.packages.setRemotePkgInfos(listOf(
-        FakePackage.FakeRemotePackage(testSystemImageString).apply {
-          typeDetails =
-            AndroidSdkHandler.sysImgModule.createLatestFactory().createSysImgDetailsType()
-              .apply {
-                apiLevel = testAndroidVersion.androidApiLevel.majorVersion
-                codename = testAndroidVersion.codename
-                abis.add(testAbiInfo)
-              } as TypeDetails
-        }
-      ))
+    callback: () -> Unit,
+  ) =
+    managedVirtualDeviceCatalogTestHelper(deviceManager, androidSdks) {
+      if (testSystemImageString.isNotEmpty()) {
+        repoManager.packages.setRemotePkgInfos(
+          listOf(
+            FakePackage.FakeRemotePackage(testSystemImageString).apply {
+              typeDetails =
+                AndroidSdkHandler.sysImgModule.createLatestFactory().createSysImgDetailsType().apply {
+                  apiLevel = testAndroidVersion.androidApiLevel.majorVersion
+                  codename = testAndroidVersion.codename
+                  abis.add(testAbiInfo)
+                } as TypeDetails
+            }
+          )
+        )
+      }
+      callback()
     }
-    callback()
-  }
 
   fun testDeprecatedDevice() {
     managedVirtualDeviceCatalogTestHelperWrapper(
       testSystemImageString = "system-images;android-23;android;armeabi-v7a",
-      testAndroidVersion = AndroidVersion(23, null)
+      testAndroidVersion = AndroidVersion(23, null),
     ) {
       val deprecatedDevice = buildTestDevice(deprecated = true)
       whenever(mockDeviceManager.getDevices(EnumSet.of(DeviceManager.DeviceCategory.DEFAULT, DeviceManager.DeviceCategory.VENDOR)))
@@ -131,7 +132,7 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
     val testApiLevel = 23
     managedVirtualDeviceCatalogTestHelperWrapper(
       testSystemImageString = "system-images;android-23;android;armeabi-v7a",
-      testAndroidVersion = AndroidVersion(testApiLevel, null)
+      testAndroidVersion = AndroidVersion(testApiLevel, null),
     ) {
       whenever(mockDeviceManager.getDevices(EnumSet.of(DeviceManager.DeviceCategory.DEFAULT, DeviceManager.DeviceCategory.VENDOR)))
         .thenReturn(listOf(buildTestDevice()))
@@ -147,7 +148,7 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
     val testSoftware = Software()
     managedVirtualDeviceCatalogTestHelperWrapper(
       testSystemImageString = "system-images;android-33;android;armeabi-v7a",
-      testAndroidVersion = AndroidVersion(33, null)
+      testAndroidVersion = AndroidVersion(33, null),
     ) {
       val testDevice = buildTestDevice(software = testSoftware)
       whenever(mockDeviceManager.getDevices(EnumSet.of(DeviceManager.DeviceCategory.DEFAULT, DeviceManager.DeviceCategory.VENDOR)))
@@ -182,7 +183,7 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
     val testApiLevel = 23
     managedVirtualDeviceCatalogTestHelperWrapper(
       testSystemImageString = "system-images;android-23;android;armeabi-v7a",
-      testAndroidVersion = AndroidVersion(testApiLevel, null)
+      testAndroidVersion = AndroidVersion(testApiLevel, null),
     ) {
       val deviceCatalog = ManagedVirtualDeviceCatalogService.syncDeviceCatalog()
       assertFalse(deviceCatalog.apiLevels.isEmpty())
@@ -198,7 +199,7 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
     val testApiLevel = 26
     managedVirtualDeviceCatalogTestHelperWrapper(
       testSystemImageString = "system-images;android-26;google_apis;arm64-v8a",
-      testAndroidVersion = AndroidVersion(testApiLevel, null)
+      testAndroidVersion = AndroidVersion(testApiLevel, null),
     ) {
       val deviceCatalog = ManagedVirtualDeviceCatalogService.syncDeviceCatalog()
       assertFalse(deviceCatalog.apiLevels.isEmpty())
@@ -214,7 +215,7 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
     val testApiLevel = 23
     managedVirtualDeviceCatalogTestHelperWrapper(
       testSystemImageString = "system-images;android-23;google_apis;x86",
-      testAndroidVersion = AndroidVersion(testApiLevel, null)
+      testAndroidVersion = AndroidVersion(testApiLevel, null),
     ) {
       val deviceCatalog = ManagedVirtualDeviceCatalogService.syncDeviceCatalog()
       assertFalse(deviceCatalog.apiLevels.isEmpty())
@@ -231,7 +232,7 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
     managedVirtualDeviceCatalogTestHelperWrapper(
       testSystemImageString = "system-images;android-23;google_apis;x86_64",
       testAndroidVersion = AndroidVersion(testApiLevel, null),
-      testAbiInfo = "x86_64"
+      testAbiInfo = "x86_64",
     ) {
       val deviceCatalog = ManagedVirtualDeviceCatalogService.syncDeviceCatalog()
       assertFalse(deviceCatalog.apiLevels.isEmpty())
@@ -248,7 +249,7 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
     val testCodename = "UpsideDownCakePrivacySandbox"
     managedVirtualDeviceCatalogTestHelperWrapper(
       testSystemImageString = "system-images;android-UpsideDownCakePrivacySandbox;google_apis_playstore;arm64-v8a",
-      testAndroidVersion = AndroidVersion(testApiLevel, testCodename)
+      testAndroidVersion = AndroidVersion(testApiLevel, testCodename),
     ) {
       val deviceCatalog = ManagedVirtualDeviceCatalogService.syncDeviceCatalog()
       assertFalse(deviceCatalog.apiLevels.isEmpty())
@@ -279,7 +280,7 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
   fun testSkipSignedInstallIdDueToPathStructure() {
     managedVirtualDeviceCatalogTestHelperWrapper(
       testSystemImageString = "system-images;signed;android-33;android-wear;arm64-v8a",
-      testAndroidVersion = AndroidVersion(23, null)
+      testAndroidVersion = AndroidVersion(23, null),
     ) {
       val deviceCatalog = ManagedVirtualDeviceCatalogService.syncDeviceCatalog()
       assertTrue(deviceCatalog.apiLevels.isEmpty())

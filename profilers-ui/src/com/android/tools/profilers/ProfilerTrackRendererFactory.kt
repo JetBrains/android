@@ -34,27 +34,26 @@ import com.android.tools.profilers.event.LifecycleTrackRenderer
 import com.android.tools.profilers.event.UserEventTrackRenderer
 import java.util.function.BooleanSupplier
 
-/**
- * Implementation of [TrackRendererFactory] for creating track renderers used in profilers.
- */
-class ProfilerTrackRendererFactory(private val myProfilersView: StudioProfilersView,
-                                   private val vsyncEnabler: BooleanSupplier) : TrackRendererFactory<ProfilerTrackRendererType> {
-  override fun createRenderer(rendererType: ProfilerTrackRendererType) = when (rendererType) {
-    ProfilerTrackRendererType.APP_LIFECYCLE -> LifecycleTrackRenderer()
-    ProfilerTrackRendererType.USER_INTERACTION -> UserEventTrackRenderer()
-    ProfilerTrackRendererType.FRAMES -> FramesTrackRenderer(vsyncEnabler)
-    ProfilerTrackRendererType.SURFACEFLINGER -> SurfaceflingerTrackRenderer(vsyncEnabler)
-    ProfilerTrackRendererType.VSYNC -> VsyncTrackRenderer(vsyncEnabler)
-    ProfilerTrackRendererType.BUFFER_QUEUE -> BufferQueueTrackRenderer(vsyncEnabler)
-    ProfilerTrackRendererType.CPU_THREAD -> CpuThreadTrackRenderer(myProfilersView, vsyncEnabler)
-    ProfilerTrackRendererType.CPU_CORE -> CpuCoreTrackRenderer()
-    ProfilerTrackRendererType.CPU_FREQUENCY -> CpuFrequencyTrackRenderer()
-    ProfilerTrackRendererType.RSS_MEMORY -> RssMemoryTrackRenderer()
-    ProfilerTrackRendererType.ANDROID_POWER_RAIL -> PowerRailTrackRenderer()
-    ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN -> BatteryDrainTrackRenderer()
-    ProfilerTrackRendererType.ANDROID_FRAME_EVENT -> AndroidFrameEventTrackRenderer(vsyncEnabler)
-    ProfilerTrackRendererType.ANDROID_FRAME_TIMELINE_EVENT -> JankyFrameTrackRenderer(myProfilersView, vsyncEnabler)
-    ProfilerTrackRendererType.ANDROID_FRAME_DEADLINE_TEXT -> DeadlineTextRenderer(vsyncEnabler)
-    ProfilerTrackRendererType.CUSTOM_EVENTS -> CustomEventTrackRenderer()
-  }
+/** Implementation of [TrackRendererFactory] for creating track renderers used in profilers. */
+class ProfilerTrackRendererFactory(private val myProfilersView: StudioProfilersView, private val vsyncEnabler: BooleanSupplier) :
+  TrackRendererFactory<ProfilerTrackRendererType> {
+  override fun createRenderer(rendererType: ProfilerTrackRendererType) =
+    when (rendererType) {
+      ProfilerTrackRendererType.APP_LIFECYCLE -> LifecycleTrackRenderer()
+      ProfilerTrackRendererType.USER_INTERACTION -> UserEventTrackRenderer()
+      ProfilerTrackRendererType.FRAMES -> FramesTrackRenderer(vsyncEnabler)
+      ProfilerTrackRendererType.SURFACEFLINGER -> SurfaceflingerTrackRenderer(vsyncEnabler)
+      ProfilerTrackRendererType.VSYNC -> VsyncTrackRenderer(vsyncEnabler)
+      ProfilerTrackRendererType.BUFFER_QUEUE -> BufferQueueTrackRenderer(vsyncEnabler)
+      ProfilerTrackRendererType.CPU_THREAD -> CpuThreadTrackRenderer(myProfilersView, vsyncEnabler)
+      ProfilerTrackRendererType.CPU_CORE -> CpuCoreTrackRenderer()
+      ProfilerTrackRendererType.CPU_FREQUENCY -> CpuFrequencyTrackRenderer()
+      ProfilerTrackRendererType.RSS_MEMORY -> RssMemoryTrackRenderer()
+      ProfilerTrackRendererType.ANDROID_POWER_RAIL -> PowerRailTrackRenderer()
+      ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN -> BatteryDrainTrackRenderer()
+      ProfilerTrackRendererType.ANDROID_FRAME_EVENT -> AndroidFrameEventTrackRenderer(vsyncEnabler)
+      ProfilerTrackRendererType.ANDROID_FRAME_TIMELINE_EVENT -> JankyFrameTrackRenderer(myProfilersView, vsyncEnabler)
+      ProfilerTrackRendererType.ANDROID_FRAME_DEADLINE_TEXT -> DeadlineTextRenderer(vsyncEnabler)
+      ProfilerTrackRendererType.CUSTOM_EVENTS -> CustomEventTrackRenderer()
+    }
 }

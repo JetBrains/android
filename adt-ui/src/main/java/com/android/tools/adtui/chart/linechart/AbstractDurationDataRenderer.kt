@@ -29,9 +29,5 @@ interface AbstractDurationDataRenderer : LineChartCustomRenderer {
    *
    * @return whether other handlers should also handle this event
    */
-  fun handleMouseEvent(
-    overlayComponent: Component,
-    selectionComponent: Component,
-    event: MouseEvent,
-  ): Boolean
+  fun handleMouseEvent(overlayComponent: Component, selectionComponent: Component, event: MouseEvent): Boolean
 }

@@ -25,20 +25,18 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.util.text.DateFormatUtil
 
-/**
- * Opens window with a list of previous Build Analyses results
- */
+/** Opens window with a list of previous Build Analyses results */
 class OpenBuildAnalyzerResultsAction : AnAction() {
 
   override fun getActionUpdateThread(): ActionUpdateThread {
     return ActionUpdateThread.BGT
   }
+
   override fun update(e: AnActionEvent) {
     val project = e.project
     if (!StudioFlags.BUILD_ANALYZER_HISTORY.get() || project == null) {
       e.presentation.isEnabledAndVisible = false
-    }
-    else {
+    } else {
       e.presentation.isEnabled = true
     }
   }
@@ -48,19 +46,19 @@ class OpenBuildAnalyzerResultsAction : AnAction() {
     val buildAnalyzerStorageManager = BuildAnalyzerStorageManager.getInstance(project)
     JBPopupFactory.getInstance()
       .createPopupChooserBuilder(
-        buildAnalyzerStorageManager.getListOfHistoricBuildDescriptors().toList()
-          .sortedByDescending { it.buildFinishedTimestamp })
+        buildAnalyzerStorageManager.getListOfHistoricBuildDescriptors().toList().sortedByDescending { it.buildFinishedTimestamp }
+      )
       .setTitle("Build Analysis Results")
       .setItemChosenCallback { buildDescriptor ->
-        BuildAttributionUiManager.getInstance(project)
-          .showBuildAnalysisReportById(buildDescriptor.buildSessionID)
+        BuildAttributionUiManager.getInstance(project).showBuildAnalysisReportById(buildDescriptor.buildSessionID)
       }
       .setRenderer(
         SimpleListCellRenderer.create { label, buildDescriptor, _ ->
           val totalBuildTimeSec = durationStringHtml(buildDescriptor.totalBuildTimeMs)
           val briefId = buildDescriptor.buildSessionID.substringBefore('-')
           val formattedTime = DateFormatUtil.formatDateTime(buildDescriptor.buildFinishedTimestamp)
-          label.text = """
+          label.text =
+            """
             |<html>
               |<body>
                 |Build duration: ${totalBuildTimeSec}
@@ -69,8 +67,10 @@ class OpenBuildAnalyzerResultsAction : AnAction() {
                 |$formattedTime
               |</body>
             |</html>
-          """.trimMargin() //TODO make alignment right to briefId
-        })
+          """
+              .trimMargin() // TODO make alignment right to briefId
+        }
+      )
       .createPopup()
       .showInFocusCenter()
   }

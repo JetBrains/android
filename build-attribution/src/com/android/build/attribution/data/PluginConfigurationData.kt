@@ -15,5 +15,4 @@
  */
 package com.android.build.attribution.data
 
-data class PluginConfigurationData(val plugin: PluginData,
-                                   val configurationTimeMs: Long)
+data class PluginConfigurationData(val plugin: PluginData, val configurationTimeMs: Long)

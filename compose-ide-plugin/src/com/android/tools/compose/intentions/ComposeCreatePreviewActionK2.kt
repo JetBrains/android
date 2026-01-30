@@ -41,10 +41,7 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
 
-/**
- * Adds a @Preview annotation when a full @Composable is selected or cursor at @Composable
- * annotation.
- */
+/** Adds a @Preview annotation when a full @Composable is selected or cursor at @Composable annotation. */
 class ComposeCreatePreviewActionK2 : ModCommandAction {
   override fun getFamilyName() = ComposeBundle.message("create.preview")
 
@@ -65,11 +62,9 @@ class ComposeCreatePreviewActionK2 : ModCommandAction {
   }
 
   /**
-   * A function to find the `@Composable` annotation on the function of the area where the cursor is
-   * located or the area of selection. Note that this function is similar to
-   * `PsiBasedModCommandAction.getElement()`. The only difference is that this function finds the
-   * `@Composable` annotation out of the cursor location, while
-   * `PsiBasedModCommandAction.getElement()` searches only the cursor location.
+   * A function to find the `@Composable` annotation on the function of the area where the cursor is located or the area of selection. Note
+   * that this function is similar to `PsiBasedModCommandAction.getElement()`. The only difference is that this function finds the
+   * `@Composable` annotation out of the cursor location, while `PsiBasedModCommandAction.getElement()` searches only the cursor location.
    */
   private fun getComposableAnnotationOnContext(context: ActionContext): KtAnnotationEntry? {
     val offset = context.offset()
@@ -81,8 +76,7 @@ class ComposeCreatePreviewActionK2 : ModCommandAction {
     // The right-most PSI of the selected area or of the cursor.
     var rightMostPsiOnContext = file.findElementAt(offset)
     // The left-most PSI of the selected area or of the cursor.
-    var leftMostPsiOnContext =
-      if (offset > 0) file.findElementAt(offset - 1) else rightMostPsiOnContext
+    var leftMostPsiOnContext = if (offset > 0) file.findElementAt(offset - 1) else rightMostPsiOnContext
 
     if (leftMostPsiOnContext == null && rightMostPsiOnContext == null) return null
     if (leftMostPsiOnContext == null) leftMostPsiOnContext = rightMostPsiOnContext
@@ -118,21 +112,16 @@ class ComposeCreatePreviewActionK2 : ModCommandAction {
 
   private fun PsiElement.findSelfOrParentComposableAnnotation(): KtAnnotationEntry? {
     parentOfType<KtAnnotationEntry>(withSelf = true)?.let { ktAnnotationEntry ->
-      if (analyze(ktAnnotationEntry) { ktAnnotationEntry.isComposableAnnotation() })
-        return ktAnnotationEntry
+      if (analyze(ktAnnotationEntry) { ktAnnotationEntry.isComposableAnnotation() }) return ktAnnotationEntry
     }
 
     val editor = findExistingEditor() ?: return null
     if (editor.selectionModel.hasSelection()) {
       // Case when user selected few extra blank lines before @Composable annotation.
-      val elementAtCaretAfterSpace =
-        containingFile
-          .findElementAt(editor.selectionModel.selectionStart)
-          ?.getNextSiblingIgnoringWhitespace()
-      return elementAtCaretAfterSpace
-        ?.parentOfType<KtFunction>(withSelf = true)
-        ?.annotationEntries
-        ?.find { analyze(it) { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) } }
+      val elementAtCaretAfterSpace = containingFile.findElementAt(editor.selectionModel.selectionStart)?.getNextSiblingIgnoringWhitespace()
+      return elementAtCaretAfterSpace?.parentOfType<KtFunction>(withSelf = true)?.annotationEntries?.find {
+        analyze(it) { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) }
+      }
     }
     return null
   }
@@ -148,10 +137,8 @@ class ComposeCreatePreviewActionK2 : ModCommandAction {
     val project = context.project
 
     val composableFunction = element.parentOfType<KtFunction>() ?: return
-    val previewAnnotationEntry =
-      KtPsiFactory(project).createAnnotationEntry("@${COMPOSE_PREVIEW_ANNOTATION_FQN}")
+    val previewAnnotationEntry = KtPsiFactory(project).createAnnotationEntry("@${COMPOSE_PREVIEW_ANNOTATION_FQN}")
 
-    ShortenReferencesFacility.getInstance()
-      .shorten(composableFunction.addAnnotationEntry(previewAnnotationEntry))
+    ShortenReferencesFacility.getInstance().shorten(composableFunction.addAnnotationEntry(previewAnnotationEntry))
   }
 }

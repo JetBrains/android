@@ -35,25 +35,22 @@ import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import java.util.concurrent.TimeUnit
+import javax.swing.JTable
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import java.util.concurrent.TimeUnit
-import javax.swing.JTable
 
 class CaptureNodeSummaryDetailsViewTest {
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  @get:Rule
-  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CaptureNodeSummaryDetailsViewTest", transportService)
+  @get:Rule var grpcServer = FakeGrpcServer.createFakeGrpcServer("CaptureNodeSummaryDetailsViewTest", transportService)
 
   private lateinit var profilersView: StudioProfilersView
 
@@ -65,13 +62,15 @@ class CaptureNodeSummaryDetailsViewTest {
 
   @Test
   fun componentsArePopulated() {
-    val captureNode = CaptureNode(SingleNameModel("Foo")).apply {
-      startGlobal = TimeUnit.SECONDS.toMicros(10)
-      endGlobal = TimeUnit.SECONDS.toMicros(20)
-    }
-    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, Double.MAX_VALUE), TraceType.PERFETTO).apply {
-      dataSeries.add(CaptureNodeAnalysisModel(captureNode, Mockito.mock(CpuCapture::class.java), Utils::runOnUi))
-    }
+    val captureNode =
+      CaptureNode(SingleNameModel("Foo")).apply {
+        startGlobal = TimeUnit.SECONDS.toMicros(10)
+        endGlobal = TimeUnit.SECONDS.toMicros(20)
+      }
+    val model =
+      CaptureNodeAnalysisSummaryTabModel(Range(0.0, Double.MAX_VALUE), TraceType.PERFETTO).apply {
+        dataSeries.add(CaptureNodeAnalysisModel(captureNode, Mockito.mock(CpuCapture::class.java), Utils::runOnUi))
+      }
     val view = CaptureNodeSummaryDetailsView(profilersView, model)
     val treeWalker = TreeWalker(view)
     assertThat(view.timeRangeLabel.text).isEqualTo("00:10.000 - 00:20.000")

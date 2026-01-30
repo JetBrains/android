@@ -25,9 +25,8 @@ import org.jetbrains.kotlin.idea.liveTemplates.KotlinTemplateContextType
  * This [TemplateContextType] replicates the structure of [org.jetbrains.kotlin.idea.liveTemplates.KotlinTemplateContextType], intersecting
  * it with the [ComposeEnabledTemplateContextType].
  */
-internal sealed class ComposeKotlinTemplateContextType(
-  private val kotlin: KotlinTemplateContextType
-) : TemplateContextType(kotlin.presentableName) {
+internal sealed class ComposeKotlinTemplateContextType(private val kotlin: KotlinTemplateContextType) :
+  TemplateContextType(kotlin.presentableName) {
   private val compose = ComposeEnabledTemplateContextType()
 
   override fun isInContext(templateActionContext: TemplateActionContext): Boolean {
@@ -38,8 +37,7 @@ internal sealed class ComposeKotlinTemplateContextType(
 
   class TopLevel : ComposeKotlinTemplateContextType(KotlinTemplateContextType.TopLevel())
 
-  class ObjectDeclaration :
-    ComposeKotlinTemplateContextType(KotlinTemplateContextType.ObjectDeclaration())
+  class ObjectDeclaration : ComposeKotlinTemplateContextType(KotlinTemplateContextType.ObjectDeclaration())
 
   class Class : ComposeKotlinTemplateContextType(KotlinTemplateContextType.Class())
 
@@ -51,11 +49,9 @@ internal sealed class ComposeKotlinTemplateContextType(
 }
 
 /**
- * Checks if the template is applied to context in which Compose is enabled. This template is used
- * to hide the Compose-related templates from plain Kotlin without Compose.
+ * Checks if the template is applied to context in which Compose is enabled. This template is used to hide the Compose-related templates
+ * from plain Kotlin without Compose.
  */
-internal class ComposeEnabledTemplateContextType :
-  TemplateContextType(ComposeBundle.message("compose.templates.presentable.name")) {
-  override fun isInContext(templateActionContext: TemplateActionContext) =
-    isComposeEnabled(templateActionContext.file)
+internal class ComposeEnabledTemplateContextType : TemplateContextType(ComposeBundle.message("compose.templates.presentable.name")) {
+  override fun isInContext(templateActionContext: TemplateActionContext) = isComposeEnabled(templateActionContext.file)
 }

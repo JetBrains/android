@@ -17,5 +17,4 @@ package org.jetbrains.android.dom.manifest
 
 import org.jetbrains.android.dom.Styleable
 
-@Styleable("AndroidManifestUsesNativeLibrary")
-interface UsesNativeLibrary : ManifestElementWithRequiredName
+@Styleable("AndroidManifestUsesNativeLibrary") interface UsesNativeLibrary : ManifestElementWithRequiredName

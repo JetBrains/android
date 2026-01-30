@@ -20,6 +20,7 @@ import com.intellij.mock.MockProject
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import java.io.File
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -27,7 +28,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.File
 
 class RenderXmlFileSnapshotTest {
   @JvmField @Rule val tmpFolder = TemporaryFolder()
@@ -55,15 +55,15 @@ class RenderXmlFileSnapshotTest {
     stringsFile.writeBytes(
       // language=XML
       """
-        <LinearLayout
-          xmlns:android="http://schemas.android.com/apk/res/android"
-          android:orientation="vertical">
-          <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Botón"
-          />
-        </LinearLayout>
+      <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical">
+        <Button
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Botón"
+        />
+      </LinearLayout>
       """
         .trimIndent()
         .toByteArray()
@@ -81,10 +81,7 @@ class RenderXmlFileSnapshotTest {
     val buttonTag = linearLayoutTag.subTags[0]
     assertEquals("Button", buttonTag.name)
     // Checking that non-ascii characters work
-    assertEquals(
-      "Botón",
-      buttonTag.getAttribute("text", "http://schemas.android.com/apk/res/android")?.value,
-    )
+    assertEquals("Botón", buttonTag.getAttribute("text", "http://schemas.android.com/apk/res/android")?.value)
   }
 
   @Test
@@ -112,7 +109,7 @@ class RenderXmlFileSnapshotTest {
               android:strokeColor="#33FFFFFF"
               android:strokeWidth="0.8" />
         </vector>
-      """
+        """
           .trimIndent(),
       )
     assertEquals("drawable.xml", xmlFile.name)
@@ -125,9 +122,6 @@ class RenderXmlFileSnapshotTest {
     val pathTag = vectorTag.subTags[0]
     assertEquals("path", pathTag.name)
     // Checking that non-ascii characters work
-    assertEquals(
-      "M0,0h108v108h-108z",
-      pathTag.getAttribute("pathData", "http://schemas.android.com/apk/res/android")?.value,
-    )
+    assertEquals("M0,0h108v108h-108z", pathTag.getAttribute("pathData", "http://schemas.android.com/apk/res/android")?.value)
   }
 }

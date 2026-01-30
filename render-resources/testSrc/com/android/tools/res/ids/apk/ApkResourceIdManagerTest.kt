@@ -30,17 +30,20 @@ class ApkResourceIdManagerTest {
     val idManager = ApkResourceIdManager().apply { this.loadApkResources(path.toString()) }
 
     run {
-      val resId = idManager.getCompiledId(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ANIM, "fragment_fast_out_extra_slow_in"))
+      val resId =
+        idManager.getCompiledId(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ANIM, "fragment_fast_out_extra_slow_in"))
       assertEquals("fragment_fast_out_extra_slow_in", idManager.findById(resId!!)?.name)
     }
 
     run {
-      val resId = idManager.getCompiledId(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.DIMEN, "compat_control_corner_material"))
+      val resId =
+        idManager.getCompiledId(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.DIMEN, "compat_control_corner_material"))
       assertEquals("compat_control_corner_material", idManager.findById(resId!!)?.name)
     }
 
     run {
-      val resId = idManager.getCompiledId(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "news_notification_channel_description"))
+      val resId =
+        idManager.getCompiledId(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "news_notification_channel_description"))
       assertEquals("news_notification_channel_description", idManager.findById(resId!!)?.name)
     }
   }

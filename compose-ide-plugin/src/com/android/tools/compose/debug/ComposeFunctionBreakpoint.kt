@@ -22,15 +22,11 @@ import com.sun.jdi.Method
 import org.jetbrains.kotlin.idea.debugger.core.breakpoints.KotlinFunctionBreakpoint
 import org.jetbrains.kotlin.idea.debugger.core.breakpoints.SourcePositionRefiner
 
-/**
- * A [com.intellij.debugger.ui.breakpoints.MethodBreakpoint] that supports `@Composable` function
- * breakpoints
- */
+/** A [com.intellij.debugger.ui.breakpoints.MethodBreakpoint] that supports `@Composable` function breakpoints */
 internal class ComposeFunctionBreakpoint(project: Project, breakpoint: XBreakpoint<*>) :
   KotlinFunctionBreakpoint(project, breakpoint), SourcePositionRefiner {
   override fun isMethodMatch(method: Method, debugProcess: DebugProcessImpl) =
-    method.name() == methodName &&
-      method.signature().withoutComposeArgs() == mySignature?.getName(debugProcess)
+    method.name() == methodName && method.signature().withoutComposeArgs() == mySignature?.getName(debugProcess)
 }
 
 private fun String.withoutComposeArgs(): String {

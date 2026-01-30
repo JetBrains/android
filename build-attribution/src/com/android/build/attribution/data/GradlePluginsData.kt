@@ -25,34 +25,27 @@ import com.google.gson.reflect.TypeToken
 import com.intellij.openapi.diagnostic.Logger
 import java.lang.reflect.Type
 
-data class GradlePluginsData(
-  val pluginsInfo: List<PluginInfo>
-) {
+data class GradlePluginsData(val pluginsInfo: List<PluginInfo>) {
   data class PluginInfo(
     val name: String,
     /**
-     * List of full plugin class names (implementing gradle Plugin interface) that define this plugin.
-     * Can be a project prefix to match all plugin classes under some package.
-     * Examples:
+     * List of full plugin class names (implementing gradle Plugin interface) that define this plugin. Can be a project prefix to match all
+     * plugin classes under some package. Examples:
      * * `com.android.build.gradle.AppPlugin` to match app plugin class from AGP,
      * * `com.android.build.gradle.` to match all AGP plugins.
      */
     val pluginClasses: List<String>,
     val pluginArtifact: DependencyCoordinates? = null,
-    //TODO mlazeba: should this be a list of supported ranges instead?
-    val configurationCachingCompatibleFrom: Version? = null
+    // TODO mlazeba: should this be a list of supported ranges instead?
+    val configurationCachingCompatibleFrom: Version? = null,
   ) {
     /** Checks if [plugin] matches this PluginInfo entry. */
     fun isThisPlugin(plugin: PluginData): Boolean {
-      return plugin.pluginType == PluginData.PluginType.BINARY_PLUGIN
-      && pluginClasses.any { plugin.idName.startsWith(it) }
+      return plugin.pluginType == PluginData.PluginType.BINARY_PLUGIN && pluginClasses.any { plugin.idName.startsWith(it) }
     }
   }
 
-  data class DependencyCoordinates(
-    val group: String,
-    val name: String
-  ) {
+  data class DependencyCoordinates(val group: String, val name: String) {
     override fun toString(): String {
       return "$group:$name"
     }
@@ -62,20 +55,24 @@ data class GradlePluginsData(
     val emptyData = GradlePluginsData(emptyList())
 
     fun loadFromJson(jsonString: String): GradlePluginsData {
-      val versionDeserializer = JsonDeserializer { json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext? ->
-        json.asString.takeIf { it != "N/A" }?.let { Version.parse(it) }
-      } as JsonDeserializer<Version>
-      val dependencyCoordinatesDeserializer = JsonDeserializer { json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext? ->
-        json.asString.let{ DependencyCoordinates(it.substringBefore(":"), it.substringAfter(":"))}
-      } as JsonDeserializer<DependencyCoordinates>
-      val gson = GsonBuilder()
-        .registerTypeAdapter(object : TypeToken<Version>() {}.type, versionDeserializer)
-        .registerTypeAdapter(object : TypeToken<DependencyCoordinates>() {}.type, dependencyCoordinatesDeserializer)
-        .create()
+      val versionDeserializer =
+        JsonDeserializer { json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext? ->
+          json.asString.takeIf { it != "N/A" }?.let { Version.parse(it) }
+        }
+          as JsonDeserializer<Version>
+      val dependencyCoordinatesDeserializer =
+        JsonDeserializer { json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext? ->
+          json.asString.let { DependencyCoordinates(it.substringBefore(":"), it.substringAfter(":")) }
+        }
+          as JsonDeserializer<DependencyCoordinates>
+      val gson =
+        GsonBuilder()
+          .registerTypeAdapter(object : TypeToken<Version>() {}.type, versionDeserializer)
+          .registerTypeAdapter(object : TypeToken<DependencyCoordinates>() {}.type, dependencyCoordinatesDeserializer)
+          .create()
       return try {
         gson.fromJson(jsonString, GradlePluginsData::class.java)
-      }
-      catch (e: JsonParseException) {
+      } catch (e: JsonParseException) {
         Logger.getInstance(GradlePluginsData::class.java).error("Parse exception while reading plugins data", e)
         emptyData
       }

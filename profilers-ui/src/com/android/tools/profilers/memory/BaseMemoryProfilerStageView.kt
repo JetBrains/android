@@ -18,11 +18,8 @@ package com.android.tools.profilers.memory
 import com.android.tools.profilers.StageView
 import com.android.tools.profilers.StudioProfilersView
 
-abstract class BaseMemoryProfilerStageView<T: BaseMemoryProfilerStage>(profilersView: StudioProfilersView,
-                                                                       stage: T)
-      : StageView<T>(profilersView, stage) {
+abstract class BaseMemoryProfilerStageView<T : BaseMemoryProfilerStage>(profilersView: StudioProfilersView, stage: T) :
+  StageView<T>(profilersView, stage) {
 
-  fun makeLoadingPanel() = profilersView.ideProfilerComponents.createLoadingPanel(-1).apply {
-    setLoadingText("Fetching results")
-  }
+  fun makeLoadingPanel() = profilersView.ideProfilerComponents.createLoadingPanel(-1).apply { setLoadingText("Fetching results") }
 }

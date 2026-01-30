@@ -19,10 +19,8 @@ import com.android.tools.profilers.memory.ClassGrouping
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.InstanceObject
 
-/**
- * This class implements an all-"heap" that aggregates multiple separate heaps
- */
-class AllHeapSet(obj: CaptureObject, private val subHeaps: Array<HeapSet>): HeapSet(obj, NAME, ID) {
+/** This class implements an all-"heap" that aggregates multiple separate heaps */
+class AllHeapSet(obj: CaptureObject, private val subHeaps: Array<HeapSet>) : HeapSet(obj, NAME, ID) {
 
   override fun setClassGrouping(classGrouping: ClassGrouping) {
     subHeaps?.forEach { it.setClassGrouping(classGrouping) }

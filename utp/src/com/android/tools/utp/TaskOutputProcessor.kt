@@ -35,9 +35,8 @@ class TaskOutputProcessor(val listener: GlobalTaskOutputProcessorListener) {
   }
 
   /**
-   * Processes stdout text from the Gradle task output. The input string can be
-   * multi-line string. The UTP test results XML tags are removed from the
-   * returning string.
+   * Processes stdout text from the Gradle task output. The input string can be multi-line string. The UTP test results XML tags are removed
+   * from the returning string.
    *
    * @param stdout a stdout text from the AGP task to be processed
    */
@@ -59,7 +58,7 @@ class TaskOutputProcessor(val listener: GlobalTaskOutputProcessorListener) {
   }
 
   private fun processEvent(event: TestResultEvent) {
-    when(event.stateCase) {
+    when (event.stateCase) {
       TestResultEvent.StateCase.TEST_SUITE_STARTED -> {
         processTestSuiteStarted(event)
       }
@@ -101,40 +100,28 @@ class TaskOutputProcessor(val listener: GlobalTaskOutputProcessorListener) {
   }
 }
 
-/**
- * Decodes base64 encoded text proto message into [TestResultEvent].
- */
+/** Decodes base64 encoded text proto message into [TestResultEvent]. */
 private fun decodeBase64EncodedProto(base64EncodedProto: String): TestResultEvent {
   return TestResultEvent.parseFrom(Base64.getDecoder().decode(base64EncodedProto))
 }
 
 interface GlobalTaskOutputProcessorListener {
-  /**
-   * Called when a test suite execution is started.
-   */
+  /** Called when a test suite execution is started. */
   fun onTestSuiteStarted(deviceId: String, testSuite: TestSuiteResultProto.TestSuiteMetaData)
 
-  /**
-   * Called when a test case execution is started.
-   */
+  /** Called when a test case execution is started. */
   fun onTestCaseStarted(deviceId: String, testCase: TestCaseProto.TestCase)
 
-  /**
-   * Called when a test case execution is finished.
-   */
+  /** Called when a test case execution is finished. */
   fun onTestCaseFinished(deviceId: String, testCaseResult: TestResultProto.TestResult)
 
-  /**
-   * Called when a test suite execution is finished.
-   */
+  /** Called when a test suite execution is finished. */
   fun onTestSuiteFinished(deviceId: String, testSuiteResult: TestSuiteResultProto.TestSuiteResult)
 }
 
-private class TaskOutputProcessorListenerDispatcher(
-  val listeners: Map<String, TaskOutputProcessorListener>
-) : GlobalTaskOutputProcessorListener {
-  override fun onTestSuiteStarted(deviceId: String,
-                                  testSuite: TestSuiteResultProto.TestSuiteMetaData) {
+private class TaskOutputProcessorListenerDispatcher(val listeners: Map<String, TaskOutputProcessorListener>) :
+  GlobalTaskOutputProcessorListener {
+  override fun onTestSuiteStarted(deviceId: String, testSuite: TestSuiteResultProto.TestSuiteMetaData) {
     listeners[deviceId]?.onTestSuiteStarted(testSuite)
   }
 
@@ -142,13 +129,11 @@ private class TaskOutputProcessorListenerDispatcher(
     listeners[deviceId]?.onTestCaseStarted(testCase)
   }
 
-  override fun onTestCaseFinished(deviceId: String,
-                                  testCaseResult: TestResultProto.TestResult) {
+  override fun onTestCaseFinished(deviceId: String, testCaseResult: TestResultProto.TestResult) {
     listeners[deviceId]?.onTestCaseFinished(testCaseResult)
   }
 
-  override fun onTestSuiteFinished(deviceId: String,
-                                   testSuiteResult: TestSuiteResultProto.TestSuiteResult) {
+  override fun onTestSuiteFinished(deviceId: String, testSuiteResult: TestSuiteResultProto.TestSuiteResult) {
     listeners[deviceId]?.onTestSuiteFinished(testSuiteResult)
   }
 }

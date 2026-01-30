@@ -90,10 +90,7 @@ class OldAgpTestTargetsCheckerTest {
   @Test
   fun testCheckPassesWhenMissedIgnored() {
     System.setProperty("agp.gradle.version.pair.targets", "4.1@4.2")
-    System.setProperty(
-      "old.agp.tests.check.ignore.list",
-      "com.android.testutils.junit4.OldAgpSuiteTest\$AgpTestMultiple",
-    )
+    System.setProperty("old.agp.tests.check.ignore.list", "com.android.testutils.junit4.OldAgpSuiteTest\$AgpTestMultiple")
     OldAgpTestTargetsChecker(
         OldAgpTestTargetsChecker.OldAgpTestVersionsPair("4.2", "4.2"),
         listOf("com.android.testutils.junit4.OldAgpSuiteTest\$AgpTestMultiple"),
@@ -141,7 +138,5 @@ class OldAgpTestTargetsCheckerTest {
 private fun Map<OldAgpTestTargetsChecker.OldAgpTestVersionsPair, List<String>>.toTestString() =
   toList()
     .sortedBy { it.first.toString() }
-    .map { pair ->
-      "${pair.first}:\n${pair.second.sorted().joinToString(separator = "\n") { " $it" }}"
-    }
+    .map { pair -> "${pair.first}:\n${pair.second.sorted().joinToString(separator = "\n") { " $it" }}" }
     .joinToString(separator = "\n")

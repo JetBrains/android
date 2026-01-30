@@ -78,5 +78,4 @@ open class FakeInspectorLineModel(val type: FakeLineType) : InspectorLineModel {
   }
 }
 
-class FakeComponentLineModel(override val component: JComponent) :
-  FakeInspectorLineModel(FakeLineType.PANEL)
+class FakeComponentLineModel(override val component: JComponent) : FakeInspectorLineModel(FakeLineType.PANEL)

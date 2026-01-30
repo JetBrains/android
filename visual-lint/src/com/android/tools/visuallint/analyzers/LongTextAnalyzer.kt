@@ -34,10 +34,7 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.LONG_TEXT
 
-  override fun findIssues(
-    renderResult: RenderResult,
-    configuration: Configuration,
-  ): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
     while (viewsToAnalyze.isNotEmpty()) {
@@ -91,13 +88,10 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
   private fun createIssueContent(view: ViewInfo): VisualLintIssueContent {
     val summary = "${nameWithId(view)} has lines containing more than 120 characters"
     val simpleName = simpleName(view)
-    val url =
-      "https://m3.material.io/foundations/layout/applying-layout/window-size-classes#a9594611-a6d4-4dce-abcb-15e7dd431f8a"
+    val url = "https://m3.material.io/foundations/layout/applying-layout/window-size-classes#a9594611-a6d4-4dce-abcb-15e7dd431f8a"
     val provider = { count: Int ->
       HtmlBuilder()
-        .add(
-          "$simpleName has lines containing more than 120 characters in ${previewConfigurations(count)}."
-        )
+        .add("$simpleName has lines containing more than 120 characters in ${previewConfigurations(count)}.")
         .newline()
         .add("Material Design recommends reducing the width of TextView or switching to a ")
         .addLink("multi-column layout", url)

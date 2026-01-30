@@ -28,19 +28,14 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 const val COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME = "ComposeStateReadTextAttributes"
 
 val COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
-  TextAttributesKey.createTextAttributesKey(
-    COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME,
-    DefaultLanguageHighlighterColors.FUNCTION_CALL,
-  )
+  TextAttributesKey.createTextAttributesKey(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME, DefaultLanguageHighlighterColors.FUNCTION_CALL)
 
 /**
- * Annotator that highlights reads of `androidx.compose.runtime.State` variables inside
- * `@Composable` functions.
+ * Annotator that highlights reads of `androidx.compose.runtime.State` variables inside `@Composable` functions.
  *
- * TODO(b/225218822): Before productionizing this, we must determine whether to remove the ability
- *   to highlight or change this to use `KotlinHighlightingVisitorExtension` (to avoid race
- *   conditions). This may be non-trivial as that class does not have the ability to highlight
- *   anything other than the element being visited.
+ * TODO(b/225218822): Before productionizing this, we must determine whether to remove the ability to highlight or change this to use
+ *   `KotlinHighlightingVisitorExtension` (to avoid race conditions). This may be non-trivial as that class does not have the ability to
+ *   highlight anything other than the element being visited.
  */
 class ComposeStateReadAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {

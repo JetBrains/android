@@ -31,16 +31,12 @@ import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
 
 /**
- * Implementation of [LayoutlibCallbackEx] that disconnects the [delegate] when [parentDisposable]
- * is disposed. This is helpful since [BridgeContext] might retain a pointer to
- * [LayoutlibCallbackEx] while the dispose is executed. Using this delegate allows to disconnect the
- * actual [LayoutlibCallbackEx] from the memory tree allowing for it to be released even if the
- * dispose tasks take longer.
+ * Implementation of [LayoutlibCallbackEx] that disconnects the [delegate] when [parentDisposable] is disposed. This is helpful since
+ * [BridgeContext] might retain a pointer to [LayoutlibCallbackEx] while the dispose is executed. Using this delegate allows to disconnect
+ * the actual [LayoutlibCallbackEx] from the memory tree allowing for it to be released even if the dispose tasks take longer.
  */
-internal class LayoutlibCallbackExDelegate(
-  parentDisposable: Disposable,
-  delegate: LayoutlibCallbackEx,
-) : LayoutlibCallbackEx(), Disposable {
+internal class LayoutlibCallbackExDelegate(parentDisposable: Disposable, delegate: LayoutlibCallbackEx) :
+  LayoutlibCallbackEx(), Disposable {
   private var delegate: AtomicReference<LayoutlibCallbackEx?> = AtomicReference(delegate)
 
   init {
@@ -58,32 +54,23 @@ internal class LayoutlibCallbackExDelegate(
       it
     }
 
-  override fun loadView(
-    name: String,
-    constructorSignature: Array<out Class<*>?>,
-    constructorArgs: Array<out Any?>?,
-  ): Any? = getDelegate()?.loadView(name, constructorSignature, constructorArgs)
+  override fun loadView(name: String, constructorSignature: Array<out Class<*>?>, constructorArgs: Array<out Any?>?): Any? =
+    getDelegate()?.loadView(name, constructorSignature, constructorArgs)
 
   override fun resolveResourceId(id: Int): ResourceReference? = getDelegate()?.resolveResourceId(id)
 
-  override fun getOrGenerateResourceId(resource: ResourceReference): Int =
-    getDelegate()?.getOrGenerateResourceId(resource) ?: 0
+  override fun getOrGenerateResourceId(resource: ResourceReference): Int = getDelegate()?.getOrGenerateResourceId(resource) ?: 0
 
-  override fun getParser(layoutResource: ResourceValue): ILayoutPullParser? =
-    getDelegate()?.getParser(layoutResource)
+  override fun getParser(layoutResource: ResourceValue): ILayoutPullParser? = getDelegate()?.getParser(layoutResource)
 
-  override fun getAdapterBinding(
-    viewObject: Any?,
-    attributes: Map<String?, String?>?,
-  ): AdapterBinding? = getDelegate()?.getAdapterBinding(viewObject, attributes)
+  override fun getAdapterBinding(viewObject: Any?, attributes: Map<String?, String?>?): AdapterBinding? =
+    getDelegate()?.getAdapterBinding(viewObject, attributes)
 
   override fun getActionBarCallback(): ActionBarCallback? = getDelegate()?.getActionBarCallback()
 
-  override fun createXmlParserForPsiFile(fileName: String): XmlPullParser? =
-    getDelegate()?.createXmlParserForPsiFile(fileName)
+  override fun createXmlParserForPsiFile(fileName: String): XmlPullParser? = getDelegate()?.createXmlParserForPsiFile(fileName)
 
-  override fun createXmlParserForFile(fileName: String): XmlPullParser? =
-    getDelegate()?.createXmlParserForFile(fileName)
+  override fun createXmlParserForFile(fileName: String): XmlPullParser? = getDelegate()?.createXmlParserForFile(fileName)
 
   override fun createXmlParser(): XmlPullParser = getDelegate()?.createXmlParser() ?: KXmlParser()
 
@@ -98,8 +85,7 @@ internal class LayoutlibCallbackExDelegate(
 
   override fun setLogger(logger: IRenderLogger): Unit = getDelegate()?.setLogger(logger) ?: Unit
 
-  override fun getLayoutEmbeddedParser(): ILayoutPullParser? =
-    getDelegate()?.getLayoutEmbeddedParser()
+  override fun getLayoutEmbeddedParser(): ILayoutPullParser? = getDelegate()?.getLayoutEmbeddedParser()
 
   override fun reset(): Unit = getDelegate()?.reset() ?: Unit
 
@@ -135,30 +121,24 @@ internal class LayoutlibCallbackExDelegate(
         defaultValue,
       )
 
-  override fun loadClass(
-    name: String,
-    constructorSignature: Array<out Class<*>?>?,
-    constructorArgs: Array<out Any?>?,
-  ): Any? = getDelegate()?.loadClass(name, constructorSignature, constructorArgs)
+  override fun loadClass(name: String, constructorSignature: Array<out Class<*>?>?, constructorArgs: Array<out Any?>?): Any? =
+    getDelegate()?.loadClass(name, constructorSignature, constructorArgs)
 
   override fun getApplicationId(): String? = getDelegate()?.applicationId
 
   override fun getResourcePackage(): String? = getDelegate()?.resourcePackage
 
-  override fun findClass(name: String): Class<*> =
-    getDelegate()?.findClass(name) ?: throw ClassNotFoundException(name)
+  override fun findClass(name: String): Class<*> = getDelegate()?.findClass(name) ?: throw ClassNotFoundException(name)
 
   override fun isClassLoaded(name: String): Boolean = getDelegate()?.isClassLoaded(name) ?: false
 
-  override fun getImplicitNamespaces(): ResourceNamespace.Resolver =
-    getDelegate()?.implicitNamespaces ?: EMPTY_RESOLVER
+  override fun getImplicitNamespaces(): ResourceNamespace.Resolver = getDelegate()?.implicitNamespaces ?: EMPTY_RESOLVER
 
   override fun hasLegacyAppCompat(): Boolean = getDelegate()?.hasLegacyAppCompat() == true
 
   override fun hasAndroidXAppCompat(): Boolean = getDelegate()?.hasAndroidXAppCompat() == true
 
-  override fun isResourceNamespacingRequired(): Boolean =
-    getDelegate()?.isResourceNamespacingRequired == true
+  override fun isResourceNamespacingRequired(): Boolean = getDelegate()?.isResourceNamespacingRequired == true
 
   override fun shouldUseCustomInflater(): Boolean = getDelegate()?.shouldUseCustomInflater() == true
 
@@ -166,8 +146,7 @@ internal class LayoutlibCallbackExDelegate(
     getDelegate()?.error(message, *details)
   }
 
-  override fun error(message: String, t: Throwable?): Unit =
-    getDelegate()?.error(message, t) ?: Unit
+  override fun error(message: String, t: Throwable?): Unit = getDelegate()?.error(message, t) ?: Unit
 
   override fun error(t: Throwable): Unit = getDelegate()?.error(t) ?: Unit
 

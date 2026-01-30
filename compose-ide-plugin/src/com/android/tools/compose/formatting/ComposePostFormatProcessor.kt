@@ -39,8 +39,8 @@ import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 
 /**
- * Runs after explicit code formatting invocation and for Modifier(androidx.compose.ui.Modifier)
- * chain that is two modifiers or longer, splits it in one modifier per line.
+ * Runs after explicit code formatting invocation and for Modifier(androidx.compose.ui.Modifier) chain that is two modifiers or longer,
+ * splits it in one modifier per line.
  */
 class ComposePostFormatProcessor : PostFormatProcessor {
 
@@ -48,24 +48,15 @@ class ComposePostFormatProcessor : PostFormatProcessor {
     return psiElement.containingFile is KtFile &&
       isComposeEnabled(psiElement) &&
       !DumbService.isDumb(psiElement.project) &&
-      settings
-        .getCustomSettings(ComposeCustomCodeStyleSettings::class.java)
-        .USE_CUSTOM_FORMATTING_FOR_MODIFIERS
+      settings.getCustomSettings(ComposeCustomCodeStyleSettings::class.java).USE_CUSTOM_FORMATTING_FOR_MODIFIERS
   }
 
   override fun processElement(source: PsiElement, settings: CodeStyleSettings): PsiElement {
-    return if (isAvailable(source, settings)) ComposeModifierProcessor(settings).process(source)
-    else source
+    return if (isAvailable(source, settings)) ComposeModifierProcessor(settings).process(source) else source
   }
 
-  override fun processText(
-    source: PsiFile,
-    rangeToReformat: TextRange,
-    settings: CodeStyleSettings,
-  ): TextRange {
-    return if (isAvailable(source, settings))
-      ComposeModifierProcessor(settings).processText(source, rangeToReformat)
-    else rangeToReformat
+  override fun processText(source: PsiFile, rangeToReformat: TextRange, settings: CodeStyleSettings): TextRange {
+    return if (isAvailable(source, settings)) ComposeModifierProcessor(settings).processText(source, rangeToReformat) else rangeToReformat
   }
 }
 
@@ -98,17 +89,14 @@ class ComposeModifierProcessor(private val settings: CodeStyleSettings) : KtTree
 }
 
 /**
- * Returns true if it's Modifier(androidx.compose.ui.Modifier) chain that is two modifiers or
- * longer.
+ * Returns true if it's Modifier(androidx.compose.ui.Modifier) chain that is two modifiers or longer.
  *
- * Note that this function calls [isModifierChainLongerThanTwo] that potentially uses the analysis
- * API for K2. Since reformat can be used by template on write action, we need to wrap it with
- * [allowAnalysisFromWriteAction].
+ * Note that this function calls [isModifierChainLongerThanTwo] that potentially uses the analysis API for K2. Since reformat can be used by
+ * template on write action, we need to wrap it with [allowAnalysisFromWriteAction].
  *
- * TODO(310045274): We have to avoid analysis API use on write action eventually. Double check if we
- *   can avoid analysis here and drop [allowAnalysisFromWriteAction] (as explained above, reformat
- *   will run after final PSI is determined by the template, so it looks impossible to drop analysis
- *   here though).
+ * TODO(310045274): We have to avoid analysis API use on write action eventually. Double check if we can avoid analysis here and drop
+ *   [allowAnalysisFromWriteAction] (as explained above, reformat will run after final PSI is determined by the template, so it looks
+ *   impossible to drop analysis here though).
  */
 @OptIn(KaAllowAnalysisFromWriteAction::class)
 private fun isModifierChainThatNeedToBeWrapped(element: KtElement): Boolean {
@@ -120,10 +108,7 @@ private fun isModifierChainThatNeedToBeWrapped(element: KtElement): Boolean {
 }
 
 /** Splits KtDotQualifiedExpression it one call per line. */
-internal tailrec fun wrapModifierChain(
-  element: KtDotQualifiedExpression,
-  settings: CodeStyleSettings,
-) {
+internal tailrec fun wrapModifierChain(element: KtDotQualifiedExpression, settings: CodeStyleSettings) {
   // Run with modified settings to ensure there's one Modifier call per line.
   CodeStyle.runWithLocalSettings(element.project, settings) { tempSettings: CodeStyleSettings ->
     tempSettings.kotlinCommonSettings.METHOD_CALL_CHAIN_WRAP = CommonCodeStyleSettings.WRAP_ALWAYS
@@ -136,8 +121,7 @@ internal tailrec fun wrapModifierChain(
     // The '.' is located immediately following the receiver expression, and always is exactly one
     // character.
     val receiverEndOffset = element.receiverExpression.endOffset
-    CodeFormatterFacade(tempSettings, element.language)
-      .processRange(element.node, receiverEndOffset, receiverEndOffset + 1)
+    CodeFormatterFacade(tempSettings, element.language).processRange(element.node, receiverEndOffset, receiverEndOffset + 1)
   }
 
   // Now that there was (potentially) a newline added, the call expression should be reformatted

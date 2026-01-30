@@ -24,12 +24,12 @@ import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ModuleRClass
 import com.android.tools.idea.res.ModuleRClass.SourceSet
 import com.android.tools.idea.res.RClassResources
-import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.ResourceRepositoryRClass
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.NON_TRANSITIVE
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.TRANSITIVE
 import com.android.tools.idea.res.SmallAarRClass
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.res.ResourceNamespacing
@@ -73,12 +73,9 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
      * Set of keys for data that can be found in [LightVirtualFile]s and used to determine whether the files can be found in a given
      * modules' resolve scope.
      */
-    @JvmField
-    val LIGHT_CLASS_KEY: Key<Class<out LightElement>> = Key.create(::LIGHT_CLASS_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
-    @JvmField
-    val BACKING_CLASS: Key<RClassResources> = Key.create(::BACKING_CLASS.qualifiedName<AndroidResolveScopeEnlarger>())
-    @JvmField
-    val MODULE_POINTER_KEY: Key<ModulePointer> = Key.create(::MODULE_POINTER_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
+    @JvmField val LIGHT_CLASS_KEY: Key<Class<out LightElement>> = Key.create(::LIGHT_CLASS_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
+    @JvmField val BACKING_CLASS: Key<RClassResources> = Key.create(::BACKING_CLASS.qualifiedName<AndroidResolveScopeEnlarger>())
+    @JvmField val MODULE_POINTER_KEY: Key<ModulePointer> = Key.create(::MODULE_POINTER_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
     val AAR_ADDRESS_KEY: Key<String> = Key.create(::AAR_ADDRESS_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
     val FILE_SOURCE_SET_KEY: Key<SourceSet> = Key.create(::FILE_SOURCE_SET_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
     val TRANSITIVITY_KEY: Key<Transitivity> = Key.create(::TRANSITIVITY_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
@@ -95,14 +92,12 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
       return ManifestAndRClassScope(
         module,
         includeTests,
-        if (androidFacet.module.getModuleSystem().isRClassTransitive) TRANSITIVE else NON_TRANSITIVE)
+        if (androidFacet.module.getModuleSystem().isRClassTransitive) TRANSITIVE else NON_TRANSITIVE,
+      )
     }
 
-    private class ManifestAndRClassScope(
-      val module: Module,
-      val includeTests: Boolean,
-      val transitivity: Transitivity
-    ): GlobalSearchScope(module.project) {
+    private class ManifestAndRClassScope(val module: Module, val includeTests: Boolean, val transitivity: Transitivity) :
+      GlobalSearchScope(module.project) {
 
       private val dependentAarAddresses = findDependenciesWithResources(module).keys
       private val namespacing = StudioResourceRepositoryManager.getInstance(module)?.namespacing
@@ -156,6 +151,7 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
       }
 
       override fun isSearchInModuleContent(aModule: Module) = true
+
       override fun isSearchInLibraries() = false
     }
 
@@ -164,12 +160,18 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
       // Cache is invalidated after a gradle sync.
       val cacheKey = if (includeTests) resolveScopeWithTestsKey else resolveScopeSansTestsKey
       val project = module.project
-      return CachedValuesManager.getManager(project).getCachedValue(module, cacheKey, {
-        CachedValueProvider.Result(
-          computeAdditionalResolveScopeForModule(module, includeTests),
-          ProjectSyncModificationTracker.getInstance(project)
+      return CachedValuesManager.getManager(project)
+        .getCachedValue(
+          module,
+          cacheKey,
+          {
+            CachedValueProvider.Result(
+              computeAdditionalResolveScopeForModule(module, includeTests),
+              ProjectSyncModificationTracker.getInstance(project),
+            )
+          },
+          false,
         )
-      }, false)
     }
   }
 
@@ -178,11 +180,12 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
 
     return getAdditionalResolveScopeForModule(
       module,
-      includeTests = when {
-        !TestSourcesFilter.isTestSources(file, project) -> false
-        TestArtifactSearchScopes.getInstance(module)?.isAndroidTestSource(file) == false -> false
-        else -> true
-      }
+      includeTests =
+        when {
+          !TestSourcesFilter.isTestSources(file, project) -> false
+          TestArtifactSearchScopes.getInstance(module)?.isAndroidTestSource(file) == false -> false
+          else -> true
+        },
     )
   }
 }

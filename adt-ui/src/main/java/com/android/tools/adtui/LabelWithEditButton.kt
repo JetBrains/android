@@ -36,10 +36,7 @@ private const val DONE_TEXT = "Done"
 
 /** A label with an "edit" button that turns it into a text field */
 class LabelWithEditButton(defaultValue: String = "") : JPanel(), DocumentAccessor {
-  val button =
-    JToggleButton(EDIT_TEXT).apply {
-      addActionListener { text = if (isSelected) DONE_TEXT else EDIT_TEXT }
-    }
+  val button = JToggleButton(EDIT_TEXT).apply { addActionListener { text = if (isSelected) DONE_TEXT else EDIT_TEXT } }
   val textField: JTextField =
     SometimesEditableTextField(defaultValue).apply {
       isEnabled = false
@@ -48,11 +45,7 @@ class LabelWithEditButton(defaultValue: String = "") : JPanel(), DocumentAccesso
 
   val panel = panel {
     row {
-      cell(textField)
-        .align(AlignX.FILL)
-        .resizableColumn()
-        .enabledIf(button.selected)
-        .focusInWindowIf(button.selected)
+      cell(textField).align(AlignX.FILL).resizableColumn().enabledIf(button.selected).focusInWindowIf(button.selected)
       cell(button)
     }
   }
@@ -81,11 +74,9 @@ class LabelWithEditButton(defaultValue: String = "") : JPanel(), DocumentAccesso
 }
 
 private class SometimesEditableTextField(text: String) : JTextField(text) {
-  override fun getBorder(): Border? =
-    if (isEnabled) super.getBorder() else BorderFactory.createEmptyBorder()
+  override fun getBorder(): Border? = if (isEnabled) super.getBorder() else BorderFactory.createEmptyBorder()
 
-  override fun getBackground(): Color? =
-    if (isEnabled || parent == null) super.getBackground() else parent.background
+  override fun getBackground(): Color? = if (isEnabled || parent == null) super.getBackground() else parent.background
 }
 
 private fun Cell<*>.focusInWindowIf(predicate: ComponentPredicate): Cell<*> {

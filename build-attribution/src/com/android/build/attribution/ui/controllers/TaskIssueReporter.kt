@@ -35,27 +35,29 @@ interface TaskIssueReporter {
 class TaskIssueReporterImpl(
   reportData: BuildAttributionReportUiData,
   private val project: Project,
-  private val analytics: BuildAttributionUiAnalytics
+  private val analytics: BuildAttributionUiAnalytics,
 ) : TaskIssueReporter {
 
-  private val generator = TaskIssueReportGenerator(
-    reportData,
-    { SubmitBugReportAction.getDescription(project) },
-    { ProjectStructure.getInstance(project).androidPluginVersions.allVersions }
-  )
+  private val generator =
+    TaskIssueReportGenerator(
+      reportData,
+      { SubmitBugReportAction.getDescription(project) },
+      { ProjectStructure.getInstance(project).androidPluginVersions.allVersions },
+    )
 
   @UiThread
   override fun reportIssue(taskData: TaskUiData) {
-    val task = object : Task.Modal(project, "Collecting Data", false) {
-      override fun run(indicator: ProgressIndicator) {
-        indicator.text = "Collecting Feedback Information"
-        indicator.isIndeterminate = true
-        val reportText = generator.generateReportText(taskData)
-        ApplicationManager.getApplication().invokeLater {
-          BuildAttributionIssueReportingDialog(project, analytics, taskData.pluginName, reportText).show()
+    val task =
+      object : Task.Modal(project, "Collecting Data", false) {
+        override fun run(indicator: ProgressIndicator) {
+          indicator.text = "Collecting Feedback Information"
+          indicator.isIndeterminate = true
+          val reportText = generator.generateReportText(taskData)
+          ApplicationManager.getApplication().invokeLater {
+            BuildAttributionIssueReportingDialog(project, analytics, taskData.pluginName, reportText).show()
+          }
         }
       }
-    }
     task.queue()
   }
 }

@@ -20,20 +20,14 @@ import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 
 class SdkIntReplacer(delegate: ClassVisitor) :
-  StaticFieldReplacer(
-    delegate,
-    "android/os/Build\$VERSION",
-    "SDK_INT",
-    "com/android/layoutlib/bridge/impl/RenderAction",
-    "sSimulatedSdk",
-  ),
+  StaticFieldReplacer(delegate, "android/os/Build\$VERSION", "SDK_INT", "com/android/layoutlib/bridge/impl/RenderAction", "sSimulatedSdk"),
   ClassVisitorUniqueIdProvider {
   override val uniqueId: String = SdkIntReplacer::class.qualifiedName!!
 }
 
 /**
- * Replaces all calls to the static field [originalOwner]#[originalName] with calls to another
- * static field [newOwner]#[newName]. The two fields need to be of the same type.
+ * Replaces all calls to the static field [originalOwner]#[originalName] with calls to another static field [newOwner]#[newName]. The two
+ * fields need to be of the same type.
  */
 open class StaticFieldReplacer(
   delegate: ClassVisitor,

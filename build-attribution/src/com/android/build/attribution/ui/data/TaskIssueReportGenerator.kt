@@ -29,11 +29,12 @@ import java.util.Locale
 class TaskIssueReportGenerator(
   private val reportData: BuildAttributionReportUiData,
   private val platformInformationProvider: () -> String,
-  private val agpVersionsProvider: () -> List<AgpVersion>
+  private val agpVersionsProvider: () -> List<AgpVersion>,
 ) {
 
   fun generateReportText(taskData: TaskUiData): String {
-    return Strings.convertLineSeparators("""
+    return Strings.convertLineSeparators(
+      """
 ${generateHeaderText(taskData.pluginName)}
 
 ${generateFoundIssuesText(taskData)}
@@ -46,12 +47,14 @@ ${generateTaskExecutionText(taskData)}
 ${generateBuildInformationText()}
 ====Platform information:====
 ${generatePlatformInformationText()}
-""".trim(), LineSeparator.getSystemLineSeparator().separatorString)
+"""
+        .trim(),
+      LineSeparator.getSystemLineSeparator().separatorString,
+    )
   }
 
   private fun generateHeaderText(pluginName: String): String {
-    val date = SimpleDateFormat("HH:mm, MMM dd, yyyy", Locale.US).format(
-      Date(reportData.buildSummary.buildFinishedTimestamp))
+    val date = SimpleDateFormat("HH:mm, MMM dd, yyyy", Locale.US).format(Date(reportData.buildSummary.buildFinishedTimestamp))
     return "At ${date}, ${ApplicationNamesInfo.getInstance().fullProductName} detected the following issue(s) with Gradle plugin ${pluginName}"
   }
 
@@ -66,7 +69,8 @@ Configuration time: ${reportData.buildSummary.configurationDuration.commonString
 Critical path tasks time: ${reportData.buildSummary.criticalPathDuration.commonString()}
 Critical path tasks size: ${reportData.criticalPathTasks.size}
 AGP versions: ${generateAgpVersionsString()}
-""".trim()
+"""
+      .trim()
   }
 
   private fun generatePlatformInformationText(): String {
@@ -76,18 +80,17 @@ AGP versions: ${generateAgpVersionsString()}
   private fun generateTaskExecutionText(taskData: TaskUiData): String {
     return buildString {
       val occurrences = findOtherTaskOccurrencesWithIssues(taskData)
-      val timeSum = TimeWithPercentage(
-        occurrences.sumOf { it.executionTime.timeMs },
-        reportData.buildSummary.criticalPathDuration.timeMs
-      )
+      val timeSum = TimeWithPercentage(occurrences.sumOf { it.executionTime.timeMs }, reportData.buildSummary.criticalPathDuration.timeMs)
       appendLine(
-        "Issues for the same task were detected in ${occurrences.size} module(s), total execution time was ${timeSum.commonString()}, by module:")
+        "Issues for the same task were detected in ${occurrences.size} module(s), total execution time was ${timeSum.commonString()}, by module:"
+      )
       for (task in occurrences) {
-        val line = "Execution mode: ${task.executionMode}, " +
-                   "time: ${task.executionTime.commonString()}, " +
-                   "determines build duration: ${task.onExtendedCriticalPath}, " +
-                   "on critical path: ${task.onLogicalCriticalPath}, " +
-                   task.issues.joinToString(prefix = "issues: ") { it.type.uiName }
+        val line =
+          "Execution mode: ${task.executionMode}, " +
+            "time: ${task.executionTime.commonString()}, " +
+            "determines build duration: ${task.onExtendedCriticalPath}, " +
+            "on critical path: ${task.onLogicalCriticalPath}, " +
+            task.issues.joinToString(prefix = "issues: ") { it.type.uiName }
         appendLine("  $line")
       }
     }
@@ -96,21 +99,20 @@ AGP versions: ${generateAgpVersionsString()}
   private fun generateAgpVersionsString(): String =
     agpVersionsProvider().toSortedSet(Comparator.reverseOrder()).joinToString(limit = 5) { it.toString() }
 
-  private fun findOtherTaskOccurrencesWithIssues(taskData: TaskUiData): List<TaskUiData> = reportData.issues.asSequence()
-    .flatMap { issuesGroup -> issuesGroup.issues.asSequence() }
-    .map { it.task }
-    .filter { it.isSameTask(taskData) }
-    .distinct()
-    .sortedByDescending { it.executionTime.timeMs }
-    .toList()
+  private fun findOtherTaskOccurrencesWithIssues(taskData: TaskUiData): List<TaskUiData> =
+    reportData.issues
+      .asSequence()
+      .flatMap { issuesGroup -> issuesGroup.issues.asSequence() }
+      .map { it.task }
+      .filter { it.isSameTask(taskData) }
+      .distinct()
+      .sortedByDescending { it.executionTime.timeMs }
+      .toList()
 
   private fun TimeWithPercentage.commonString(): String = "${durationString()} (${percentageString()})"
 
-  /**
-   * Checks if this task is same as other possible from different module.
-   */
+  /** Checks if this task is same as other possible from different module. */
   private fun TaskUiData.isSameTask(other: TaskUiData): Boolean {
-    return this.name == other.name &&
-           this.pluginName == other.pluginName
+    return this.name == other.name && this.pluginName == other.pluginName
   }
 }

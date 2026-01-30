@@ -64,21 +64,31 @@ fun TaskActionBar(pastRecordingsTabModel: PastRecordingsTabModel, ideProfilerCom
   val isRecordingSelected = recordingListModel.isRecordingSelected()
   val selectedTaskType by pastRecordingsTabModel.taskGridModel.selectedTaskType.collectAsState()
 
-  Box(
-    modifier = Modifier.fillMaxWidth().padding(start = TASK_ACTION_BAR_CONTENT_PADDING_DP)
-  ) {
+  Box(modifier = Modifier.fillMaxWidth().padding(start = TASK_ACTION_BAR_CONTENT_PADDING_DP)) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterStart)) {
-      RecordingActionGroup(artifact = recordingListModel.exportableArtifact, isRecordingExportable = isRecordingExportable,
-                           isRecordingSelected = isRecordingSelected,
-                           doDeleteSelectedRecording = recordingListModel::doDeleteSelectedRecording,
-                           profilers = recordingListModel.profilers, ideProfilerComponents = ideProfilerComponents)
+      RecordingActionGroup(
+        artifact = recordingListModel.exportableArtifact,
+        isRecordingExportable = isRecordingExportable,
+        isRecordingSelected = isRecordingSelected,
+        doDeleteSelectedRecording = recordingListModel::doDeleteSelectedRecording,
+        profilers = recordingListModel.profilers,
+        ideProfilerComponents = ideProfilerComponents,
+      )
     }
 
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterEnd).background(
-      color = JewelTheme.globalColors.panelBackground.copy(alpha = 1.0f)).padding(TASK_NOTIFICATION_CONTAINER_PADDING_DP)) {
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      modifier =
+        Modifier.align(Alignment.CenterEnd)
+          .background(color = JewelTheme.globalColors.panelBackground.copy(alpha = 1.0f))
+          .padding(TASK_NOTIFICATION_CONTAINER_PADDING_DP),
+    ) {
       // The enter task button.
-      OpenTaskButton(selectedTaskType = selectedTaskType, selectedRecording = selectedRecording,
-                     onClick = pastRecordingsTabModel::onEnterTaskButtonClick)
+      OpenTaskButton(
+        selectedTaskType = selectedTaskType,
+        selectedRecording = selectedRecording,
+        onClick = pastRecordingsTabModel::onEnterTaskButtonClick,
+      )
     }
   }
 }
@@ -103,40 +113,52 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
   val profilers = taskHomeTabModel.profilers
 
   val canStartTask = canStartTask(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint, profilers)
-  Row(modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP)) {
-
+  Row(
+    modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.spacedBy(TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP),
+  ) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start) {
       val canStartTaskFromProcessStart = canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, profilers)
       val processStartDisabledReason =
-        if (canStartTaskFromProcessStart) null else {
+        if (canStartTaskFromProcessStart) null
+        else {
           // Only show start task from process start error message if it's a startup task error.
-          getStartTaskError(selectedTaskType, selectedDevice, selectedProcess, TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
-                            profilers).takeIf { STARTUP_TASK_ERRORS.contains(it.startTaskSelectionErrorCode) }
+          getStartTaskError(
+              selectedTaskType,
+              selectedDevice,
+              selectedProcess,
+              TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
+              profilers,
+            )
+            .takeIf { STARTUP_TASK_ERRORS.contains(it.startTaskSelectionErrorCode) }
         }
-      TaskStartingPointDropdown(profilingProcessStartingPoint, taskHomeTabModel::setProfilingProcessStartingPoint,
-                                isProfilingProcessFromNowEnabled = true, isProfilingProcessFromProcessStartEnabled = true,
-                                selectedProcess.state == Common.Process.State.ALIVE, processStartDisabledReason)
+      TaskStartingPointDropdown(
+        profilingProcessStartingPoint,
+        taskHomeTabModel::setProfilingProcessStartingPoint,
+        isProfilingProcessFromNowEnabled = true,
+        isProfilingProcessFromProcessStartEnabled = true,
+        selectedProcess.state == Common.Process.State.ALIVE,
+        processStartDisabledReason,
+      )
       if (TaskHomeTabModel.doesTaskHaveRecordingTypes(selectedTaskType)) {
         Spacer(modifier = Modifier.width(TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP))
         TaskRecordingTypeDropdown(taskRecordingType, taskHomeTabModel::setTaskRecordingType)
       }
     }
 
-    val isProfileablePreferredButNotPresent = isProfileablePreferredButNotPresent(selectedTaskType, selectedProcess,
-                                                                                  profilingProcessStartingPoint)
+    val isProfileablePreferredButNotPresent =
+      isProfileablePreferredButNotPresent(selectedTaskType, selectedProcess, profilingProcessStartingPoint)
 
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End, modifier = Modifier.weight(1f)) {
       BoxWithConstraints(modifier = Modifier.align(Alignment.CenterVertically)) {
         // Set the minimum width to that of the notification icon, if smaller than that, nothing should be rendered.
         if (maxWidth > NOTIFICATION_ICON_SIZE_DP) {
           if (!canStartTask) {
-            val startTaskError = getStartTaskError(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint,
-                                                   profilers)
+            val startTaskError =
+              getStartTaskError(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint, profilers)
             StartTaskError(startTaskError)
-          }
-          else if (isProfileablePreferredButNotPresent) {
+          } else if (isProfileablePreferredButNotPresent) {
             ProfileablePreferredWarning(isSelectedProcessPreferred(selectedProcess, profilers))
           }
         }
@@ -145,9 +167,12 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
 
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End) {
       // The start task button.
-      StartTaskButton(canStartTask = canStartTask, isPrevTaskStartDone = isPrevTaskStartDone,
-                      isProfileablePreferredButNotPresent = isProfileablePreferredButNotPresent,
-                      onClick = taskHomeTabModel::onEnterTaskButtonClick)
+      StartTaskButton(
+        canStartTask = canStartTask,
+        isPrevTaskStartDone = isPrevTaskStartDone,
+        isProfileablePreferredButNotPresent = isProfileablePreferredButNotPresent,
+        onClick = taskHomeTabModel::onEnterTaskButtonClick,
+      )
     }
   }
 }

@@ -44,11 +44,7 @@ class TabbedToolbarTest {
     val selected = {}
     toolbar.addTab("First", selected)
     val tree = TreeWalker(toolbar)
-    assertThat(
-        tree.descendantStream().anyMatch {
-          it.javaClass.isAssignableFrom(JLabel::class.java) && (it as JLabel).text == "First"
-        }
-      )
+    assertThat(tree.descendantStream().anyMatch { it.javaClass.isAssignableFrom(JLabel::class.java) && (it as JLabel).text == "First" })
       .isTrue()
   }
 
@@ -61,8 +57,7 @@ class TabbedToolbarTest {
     val tree = TreeWalker(toolbar)
     val buttonComponents =
       tree.descendantStream().filter {
-        it.javaClass.isAssignableFrom(CommonButton::class.java) &&
-          (it as CommonButton).actionListeners.isNotEmpty()
+        it.javaClass.isAssignableFrom(CommonButton::class.java) && (it as CommonButton).actionListeners.isNotEmpty()
       }
     buttonComponents.forEach { (it as CommonButton).doClick() }
     assertThat(closed).isTrue()
@@ -76,8 +71,7 @@ class TabbedToolbarTest {
     val tree = TreeWalker(toolbar)
     val buttonComponents =
       tree.descendantStream().filter {
-        it.javaClass.isAssignableFrom(CommonButton::class.java) &&
-          (it as CommonButton).actionListeners.isNotEmpty()
+        it.javaClass.isAssignableFrom(CommonButton::class.java) && (it as CommonButton).actionListeners.isNotEmpty()
       }
     assertThat(buttonComponents.isEmpty())
   }
@@ -91,8 +85,7 @@ class TabbedToolbarTest {
     val tree = TreeWalker(toolbar)
     val buttonComponents =
       tree.descendantStream().filter {
-        it.javaClass.isAssignableFrom(CommonButton::class.java) &&
-          (it as CommonButton).actionListeners.isNotEmpty()
+        it.javaClass.isAssignableFrom(CommonButton::class.java) && (it as CommonButton).actionListeners.isNotEmpty()
       }
     buttonComponents.forEach { (it as CommonButton).doClick() }
     assertThat(clicked).isTrue()

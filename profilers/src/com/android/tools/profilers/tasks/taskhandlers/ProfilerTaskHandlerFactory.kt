@@ -38,7 +38,7 @@ object ProfilerTaskHandlerFactory {
     taskHandlers[ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS] = JavaKotlinAllocationsTaskHandler(sessionsManager)
     taskHandlers[ProfilerTaskType.LIVE_VIEW] = LiveTaskHandler(sessionsManager)
     if (sessionsManager.studioProfilers.ideServices.featureConfig.isLeakCanaryEnabled) {
-     taskHandlers[ProfilerTaskType.LEAKCANARY] = LeakCanaryTaskHandler(sessionsManager)
+      taskHandlers[ProfilerTaskType.LEAKCANARY] = LeakCanaryTaskHandler(sessionsManager)
     }
     return taskHandlers
   }

@@ -67,7 +67,7 @@ class PsiUtilsTest {
       @Composable
       fun Greet${caret}ing() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -84,7 +84,7 @@ class PsiUtilsTest {
       """
       fun Greet${caret}ing() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -101,7 +101,7 @@ class PsiUtilsTest {
       """
       val greet${caret}ing = ""
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -119,7 +119,7 @@ class PsiUtilsTest {
       @Deprecated
       fun Greet${caret}ing() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady { assertThat(fixture.elementAtCaret.isDeprecated()).isTrue() }
@@ -133,7 +133,7 @@ class PsiUtilsTest {
       """
       fun Greet${caret}ing() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady { assertThat(fixture.elementAtCaret.isDeprecated()).isFalse() }
@@ -148,7 +148,7 @@ class PsiUtilsTest {
       package com.exa${caret}mple
       fun Greeting() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady { assertThat(fixture.elementAtCaret.isDeprecated()).isFalse() }
@@ -167,7 +167,7 @@ class PsiUtilsTest {
       @Deprecated
       fun Gree${caret}ting() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -184,7 +184,7 @@ class PsiUtilsTest {
       @Composable
       fun Gree${caret}ting() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -206,7 +206,7 @@ class PsiUtilsTest {
         val a = 35
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -242,7 +242,7 @@ class PsiUtilsTest {
         repeat(2) { val a = 35 }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -254,9 +254,7 @@ class PsiUtilsTest {
 
     fixture.removeComposableAnnotation("|@Composable| (Int)")
 
-    runReadActionWithIndexesReady {
-      assertThat(fixture.getEnclosing<KtElement>("35").composableScope()).isNull()
-    }
+    runReadActionWithIndexesReady { assertThat(fixture.getEnclosing<KtElement>("35").composableScope()).isNull() }
   }
 
   @Test
@@ -276,7 +274,7 @@ class PsiUtilsTest {
         repeat(2, action = { val a = 35 })
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -288,9 +286,7 @@ class PsiUtilsTest {
 
     fixture.removeComposableAnnotation("|@Composable| (Int)")
 
-    runReadActionWithIndexesReady {
-      assertThat(fixture.getEnclosing<KtElement>("35").composableScope()).isNull()
-    }
+    runReadActionWithIndexesReady { assertThat(fixture.getEnclosing<KtElement>("35").composableScope()).isNull() }
   }
 
   // This specifically tests for the issue in b/313902116 in which we threw NoSuchElementException
@@ -312,14 +308,11 @@ class PsiUtilsTest {
         repeat(2, notNamedAction = { val a = 35 })
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
-    runReadActionWithIndexesReady {
-      assertThat(fixture.getEnclosing<KtElement>("35").composableScope()).isNull()
-    }
+    runReadActionWithIndexesReady { assertThat(fixture.getEnclosing<KtElement>("35").composableScope()).isNull() }
   }
-
 
   @Test
   fun composableScope_lambdaArgument_anonymousFunction() {
@@ -338,7 +331,7 @@ class PsiUtilsTest {
         repeat(2) { val a = 35 }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -374,7 +367,7 @@ class PsiUtilsTest {
         repeat(2) { val a = 35 }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -410,7 +403,7 @@ class PsiUtilsTest {
         repeat(2) { val a = 35 }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -441,7 +434,7 @@ class PsiUtilsTest {
           return 35
         }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -472,7 +465,7 @@ class PsiUtilsTest {
           field = newValue + 2
         }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -498,7 +491,7 @@ class PsiUtilsTest {
         }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -519,7 +512,7 @@ class PsiUtilsTest {
         return 35
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -548,7 +541,7 @@ class PsiUtilsTest {
         val a: () -> Int = { 35 }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -570,7 +563,7 @@ class PsiUtilsTest {
         val a = { 35 }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -592,7 +585,7 @@ class PsiUtilsTest {
         val a = fun() { 35 }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -614,7 +607,7 @@ class PsiUtilsTest {
       """
       fun Greeting() { val a = 35 }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -641,7 +634,7 @@ class PsiUtilsTest {
         repeat(2) {  val a = 35 }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -668,7 +661,7 @@ class PsiUtilsTest {
         repeat(2) { val a = 35 }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -697,7 +690,7 @@ class PsiUtilsTest {
         }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -724,7 +717,7 @@ class PsiUtilsTest {
         repeat(2, action= { val a = 35 })
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -752,12 +745,10 @@ class PsiUtilsTest {
         repeat(2, notNamedAction = { val a = 35 })
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
-    runReadActionWithIndexesReady {
-      assertThat(fixture.getEnclosing<KtElement>("35").expectedComposableAnnotationHolder()).isNull()
-    }
+    runReadActionWithIndexesReady { assertThat(fixture.getEnclosing<KtElement>("35").expectedComposableAnnotationHolder()).isNull() }
   }
 
   @Test
@@ -777,7 +768,7 @@ class PsiUtilsTest {
         }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -800,7 +791,7 @@ class PsiUtilsTest {
           val a = 35
         }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -823,7 +814,7 @@ class PsiUtilsTest {
           field = newValue + 35
         }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -845,7 +836,7 @@ class PsiUtilsTest {
         }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     runReadActionWithIndexesReady {
@@ -857,7 +848,9 @@ class PsiUtilsTest {
 
   @Test
   fun isComposableLambdaArgument_isComposable() {
-    fixture.loadNewFile("Foo.kt", """
+    fixture.loadNewFile(
+      "Foo.kt",
+      """
       import androidx.compose.runtime.Composable
 
       @Composable
@@ -871,18 +864,22 @@ class PsiUtilsTest {
            println(1)
          }
       }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     runReadActionWithIndexesReady {
-      val higherLevelComposableLambdaArgument = fixture.getEnclosing<KtElement>("println(1)")
-                                                  .parentOfType<KtLambdaArgument>() ?: error("Did not find lambda argument")
+      val higherLevelComposableLambdaArgument =
+        fixture.getEnclosing<KtElement>("println(1)").parentOfType<KtLambdaArgument>() ?: error("Did not find lambda argument")
       assertThat(higherLevelComposableLambdaArgument.isComposableLambdaArgument()).isEqualTo(true)
     }
   }
 
   @Test
   fun isComposableLambdaArgument_isNotComposable() {
-    fixture.loadNewFile("Foo.kt", """
+    fixture.loadNewFile(
+      "Foo.kt",
+      """
       import androidx.compose.runtime.Composable
 
       @Composable
@@ -900,11 +897,13 @@ class PsiUtilsTest {
            println(2411)
          }
       }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     runReadActionWithIndexesReady {
-      val lambdaArgument = fixture.getEnclosing<KtElement>("println(2411)")
-                             .parentOfType<KtLambdaArgument>() ?: error("Did not find lambda argument")
+      val lambdaArgument =
+        fixture.getEnclosing<KtElement>("println(2411)").parentOfType<KtLambdaArgument>() ?: error("Did not find lambda argument")
       assertThat(lambdaArgument.isComposableLambdaArgument()).isEqualTo(false)
     }
   }

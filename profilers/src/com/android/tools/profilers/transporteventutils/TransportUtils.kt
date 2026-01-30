@@ -22,19 +22,23 @@ import java.util.function.Function
 
 object TransportUtils {
   @JvmStatic
-  fun registerListener(profilers: StudioProfilers,
-                       eventKind: Common.Event.Kind,
-                       streamId: Long,
-                       processId: Int,
-                       commandId: Int,
-                       callback: Function<Common.Event, Boolean>) {
-    val eventListener = TransportEventListener(
-      eventKind = eventKind,
-      executor = profilers.ideServices.mainExecutor,
-      filter = { event: Common.Event -> event.commandId == commandId },
-      streamId = { streamId },
-      processId = { processId },
-      callback = { event: Common.Event -> callback.apply(event) })
+  fun registerListener(
+    profilers: StudioProfilers,
+    eventKind: Common.Event.Kind,
+    streamId: Long,
+    processId: Int,
+    commandId: Int,
+    callback: Function<Common.Event, Boolean>,
+  ) {
+    val eventListener =
+      TransportEventListener(
+        eventKind = eventKind,
+        executor = profilers.ideServices.mainExecutor,
+        filter = { event: Common.Event -> event.commandId == commandId },
+        streamId = { streamId },
+        processId = { processId },
+        callback = { event: Common.Event -> callback.apply(event) },
+      )
 
     profilers.transportPoller.registerListener(eventListener)
   }

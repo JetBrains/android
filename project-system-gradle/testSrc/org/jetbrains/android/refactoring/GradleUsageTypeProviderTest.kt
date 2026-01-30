@@ -28,10 +28,8 @@ import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.usages.impl.rules.UsageTypeProviderEx
 import org.jetbrains.android.AndroidTestCase
 
-class GradleUsageTypeProviderTest: AndroidTestCase() {
-  /**
-   * Tests for [GradleUsageTypeProvider]
-   */
+class GradleUsageTypeProviderTest : AndroidTestCase() {
+  /** Tests for [GradleUsageTypeProvider] */
   fun testGroovyElement() {
     val file = myFixture.addFileToProject("Foo.gradle", "class F${caret}oo {}")
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -71,21 +69,22 @@ class GradleUsageTypeProviderTest: AndroidTestCase() {
     }
   }
 
-  private fun getUsageType(element: PsiElement) : UsageType? {
+  private fun getUsageType(element: PsiElement): UsageType? {
     return executeOnPooledThread {
-      runReadAction {
-        val dataContext = (myFixture.editor as EditorEx).dataContext
-        val editor = CommonDataKeys.EDITOR.getData(dataContext)
-        val psiFile = CommonDataKeys.PSI_FILE.getData(dataContext)
-        val psiElement = CommonDataKeys.PSI_ELEMENT.getData(dataContext)
-        UsageTypeProvider.EP_NAME.extensionList.firstNotNullOfOrNull {
-          when (it) {
-            is UsageTypeProviderEx -> it.getUsageType(
-              element, UsageTargetUtil.findUsageTargets(editor, psiFile, psiElement) ?: emptyArray())
-            else -> it.getUsageType(element)
+        runReadAction {
+          val dataContext = (myFixture.editor as EditorEx).dataContext
+          val editor = CommonDataKeys.EDITOR.getData(dataContext)
+          val psiFile = CommonDataKeys.PSI_FILE.getData(dataContext)
+          val psiElement = CommonDataKeys.PSI_ELEMENT.getData(dataContext)
+          UsageTypeProvider.EP_NAME.extensionList.firstNotNullOfOrNull {
+            when (it) {
+              is UsageTypeProviderEx ->
+                it.getUsageType(element, UsageTargetUtil.findUsageTargets(editor, psiFile, psiElement) ?: emptyArray())
+              else -> it.getUsageType(element)
+            }
           }
         }
       }
-    }.get()
+      .get()
   }
 }

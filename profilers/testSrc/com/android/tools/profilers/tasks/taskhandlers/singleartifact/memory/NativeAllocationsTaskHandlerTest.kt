@@ -39,27 +39,24 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.google.common.truth.Truth.assertThat
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 @RunWith(Parameterized::class)
 class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
   private val myTimer = FakeTimer()
-  private val ideProfilerServices = FakeIdeProfilerServices().apply {
-    enableTaskBasedUx(true)
-  }
+  private val ideProfilerServices = FakeIdeProfilerServices().apply { enableTaskBasedUx(true) }
   private val myTransportService = FakeTransportService(myTimer, false, ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("NativeAllocationsTaskHandlerTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("NativeAllocationsTaskHandlerTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -67,11 +64,7 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
 
   @Before
   fun setup() {
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     myNativeAllocationsTaskHandler = NativeAllocationsTaskHandler(myManager)
     myProfilers.addTaskHandler(ProfilerTaskType.NATIVE_ALLOCATIONS, myNativeAllocationsTaskHandler)
@@ -130,12 +123,10 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
   fun testStartTaskWithUnsetStage() {
     // To start the task and thus the capture, the stage must be set up before. Here we will test the case where startTask is invoked
     // without the stage being set precondition being met.
-    val exception = assertFailsWith<Throwable> {
-      myNativeAllocationsTaskHandler.startTask(NativeAllocationsTaskArgs(false, null))
-    }
+    val exception = assertFailsWith<Throwable> { myNativeAllocationsTaskHandler.startTask(NativeAllocationsTaskArgs(false, null)) }
     assertThat(myNativeAllocationsTaskHandler.stage).isNull()
-    assertThat(exception.message).isEqualTo(
-      "There was an error with the Native Allocations task. Error message: Cannot start the task as the InterimStage was null.")
+    assertThat(exception.message)
+      .isEqualTo("There was an error with the Native Allocations task. Error message: Cannot start the task as the InterimStage was null.")
   }
 
   @Test
@@ -162,10 +153,8 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
   fun testStopTaskSuccessfullyTerminatesTaskSession() {
     TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
     // First start the task successfully.
-    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE) as StartTrace)
-      .startStatus = Trace.TraceStartStatus.newBuilder()
-      .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
-      .build()
+    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE) as StartTrace).startStatus =
+      Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.SUCCESS).build()
     myNativeAllocationsTaskHandler.setupStage()
     myNativeAllocationsTaskHandler.startTask(NativeAllocationsTaskArgs(false, null))
     assertThat(myManager.isSessionAlive).isTrue()
@@ -215,13 +204,13 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
-    val exception = assertFailsWith<Throwable> {
-      myNativeAllocationsTaskHandler.loadTask(NativeAllocationsTaskArgs(false, null))
-    }
+    val exception = assertFailsWith<Throwable> { myNativeAllocationsTaskHandler.loadTask(NativeAllocationsTaskArgs(false, null)) }
 
-    assertThat(exception.message).isEqualTo(
-      "There was an error with the Native Allocations task. Error message: The task arguments (NativeAllocationsTaskArgs) supplied do " +
-      "not contains a valid artifact to load.")
+    assertThat(exception.message)
+      .isEqualTo(
+        "There was an error with the Native Allocations task. Error message: The task arguments (NativeAllocationsTaskArgs) supplied do " +
+          "not contains a valid artifact to load."
+      )
 
     // Verify that the artifact doSelect behavior was not called by checking if the stage was not set to MainMemoryProfilerStage.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
@@ -230,10 +219,11 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
   @Test
   fun testCreateArgsSuccessfully() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1,
-                              listOf(createHeapProfdSessionArtifact(myProfilers, selectedSession, 1, 100))),
-    )
+    val sessionIdToSessionItems =
+      mapOf(
+        1L to
+          createSessionItem(myProfilers, selectedSession, 1, listOf(createHeapProfdSessionArtifact(myProfilers, selectedSession, 1, 100)))
+      )
 
     val nativeAllocationsTaskArgs = myNativeAllocationsTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(nativeAllocationsTaskArgs).isNotNull()
@@ -249,10 +239,11 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
     // By setting a session id that does not match any of the session items, the task artifact will not be found in the call to createArgs
     // will fail to be constructed.
     val selectedSession = Common.Session.newBuilder().setSessionId(0).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1, listOf(
-        createHeapProfdSessionArtifact(myProfilers, selectedSession, 1, 100))),
-    )
+    val sessionIdToSessionItems =
+      mapOf(
+        1L to
+          createSessionItem(myProfilers, selectedSession, 1, listOf(createHeapProfdSessionArtifact(myProfilers, selectedSession, 1, 100)))
+      )
 
     assertThrows(IllegalStateException::class.java) {
       myNativeAllocationsTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
@@ -267,14 +258,18 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
     val pDevice = TaskHandlerTestUtils.createDevice(AndroidVersion.VersionCodes.P)
     assertNull(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(qDevice, debuggableProcess))
     assertNotNull(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, debuggableProcess))
-    assertEquals(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, debuggableProcess)!!.startTaskSelectionErrorCode,
-                 StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN)
+    assertEquals(
+      myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, debuggableProcess)!!.startTaskSelectionErrorCode,
+      StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN,
+    )
 
     val profileableProcess = TaskHandlerTestUtils.createProcess(isProfileable = true)
     assertNull(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(qDevice, profileableProcess))
     assertNotNull(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, profileableProcess))
-    assertEquals(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, debuggableProcess)!!.startTaskSelectionErrorCode,
-                 StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN)
+    assertEquals(
+      myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, debuggableProcess)!!.startTaskSelectionErrorCode,
+      StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN,
+    )
   }
 
   @Test

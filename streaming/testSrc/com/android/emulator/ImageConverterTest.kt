@@ -21,9 +21,7 @@ import com.android.tools.idea.protobuf.UnsafeByteOperations
 import org.junit.Assert.fail
 import org.junit.Test
 
-/**
- * Tests for [ImageConverter].
- */
+/** Tests for [ImageConverter]. */
 class ImageConverterTest {
   private val testImage = createTestImage()
 

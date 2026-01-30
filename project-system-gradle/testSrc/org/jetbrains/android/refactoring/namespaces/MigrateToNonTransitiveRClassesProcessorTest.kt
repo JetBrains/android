@@ -51,136 +51,135 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usages.UsageGroup
 import com.intellij.usages.UsageInfo2UsageAdapter
 import com.intellij.usages.UsageTarget
+import java.io.File
+import kotlin.test.assertTrue
 import org.jetbrains.kotlin.idea.codeInsight.inspections.UnusedSymbolInspection
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import kotlin.test.assertTrue
 
 @RunsInEdt
 class MigrateToNonTransitiveRClassesProcessorTest {
   private val TestUsageTracker.relevantUsages: List<AndroidStudioEvent>
     get() {
-      return usages
-        .filter { it.studioEvent.kind == MIGRATE_TO_NON_TRANSITIVE_R_CLASS }
-        .map { it.studioEvent }
+      return usages.filter { it.studioEvent.kind == MIGRATE_TO_NON_TRANSITIVE_R_CLASS }.map { it.studioEvent }
     }
 
-  private object MigrateToNonTransitiveRClassesTestProject: LightGradleTestProject {
+  private object MigrateToNonTransitiveRClassesTestProject : LightGradleTestProject {
     override val templateProject: TemplateBasedTestProject = TestProject.MIGRATE_TO_NON_TRANSITIVE_R_CLASSES
-    override val modelBuilders: List<ModuleModelBuilder> = listOf(
-      JavaModuleModelBuilder.rootModuleBuilder.copy(
-        groupId = "",
-        version = "unspecified",
-      ),
-      AndroidModuleModelBuilder(
-        gradlePath = ":app",
-        groupId = "reference",
-        version = "unspecified",
-        selectedBuildVariant = "debug",
-        projectBuilder = AndroidProjectBuilder(
-          androidModuleDependencyList = {
-            listOf(AndroidModuleDependency(":lib", "debug"))
-          },
-          namespace = { "com.example.app" }
-        ).build(),
-      ),
-      AndroidModuleModelBuilder(
-        gradlePath = ":lib",
-        groupId = "reference",
-        version = "unspecified",
-        selectedBuildVariant = "debug",
-        projectBuilder = AndroidProjectBuilder(
-          projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
-          androidModuleDependencyList = { listOf(AndroidModuleDependency(":sublib", null)) },
-          namespace = { "com.example.lib" }
-        ).build()
-      ),
-      AndroidModuleModelBuilder(
-        gradlePath = ":sublib",
-        groupId = "reference",
-        version = "unspecified",
-        selectedBuildVariant = "debug",
-        projectBuilder = AndroidProjectBuilder(
-          projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
-          namespace = { "com.example.sublib" }
-        ).build()
-      ),
-    )
+    override val modelBuilders: List<ModuleModelBuilder> =
+      listOf(
+        JavaModuleModelBuilder.rootModuleBuilder.copy(groupId = "", version = "unspecified"),
+        AndroidModuleModelBuilder(
+          gradlePath = ":app",
+          groupId = "reference",
+          version = "unspecified",
+          selectedBuildVariant = "debug",
+          projectBuilder =
+            AndroidProjectBuilder(
+                androidModuleDependencyList = { listOf(AndroidModuleDependency(":lib", "debug")) },
+                namespace = { "com.example.app" },
+              )
+              .build(),
+        ),
+        AndroidModuleModelBuilder(
+          gradlePath = ":lib",
+          groupId = "reference",
+          version = "unspecified",
+          selectedBuildVariant = "debug",
+          projectBuilder =
+            AndroidProjectBuilder(
+                projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
+                androidModuleDependencyList = { listOf(AndroidModuleDependency(":sublib", null)) },
+                namespace = { "com.example.lib" },
+              )
+              .build(),
+        ),
+        AndroidModuleModelBuilder(
+          gradlePath = ":sublib",
+          groupId = "reference",
+          version = "unspecified",
+          selectedBuildVariant = "debug",
+          projectBuilder =
+            AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY }, namespace = { "com.example.sublib" })
+              .build(),
+        ),
+      )
   }
 
-  @get:Rule
-  val usageTrackerRule = MetricsTrackerRule()
+  @get:Rule val usageTrackerRule = MetricsTrackerRule()
 
   @get:Rule
-  val projectRule =
-    AndroidProjectRule.testProjectNoSync(MigrateToNonTransitiveRClassesTestProject).named("migrateToNonTransitiveRClasses")
+  val projectRule = AndroidProjectRule.testProjectNoSync(MigrateToNonTransitiveRClassesTestProject).named("migrateToNonTransitiveRClasses")
 
   @Test
   fun testMiddleModule_Java() {
-    MigrateToNonTransitiveRClassesProcessor.forSingleModule(projectRule.project.findModule("lib.main").androidFacet!!,
-                                                            AgpVersion.parse("7.0.0")).run()
+    MigrateToNonTransitiveRClassesProcessor.forSingleModule(
+        projectRule.project.findModule("lib.main").androidFacet!!,
+        AgpVersion.parse("7.0.0"),
+      )
+      .run()
     projectRule.fixture.checkResult(
       "app/src/main/java/com/example/app/AppJavaClass.java",
       // language=java
       """
-        package com.example.app;
+      package com.example.app;
 
-        public class AppJavaClass {
-            public void foo() {
-                int[] ids = new int[] {
-                        R.string.from_app,
-                        R.string.another_app_string,
-                        R.string.from_lib,
-                        R.string.another_lib_string,
-                        R.string.from_sublib,
-                        com.example.lib.R.string.from_lib,
-                        com.example.lib.R.string.another_lib_string,
-                        com.example.sublib.R.string.from_sublib,
-                        com.example.sublib.R.string.from_sublib,
+      public class AppJavaClass {
+          public void foo() {
+              int[] ids = new int[] {
+                      R.string.from_app,
+                      R.string.another_app_string,
+                      R.string.from_lib,
+                      R.string.another_lib_string,
+                      R.string.from_sublib,
+                      com.example.lib.R.string.from_lib,
+                      com.example.lib.R.string.another_lib_string,
+                      com.example.sublib.R.string.from_sublib,
+                      com.example.sublib.R.string.from_sublib,
 
-                        // Styleable_Attr has more logic than other ResourceTypes
-                        R.styleable.styleable_from_app_Attr_from_app,
-                        R.styleable.styleable_from_lib_Attr_from_lib,
-                        R.styleable.styleable_from_sublib_Attr_from_sublib,
-                        com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                };
-            }
-        }
-      """.trimIndent(),
-      true
+                      // Styleable_Attr has more logic than other ResourceTypes
+                      R.styleable.styleable_from_app_Attr_from_app,
+                      R.styleable.styleable_from_lib_Attr_from_lib,
+                      R.styleable.styleable_from_sublib_Attr_from_sublib,
+                      com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+              };
+          }
+      }
+      """
+        .trimIndent(),
+      true,
     )
 
     projectRule.fixture.checkResult(
       "lib/src/main/java/com/example/lib/LibJavaClass.java",
       // language=java
       """
-        package com.example.lib;
+      package com.example.lib;
 
-        public class LibJavaClass {
-            public void foo() {
-                int[] ids = new int[] {
-                        R.string.from_lib,
-                        R.string.another_lib_string,
-                        com.example.sublib.R.string.from_sublib,
-                        com.example.sublib.R.string.from_sublib,
+      public class LibJavaClass {
+          public void foo() {
+              int[] ids = new int[] {
+                      R.string.from_lib,
+                      R.string.another_lib_string,
+                      com.example.sublib.R.string.from_sublib,
+                      com.example.sublib.R.string.from_sublib,
 
-                        // Styleable_Attr has more logic than other ResourceTypes
-                        R.styleable.styleable_from_lib_Attr_from_lib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                };
-            }
-        }
-      """.trimIndent(),
-      true
+                      // Styleable_Attr has more logic than other ResourceTypes
+                      R.styleable.styleable_from_lib_Attr_from_lib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+              };
+          }
+      }
+      """
+        .trimIndent(),
+      true,
     )
 
-    val usages = usageTrackerRule.testTracker.usages
-      .filter { it.studioEvent.kind == MIGRATE_TO_NON_TRANSITIVE_R_CLASS }
-      .map { it.studioEvent }
+    val usages =
+      usageTrackerRule.testTracker.usages.filter { it.studioEvent.kind == MIGRATE_TO_NON_TRANSITIVE_R_CLASS }.map { it.studioEvent }
     assertThat(usages).hasSize(2)
 
     val findUsagesEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == FIND_USAGES }
@@ -192,193 +191,208 @@ class MigrateToNonTransitiveRClassesProcessorTest {
 
   @Test
   fun testMiddleModule_Kotlin() {
-    MigrateToNonTransitiveRClassesProcessor.forSingleModule(projectRule.project.findModule("lib.main").androidFacet!!,
-                                                            AgpVersion.parse("7.0.0")).run()
+    MigrateToNonTransitiveRClassesProcessor.forSingleModule(
+        projectRule.project.findModule("lib.main").androidFacet!!,
+        AgpVersion.parse("7.0.0"),
+      )
+      .run()
 
     projectRule.fixture.checkResult(
       "app/src/main/java/com/example/app/AppKotlinClass.kt",
       // language=kotlin
       """
-        package com.example.app
+      package com.example.app
 
-        class AppKotlinClass {
-            fun foo() {
-                val ids = intArrayOf(
-                    R.string.from_app,
-                    R.string.another_app_string,
-                    R.string.from_lib,
-                    R.string.another_lib_string,
-                    R.string.from_sublib,
-                    com.example.lib.R.string.from_lib,
-                    com.example.lib.R.string.another_lib_string,
-                    com.example.sublib.R.string.from_sublib,
-                    com.example.sublib.R.string.from_sublib,
+      class AppKotlinClass {
+          fun foo() {
+              val ids = intArrayOf(
+                  R.string.from_app,
+                  R.string.another_app_string,
+                  R.string.from_lib,
+                  R.string.another_lib_string,
+                  R.string.from_sublib,
+                  com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib,
 
-                    // Styleable_Attr has more logic than other ResourceTypes
-                    R.styleable.styleable_from_app_Attr_from_app,
-                    R.styleable.styleable_from_lib_Attr_from_lib,
-                    R.styleable.styleable_from_sublib_Attr_from_sublib,
-                    com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                    com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                    com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
-                )
-            }
-        }
-      """.trimIndent(),
-      true
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_app_Attr_from_app,
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
+              )
+          }
+      }
+      """
+        .trimIndent(),
+      true,
     )
 
     projectRule.fixture.checkResult(
       "lib/src/main/java/com/example/lib/LibKotlinClass.kt",
       // language=kotlin
       """
-        package com.example.lib
+      package com.example.lib
 
-        class LibKotlinClass {
-            fun foo() {
-                val ids = intArrayOf(
-                    R.string.from_lib,
-                    R.string.another_lib_string,
-                    com.example.sublib.R.string.from_sublib,
-                    com.example.sublib.R.string.from_sublib,
+      class LibKotlinClass {
+          fun foo() {
+              val ids = intArrayOf(
+                  R.string.from_lib,
+                  R.string.another_lib_string,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib,
 
-                    // Styleable_Attr has more logic than other ResourceTypes
-                    R.styleable.styleable_from_lib_Attr_from_lib,
-                    com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                    com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
-                )
-            }
-        }
-      """.trimIndent(),
-      true
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
+              )
+          }
+      }
+      """
+        .trimIndent(),
+      true,
     )
   }
 
   @Test
   fun testAppModule_Java() {
-    MigrateToNonTransitiveRClassesProcessor.forSingleModule(projectRule.project.findModule("app.main").androidFacet!!,
-                                                            AgpVersion.parse("7.0.0")).run()
+    MigrateToNonTransitiveRClassesProcessor.forSingleModule(
+        projectRule.project.findModule("app.main").androidFacet!!,
+        AgpVersion.parse("7.0.0"),
+      )
+      .run()
 
     projectRule.fixture.checkResult(
       "app/src/main/java/com/example/app/AppJavaClass.java",
       // language=java
       """
-        package com.example.app;
+      package com.example.app;
 
-        public class AppJavaClass {
-            public void foo() {
-                int[] ids = new int[] {
-                        R.string.from_app,
-                        R.string.another_app_string,
-                        com.example.lib.R.string.from_lib,
-                        com.example.lib.R.string.another_lib_string,
-                        com.example.sublib.R.string.from_sublib,
-                        com.example.lib.R.string.from_lib,
-                        com.example.lib.R.string.another_lib_string,
-                        com.example.lib.R.string.from_sublib,
-                        com.example.sublib.R.string.from_sublib,
+      public class AppJavaClass {
+          public void foo() {
+              int[] ids = new int[] {
+                      R.string.from_app,
+                      R.string.another_app_string,
+                      com.example.lib.R.string.from_lib,
+                      com.example.lib.R.string.another_lib_string,
+                      com.example.sublib.R.string.from_sublib,
+                      com.example.lib.R.string.from_lib,
+                      com.example.lib.R.string.another_lib_string,
+                      com.example.lib.R.string.from_sublib,
+                      com.example.sublib.R.string.from_sublib,
 
-                        // Styleable_Attr has more logic than other ResourceTypes
-                        R.styleable.styleable_from_app_Attr_from_app,
-                        com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                        com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                        com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                };
-            }
-        }
-      """.trimIndent(),
-      true
+                      // Styleable_Attr has more logic than other ResourceTypes
+                      R.styleable.styleable_from_app_Attr_from_app,
+                      com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                      com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                      com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+              };
+          }
+      }
+      """
+        .trimIndent(),
+      true,
     )
 
     projectRule.fixture.checkResult(
       "lib/src/main/java/com/example/lib/LibJavaClass.java",
       // language=java
       """
-        package com.example.lib;
+      package com.example.lib;
 
-        public class LibJavaClass {
-            public void foo() {
-                int[] ids = new int[] {
-                        R.string.from_lib,
-                        R.string.another_lib_string,
-                        R.string.from_sublib,
-                        com.example.sublib.R.string.from_sublib,
+      public class LibJavaClass {
+          public void foo() {
+              int[] ids = new int[] {
+                      R.string.from_lib,
+                      R.string.another_lib_string,
+                      R.string.from_sublib,
+                      com.example.sublib.R.string.from_sublib,
 
-                        // Styleable_Attr has more logic than other ResourceTypes
-                        R.styleable.styleable_from_lib_Attr_from_lib,
-                        R.styleable.styleable_from_sublib_Attr_from_sublib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                };
-            }
-        }
-      """.trimIndent(),
-      true
+                      // Styleable_Attr has more logic than other ResourceTypes
+                      R.styleable.styleable_from_lib_Attr_from_lib,
+                      R.styleable.styleable_from_sublib_Attr_from_sublib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+              };
+          }
+      }
+      """
+        .trimIndent(),
+      true,
     )
   }
 
   @Test
   fun testAppModule_Kotlin() {
-    MigrateToNonTransitiveRClassesProcessor.forSingleModule(projectRule.project.findModule("app.main").androidFacet!!,
-                                                            AgpVersion.parse("7.0.0")).run()
+    MigrateToNonTransitiveRClassesProcessor.forSingleModule(
+        projectRule.project.findModule("app.main").androidFacet!!,
+        AgpVersion.parse("7.0.0"),
+      )
+      .run()
 
     projectRule.fixture.checkResult(
       "app/src/main/java/com/example/app/AppKotlinClass.kt",
       // language=kotlin
       """
-        package com.example.app
+      package com.example.app
 
-        class AppKotlinClass {
-            fun foo() {
-                val ids = intArrayOf(
-                    R.string.from_app,
-                    R.string.another_app_string,
-                    com.example.lib.R.string.from_lib,
-                    com.example.lib.R.string.another_lib_string,
-                    com.example.sublib.R.string.from_sublib,
-                    com.example.lib.R.string.from_lib,
-                    com.example.lib.R.string.another_lib_string,
-                    com.example.lib.R.string.from_sublib,
-                    com.example.sublib.R.string.from_sublib,
+      class AppKotlinClass {
+          fun foo() {
+              val ids = intArrayOf(
+                  R.string.from_app,
+                  R.string.another_app_string,
+                  com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
+                  com.example.lib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib,
 
-                    // Styleable_Attr has more logic than other ResourceTypes
-                    R.styleable.styleable_from_app_Attr_from_app,
-                    com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                    com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                    com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                    com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                    com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
-                )
-            }
-        }
-      """.trimIndent(),
-      true
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_app_Attr_from_app,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
+              )
+          }
+      }
+      """
+        .trimIndent(),
+      true,
     )
 
     projectRule.fixture.checkResult(
       "lib/src/main/java/com/example/lib/LibKotlinClass.kt",
       // language=kotlin
       """
-        package com.example.lib
+      package com.example.lib
 
-        class LibKotlinClass {
-            fun foo() {
-                val ids = intArrayOf(
-                    R.string.from_lib,
-                    R.string.another_lib_string,
-                    R.string.from_sublib,
-                    com.example.sublib.R.string.from_sublib,
+      class LibKotlinClass {
+          fun foo() {
+              val ids = intArrayOf(
+                  R.string.from_lib,
+                  R.string.another_lib_string,
+                  R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib,
 
-                    // Styleable_Attr has more logic than other ResourceTypes
-                    R.styleable.styleable_from_lib_Attr_from_lib,
-                    R.styleable.styleable_from_sublib_Attr_from_sublib,
-                    com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
-                )
-            }
-        }
-      """.trimIndent(),
-      true
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
+              )
+          }
+      }
+      """
+        .trimIndent(),
+      true,
     )
   }
 
@@ -397,33 +411,34 @@ class MigrateToNonTransitiveRClassesProcessorTest {
       "app/src/main/java/com/example/app/AppJavaClass.java",
       // language=java
       """
-        package com.example.app;
+      package com.example.app;
 
-        public class AppJavaClass {
-            public void foo() {
-                int[] ids = new int[] {
-                        R.string.from_app,
-                        R.string.another_app_string,
-                        com.example.lib.R.string.from_lib,
-                        com.example.lib.R.string.another_lib_string,
-                        com.example.sublib.R.string.from_sublib,
-                        com.example.lib.R.string.from_lib,
-                        com.example.lib.R.string.another_lib_string,
-                        com.example.sublib.R.string.from_sublib,
-                        com.example.sublib.R.string.from_sublib,
+      public class AppJavaClass {
+          public void foo() {
+              int[] ids = new int[] {
+                      R.string.from_app,
+                      R.string.another_app_string,
+                      com.example.lib.R.string.from_lib,
+                      com.example.lib.R.string.another_lib_string,
+                      com.example.sublib.R.string.from_sublib,
+                      com.example.lib.R.string.from_lib,
+                      com.example.lib.R.string.another_lib_string,
+                      com.example.sublib.R.string.from_sublib,
+                      com.example.sublib.R.string.from_sublib,
 
-                        // Styleable_Attr has more logic than other ResourceTypes
-                        R.styleable.styleable_from_app_Attr_from_app,
-                        com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                        com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                };
-            }
-        }
-      """.trimIndent(),
-      true
+                      // Styleable_Attr has more logic than other ResourceTypes
+                      R.styleable.styleable_from_app_Attr_from_app,
+                      com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                      com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+              };
+          }
+      }
+      """
+        .trimIndent(),
+      true,
     )
   }
 
@@ -444,7 +459,8 @@ class MigrateToNonTransitiveRClassesProcessorTest {
     val gradlePropertiesFile = File(projectRule.project.basePath + "/gradle.properties")
     FileUtils.delete(gradlePropertiesFile)
     MigrateToNonTransitiveRClassesProcessor.forEntireProject(projectRule.project, AgpVersion.parse("8.0.0-alpha09")).run()
-    // MigrateToNonTransitiveRClassesProcessor should not create gradle.properties file for AGP 8.0+ (non-transitive classes enabled by default)
+    // MigrateToNonTransitiveRClassesProcessor should not create gradle.properties file for AGP 8.0+ (non-transitive classes enabled by
+    // default)
     assertThat(gradlePropertiesFile.exists()).isFalse()
   }
 
@@ -467,7 +483,8 @@ class MigrateToNonTransitiveRClassesProcessorTest {
     projectRule.fixture.addFileToProject("gradle.properties", "")
 
     assertThat(projectRule.fixture.getUsageViewTreeTextRepresentation(refactoringProcessor.findUsages().toList()))
-      .isEqualTo("""
+      .isEqualTo(
+        """
         <root> (33)
          References to resources defined in com.example.lib (12)
           Usages (12)
@@ -548,7 +565,9 @@ class MigrateToNonTransitiveRClassesProcessorTest {
               gradle.properties (1)
                1
 
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
   }
 
   @Test
@@ -564,33 +583,34 @@ class MigrateToNonTransitiveRClassesProcessorTest {
       "app/src/main/java/com/example/app/AppJavaClass.java",
       // language=java
       """
-        package com.example.app;
+      package com.example.app;
 
-        public class AppJavaClass {
-            public void foo() {
-                int[] ids = new int[] {
-                        R.string.from_app,
-                        R.string.another_app_string,
-                        com.example.lib.R.string.from_lib,
-                        com.example.lib.R.string.another_lib_string,
-                        com.example.sublib.R.string.from_sublib,
-                        com.example.lib.R.string.from_lib,
-                        com.example.lib.R.string.another_lib_string,
-                        com.example.sublib.R.string.from_sublib,
-                        com.example.sublib.R.string.from_sublib,
+      public class AppJavaClass {
+          public void foo() {
+              int[] ids = new int[] {
+                      R.string.from_app,
+                      R.string.another_app_string,
+                      com.example.lib.R.string.from_lib,
+                      com.example.lib.R.string.another_lib_string,
+                      com.example.sublib.R.string.from_sublib,
+                      com.example.lib.R.string.from_lib,
+                      com.example.lib.R.string.another_lib_string,
+                      com.example.sublib.R.string.from_sublib,
+                      com.example.sublib.R.string.from_sublib,
 
-                        // Styleable_Attr has more logic than other ResourceTypes
-                        R.styleable.styleable_from_app_Attr_from_app,
-                        com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                        com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                };
-            }
-        }
-      """.trimIndent(),
-      true
+                      // Styleable_Attr has more logic than other ResourceTypes
+                      R.styleable.styleable_from_app_Attr_from_app,
+                      com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                      com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+              };
+          }
+      }
+      """
+        .trimIndent(),
+      true,
     )
 
     // Java files have optimized imports. In this case because it's in a different package, and there are no references to resources in the
@@ -599,30 +619,31 @@ class MigrateToNonTransitiveRClassesProcessorTest {
       "app/src/main/java/com/other/folder/AppOtherPackageJavaClass.java",
       // language=java
       """
-        package com.other.folder;
+      package com.other.folder;
 
-        public class AppOtherPackageJavaClass {
-            public void foo() {
-                int[] ids = new int[] {
-                        com.example.lib.R.string.from_lib,
-                        com.example.lib.R.string.another_lib_string,
-                        com.example.sublib.R.string.from_sublib,
-                        com.example.lib.R.string.from_lib,
-                        com.example.lib.R.string.another_lib_string,
-                        com.example.sublib.R.string.from_sublib,
-                        com.example.sublib.R.string.from_sublib,
+      public class AppOtherPackageJavaClass {
+          public void foo() {
+              int[] ids = new int[] {
+                      com.example.lib.R.string.from_lib,
+                      com.example.lib.R.string.another_lib_string,
+                      com.example.sublib.R.string.from_sublib,
+                      com.example.lib.R.string.from_lib,
+                      com.example.lib.R.string.another_lib_string,
+                      com.example.sublib.R.string.from_sublib,
+                      com.example.sublib.R.string.from_sublib,
 
-                        // Styleable_Attr has more logic than other ResourceTypes
-                        com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                        com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                };
-            }
-        }
-      """.trimIndent(),
-      true
+                      // Styleable_Attr has more logic than other ResourceTypes
+                      com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                      com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+              };
+          }
+      }
+      """
+        .trimIndent(),
+      true,
     )
 
     // Kotlin files do not have optimized imports. An unused R class import is left behind if there are no longer references to current
@@ -631,39 +652,40 @@ class MigrateToNonTransitiveRClassesProcessorTest {
       "app/src/main/java/com/other/folder/AppOtherPackageKotlinClass.kt",
       // language=kotlin
       """
-        package com.other.folder
+      package com.other.folder
 
-        import com.example.app.R
+      import com.example.app.R
 
-        class AppOtherPackageKotlinClass {
-            fun foo() {
-                val ids = intArrayOf(
-                    com.example.lib.R.string.from_lib,
-                    com.example.lib.R.string.another_lib_string,
-                    com.example.sublib.R.string.from_sublib,
-                    com.example.lib.R.string.from_lib,
-                    com.example.lib.R.string.another_lib_string,
-                    com.example.sublib.R.string.from_sublib,
-                    com.example.sublib.R.string.from_sublib,
+      class AppOtherPackageKotlinClass {
+          fun foo() {
+              val ids = intArrayOf(
+                  com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib,
 
-                    // Styleable_Attr has more logic than other ResourceTypes
-                    com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                    com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                    com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                    com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                    com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
-                )
-            }
-        }
-      """.trimIndent(),
-      true
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
+              )
+          }
+      }
+      """
+        .trimIndent(),
+      true,
     )
     projectRule.fixture.openFileInEditor(
-      projectRule.fixture.findFileInTempDir("app/src/main/java/com/other/folder/AppOtherPackageKotlinClass.kt"))
+      projectRule.fixture.findFileInTempDir("app/src/main/java/com/other/folder/AppOtherPackageKotlinClass.kt")
+    )
     val highlightInfos = projectRule.fixture.doHighlighting(HighlightSeverity.WARNING)
 
-    val expectedHighlightDescription =
-      "Property \"ids\" is never used"
+    val expectedHighlightDescription = "Property \"ids\" is never used"
 
     assertTrue(highlightInfos.any { it.description == expectedHighlightDescription })
 
@@ -671,81 +693,76 @@ class MigrateToNonTransitiveRClassesProcessorTest {
       "lib/src/main/java/com/example/lib/LibJavaClass.java",
       // language=java
       """
-        package com.example.lib;
+      package com.example.lib;
 
-        public class LibJavaClass {
-            public void foo() {
-                int[] ids = new int[] {
-                        R.string.from_lib,
-                        R.string.another_lib_string,
-                        com.example.sublib.R.string.from_sublib,
-                        com.example.sublib.R.string.from_sublib,
+      public class LibJavaClass {
+          public void foo() {
+              int[] ids = new int[] {
+                      R.string.from_lib,
+                      R.string.another_lib_string,
+                      com.example.sublib.R.string.from_sublib,
+                      com.example.sublib.R.string.from_sublib,
 
-                        // Styleable_Attr has more logic than other ResourceTypes
-                        R.styleable.styleable_from_lib_Attr_from_lib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                        com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                };
-            }
-        }
-      """.trimIndent(),
-      true
+                      // Styleable_Attr has more logic than other ResourceTypes
+                      R.styleable.styleable_from_lib_Attr_from_lib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                      com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+              };
+          }
+      }
+      """
+        .trimIndent(),
+      true,
     )
 
     projectRule.fixture.checkResult(
       "app/src/main/java/com/example/app/AppKotlinClass.kt",
       // language=kotlin
       """
-        package com.example.app
+      package com.example.app
 
-        class AppKotlinClass {
-            fun foo() {
-                val ids = intArrayOf(
-                    R.string.from_app,
-                    R.string.another_app_string,
-                    com.example.lib.R.string.from_lib,
-                    com.example.lib.R.string.another_lib_string,
-                    com.example.sublib.R.string.from_sublib,
-                    com.example.lib.R.string.from_lib,
-                    com.example.lib.R.string.another_lib_string,
-                    com.example.sublib.R.string.from_sublib,
-                    com.example.sublib.R.string.from_sublib,
+      class AppKotlinClass {
+          fun foo() {
+              val ids = intArrayOf(
+                  R.string.from_app,
+                  R.string.another_app_string,
+                  com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib,
 
-                    // Styleable_Attr has more logic than other ResourceTypes
-                    R.styleable.styleable_from_app_Attr_from_app,
-                    com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                    com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                    com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
-                    com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-                    com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
-                )
-            }
-        }
-      """.trimIndent(),
-      true
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_app_Attr_from_app,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
+              )
+          }
+      }
+      """
+        .trimIndent(),
+      true,
     )
 
     val properties = VfsUtil.findRelativeFile(projectRule.project.guessProjectDir(), "gradle.properties")!!
     assertThat(FileDocumentManager.getInstance().getDocument(properties)!!.text).contains("android.nonTransitiveRClass=true")
 
-    val usages = usageTrackerRule.testTracker.usages
-      .filter { it.studioEvent.kind == MIGRATE_TO_NON_TRANSITIVE_R_CLASS }
-      .map { it.studioEvent }
+    val usages =
+      usageTrackerRule.testTracker.usages.filter { it.studioEvent.kind == MIGRATE_TO_NON_TRANSITIVE_R_CLASS }.map { it.studioEvent }
     assertThat(usages).hasSize(3)
 
-    val findUsagesEvent = usageTrackerRule.testTracker.relevantUsages.first {
-      it.nonTransitiveRClassMigrationEvent.kind == FIND_USAGES
-    }
+    val findUsagesEvent = usageTrackerRule.testTracker.relevantUsages.first { it.nonTransitiveRClassMigrationEvent.kind == FIND_USAGES }
     assertThat(findUsagesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(32)
 
-    val executesEvent = usageTrackerRule.testTracker.relevantUsages.first {
-      it.nonTransitiveRClassMigrationEvent.kind == EXECUTE
-    }
+    val executesEvent = usageTrackerRule.testTracker.relevantUsages.first { it.nonTransitiveRClassMigrationEvent.kind == EXECUTE }
     assertThat(executesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(33)
 
-    val syncSkippedEvent = usageTrackerRule.testTracker.relevantUsages.first {
-      it.nonTransitiveRClassMigrationEvent.kind == SYNC_SKIPPED
-    }
+    val syncSkippedEvent = usageTrackerRule.testTracker.relevantUsages.first { it.nonTransitiveRClassMigrationEvent.kind == SYNC_SKIPPED }
     assertThat(syncSkippedEvent.nonTransitiveRClassMigrationEvent.hasUsages()).isFalse()
 
     val textEditor = TextEditorProvider.getInstance().getTextEditor(projectRule.fixture.editor)
@@ -755,23 +772,18 @@ class MigrateToNonTransitiveRClassesProcessorTest {
     // Undo the migration and assert that sync was triggered again
     undoManager.undo(textEditor)
 
-    val syncSkippedEvents = usageTrackerRule.testTracker.relevantUsages.filter {
-      it.nonTransitiveRClassMigrationEvent.kind == SYNC_SKIPPED
-    }
+    val syncSkippedEvents = usageTrackerRule.testTracker.relevantUsages.filter { it.nonTransitiveRClassMigrationEvent.kind == SYNC_SKIPPED }
     assertThat(syncSkippedEvents).hasSize(2)
 
     // Redo the migration and assert that sync was triggered again
     undoManager.redo(textEditor)
 
-    val syncSkippedEventsAfterRedo = usageTrackerRule.testTracker.relevantUsages.filter {
-      it.nonTransitiveRClassMigrationEvent.kind == SYNC_SKIPPED
-    }
+    val syncSkippedEventsAfterRedo =
+      usageTrackerRule.testTracker.relevantUsages.filter { it.nonTransitiveRClassMigrationEvent.kind == SYNC_SKIPPED }
     assertThat(syncSkippedEventsAfterRedo).hasSize(3)
   }
 
-  /**
-   * Test for [ResourcePackageGroupingRuleProvider], checks that the relevant UsageGroupingRules are included.
-   */
+  /** Test for [ResourcePackageGroupingRuleProvider], checks that the relevant UsageGroupingRules are included. */
   @Test
   fun testWholeProjectGroupingRules() {
     val refactoringProcessor = MigrateToNonTransitiveRClassesProcessor.forEntireProject(projectRule.project, AgpVersion.parse("7.0.0"))
@@ -780,9 +792,12 @@ class MigrateToNonTransitiveRClassesProcessorTest {
 
     val usageInfo = refactoringProcessor.findUsages().toList()
     val usageTypeTexts = usageInfo.map { getUsageGroup(it).presentableGroupText }
-    assertThat(usageTypeTexts).containsAllOf("References to resources defined in com.example.lib",
-                                             "References to resources defined in com.example.sublib",
-                                             "Properties flag to be added: android.nonTransitiveRClass")
+    assertThat(usageTypeTexts)
+      .containsAllOf(
+        "References to resources defined in com.example.lib",
+        "References to resources defined in com.example.sublib",
+        "Properties flag to be added: android.nonTransitiveRClass",
+      )
   }
 
   private fun getUsageGroup(usageInfo: UsageInfo): UsageGroup {

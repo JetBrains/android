@@ -40,8 +40,8 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 private val ANDROID_MANIFEST_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("android.usageType.manifest"))
 
 /**
- * Recognizes Android XML files and provides a better description than [com.intellij.util.xml.DomUsageTypeProvider].
- * Categorises resource elements as either usages or declarations.
+ * Recognizes Android XML files and provides a better description than [com.intellij.util.xml.DomUsageTypeProvider]. Categorises resource
+ * elements as either usages or declarations.
  */
 class AndroidResourceXmlUsageProvider : UsageTypeProviderEx {
   override fun getUsageType(element: PsiElement): UsageType? = getUsageType(element, UsageTarget.EMPTY_ARRAY)
@@ -64,7 +64,8 @@ class AndroidResourceXmlUsageProvider : UsageTypeProviderEx {
   }
 
   companion object {
-    private val ANDROID_RESOURCES_XML_DECLARATION_TYPE = UsageType(AndroidBundle.messagePointer("android.usageType.resource.declaration.xml"))
+    private val ANDROID_RESOURCES_XML_DECLARATION_TYPE =
+      UsageType(AndroidBundle.messagePointer("android.usageType.resource.declaration.xml"))
     private val ANDROID_RESOURCES_XML_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("android.usageType.resource.reference.xml"))
   }
 }
@@ -104,9 +105,7 @@ class AndroidResourceReferenceInCodeUsageTypeProvider : UsageTypeProvider {
   }
 }
 
-/**
- * Recognizes image files being used as usages.
- */
+/** Recognizes image files being used as usages. */
 class AndroidBinaryResourceFileUsageTypeProvider : UsageTypeProvider {
   companion object {
     private val ANDROID_RESOURCE_FILE = UsageType(AndroidBundle.messagePointer("android.usageType.resource.file"))
@@ -116,4 +115,3 @@ class AndroidBinaryResourceFileUsageTypeProvider : UsageTypeProvider {
     return if (AndroidFallbackFindUsagesProvider.isBinaryResourceFile(element)) ANDROID_RESOURCE_FILE else null
   }
 }
-

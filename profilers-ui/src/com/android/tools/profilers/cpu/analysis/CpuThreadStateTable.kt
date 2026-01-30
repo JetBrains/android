@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.common.border as BorderColor
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.DataSeries
@@ -33,66 +34,57 @@ import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.table.AbstractTableModel
 import kotlin.math.max
-import com.android.tools.adtui.common.border as BorderColor
 
 /**
  * UI component for presenting the thread state distribution table. The table aggregates thread state information, e.g. total duration,
  * occurrences.
  *
- * Takes a list of [ThreadState]s and generate [ThreadStateRow]s.
- * For input of
- * | Running | Sleeping | Running |
- * | 00:00   | 00:01    | 00:02   |
- * the table will look like this:
- * | Thread State | Duration | %     | Occurrences |
- * | Running      | 2s       | 66.7% | 2           |
- * | Sleeping     | 1s       | 33.3% | 1           |
+ * Takes a list of [ThreadState]s and generate [ThreadStateRow]s. For input of | Running | Sleeping | Running | | 00:00 | 00:01 | 00:02 |
+ * the table will look like this: | Thread State | Duration | % | Occurrences | | Running | 2s | 66.7% | 2 | | Sleeping | 1s | 33.3% | 1 |
  *
  * @param threadStateSeriesList list of [DataSeries], each containing thread states of a thread
  * @param range a range to query thread state on
  */
-class CpuThreadStateTable(val profilers: StudioProfilers,
-                          val threadStateSeriesList: List<DataSeries<ThreadState>>,
-                          val range: Range,
-                          title: String = "States") {
+class CpuThreadStateTable(
+  val profilers: StudioProfilers,
+  val threadStateSeriesList: List<DataSeries<ThreadState>>,
+  val range: Range,
+  title: String = "States",
+) {
   val component: JComponent
 
-  @VisibleForTesting
-  val table: JTable
+  @VisibleForTesting val table: JTable
 
   init {
-    table = JBTable(ThreadStateTableModel()).apply {
-      autoCreateRowSorter = true
-      showVerticalLines = true
-      showHorizontalLines = false
-      columnModel.getColumn(Column.THREAD_STATE.ordinal).cellRenderer = CustomBorderTableCellRenderer()
-      columnModel.getColumn(Column.TIME.ordinal).cellRenderer = DurationRenderer()
-      columnModel.getColumn(Column.PERCENT.ordinal).cellRenderer = PercentRenderer()
-      // Integers are right aligned by default. Cast them to String for left alignment.
-      columnModel.getColumn(Column.OCCURRENCES.ordinal).cellRenderer = IntegerAsStringTableCellRender()
-    }
+    table =
+      JBTable(ThreadStateTableModel()).apply {
+        autoCreateRowSorter = true
+        showVerticalLines = true
+        showHorizontalLines = false
+        columnModel.getColumn(Column.THREAD_STATE.ordinal).cellRenderer = CustomBorderTableCellRenderer()
+        columnModel.getColumn(Column.TIME.ordinal).cellRenderer = DurationRenderer()
+        columnModel.getColumn(Column.PERCENT.ordinal).cellRenderer = PercentRenderer()
+        // Integers are right aligned by default. Cast them to String for left alignment.
+        columnModel.getColumn(Column.OCCURRENCES.ordinal).cellRenderer = IntegerAsStringTableCellRender()
+      }
 
-    val tableContainer = JPanel(TabularLayout("*", "Fit,Fit")).apply {
-      border = JBUI.Borders.customLine(BorderColor, 2)
-      isOpaque = false
+    val tableContainer =
+      JPanel(TabularLayout("*", "Fit,Fit")).apply {
+        border = JBUI.Borders.customLine(BorderColor, 2)
+        isOpaque = false
 
-      // When JTable is put in a container other than JScrollPane, both itself and its header need to be added.
-      add(table.tableHeader, TabularLayout.Constraint(0, 0))
-      add(table, TabularLayout.Constraint(1, 0))
-    }
+        // When JTable is put in a container other than JScrollPane, both itself and its header need to be added.
+        add(table.tableHeader, TabularLayout.Constraint(0, 0))
+        add(table, TabularLayout.Constraint(1, 0))
+      }
     val contentBorder = JBUI.Borders.merge(JBUI.Borders.customLine(BorderColor, 1), JBUI.Borders.empty(8, 0, 0, 0), true)
-    component = HideablePanel.Builder(title, tableContainer)
-      .setPanelBorder(JBUI.Borders.empty())
-      .setContentBorder(contentBorder)
-      .build()
-      .apply {
+    component =
+      HideablePanel.Builder(title, tableContainer).setPanelBorder(JBUI.Borders.empty()).setContentBorder(contentBorder).build().apply {
         background = primaryContentBackground
       }
   }
 
-  /**
-   * Table model for representing thread state distribution data.
-   */
+  /** Table model for representing thread state distribution data. */
   private inner class ThreadStateTableModel : AbstractTableModel() {
     private val observer = AspectObserver()
     private var dataRows = listOf<ThreadStateRow>()
@@ -124,7 +116,8 @@ class CpuThreadStateTable(val profilers: StudioProfilers,
       threadStateSeriesList.forEach { threadStateSeries ->
         // Temp variable to save t+1 for duration calculation.
         var nextTimestamp = range.max.toLong()
-        threadStateSeries.getDataForRange(range)
+        threadStateSeries
+          .getDataForRange(range)
           // To calculate duration we need to iterate from the end.
           .asReversed()
           .asSequence()
@@ -189,14 +182,15 @@ class CpuThreadStateTable(val profilers: StudioProfilers,
   }
 }
 
-/**
- * Represents an individual row of the thread state table.
- */
-private data class ThreadStateRow(val threadState: ThreadState,
-                                  private val totalDuration: Double,
-                                  var duration: Long = 0,
-                                  var occurrences: Long = 0) {
-  val percentage get() = duration / totalDuration
+/** Represents an individual row of the thread state table. */
+private data class ThreadStateRow(
+  val threadState: ThreadState,
+  private val totalDuration: Double,
+  var duration: Long = 0,
+  var occurrences: Long = 0,
+) {
+  val percentage
+    get() = duration / totalDuration
 }
 
 private fun getLogger() = Logger.getInstance(CpuThreadStateTable::class.java)

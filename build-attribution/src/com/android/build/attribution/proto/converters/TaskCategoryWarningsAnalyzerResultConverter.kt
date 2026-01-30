@@ -26,26 +26,27 @@ class TaskCategoryWarningsAnalyzerResultConverter {
       taskCategoryWarningsAnalyzerResult: TaskCategoryWarningsAnalyzer.Result
     ): BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult {
 
-      val supportType = when (taskCategoryWarningsAnalyzerResult) {
-        TaskCategoryWarningsAnalyzer.FeatureDisabled ->
-          BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.TaskCategorySupportType.FEATURE_DISABLED
-        TaskCategoryWarningsAnalyzer.NoDataFromAGP ->
-          BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.TaskCategorySupportType.NO_DATA_FROM_AGP
-        else -> BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.TaskCategorySupportType.SUPPORTED
-      }
+      val supportType =
+        when (taskCategoryWarningsAnalyzerResult) {
+          TaskCategoryWarningsAnalyzer.FeatureDisabled ->
+            BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.TaskCategorySupportType.FEATURE_DISABLED
+          TaskCategoryWarningsAnalyzer.NoDataFromAGP ->
+            BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.TaskCategorySupportType.NO_DATA_FROM_AGP
+          else -> BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.TaskCategorySupportType.SUPPORTED
+        }
 
       val builder = BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.newBuilder()
       builder.taskCategorySupportType = supportType
       if (taskCategoryWarningsAnalyzerResult is TaskCategoryWarningsAnalyzer.IssuesResult) {
-        builder.addAllTaskCategoryIssues(
-          taskCategoryWarningsAnalyzerResult.taskCategoryIssues.map(this::transformTaskCategoryIssue)
-        )
+        builder.addAllTaskCategoryIssues(taskCategoryWarningsAnalyzerResult.taskCategoryIssues.map(this::transformTaskCategoryIssue))
       }
 
       return builder.build()
     }
 
-    fun construct(taskCategoryWarningsAnalyzerResult: BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult): TaskCategoryWarningsAnalyzer.Result =
+    fun construct(
+      taskCategoryWarningsAnalyzerResult: BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult
+    ): TaskCategoryWarningsAnalyzer.Result =
       when (taskCategoryWarningsAnalyzerResult.taskCategorySupportType) {
         BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.TaskCategorySupportType.FEATURE_DISABLED ->
           TaskCategoryWarningsAnalyzer.FeatureDisabled
@@ -58,10 +59,12 @@ class TaskCategoryWarningsAnalyzerResultConverter {
         else -> throw RuntimeException("Unexpected value ${taskCategoryWarningsAnalyzerResult.taskCategorySupportType}")
       }
 
-    private fun transformTaskCategoryIssue(taskCategoryIssue: TaskCategoryIssue): BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.TaskCategoryIssue =
-      PairEnumFinder.aToB(taskCategoryIssue)
+    private fun transformTaskCategoryIssue(
+      taskCategoryIssue: TaskCategoryIssue
+    ): BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.TaskCategoryIssue = PairEnumFinder.aToB(taskCategoryIssue)
 
-    private fun constructTaskCategoryIssue(taskCategoryIssue: BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.TaskCategoryIssue): TaskCategoryIssue =
-      PairEnumFinder.bToA(taskCategoryIssue)
+    private fun constructTaskCategoryIssue(
+      taskCategoryIssue: BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.TaskCategoryIssue
+    ): TaskCategoryIssue = PairEnumFinder.bToA(taskCategoryIssue)
   }
 }

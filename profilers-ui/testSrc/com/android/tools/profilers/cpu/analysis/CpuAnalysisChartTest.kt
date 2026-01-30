@@ -40,17 +40,12 @@ import org.junit.Test
 class CpuAnalysisChartTest {
   private val timer = FakeTimer()
 
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("CPuAnalysisChartTest", FakeTransportService(timer))
+  @get:Rule val grpcChannel = FakeGrpcChannel("CPuAnalysisChartTest", FakeTransportService(timer))
 
-  /**
-   * For initializing [com.intellij.ide.HelpTooltip].
-   */
-  @get:Rule
-  val appRule = ApplicationRule()
+  /** For initializing [com.intellij.ide.HelpTooltip]. */
+  @get:Rule val appRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var profilersView: StudioProfilersView
 
@@ -58,15 +53,19 @@ class CpuAnalysisChartTest {
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
     profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
-
   }
 
   @Test
   fun filterIsApplied() {
     val capture = CpuProfilerUITestUtils.validCapture(profilersView.studioProfilers)
-    val model = CpuAnalysisChartModel<CpuCapture>(CpuAnalysisTabModel.Type.TOP_DOWN, Range(capture.range), capture,
-                                                  { capture.captureNodes },
-                                                  Utils::runOnUi)
+    val model =
+      CpuAnalysisChartModel<CpuCapture>(
+        CpuAnalysisTabModel.Type.TOP_DOWN,
+        Range(capture.range),
+        capture,
+        { capture.captureNodes },
+        Utils::runOnUi,
+      )
     model.dataSeries.add(capture)
     val chart = CpuAnalysisChart(profilersView, model)
 

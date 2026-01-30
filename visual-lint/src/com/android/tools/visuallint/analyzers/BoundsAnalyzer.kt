@@ -32,18 +32,12 @@ private val scrollViewInterfaces =
     "androidx.core.view.NestedScrollingParent3",
   )
 
-/**
- * [VisualLintAnalyzer] for issues where a child view is not fully contained within the bounds of
- * its parent.
- */
+/** [VisualLintAnalyzer] for issues where a child view is not fully contained within the bounds of its parent. */
 object BoundsAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BOUNDS
 
-  override fun findIssues(
-    renderResult: RenderResult,
-    configuration: Configuration,
-  ): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews.filterNot { isScrollingView(it) })
     while (viewsToAnalyze.isNotEmpty()) {

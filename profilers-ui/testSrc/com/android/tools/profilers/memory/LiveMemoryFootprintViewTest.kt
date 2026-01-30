@@ -42,6 +42,9 @@ import com.android.tools.profilers.event.FakeEventService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.components.JBPanel
+import java.awt.BorderLayout
+import javax.swing.JComponent
+import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -52,22 +55,17 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.awt.BorderLayout
-import javax.swing.JComponent
-import javax.swing.JPanel
 
 open class LiveMemoryFootprintViewTest {
   protected var myTimer = FakeTimer()
   private val myComponents = FakeIdeProfilerComponents()
   private val myIdeServices = FakeIdeProfilerServices()
-  private val myTransportService = FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S,
-                                                        Common.Process.ExposureLevel.PROFILEABLE)
+  private val myTransportService =
+    FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
 
-  @get:Rule
-  val myGrpcChannel = FakeGrpcChannel("MainMemoryProfilerLiveViewTest", myTransportService, FakeEventService())
+  @get:Rule val myGrpcChannel = FakeGrpcChannel("MainMemoryProfilerLiveViewTest", myTransportService, FakeEventService())
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var myProfilersView: StudioProfilersView
   private lateinit var myModel: LiveMemoryFootprintModel
@@ -92,7 +90,7 @@ open class LiveMemoryFootprintViewTest {
     val myTimeline: Timeline = DefaultTimeline()
     val myContent = JPanel(BorderLayout())
     val rangeTooltipComponent = RangeTooltipComponent(myTimeline, myContent)
-    memoryFootprintView.populateUi(rangeTooltipComponent);
+    memoryFootprintView.populateUi(rangeTooltipComponent)
     val treeWalker = TreeWalker(memoryFootprintView.component)
     val tooltipComponent = treeWalker.descendants().filterIsInstance(RangeTooltipComponent::class.java)
     // Check for tooltip presence in live view component
@@ -108,7 +106,7 @@ open class LiveMemoryFootprintViewTest {
     val myTimeline: Timeline = DefaultTimeline()
     val myContent = JPanel(BorderLayout())
     val rangeTooltipComponent = RangeTooltipComponent(myTimeline, myContent)
-    memoryFootprintView.populateUi(rangeTooltipComponent);
+    memoryFootprintView.populateUi(rangeTooltipComponent)
     val treeWalker = TreeWalker(memoryFootprintView.component)
     val tooltipComponent = treeWalker.descendants().filterIsInstance(RangeTooltipComponent::class.java)
     // Check for tooltip presence in live view component
@@ -137,7 +135,7 @@ open class LiveMemoryFootprintViewTest {
     val myTimeline: Timeline = DefaultTimeline()
     val myContent = JPanel(BorderLayout())
     val tooltipComponent = RangeTooltipComponent(myTimeline, myContent)
-    memoryFootprintView.populateUi(tooltipComponent);
+    memoryFootprintView.populateUi(tooltipComponent)
     val items = myComponents.allContextMenuItems
     // 4 items and 1 separator, garbage collection and seperator
     // Attach, Detach, Separator, Zoom in, Zoom out
@@ -156,21 +154,18 @@ open class LiveMemoryFootprintViewTest {
   fun testToolbarHasGcButton() {
     val memoryFootprintView = LiveMemoryFootprintView(myProfilersView, myModel)
     val toolbar = memoryFootprintView.toolbar.getComponent(0) as JPanel
-    assertThat(toolbar.components).asList().containsExactly(
-      memoryFootprintView.garbageCollectionButton,
-    )
+    assertThat(toolbar.components).asList().containsExactly(memoryFootprintView.garbageCollectionButton)
   }
 
   @Test
   fun testShowTooltipComponentAfterRegisterToolTip() {
-    val memoryFootprintView = spy(
-      LiveMemoryFootprintView(myProfilersView, myModel))
+    val memoryFootprintView = spy(LiveMemoryFootprintView(myProfilersView, myModel))
     val tooltipComponent = mock<JComponent>()
     Mockito.doReturn(tooltipComponent).whenever(memoryFootprintView).tooltipComponent
     val myTimeline: Timeline = DefaultTimeline()
     val myContent = JPanel(BorderLayout())
     val rangeTooltipComponent = RangeTooltipComponent(myTimeline, myContent)
-    memoryFootprintView.populateUi(rangeTooltipComponent);
+    memoryFootprintView.populateUi(rangeTooltipComponent)
     val binder = ViewBinder<StageView<*>, TooltipModel, TooltipView>()
     val stage = mock<StreamingStage>()
     memoryFootprintView.registerTooltip(binder, rangeTooltipComponent, stage)
@@ -178,8 +173,6 @@ open class LiveMemoryFootprintViewTest {
     verify(tooltipComponent, times(1)).addMouseListener(any<ProfilerTooltipMouseAdapter>())
   }
 
-  private fun getMainComponent(stageView: LiveMemoryFootprintView) = TreeWalker(stageView.component)
-    .descendants()
-    .filterIsInstance<JPanel>()
-    .first()
+  private fun getMainComponent(stageView: LiveMemoryFootprintView) =
+    TreeWalker(stageView.component).descendants().filterIsInstance<JPanel>().first()
 }

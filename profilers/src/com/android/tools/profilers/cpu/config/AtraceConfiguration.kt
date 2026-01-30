@@ -18,14 +18,10 @@ package com.android.tools.profilers.cpu.config
 import com.android.sdklib.AndroidVersion
 import com.android.tools.profiler.proto.Trace
 
-/**
- * Configuration for ATrace traces.
- */
+/** Configuration for ATrace traces. */
 class AtraceConfiguration(name: String) : ProfilingConfiguration(name) {
   override fun getOptions(): Trace.AtraceOptions {
-    return Trace.AtraceOptions.newBuilder()
-      .setBufferSizeInMb(SYSTEM_TRACE_BUFFER_SIZE_MB)
-      .build()
+    return Trace.AtraceOptions.newBuilder().setBufferSizeInMb(SYSTEM_TRACE_BUFFER_SIZE_MB).build()
   }
 
   override fun addOptions(configBuilder: Trace.TraceConfiguration.Builder, additionalOptions: Map<AdditionalOptions, Any>) {
@@ -37,7 +33,7 @@ class AtraceConfiguration(name: String) : ProfilingConfiguration(name) {
   }
 
   override fun getRequiredDeviceLevel(): Int {
-    return AndroidVersion.VersionCodes.N;
+    return AndroidVersion.VersionCodes.N
   }
 
   override fun isEditable(): Boolean = false

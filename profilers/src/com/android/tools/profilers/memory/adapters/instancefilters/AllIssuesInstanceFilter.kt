@@ -15,16 +15,12 @@
  */
 package com.android.tools.profilers.memory.adapters.instancefilters
 
-/**
- * A filter that shows all instances with any detected issue (e.g. leaks, duplicate bitmaps).
- */
-class AllIssuesInstanceFilter(
-  leakFilter: ActivityFragmentLeakInstanceFilter,
-  dupeFilter: BitmapDuplicationInstanceFilter
-) : CaptureObjectInstanceFilter(
-  displayName = "All issues",
-  summaryDescription = "Show all instances with detected issues.",
-  detailedDescription = null,
-  documentationLink = null,
-  instanceTest = { inst -> leakFilter.instanceTest(inst) || dupeFilter.instanceTest(inst) }
-)
+/** A filter that shows all instances with any detected issue (e.g. leaks, duplicate bitmaps). */
+class AllIssuesInstanceFilter(leakFilter: ActivityFragmentLeakInstanceFilter, dupeFilter: BitmapDuplicationInstanceFilter) :
+  CaptureObjectInstanceFilter(
+    displayName = "All issues",
+    summaryDescription = "Show all instances with detected issues.",
+    detailedDescription = null,
+    documentationLink = null,
+    instanceTest = { inst -> leakFilter.instanceTest(inst) || dupeFilter.instanceTest(inst) },
+  )

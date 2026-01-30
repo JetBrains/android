@@ -48,14 +48,14 @@ import javax.swing.KeyStroke
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 
-/**
- * A wrapper for a [StageView] with an accompanying toolbar and context menu.
- */
-class StageWithToolbarView(private val studioProfilers: StudioProfilers,
-                           stageComponent: JPanel,
-                           ideProfilerComponents: IdeProfilerComponents,
-                           stageViewBuilder: Function<Stage<*>, StageView<*>>,
-                           containerComponent: JComponent) : AspectObserver() {
+/** A wrapper for a [StageView] with an accompanying toolbar and context menu. */
+class StageWithToolbarView(
+  private val studioProfilers: StudioProfilers,
+  stageComponent: JPanel,
+  ideProfilerComponents: IdeProfilerComponents,
+  stageViewBuilder: Function<Stage<*>, StageView<*>>,
+  containerComponent: JComponent,
+) : AspectObserver() {
 
   private val stageCenterCardLayout: CardLayout = CardLayout()
   private val stageCenterComponent: JPanel = JPanel(stageCenterCardLayout)
@@ -108,7 +108,8 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
 
     initializeStageUi(containerComponent, stageComponent)
 
-    studioProfilers.addDependency(this)
+    studioProfilers
+      .addDependency(this)
       .onChange(ProfilerAspect.STAGE) { updateStageView(stageViewBuilder, containerComponent) }
       .onChange(ProfilerAspect.AGENT) { toggleStageLayout() }
       .onChange(ProfilerAspect.PREFERRED_PROCESS) { toggleStageLayout() }
@@ -136,12 +137,15 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
       stageView!!.stage.timeline.zoomOut()
       studioProfilers.ideServices.featureTracker.trackZoomOut()
     }
-    val zoomOutAction = DefaultContextMenuItem.Builder(ZOOM_OUT).setContainerComponent(containerComponent).setActionRunnable {
-      zoomOutButton.doClick(0)
-    }
-      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
-                     KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER))
-      .build()
+    val zoomOutAction =
+      DefaultContextMenuItem.Builder(ZOOM_OUT)
+        .setContainerComponent(containerComponent)
+        .setActionRunnable { zoomOutButton.doClick(0) }
+        .setKeyStrokes(
+          KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
+          KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER),
+        )
+        .build()
     zoomOutButton.toolTipText = zoomOutAction.defaultToolTipText
     timelineNavigationToolbar.add(zoomOutButton)
 
@@ -151,11 +155,16 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
       stageView!!.stage.timeline.zoomIn()
       studioProfilers.ideServices.featureTracker.trackZoomIn()
     }
-    val zoomInAction = DefaultContextMenuItem.Builder(ZOOM_IN).setContainerComponent(containerComponent)
-      .setActionRunnable { zoomInButton.doClick(0) }
-      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
-                     KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
-                     KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER)).build()
+    val zoomInAction =
+      DefaultContextMenuItem.Builder(ZOOM_IN)
+        .setContainerComponent(containerComponent)
+        .setActionRunnable { zoomInButton.doClick(0) }
+        .setKeyStrokes(
+          KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
+          KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
+          KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER),
+        )
+        .build()
     zoomInButton.toolTipText = zoomInAction.defaultToolTipText
     timelineNavigationToolbar.add(zoomInButton)
 
@@ -165,10 +174,12 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
       stageView!!.stage.timeline.resetZoom()
       studioProfilers.ideServices.featureTracker.trackResetZoom()
     }
-    val resetZoomAction = DefaultContextMenuItem.Builder("Reset zoom").setContainerComponent(containerComponent)
-      .setActionRunnable { resetZoomButton.doClick(0) }
-      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0),
-                     KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)).build()
+    val resetZoomAction =
+      DefaultContextMenuItem.Builder("Reset zoom")
+        .setContainerComponent(containerComponent)
+        .setActionRunnable { resetZoomButton.doClick(0) }
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0), KeyStroke.getKeyStroke(KeyEvent.VK_0, 0))
+        .build()
     resetZoomButton.toolTipText = resetZoomAction.defaultToolTipText
     timelineNavigationToolbar.add(resetZoomButton)
 
@@ -178,12 +189,13 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
       stageView!!.stage.timeline.frameViewToRange(stageView!!.stage.timeline.selectionRange)
       studioProfilers.ideServices.featureTracker.trackZoomToSelection()
     }
-    zoomToSelectionAction = DefaultContextMenuItem.Builder("Zoom to Selection")
-      .setContainerComponent(containerComponent)
-      .setActionRunnable { zoomToSelectionButton.doClick(0) }
-      .setEnableBooleanSupplier { stageView != null && !stageView!!.stage.timeline.selectionRange.isEmpty }
-      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0))
-      .build()
+    zoomToSelectionAction =
+      DefaultContextMenuItem.Builder("Zoom to Selection")
+        .setContainerComponent(containerComponent)
+        .setActionRunnable { zoomToSelectionButton.doClick(0) }
+        .setEnableBooleanSupplier { stageView != null && !stageView!!.stage.timeline.selectionRange.isEmpty }
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0))
+        .build()
     zoomToSelectionButton.toolTipText = zoomToSelectionAction.defaultToolTipText
     timelineNavigationToolbar.add(zoomToSelectionButton)
 
@@ -198,15 +210,20 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
     goLiveButton.border = JBEmptyBorder(3, 7, 3, 7)
 
     // Configure shortcuts for GoLive.
-    val attachAction = DefaultContextMenuItem.Builder(ATTACH_LIVE).setContainerComponent(containerComponent)
-      .setActionRunnable { goLiveButton.doClick(0) }
-      .setEnableBooleanSupplier { goLiveButton.isEnabled && !goLiveButton.isSelected && stageView!!.supportsStreaming() }
-      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
-      .build()
-    val detachAction = DefaultContextMenuItem.Builder(DETACH_LIVE).setContainerComponent(containerComponent)
-      .setActionRunnable { goLiveButton.doClick(0) }
-      .setEnableBooleanSupplier { goLiveButton.isEnabled && goLiveButton.isSelected && stageView!!.supportsStreaming() }
-      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)).build()
+    val attachAction =
+      DefaultContextMenuItem.Builder(ATTACH_LIVE)
+        .setContainerComponent(containerComponent)
+        .setActionRunnable { goLiveButton.doClick(0) }
+        .setEnableBooleanSupplier { goLiveButton.isEnabled && !goLiveButton.isSelected && stageView!!.supportsStreaming() }
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
+        .build()
+    val detachAction =
+      DefaultContextMenuItem.Builder(DETACH_LIVE)
+        .setContainerComponent(containerComponent)
+        .setActionRunnable { goLiveButton.doClick(0) }
+        .setEnableBooleanSupplier { goLiveButton.isEnabled && goLiveButton.isSelected && stageView!!.supportsStreaming() }
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0))
+        .build()
     goLiveButton.toolTipText = detachAction.defaultToolTipText
     goLiveButton.addActionListener {
       val currentStageTimeline = stageView!!.stage.timeline
@@ -225,11 +242,8 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
     goLiveToolbar.add(goLiveButton)
     timelineNavigationToolbar.add(goLiveToolbar)
 
-    ProfilerContextMenu.createIfAbsent(stageComponent).add(attachAction,
-                                                           detachAction,
-                                                           ContextMenuItem.SEPARATOR,
-                                                           zoomInAction,
-                                                           zoomOutAction)
+    ProfilerContextMenu.createIfAbsent(stageComponent)
+      .add(attachAction, detachAction, ContextMenuItem.SEPARATOR, zoomInAction, zoomOutAction)
 
     studioProfilers.sessionsManager.addDependency(this).onChange(SessionAspect.SELECTED_SESSION) { toggleTimelineButtons() }
     toggleTimelineButtons()
@@ -247,7 +261,8 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
     val isAlive = studioProfilers.sessionsManager.isSessionAlive
     if (isAlive) {
       val agentData = studioProfilers.agentData
-      // Should wait for JVMTI agent status in Session-based and not Task-based because in Session-based there is a spinner animation until agent attaches.
+      // Should wait for JVMTI agent status in Session-based and not Task-based because in Session-based there is a spinner animation until
+      // agent attaches.
       val waitForAgent = agentData.status == AgentData.Status.UNSPECIFIED && !studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled
       if (waitForAgent) {
         // Disable all controls if the agent is still initialization/attaching.
@@ -257,8 +272,7 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
         zoomToSelectionButton.isEnabled = false
         goLiveButton.isEnabled = false
         goLiveButton.isSelected = false
-      }
-      else {
+      } else {
         zoomOutButton.isEnabled = true
         zoomInButton.isEnabled = true
         resetZoomButton.isEnabled = true
@@ -266,8 +280,7 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
         goLiveButton.isEnabled = true
         goLiveButton.isSelected = true
       }
-    }
-    else {
+    } else {
       val isValidSession = Common.Session.getDefaultInstance() != studioProfilers.sessionsManager.selectedSession
       zoomOutButton.isEnabled = isValidSession
       zoomInButton.isEnabled = isValidSession
@@ -323,9 +336,10 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
   private fun toggleStageLayout() {
 
     // Show the loading screen if StudioProfilers is waiting for a process to profile or if it is waiting for an agent to attach.
-    var loading = studioProfilers.autoProfilingEnabled &&
-                  studioProfilers.preferredProcessName != null &&
-                  !studioProfilers.sessionsManager.isSessionAlive
+    var loading =
+      studioProfilers.autoProfilingEnabled &&
+        studioProfilers.preferredProcessName != null &&
+        !studioProfilers.sessionsManager.isSessionAlive
     val agentData = studioProfilers.agentData
     loading = loading or (agentData.status == AgentData.Status.UNSPECIFIED && studioProfilers.sessionsManager.isSessionAlive)
 
@@ -335,8 +349,7 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
     if (loading) {
       stageLoadingPanel.startLoading()
       stageCenterCardLayout.show(stageCenterComponent, LOADING_VIEW_CARD)
-    }
-    else {
+    } else {
       stageLoadingPanel.stopLoading()
       stageCenterCardLayout.show(stageCenterComponent, STAGE_VIEW_CARD)
     }
@@ -351,8 +364,8 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
     const val ZOOM_OUT = "Zoom out"
     private val SHORTCUT_MODIFIER_MASK_NUMBER
       get() = if (ClientSystemInfo.isMac()) InputEvent.META_DOWN_MASK else InputEvent.CTRL_DOWN_MASK
+
     private const val LOADING_VIEW_CARD = "LoadingViewCard"
     private const val STAGE_VIEW_CARD = "StageViewCard"
   }
 }
-

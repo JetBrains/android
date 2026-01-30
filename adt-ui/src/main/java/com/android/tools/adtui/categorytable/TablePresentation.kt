@@ -20,11 +20,7 @@ import javax.swing.JButton
 import javax.swing.JComponent
 
 /** Information about table-specific properties needed to render a component. */
-data class TablePresentation(
-  val foreground: Color,
-  val background: Color,
-  val rowSelected: Boolean,
-)
+data class TablePresentation(val foreground: Color, val background: Color, val rowSelected: Boolean)
 
 /** A component that can directly accept TablePresentation changes. */
 interface TableComponent {
@@ -32,9 +28,8 @@ interface TableComponent {
 }
 
 /**
- * Class responsible for applying TablePresentation to a component. By default, walks the component
- * tree setting foreground and background recursively. If it finds a [TableComponent], delegates
- * updating to it.
+ * Class responsible for applying TablePresentation to a component. By default, walks the component tree setting foreground and background
+ * recursively. If it finds a [TableComponent], delegates updating to it.
  */
 class TablePresentationManager {
   fun applyPresentation(c: JComponent, presentation: TablePresentation) {

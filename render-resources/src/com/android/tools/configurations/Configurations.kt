@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("Configurations")
+
 package com.android.tools.configurations
 
 import com.android.resources.ScreenOrientation
@@ -21,20 +22,16 @@ import com.android.resources.ScreenRatio
 import com.android.resources.ScreenSize
 import com.android.sdklib.AndroidCoordinate
 import com.android.sdklib.devices.Device
-import com.android.sdklib.devices.State
 import kotlin.math.hypot
 
-/**
- * Extension methods for [Configuration].
- */
+/** Extension methods for [Configuration]. */
 @JvmOverloads
 fun Configuration.updateScreenSize(
   @AndroidCoordinate xDimension: Int,
   @AndroidCoordinate yDimension: Int,
-  original: Device? = this.cachedDevice
+  original: Device? = this.cachedDevice,
 ) {
-  val deviceBuilder =
-    if (original != null) Device.Builder(original) else return
+  val deviceBuilder = if (original != null) Device.Builder(original) else return
   deviceBuilder.setName("Custom")
   deviceBuilder.setId(Configuration.CUSTOM_DEVICE_ID)
   val device = deviceBuilder.build()

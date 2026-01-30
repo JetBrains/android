@@ -23,19 +23,10 @@ import org.junit.Test
 class LogAnonymizerTest {
   @Test
   fun testIsGoogleClass() {
-    val nonGoogleClasses: List<String> = ImmutableList.of(
-      "com.google",
-      "com.googletest.Class",
-      "android2",
-      "android2.test.Class",
-      "android2.test.Class\$Inner"
-    )
-    val googleClasses: List<String> = ImmutableList.of(
-      "com.google.Class",
-      "android.test",
-      "android.google.test.Class",
-      "android.google.test.Class\$Inner"
-    )
+    val nonGoogleClasses: List<String> =
+      ImmutableList.of("com.google", "com.googletest.Class", "android2", "android2.test.Class", "android2.test.Class\$Inner")
+    val googleClasses: List<String> =
+      ImmutableList.of("com.google.Class", "android.test", "android.google.test.Class", "android.google.test.Class\$Inner")
     for (c in nonGoogleClasses) {
       Assert.assertFalse(isPublicClass(c))
       Assert.assertFalse(isPublicClass(c.replace(".", "/")))

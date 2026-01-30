@@ -61,13 +61,7 @@ class CollapsibleLabelPanelTest {
   fun testColumnResize() {
     val columnFraction = ColumnFraction(initialValue = 0.5f, resizeSupported = true)
     val model = CollapsibleLabelModel("Label", null, false, PropertiesComponentMock())
-    val panel =
-      CollapsibleLabelPanel(
-        model,
-        UIUtil.FontSize.NORMAL,
-        Font.BOLD,
-        nameColumnFraction = columnFraction,
-      )
+    val panel = CollapsibleLabelPanel(model, UIUtil.FontSize.NORMAL, Font.BOLD, nameColumnFraction = columnFraction)
     val label = panel.label
     panel.size = Dimension(500, 200)
     panel.doLayout()
@@ -156,20 +150,11 @@ class CollapsibleLabelPanelTest {
       object : AnAction() {
         override fun actionPerformed(event: AnActionEvent) {}
       }
-    val panel =
-      CollapsibleLabelPanel(
-        model,
-        UIUtil.FontSize.NORMAL,
-        Font.BOLD,
-        listOf(action1, action2),
-        columnFraction,
-      )
+    val panel = CollapsibleLabelPanel(model, UIUtil.FontSize.NORMAL, Font.BOLD, listOf(action1, action2), columnFraction)
     panel.size = Dimension(500, 50)
     panel.doLayout()
     panel.components.forEach { it.doLayout() }
     val buttonPanel = panel.components.last() as JPanel
-    buttonPanel.components.forEach { button ->
-      assertThat(button.y).isEqualTo((50 - button.height) / 2)
-    }
+    buttonPanel.components.forEach { button -> assertThat(button.y).isEqualTo((50 - button.height) / 2) }
   }
 }

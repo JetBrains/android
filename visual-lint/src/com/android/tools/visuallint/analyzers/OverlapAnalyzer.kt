@@ -36,17 +36,14 @@ import kotlin.math.min
 private const val OVERLAP_RATIO_THRESHOLD = 0.5
 
 /**
- * [VisualLintAnalyzer] for issues where a view is covered by another sibling view. Limit to covered
- * [TextView] as they are the most likely to be wrongly covered by another view.
+ * [VisualLintAnalyzer] for issues where a view is covered by another sibling view. Limit to covered [TextView] as they are the most likely
+ * to be wrongly covered by another view.
  */
 object OverlapAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.OVERLAP
 
-  override fun findIssues(
-    renderResult: RenderResult,
-    configuration: Configuration,
-  ): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
     val backgroundBounds = Rectangle(0, 0, 0, 0)
@@ -66,10 +63,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     issueList: MutableList<VisualLintIssueContent>,
   ) {
     val children =
-      view.children.filter {
-        it.accessibilityObject != null ||
-          (it.cookie != null && (it.viewObject as? View)?.visibility == View.VISIBLE)
-      }
+      view.children.filter { it.accessibilityObject != null || (it.cookie != null && (it.viewObject as? View)?.visibility == View.VISIBLE) }
     for (i in children.indices) {
       val firstView = children[i]
       if (!checkIsClass(firstView, TextView::class.java)) {
@@ -80,41 +74,29 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
         if (firstView == secondView) {
           continue
         }
-        if (
-          isPartiallyHidden(firstView, i, backgroundBounds, secondView, j, foregroundBounds, view)
-        ) {
+        if (isPartiallyHidden(firstView, i, backgroundBounds, secondView, j, foregroundBounds, view)) {
           issueList.add(createIssueContent(firstView, secondView))
         }
       }
     }
   }
 
-  private fun createIssueContent(
-    firstView: ViewInfo,
-    secondView: ViewInfo,
-  ): VisualLintIssueContent {
+  private fun createIssueContent(firstView: ViewInfo, secondView: ViewInfo): VisualLintIssueContent {
     val firstName = nameWithId(firstView)
     val secondName = nameWithId(secondView)
     val summary = "$firstName is covered by $secondName"
     val content = { count: Int ->
       HtmlBuilder()
-        .add(
-          "Content of $firstName is partially covered by $secondName in ${previewConfigurations(count)}."
-        )
+        .add("Content of $firstName is partially covered by $secondName in ${previewConfigurations(count)}.")
         .newline()
         .add("This may affect text readability. Fix this issue by adjusting widget positioning.")
     }
-    return VisualLintIssueContent(
-      view = firstView,
-      message = summary,
-      descriptionProvider = content,
-    )
+    return VisualLintIssueContent(view = firstView, message = summary, descriptionProvider = content)
   }
 
   /**
-   * Given two view infos, and their respective indices in layout, figure out of [firstViewInfo] is
-   * being overlapped by [secondViewInfo] and if the ratio of the area of the overlap region to the
-   * area of the [firstViewInfo] is bigger than [OVERLAP_RATIO_THRESHOLD].
+   * Given two view infos, and their respective indices in layout, figure out of [firstViewInfo] is being overlapped by [secondViewInfo] and
+   * if the ratio of the area of the overlap region to the area of the [firstViewInfo] is bigger than [OVERLAP_RATIO_THRESHOLD].
    */
   private fun isPartiallyHidden(
     firstViewInfo: ViewInfo,
@@ -142,25 +124,13 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     if (intersection.isEmpty) {
       return false
     }
-    val coveredRatio =
-      1.0 * intersection.width * intersection.height / (firstBounds.width * firstBounds.height)
+    val coveredRatio = 1.0 * intersection.width * intersection.height / (firstBounds.width * firstBounds.height)
     return coveredRatio >= OVERLAP_RATIO_THRESHOLD
   }
 
-  /**
-   * Given two view infos, and their respective indices in layout, figure out if [firstViewInfo] is
-   * being drawn below [secondViewInfo].
-   */
-  private fun isFirstViewUnderneath(
-    firstViewInfo: ViewInfo,
-    firstViewIndex: Int,
-    secondViewInfo: ViewInfo,
-    secondViewIndex: Int,
-  ): Boolean {
-    if (
-      firstViewInfo.accessibilityObject !is AccessibilityNodeInfo &&
-        secondViewInfo.accessibilityObject !is AccessibilityNodeInfo
-    ) {
+  /** Given two view infos, and their respective indices in layout, figure out if [firstViewInfo] is being drawn below [secondViewInfo]. */
+  private fun isFirstViewUnderneath(firstViewInfo: ViewInfo, firstViewIndex: Int, secondViewInfo: ViewInfo, secondViewIndex: Int): Boolean {
+    if (firstViewInfo.accessibilityObject !is AccessibilityNodeInfo && secondViewInfo.accessibilityObject !is AccessibilityNodeInfo) {
       val firstView = firstViewInfo.viewObject as? View
       val secondView = secondViewInfo.viewObject as? View
       if (firstView != null && secondView != null) {
@@ -176,9 +146,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
       }
     }
 
-    if (
-      secondViewInfo.accessibilityObject != null && checkIsClass(secondViewInfo, Button::class.java)
-    ) {
+    if (secondViewInfo.accessibilityObject != null && checkIsClass(secondViewInfo, Button::class.java)) {
       // In compose, Buttons and the text inside them are two siblings components.
       // We ignore this case as it is not a case of hidden text
       return false
@@ -194,10 +162,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     val data =
       (view.accessibilityObject as? AccessibilityNodeInfo)
         ?.extras
-        ?.getParcelableArray(
-          AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
-          RectF::class.java,
-        )
+        ?.getParcelableArray(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY, RectF::class.java)
     if (data.isNullOrEmpty()) {
       return
     }
@@ -212,14 +177,8 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
       bottom = max(bottom, ceil(it.bottom).toInt())
     }
     if (right >= left && bottom >= top) {
-      val parentBounds =
-        (parent.accessibilityObject as? AccessibilityNodeInfo)?.boundsInScreen ?: return
-      textBounds.setBounds(
-        left - parentBounds.left,
-        top - parentBounds.top,
-        right - left,
-        bottom - top,
-      )
+      val parentBounds = (parent.accessibilityObject as? AccessibilityNodeInfo)?.boundsInScreen ?: return
+      textBounds.setBounds(left - parentBounds.left, top - parentBounds.top, right - left, bottom - top)
     }
   }
 }

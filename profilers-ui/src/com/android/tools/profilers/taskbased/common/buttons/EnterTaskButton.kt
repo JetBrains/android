@@ -27,12 +27,17 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 import org.jetbrains.jewel.ui.component.DefaultButton
 
 @Composable
-fun StartTaskButton(canStartTask: Boolean,
-                    isPrevTaskStartDone: Boolean,
-                    isProfileablePreferredButNotPresent: Boolean,
-                    onClick: () -> Unit) {
-  EnterTaskButton(if (isProfileablePreferredButNotPresent && canStartTask) START_PROFILER_TASK_ANYWAY else START_PROFILER_TASK,
-                  isPrevTaskStartDone && canStartTask, onClick)
+fun StartTaskButton(
+  canStartTask: Boolean,
+  isPrevTaskStartDone: Boolean,
+  isProfileablePreferredButNotPresent: Boolean,
+  onClick: () -> Unit,
+) {
+  EnterTaskButton(
+    if (isProfileablePreferredButNotPresent && canStartTask) START_PROFILER_TASK_ANYWAY else START_PROFILER_TASK,
+    isPrevTaskStartDone && canStartTask,
+    onClick,
+  )
 }
 
 @Composable
@@ -43,7 +48,5 @@ fun OpenTaskButton(selectedTaskType: ProfilerTaskType, selectedRecording: Sessio
 
 @Composable
 private fun EnterTaskButton(text: String, isEnabled: Boolean, onClick: () -> Unit) {
-  DefaultButton(onClick = onClick, enabled = isEnabled, modifier = Modifier.testTag("EnterTaskButton")) {
-    EllipsisText(text = text)
-  }
+  DefaultButton(onClick = onClick, enabled = isEnabled, modifier = Modifier.testTag("EnterTaskButton")) { EllipsisText(text = text) }
 }

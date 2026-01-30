@@ -26,9 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
  * which shows the name and icon of the respective task.
  */
 class TaskGridModel(val profilers: StudioProfilers) {
-  /**
-   * The first ranked task type is selected by default.
-   */
+  /** The first ranked task type is selected by default. */
   private val _selectedTaskType = MutableStateFlow(getNthRankedTask(0))
   val selectedTaskType = _selectedTaskType.asStateFlow()
 

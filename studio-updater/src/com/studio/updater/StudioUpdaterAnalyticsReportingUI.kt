@@ -33,14 +33,13 @@ class StudioUpdaterAnalyticsReportingUI(private val myDelegate: UpdaterUI) : Upd
       UsageTracker.log(
         AndroidStudioEvent.newBuilder().apply {
           kind = AndroidStudioEvent.EventKind.STUDIO_PATCH_UPDATER
-          productDetails = ProductDetails.newBuilder()
-            .setProduct(ProductDetails.ProductKind.STUDIO_PATCH_UPDATER)
-            .setVersion(toBuild)
-            .build()
-          studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder()
-            .setKind(StudioPatchUpdaterEvent.Kind.PATCH_DETAILS_SHOW)
-            .setPatch(StudioPatchUpdaterEvent.Patch.newBuilder().setStudioVersionFrom(fromBuild).setStudioVersionTo(toBuild).build())
-            .build()
+          productDetails =
+            ProductDetails.newBuilder().setProduct(ProductDetails.ProductKind.STUDIO_PATCH_UPDATER).setVersion(toBuild).build()
+          studioPatchUpdaterEvent =
+            StudioPatchUpdaterEvent.newBuilder()
+              .setKind(StudioPatchUpdaterEvent.Kind.PATCH_DETAILS_SHOW)
+              .setPatch(StudioPatchUpdaterEvent.Patch.newBuilder().setStudioVersionFrom(fromBuild).setStudioVersionTo(toBuild).build())
+              .build()
         }
       )
     }
@@ -51,10 +50,9 @@ class StudioUpdaterAnalyticsReportingUI(private val myDelegate: UpdaterUI) : Upd
     UsageTracker.log(
       AndroidStudioEvent.newBuilder().apply {
         kind = AndroidStudioEvent.EventKind.STUDIO_PATCH_UPDATER
-        studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder().apply {
-          kind = toAnalytics(title)
-        }.build()
-      })
+        studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder().apply { kind = toAnalytics(title) }.build()
+      }
+    )
     myDelegate.startProcess(title)
   }
 
@@ -75,10 +73,10 @@ class StudioUpdaterAnalyticsReportingUI(private val myDelegate: UpdaterUI) : Upd
     UsageTracker.log(
       AndroidStudioEvent.newBuilder().apply {
         kind = AndroidStudioEvent.EventKind.STUDIO_PATCH_UPDATER
-        studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder().apply {
-          kind = StudioPatchUpdaterEvent.Kind.FATAL_ERROR_DIALOG_SHOW
-        }.build()
-      })
+        studioPatchUpdaterEvent =
+          StudioPatchUpdaterEvent.newBuilder().apply { kind = StudioPatchUpdaterEvent.Kind.FATAL_ERROR_DIALOG_SHOW }.build()
+      }
+    )
     myDelegate.showError(message)
   }
 
@@ -87,20 +85,28 @@ class StudioUpdaterAnalyticsReportingUI(private val myDelegate: UpdaterUI) : Upd
     UsageTracker.log(
       AndroidStudioEvent.newBuilder().apply {
         kind = AndroidStudioEvent.EventKind.STUDIO_PATCH_UPDATER
-        studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder().apply {
-          kind = StudioPatchUpdaterEvent.Kind.VALIDATION_PROBLEMS_DIALOG_SHOW
-          issueDialog = toAnalytics(validationResults)
-        }.build()
-      })
+        studioPatchUpdaterEvent =
+          StudioPatchUpdaterEvent.newBuilder()
+            .apply {
+              kind = StudioPatchUpdaterEvent.Kind.VALIDATION_PROBLEMS_DIALOG_SHOW
+              issueDialog = toAnalytics(validationResults)
+            }
+            .build()
+      }
+    )
     val result = myDelegate.askUser(validationResults)
     UsageTracker.log(
       AndroidStudioEvent.newBuilder().apply {
         kind = AndroidStudioEvent.EventKind.STUDIO_PATCH_UPDATER
-        studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder().apply {
-          kind = StudioPatchUpdaterEvent.Kind.VALIDATION_PROBLEMS_DIALOG_CLOSE
-          issueDialogChoices = toAnalytics(result)
-        }.build()
-      })
+        studioPatchUpdaterEvent =
+          StudioPatchUpdaterEvent.newBuilder()
+            .apply {
+              kind = StudioPatchUpdaterEvent.Kind.VALIDATION_PROBLEMS_DIALOG_CLOSE
+              issueDialogChoices = toAnalytics(result)
+            }
+            .build()
+      }
+    )
     return result
   }
 

@@ -21,11 +21,11 @@ import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 import javax.swing.JPanel
+import org.junit.Before
+import org.junit.Test
 
 class CpuKernelTooltipViewTest {
   private val timeline = DefaultTimeline()

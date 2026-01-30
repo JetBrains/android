@@ -40,8 +40,8 @@ import kotlin.collections.Map.Entry
  *      + value = <value of this>
  *  ```
  *
- * Which means, for this recomposition, the value `arg1` has changed from the last time the
- * Composable was composed. `arg2` & `this` have not changed.
+ * Which means, for this recomposition, the value `arg1` has changed from the last time the Composable was composed. `arg2` & `this` have
+ * not changed.
  */
 internal class ComposeStateNode(
   private val evaluationContext: EvaluationContextImpl,
@@ -76,8 +76,7 @@ internal class ComposeStateNode(
   }
 
   private fun getStateSummary(): String {
-    fun Entry<ParamState, List<StateObject>>.toSummary() =
-      "${key.name}: [${value.joinToString { """"${it.name}"""" }}]"
+    fun Entry<ParamState, List<StateObject>>.toSummary() = "${key.name}: [${value.joinToString { """"${it.name}"""" }}]"
 
     val summary = stateObjects.groupBy { it.state }.entries.joinToString { it.toSummary() }
     return ComposeBundle.message("recomposition.state.summary", summary)

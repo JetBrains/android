@@ -46,25 +46,19 @@ private const val MANIFEST_PERMISSION_FQ_NAME = "android.Manifest.permission"
 private const val REQUIRES_PERMISSION_FQ_NAME = "androidx.annotation.RequiresPermission"
 
 /**
- * Key used to identify lookup elements inserted by this contributor. This is used when weighing
- * elements to quickly promote them to the top of the list.
+ * Key used to identify lookup elements inserted by this contributor. This is used when weighing elements to quickly promote them to the top
+ * of the list.
  */
-private val LOOKUP_ELEMENT_KEY =
-  Key.create<Boolean>(
-    "org.jetbrains.android.completion.AndroidRequiresPermissionCompletionContributor"
-  )
+private val LOOKUP_ELEMENT_KEY = Key.create<Boolean>("org.jetbrains.android.completion.AndroidRequiresPermissionCompletionContributor")
 
 /**
- * Base class completion contributor for suggesting permissions constants from
- * android.Manifest.permission when within the androidx.annotation.RequiresPermission attribute.
+ * Base class completion contributor for suggesting permissions constants from android.Manifest.permission when within the
+ * androidx.annotation.RequiresPermission attribute.
  */
 sealed class AndroidRequiresPermissionCompletionContributor : CompletionContributor() {
   protected abstract val insertHandler: InsertHandler<LookupElement>
 
-  override fun fillCompletionVariants(
-    parameters: CompletionParameters,
-    result: CompletionResultSet,
-  ) {
+  override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
     // Check that completion is happening inside a RequiresPermission annotation.
     val position = parameters.position
     if (!isRequiresPermissionAnnotation(position)) return
@@ -73,8 +67,7 @@ sealed class AndroidRequiresPermissionCompletionContributor : CompletionContribu
 
     // Get the list of available permissions.
     val permissionClass =
-      JavaPsiFacade.getInstance(position.project)
-        .findClass(MANIFEST_PERMISSION_FQ_NAME, position.resolveScope) ?: return
+      JavaPsiFacade.getInstance(position.project).findClass(MANIFEST_PERMISSION_FQ_NAME, position.resolveScope) ?: return
     val permissionFields = permissionClass.fields
 
     ProgressManager.checkCanceled()
@@ -82,10 +75,9 @@ sealed class AndroidRequiresPermissionCompletionContributor : CompletionContribu
     // Add all the permissions as lookup elements.
     for (field in permissionFields) {
       val lookupElement =
-        LookupElementBuilder.create(field)
-          .withInsertHandler(insertHandler)
-          .appendTailText(" ($MANIFEST_PERMISSION_FQ_NAME)", true)
-          .apply { putUserData(LOOKUP_ELEMENT_KEY, true) }
+        LookupElementBuilder.create(field).withInsertHandler(insertHandler).appendTailText(" ($MANIFEST_PERMISSION_FQ_NAME)", true).apply {
+          putUserData(LOOKUP_ELEMENT_KEY, true)
+        }
       result.addElement(lookupElement)
     }
 
@@ -100,8 +92,7 @@ sealed class AndroidRequiresPermissionCompletionContributor : CompletionContribu
   protected abstract fun isRequiresPermissionAnnotation(position: PsiElement): Boolean
 }
 
-class AndroidKotlinRequiresPermissionCompletionContributor :
-  AndroidRequiresPermissionCompletionContributor() {
+class AndroidKotlinRequiresPermissionCompletionContributor : AndroidRequiresPermissionCompletionContributor() {
 
   override fun isRequiresPermissionAnnotation(position: PsiElement): Boolean {
     val valueArgument = position.parentOfType<KtValueArgument>(true) ?: return false
@@ -114,19 +105,13 @@ class AndroidKotlinRequiresPermissionCompletionContributor :
     object : InsertHandler<LookupElement> {
       override fun handleInsert(context: InsertionContext, item: LookupElement) {
         val target = item.psiElement ?: return
-        val refExp =
-          context.file.findElementAt(context.startOffset)?.parent as? KtReferenceExpression
-            ?: return
-        (refExp.mainReference as? KtSimpleNameReference)?.bindToElement(
-          target,
-          ShorteningMode.FORCED_SHORTENING,
-        )
+        val refExp = context.file.findElementAt(context.startOffset)?.parent as? KtReferenceExpression ?: return
+        (refExp.mainReference as? KtSimpleNameReference)?.bindToElement(target, ShorteningMode.FORCED_SHORTENING)
       }
     }
 }
 
-class AndroidJavaRequiresPermissionCompletionContributor :
-  AndroidRequiresPermissionCompletionContributor() {
+class AndroidJavaRequiresPermissionCompletionContributor : AndroidRequiresPermissionCompletionContributor() {
 
   override fun isRequiresPermissionAnnotation(position: PsiElement): Boolean {
     val annotation = position.parentOfType<PsiAnnotation>() ?: return false
@@ -146,8 +131,7 @@ class AndroidJavaRequiresPermissionCompletionContributor :
         }
       }
 
-      private fun InsertionContext.getParent(): PsiElement? =
-        file.findElementAt(startOffset)?.parent
+      private fun InsertionContext.getParent(): PsiElement? = file.findElementAt(startOffset)?.parent
 
       private inline fun <reified T : PsiElement> InsertionContext.getMaximalParentOfType() =
         getParent()?.parents(true)?.firstOrNull { it.parent !is T }

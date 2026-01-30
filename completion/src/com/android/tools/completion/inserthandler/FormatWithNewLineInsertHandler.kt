@@ -29,30 +29,37 @@ import com.intellij.psi.PsiDocumentManager
 /**
  * Handles insertions of an [InsertionFormat], applying new a line at the `\n` character.
  *
- * Applies the new line with [IdeActions.ACTION_EDITOR_ENTER] and moves the caret at the end of the new line.
+ * Applies the new line with [IdeActions.ACTION_EDITOR_ENTER] and moves the caret at the end of the
+ * new line.
  */
-internal class FormatWithNewLineInsertHandler(private val format: InsertionFormat) : InsertHandler<LookupElement> {
+internal class FormatWithNewLineInsertHandler(private val format: InsertionFormat) :
+  InsertHandler<LookupElement> {
   override fun handleInsert(context: InsertionContext, item: LookupElement) {
     val literal = format.insertableString
     with(context) {
       val newLineOffset = literal.indexOf('\n')
-      val stringToInsert = if (newLineOffset >= 0) {
-        StringBuilder(literal).deleteCharAt(newLineOffset).toString()
-      }
-      else {
-        literal
-      }
+      val stringToInsert =
+        if (newLineOffset >= 0) {
+          StringBuilder(literal).deleteCharAt(newLineOffset).toString()
+        } else {
+          literal
+        }
       val moveBy = newLineOffset - stringToInsert.length
       EditorModificationUtil.insertStringAtCaret(editor, stringToInsert, false, true)
       PsiDocumentManager.getInstance(project).commitDocument(document)
       EditorActionUtil.moveCaretToLineEnd(editor, false, true)
       EditorModificationUtil.moveCaretRelatively(editor, moveBy)
       val caret = editor.caretModel.currentCaret
-      EditorActionManager.getInstance().getActionHandler(IdeActions.ACTION_EDITOR_ENTER).execute(
-        editor,
-        caret,
-        EditorActionHandler.caretDataContext(DataManager.getInstance().getDataContext(editor.contentComponent), caret)
-      )
+      EditorActionManager.getInstance()
+        .getActionHandler(IdeActions.ACTION_EDITOR_ENTER)
+        .execute(
+          editor,
+          caret,
+          EditorActionHandler.caretDataContext(
+            DataManager.getInstance().getDataContext(editor.contentComponent),
+            caret,
+          ),
+        )
     }
   }
 }

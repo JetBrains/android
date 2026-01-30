@@ -26,40 +26,64 @@ import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsView.Companion.getImportAction
-import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
+import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import com.intellij.openapi.ui.Messages
 import org.jetbrains.jewel.ui.component.OutlinedButton
 
 @Composable
-fun RecordingActionGroup(artifact: SessionArtifact<*>?,
-                         isRecordingExportable: Boolean,
-                         isRecordingSelected: Boolean,
-                         doDeleteSelectedRecording: () -> Unit,
-                         profilers: StudioProfilers,
-                         ideProfilerComponents: IdeProfilerComponents) {
+fun RecordingActionGroup(
+  artifact: SessionArtifact<*>?,
+  isRecordingExportable: Boolean,
+  isRecordingSelected: Boolean,
+  doDeleteSelectedRecording: () -> Unit,
+  profilers: StudioProfilers,
+  ideProfilerComponents: IdeProfilerComponents,
+) {
   // TODO (b/332359184): Add back tooltips when b/332359184 is fixed.
   Row(horizontalArrangement = Arrangement.spacedBy(TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP)) {
     OutlinedButton(onClick = { getImportAction(ideProfilerComponents, profilers, null).run() }) {
       EllipsisText(text = TaskBasedUxStrings.IMPORT_RECORDING_DESC)
     }
 
-    OutlinedButton(enabled = isRecordingExportable, modifier = Modifier.testTag("ExportRecordingButton"), onClick = {
-      val exportableArtifact = artifact as ExportableArtifact
-      ExportArtifactUtils.exportArtifact(exportableArtifact.exportableName, exportableArtifact.exportExtension,
-                                         artifact::export, ideProfilerComponents, profilers.ideServices)
-    }) {
+    OutlinedButton(
+      enabled = isRecordingExportable,
+      modifier = Modifier.testTag("ExportRecordingButton"),
+      onClick = {
+        val exportableArtifact = artifact as ExportableArtifact
+        ExportArtifactUtils.exportArtifact(
+          exportableArtifact.exportableName,
+          exportableArtifact.exportExtension,
+          artifact::export,
+          ideProfilerComponents,
+          profilers.ideServices,
+        )
+      },
+    ) {
       EllipsisText(text = TaskBasedUxStrings.EXPORT_RECORDING_DESC)
     }
 
-    OutlinedButton(enabled = isRecordingSelected, modifier = Modifier.testTag("DeleteRecordingButton"), onClick = {
-      if (ideProfilerComponents.createUiMessageHandler().displayOkCancelMessage("Confirm Deletion",
-                                                                                "Do you really want to delete this recording?", "OK",
-                                                                                "Cancel", Messages.getQuestionIcon(), null)) {
-        doDeleteSelectedRecording()
-      }
-    }) {
+    OutlinedButton(
+      enabled = isRecordingSelected,
+      modifier = Modifier.testTag("DeleteRecordingButton"),
+      onClick = {
+        if (
+          ideProfilerComponents
+            .createUiMessageHandler()
+            .displayOkCancelMessage(
+              "Confirm Deletion",
+              "Do you really want to delete this recording?",
+              "OK",
+              "Cancel",
+              Messages.getQuestionIcon(),
+              null,
+            )
+        ) {
+          doDeleteSelectedRecording()
+        }
+      },
+    ) {
       EllipsisText(text = TaskBasedUxStrings.DELETE_RECORDING_DESC)
     }
   }

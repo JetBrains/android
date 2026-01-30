@@ -68,8 +68,7 @@ class TreeTableDropTargetHandlerTest {
     @JvmField @ClassRule val rule = ApplicationRule()
   }
 
-  @get:Rule
-  val chain = RuleChain.outerRule(MockitoCleanerRule()).around(IconLoaderRule()).around(EdtRule())!!
+  @get:Rule val chain = RuleChain.outerRule(MockitoCleanerRule()).around(IconLoaderRule()).around(EdtRule())!!
 
   private val item1 = Item(SdkConstants.FQCN_LINEAR_LAYOUT)
   private val item2 = Item(SdkConstants.FQCN_GRID_LAYOUT)
@@ -226,8 +225,7 @@ class TreeTableDropTargetHandlerTest {
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
     val draggedItems = mutableListOf<Any>(item2)
-    val handler =
-      TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item2 to the end
+    val handler = TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item2 to the end
     val event = createDnDEvent(Point(depth4 + 3, 7 * rowHeight - 3))
 
     // Even though the drag location specify item3,
@@ -243,8 +241,7 @@ class TreeTableDropTargetHandlerTest {
     val table = createTreeTable()
     val rowHeight = table.rowHeight
     val draggedItems = mutableListOf<Any>(item2)
-    val handler =
-      TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item2 into itself.
+    val handler = TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item2 into itself.
     val event = createDnDEvent(Point(5, 2 * rowHeight - 3))
 
     // Attempt to drag item2 into itself before the first existing child item3.
@@ -300,10 +297,7 @@ class TreeTableDropTargetHandlerTest {
     assertThat(draggedItems).hasSize(2)
   }
 
-  private fun tryNormalDrop(
-    action: DnDAction,
-    deleteOriginOfInternalMove: Boolean = false,
-  ): List<Any> {
+  private fun tryNormalDrop(action: DnDAction, deleteOriginOfInternalMove: Boolean = false): List<Any> {
     val table = createTreeTable()
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
@@ -349,12 +343,7 @@ class TreeTableDropTargetHandlerTest {
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
     val draggedItems = mutableListOf<Any>(item5)
-    val handler =
-      TreeTableDropTargetHandler(
-        table,
-        false,
-        draggedItems,
-      ) // We are dragging item5 to just before itself
+    val handler = TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item5 to just before itself
     val event = createDnDEvent(Point(depth4 + 3, 4 * rowHeight + 2))
     handler.update(event)
     checkPaint(table, handler, 3, 4)
@@ -374,12 +363,7 @@ class TreeTableDropTargetHandlerTest {
     val depth4 = table.computeLeftOffset(3)
     val rowHeight = table.rowHeight
     val draggedItems = mutableListOf<Any>(item5)
-    val handler =
-      TreeTableDropTargetHandler(
-        table,
-        false,
-        draggedItems,
-      ) // We are dragging item5 to just before itself
+    val handler = TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item5 to just before itself
     val event = createDnDEvent(Point(depth4 + 3, 4 * rowHeight + 2))
     handler.update(event)
     checkNoPaint(handler)
@@ -393,12 +377,7 @@ class TreeTableDropTargetHandlerTest {
     val depth4 = table.computeLeftOffset(3)
     val rowHeight = table.rowHeight
     val draggedItems = mutableListOf<Any>(item5)
-    val handler =
-      TreeTableDropTargetHandler(
-        table,
-        false,
-        draggedItems,
-      ) // We are dragging item5 to just before itself
+    val handler = TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item5 to just before itself
     val event = createDnDEvent(Point(depth4 + 3, 4 * rowHeight + 2), action = DnDAction.COPY)
     handler.update(event)
     checkPaint(table, handler, 1, 4)
@@ -417,12 +396,7 @@ class TreeTableDropTargetHandlerTest {
     verifyNoInteractions(g)
   }
 
-  private fun checkPaint(
-    table: TreeTableImpl,
-    handler: TreeTableDropTargetHandler,
-    expectedReceiverRow: Int,
-    expectedInsertionRow: Int,
-  ) {
+  private fun checkPaint(table: TreeTableImpl, handler: TreeTableDropTargetHandler, expectedReceiverRow: Int, expectedInsertionRow: Int) {
     val g: Graphics = mock()
     val g2: Graphics2D = mock()
     whenever(g.create()).thenReturn(g2)
@@ -431,11 +405,7 @@ class TreeTableDropTargetHandlerTest {
     val ib = table.tree.getRowBounds(maxOf(0, expectedInsertionRow - 1))
     inOrder(g2).apply {
       verify(g2).color = eq(ColorUtil.brighter(UIUtil.getTreeSelectionBackground(true), 10))
-      verify(g2)
-        .setRenderingHint(
-          eq(RenderingHints.KEY_ANTIALIASING),
-          eq(RenderingHints.VALUE_ANTIALIAS_ON),
-        )
+      verify(g2).setRenderingHint(eq(RenderingHints.KEY_ANTIALIASING), eq(RenderingHints.VALUE_ANTIALIAS_ON))
       verify(g2).drawRect(maxOf(0, rb.x - 2), rb.y, rb.width + 2, rb.height)
       verify(g2).drawLine(rb.x + 6, ib.y + ib.height, ib.x + ib.width, ib.y + ib.height)
       verify(g2).drawPolygon(any())
@@ -447,12 +417,7 @@ class TreeTableDropTargetHandlerTest {
     }
   }
 
-  private fun checkInsertion(
-    insertion: Item.Insertion,
-    before: Any?,
-    action: DnDAction,
-    dragged: List<Any>,
-  ) {
+  private fun checkInsertion(insertion: Item.Insertion, before: Any?, action: DnDAction, dragged: List<Any>) {
     assertThat(insertion.before).isSameAs(before)
     assertThat(insertion.isMove).isEqualTo(action == DnDAction.MOVE)
     assertThat(insertion.draggedFromTree).containsExactlyElementsIn(dragged).inOrder()

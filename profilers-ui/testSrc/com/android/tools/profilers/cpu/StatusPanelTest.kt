@@ -18,10 +18,9 @@ package com.android.tools.profilers.cpu
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.Range
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
-
+import org.junit.Test
 
 class StatusPanelTest {
   @Test
@@ -49,16 +48,13 @@ class StatusPanelTest {
     assertThat(panel.durationLabel.text).contains("8")
   }
 
-  private fun getAbortbutton(panel: StatusPanel) = TreeWalker(panel)
-    .descendants()
-    .filterIsInstance<JButton>()
-    .first()
-
+  private fun getAbortbutton(panel: StatusPanel) = TreeWalker(panel).descendants().filterIsInstance<JButton>().first()
 }
 
 class TestStatusPanelModel : StatusPanelModel {
   var abortCalled = false
   val testRange = Range(0.0, TimeUnit.SECONDS.toNanos(5).toDouble())
+
   override fun getConfigurationText(): String {
     return "Test"
   }
@@ -70,5 +66,4 @@ class TestStatusPanelModel : StatusPanelModel {
   override fun abort() {
     abortCalled = true
   }
-
 }

@@ -28,24 +28,21 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaArgument
 
 /**
- * Adds [COMPOSABLE_FQ_NAME] annotation to a function when it's extracted from a function annotated
- * with [COMPOSABLE_FQ_NAME] or Composable context.
+ * Adds [COMPOSABLE_FQ_NAME] annotation to a function when it's extracted from a function annotated with [COMPOSABLE_FQ_NAME] or Composable
+ * context.
  */
 class ComposableFunctionExtractableAnalyser : ExtractFunctionDescriptorModifier {
   /**
-   * Returns true if the type of the given function parameter that takes this [KtLambdaArgument]
-   * has @Composable annotation.
+   * Returns true if the type of the given function parameter that takes this [KtLambdaArgument] has @Composable annotation.
    *
-   * Example: [KtLambdaArgument] in `myFunction {}` for `fun myFunction(context: @Composable () ->
-   * Unit)`
+   * Example: [KtLambdaArgument] in `myFunction {}` for `fun myFunction(context: @Composable () -> Unit)`
    */
   private fun KtLambdaArgument.isComposable(): Boolean {
     val callExpression = parent as KtCallExpression
     val lambdaExpression = getLambdaExpression() ?: return false
     return analyze(callExpression) {
       val call = callExpression.resolveToCall()?.singleFunctionCallOrNull() ?: return false
-      val parameterTypeForLambda =
-        call.argumentMapping[lambdaExpression]?.returnType ?: return false
+      val parameterTypeForLambda = call.argumentMapping[lambdaExpression]?.returnType ?: return false
       parameterTypeForLambda.annotations.classIds.any { it == ComposeClassIds.Composable }
     }
   }
@@ -62,18 +59,12 @@ class ComposableFunctionExtractableAnalyser : ExtractFunctionDescriptorModifier 
     val sourceFunction = descriptor.extractionData.targetSibling
     if (sourceFunction is KtAnnotated) {
       sourceFunction.findAnnotation(ComposeClassIds.Composable)?.let {
-        return descriptor.copy(
-          renderedAnnotations = descriptor.renderedAnnotations + "@${ComposeClassIds.Composable.asFqNameString()}\n"
-        )
+        return descriptor.copy(renderedAnnotations = descriptor.renderedAnnotations + "@${ComposeClassIds.Composable.asFqNameString()}\n")
       }
     }
-    val outsideLambda =
-      descriptor.extractionData.commonParent.parentOfType<KtLambdaArgument>(true)
-      ?: return descriptor
+    val outsideLambda = descriptor.extractionData.commonParent.parentOfType<KtLambdaArgument>(true) ?: return descriptor
     return if (outsideLambda.isComposable()) {
-      descriptor.copy(
-        renderedAnnotations = descriptor.renderedAnnotations + "@${ComposeClassIds.Composable.asFqNameString()}\n"
-      )
+      descriptor.copy(renderedAnnotations = descriptor.renderedAnnotations + "@${ComposeClassIds.Composable.asFqNameString()}\n")
     } else {
       descriptor
     }

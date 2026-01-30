@@ -31,12 +31,11 @@ import org.junit.Rule
 import org.junit.Test
 
 class StudioModuleClassLoaderManagerTest {
-  @get:Rule
-  val project = AndroidProjectRule.inMemory()
+  @get:Rule val project = AndroidProjectRule.inMemory()
 
   @After
   fun testDown() {
-    val moduleClassLoader =  StudioModuleClassLoaderManager.get() as StudioModuleClassLoaderManager
+    val moduleClassLoader = StudioModuleClassLoaderManager.get() as StudioModuleClassLoaderManager
     StudioModuleClassLoaderManager.setCaptureClassLoadingDiagnostics(false)
     moduleClassLoader.assertNoClassLoadersHeld()
   }
@@ -46,46 +45,33 @@ class StudioModuleClassLoaderManagerTest {
     var moduleClassLoaderReference: ModuleClassLoaderManager.Reference<*>? = null
     var moduleClassLoader: ModuleClassLoader? = null
     run {
-      val projectTransformations = toClassTransform(
-        { TestClassVisitorWithId("project-id1") },
-        { TestClassVisitorWithId("project-id2") }
-      )
-      val nonProjectTransformations = toClassTransform(
-        { TestClassVisitorWithId("non-project-id1") },
-        { TestClassVisitorWithId("non-project-id2") }
-      )
-      moduleClassLoaderReference = StudioModuleClassLoaderManager.get()
-        .getShared(null, StudioModuleRenderContext.forModule(project.module), projectTransformations, nonProjectTransformations)
+      val projectTransformations = toClassTransform({ TestClassVisitorWithId("project-id1") }, { TestClassVisitorWithId("project-id2") })
+      val nonProjectTransformations =
+        toClassTransform({ TestClassVisitorWithId("non-project-id1") }, { TestClassVisitorWithId("non-project-id2") })
+      moduleClassLoaderReference =
+        StudioModuleClassLoaderManager.get()
+          .getShared(null, StudioModuleRenderContext.forModule(project.module), projectTransformations, nonProjectTransformations)
       moduleClassLoader = moduleClassLoaderReference!!.classLoader
     }
 
     run {
       // Same transformations, no new class loader.
-      val projectTransformations = toClassTransform(
-        { TestClassVisitorWithId("project-id1") },
-        { TestClassVisitorWithId("project-id2") }
-      )
-      val nonProjectTransformations = toClassTransform(
-        { TestClassVisitorWithId("non-project-id1") },
-        { TestClassVisitorWithId("non-project-id2") }
-      )
+      val projectTransformations = toClassTransform({ TestClassVisitorWithId("project-id1") }, { TestClassVisitorWithId("project-id2") })
+      val nonProjectTransformations =
+        toClassTransform({ TestClassVisitorWithId("non-project-id1") }, { TestClassVisitorWithId("non-project-id2") })
       StudioModuleClassLoaderManager.get()
-        .getShared(null, StudioModuleRenderContext.forModule(project.module), projectTransformations, nonProjectTransformations).useWithClassLoader {
-          assertEquals("No changes into the transformations. Same class loader was expected", it, moduleClassLoader)
-        }
+        .getShared(null, StudioModuleRenderContext.forModule(project.module), projectTransformations, nonProjectTransformations)
+        .useWithClassLoader { assertEquals("No changes into the transformations. Same class loader was expected", it, moduleClassLoader) }
     }
 
     run {
       // Remove project transformation, it should generate a new one.
-      val projectTransformations = toClassTransform(
-        { TestClassVisitorWithId("project-id1") }
-      )
-      val nonProjectTransformations = toClassTransform(
-        { TestClassVisitorWithId("non-project-id1") },
-        { TestClassVisitorWithId("non-project-id2") }
-      )
+      val projectTransformations = toClassTransform({ TestClassVisitorWithId("project-id1") })
+      val nonProjectTransformations =
+        toClassTransform({ TestClassVisitorWithId("non-project-id1") }, { TestClassVisitorWithId("non-project-id2") })
       StudioModuleClassLoaderManager.get()
-        .getShared(null, StudioModuleRenderContext.forModule(project.module),  projectTransformations, nonProjectTransformations).also { newReference ->
+        .getShared(null, StudioModuleRenderContext.forModule(project.module), projectTransformations, nonProjectTransformations)
+        .also { newReference ->
           assertNotEquals(newReference.classLoader, moduleClassLoader)
           StudioModuleClassLoaderManager.get().release(moduleClassLoaderReference!!)
           moduleClassLoaderReference = newReference
@@ -94,26 +80,24 @@ class StudioModuleClassLoaderManagerTest {
 
     run {
       // Remove non-project transformation, it should generate a new one.
-      val projectTransformations = toClassTransform(
-        { TestClassVisitorWithId("project-id1") }
-      )
-      val nonProjectTransformations = toClassTransform(
-        { TestClassVisitorWithId("non-project-id1") }
-      )
-      val newClassLoader = StudioModuleClassLoaderManager.get()
-        .getShared(null, StudioModuleRenderContext.forModule(project.module), projectTransformations, nonProjectTransformations).useWithClassLoader { newClassLoader ->
-          assertNotEquals(newClassLoader, moduleClassLoader)
-        }
+      val projectTransformations = toClassTransform({ TestClassVisitorWithId("project-id1") })
+      val nonProjectTransformations = toClassTransform({ TestClassVisitorWithId("non-project-id1") })
+      val newClassLoader =
+        StudioModuleClassLoaderManager.get()
+          .getShared(null, StudioModuleRenderContext.forModule(project.module), projectTransformations, nonProjectTransformations)
+          .useWithClassLoader { newClassLoader -> assertNotEquals(newClassLoader, moduleClassLoader) }
       StudioModuleClassLoaderManager.get().release(moduleClassLoaderReference!!)
     }
   }
 
   @Test
   fun `ensure stats are not activated accidentally`() {
-    StudioModuleClassLoaderManager.get().getShared(null, StudioModuleRenderContext.forModule(project.module)).use { sharedClassLoaderReference ->
+    StudioModuleClassLoaderManager.get().getShared(null, StudioModuleRenderContext.forModule(project.module)).use {
+      sharedClassLoaderReference ->
       run {
         assertTrue(sharedClassLoaderReference.classLoader.stats is NopModuleClassLoadedDiagnostics)
-        StudioModuleClassLoaderManager.get().getPrivate(null, StudioModuleRenderContext.forModule(project.module)).useWithClassLoader { privateClassLoader ->
+        StudioModuleClassLoaderManager.get().getPrivate(null, StudioModuleRenderContext.forModule(project.module)).useWithClassLoader {
+          privateClassLoader ->
           assertTrue(privateClassLoader.stats is NopModuleClassLoadedDiagnostics)
         }
       }
@@ -125,10 +109,12 @@ class StudioModuleClassLoaderManagerTest {
       run {
         // The shared class loader will be reused so, even though we are reactivating the diagnostics,
         // it should be not using them.
-        StudioModuleClassLoaderManager.get().getShared(null, StudioModuleRenderContext.forModule(project.module)).useWithClassLoader { sharedClassLoader ->
+        StudioModuleClassLoaderManager.get().getShared(null, StudioModuleRenderContext.forModule(project.module)).useWithClassLoader {
+          sharedClassLoader ->
           assertTrue(sharedClassLoader.stats is NopModuleClassLoadedDiagnostics)
         }
-        StudioModuleClassLoaderManager.get().getPrivate(null, StudioModuleRenderContext.forModule(project.module)).useWithClassLoader { privateClassLoader ->
+        StudioModuleClassLoaderManager.get().getPrivate(null, StudioModuleRenderContext.forModule(project.module)).useWithClassLoader {
+          privateClassLoader ->
           assertFalse(privateClassLoader.stats is NopModuleClassLoadedDiagnostics)
         }
       }

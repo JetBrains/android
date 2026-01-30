@@ -26,20 +26,29 @@ import java.util.concurrent.Future
 
 interface BuildAnalyzerStorageManager {
   /**
-   * Returns the analysis results from the latest build in the form of a BuildAnalysisResults object. There are no arguments.
-   * If no build results have been stored, then an IllegalStatException is thrown as there is nothing to return.
+   * Returns the analysis results from the latest build in the form of a BuildAnalysisResults object. There are no arguments. If no build
+   * results have been stored, then an IllegalStatException is thrown as there is nothing to return.
    *
    * @return BuildAnalysisResults
    * @exception IllegalStateException
    */
   fun getLatestBuildAnalysisResults(): AbstractBuildAnalysisResult
+
   fun getCachedCheckJetifierResultData(): CheckJetifierResultData?
-  fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID: String, requestHolder: BuildRequestHolder): Future<BuildAnalysisResults>
+
+  fun storeNewBuildResults(
+    analyzersProxy: BuildEventsAnalyzersProxy,
+    buildID: String,
+    requestHolder: BuildRequestHolder,
+  ): Future<BuildAnalysisResults>
+
   fun recordNewFailure(buildID: String, failureType: FailureResult.Type)
-  fun hasData() : Boolean
+
+  fun hasData(): Boolean
+
   /**
-   * Returns the analysis results from the build specified in the form of a BuildAnalysisResults object. There are no arguments.
-   * If no build results have been stored, then an IllegalStateException is thrown as there is nothing to return.
+   * Returns the analysis results from the build specified in the form of a BuildAnalysisResults object. There are no arguments. If no build
+   * results have been stored, then an IllegalStateException is thrown as there is nothing to return.
    *
    * @return BuildAnalysisResults
    * @exception NoSuchElementException
@@ -47,17 +56,16 @@ interface BuildAnalyzerStorageManager {
   fun getHistoricBuildResultByID(buildID: String): Future<HistoricBuildAnalysisResults>
 
   fun getListOfHistoricBuildDescriptors(): Set<BuildDescriptor>
+
   fun clearBuildResultsStored(): Future<*>
-  @Slow
-  fun getCurrentBuildHistoryDataSize(): Long
+
+  @Slow fun getCurrentBuildHistoryDataSize(): Long
+
   fun getNumberOfBuildResultsStored(): Int
 
-  @Slow
-  fun getStorageDescriptor(): BuildAnalyzerStorageDescriptor
+  @Slow fun getStorageDescriptor(): BuildAnalyzerStorageDescriptor
 
-  /**
-   * Retrieves new setting values and updates the storage to meet them
-   */
+  /** Retrieves new setting values and updates the storage to meet them */
   fun onSettingsChange(): Future<*>
 
   interface Listener {
@@ -68,7 +76,7 @@ interface BuildAnalyzerStorageManager {
     val DATA_IS_READY_TOPIC: Topic<Listener> =
       Topic.create("com.android.build.attribution.BuildAnalyzerStorageManager", Listener::class.java)
 
-    fun getInstance(project: Project) : BuildAnalyzerStorageManager {
+    fun getInstance(project: Project): BuildAnalyzerStorageManager {
       return project.getService(BuildAnalyzerStorageManager::class.java)
     }
   }
@@ -80,7 +88,7 @@ interface BuildDescriptor {
   val totalBuildTimeMs: Long
 }
 
-data class BuildAnalyzerStorageDescriptor (
+data class BuildAnalyzerStorageDescriptor(
   val currentBuildHistoryDataSize: AtomicProperty<Long>,
-  val numberOfBuildResultsStored: AtomicProperty<Int>
+  val numberOfBuildResultsStored: AtomicProperty<Int>,
 )

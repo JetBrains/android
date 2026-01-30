@@ -18,11 +18,8 @@ package com.android.tools.profilers.tasks.args.singleartifact.memory
 import com.android.tools.profiler.proto.Trace.TraceInfo
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 
-/**
- * The following class serves as a wrapper for all arguments/data passed to a native allocations task handler.
- */
-class NativeAllocationsTaskArgs(override val isFromStartup: Boolean,
-                                private val artifact: HeapProfdSessionArtifact?)
-  : MemoryCaptureTaskArgs<HeapProfdSessionArtifact, TraceInfo>() {
+/** The following class serves as a wrapper for all arguments/data passed to a native allocations task handler. */
+class NativeAllocationsTaskArgs(override val isFromStartup: Boolean, private val artifact: HeapProfdSessionArtifact?) :
+  MemoryCaptureTaskArgs<HeapProfdSessionArtifact, TraceInfo>() {
   override fun getMemoryCaptureArtifact() = artifact
 }

@@ -20,11 +20,7 @@ import org.jetbrains.android.dom.SingleRootResourceDomFileDescription
 import org.jetbrains.android.dom.drawable.AnimatedImage
 
 class AnimatedImageDomFileDescription :
-  SingleRootResourceDomFileDescription<AnimatedImage>(
-    AnimatedImage::class.java,
-    TAG_NAME,
-    ResourceFolderType.DRAWABLE,
-  ) {
+  SingleRootResourceDomFileDescription<AnimatedImage>(AnimatedImage::class.java, TAG_NAME, ResourceFolderType.DRAWABLE) {
   companion object {
     const val TAG_NAME = "animated-image"
   }

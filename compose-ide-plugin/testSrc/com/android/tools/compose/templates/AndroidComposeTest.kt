@@ -31,34 +31,34 @@ class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
       "src/androidx/compose/foundation/layout/ColumnAndRow.kt",
       // language=kotlin
       """
-    package androidx.compose.foundation.layout
+      package androidx.compose.foundation.layout
 
-    class Row
-    class Column
-    class Box
-    """
+      class Row
+      class Column
+      class Box
+      """
         .trimIndent(),
     )
     myFixture.addFileToProject(
       "src/androidx/compose/runtime/Composable.kt",
       // language=kotlin
       """
-    package androidx.compose.runtime
+      package androidx.compose.runtime
 
-    annotation class Composable
-    """
+      annotation class Composable
+      """
         .trimIndent(),
     )
     myFixture.addFileToProject(
       "src/androidx/compose/ui/Modifier.kt",
       // language=kotlin
       """
-    package androidx.compose.ui
+      package androidx.compose.ui
 
-    interface Modifier {
-      companion object : Modifier {}
-    }
-    """
+      interface Modifier {
+        companion object : Modifier {}
+      }
+      """
         .trimIndent(),
     )
     LiveTemplateCompletionContributor.setShowTemplatesInTests(true, myFixture.testRootDisposable)

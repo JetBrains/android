@@ -24,15 +24,14 @@ class NativeMemoryHeapSetTest {
 
   @Test
   fun defaults() {
-    val heapSet = NativeMemoryHeapSet(
-      FakeCaptureObject.Builder().build())
+    val heapSet = NativeMemoryHeapSet(FakeCaptureObject.Builder().build())
     assertThat(heapSet.name).isEqualTo("Native")
     assertThat(heapSet.id).isEqualTo(0)
   }
+
   @Test
   fun heapSetClassifiersLimitedToNativeSets() {
-    val heapSet = NativeMemoryHeapSet(
-      FakeCaptureObject.Builder().build())
+    val heapSet = NativeMemoryHeapSet(FakeCaptureObject.Builder().build())
     val defaultClassifier = heapSet.createSubClassifier()
     assertThat(defaultClassifier).isInstanceOf(NativeAllocationMethodSet.createDefaultClassifier().javaClass)
     heapSet.setClassGrouping(ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK)

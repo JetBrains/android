@@ -23,25 +23,19 @@ import java.io.InputStreamReader
 
 /**
  * The data-visualization-palette.json file is
- * [auto generated](https://source.cloud.google.com/google.com:adux-source/studio-palettes/+/master:client/app/index.js;l=176)
- * and should be updated when the design team creates new colors.
+ * [auto generated](https://source.cloud.google.com/google.com:adux-source/studio-palettes/+/master:client/app/index.js;l=176) and should be
+ * updated when the design team creates new colors.
  */
 private const val PALETTE_JSON_FILENAME = "/palette/data-visualization-palette.json"
 
-/**
- * A singleton container for a [ColorPaletteManager] that provides colors for data visualization.
- */
+/** A singleton container for a [ColorPaletteManager] that provides colors for data visualization. */
 object DataVisualizationColors {
-  /**
-   * This color name refers to an entry in the [PALETTE_JSON_FILENAME] file loaded below
-   */
+  /** This color name refers to an entry in the [PALETTE_JSON_FILENAME] file loaded below */
   const val BACKGROUND_DATA_COLOR_NAME = "Gray"
 
-  @JvmField
-  val DEFAULT_LIGHT_TEXT_COLOR: Color = Color.WHITE
+  @JvmField val DEFAULT_LIGHT_TEXT_COLOR: Color = Color.WHITE
 
-  @JvmField
-  val DEFAULT_DARK_TEXT_COLOR: Color = Color.BLACK
+  @JvmField val DEFAULT_DARK_TEXT_COLOR: Color = Color.BLACK
 
   @JvmStatic
   val paletteManager: ColorPaletteManager by lazy {

@@ -26,6 +26,7 @@ import androidx.compose.ui.test.performClick
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.compose.StudioTestTheme
 import com.android.tools.adtui.compose.standaloneSingleWindowApplication
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -48,20 +49,16 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 
 class RecordingScreenTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
-  @get:Rule
-  val composeTestRule = createStudioComposeTestRule()
+  @get:Rule val composeTestRule = createStudioComposeTestRule()
 
-  @get:Rule
-  val ignoreTestRule = IgnoreTestRule()
+  @get:Rule val ignoreTestRule = IgnoreTestRule()
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("TaskGridTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskGridTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -71,11 +68,7 @@ class RecordingScreenTest {
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
     ideProfilerServices.enableTaskBasedUx(true)
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, SystemTraceTaskHandler(myManager, false))
     myProfilers.addTaskHandler(ProfilerTaskType.HEAP_DUMP, HeapDumpTaskHandler(myManager))
@@ -84,9 +77,7 @@ class RecordingScreenTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, light theme, stoppable (CPU) recording screen`() {
-    standaloneSingleWindowApplication(
-      title = "Testing Recording Screen in Light Theme",
-    ) {
+    standaloneSingleWindowApplication(title = "Testing Recording Screen in Light Theme") {
       StudioTestTheme(darkMode = false) {
         setupRecording(isStoppable = true)
         val stage = CpuProfilerStage(myProfilers)
@@ -101,9 +92,7 @@ class RecordingScreenTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, dark theme, stoppable (CPU) recording screen`() {
-    standaloneSingleWindowApplication(
-      title = "Testing Recording Screen in Dark Theme",
-    ) {
+    standaloneSingleWindowApplication(title = "Testing Recording Screen in Dark Theme") {
       StudioTestTheme(darkMode = true) {
         setupRecording(isStoppable = true)
         val stage = CpuProfilerStage(myProfilers)
@@ -118,9 +107,7 @@ class RecordingScreenTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, light theme, non stoppable (memory) recording screen`() {
-    standaloneSingleWindowApplication(
-      title = "Testing Recording Screen in Light Theme",
-    ) {
+    standaloneSingleWindowApplication(title = "Testing Recording Screen in Light Theme") {
       StudioTestTheme(darkMode = false) {
         setupRecording(isStoppable = false)
         val recordingScreenModel = MainMemoryProfilerStage(myProfilers).recordingScreenModel!!
@@ -132,9 +119,7 @@ class RecordingScreenTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, dark theme, non stoppable (memory) recording screen`() {
-    standaloneSingleWindowApplication(
-      title = "Testing Recording Screen in Dark Theme",
-    ) {
+    standaloneSingleWindowApplication(title = "Testing Recording Screen in Dark Theme") {
       StudioTestTheme(darkMode = true) {
         setupRecording(isStoppable = false)
         val recordingScreenModel = MainMemoryProfilerStage(myProfilers).recordingScreenModel!!
@@ -228,7 +213,12 @@ class RecordingScreenTest {
   }
 
   private fun setupRecording(isStoppable: Boolean) {
-    TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer,
-                                      if (isStoppable) Common.ProfilerTaskType.SYSTEM_TRACE else Common.ProfilerTaskType.HEAP_DUMP)
+    TaskHandlerTestUtils.startSession(
+      Common.Process.ExposureLevel.DEBUGGABLE,
+      myProfilers,
+      myTransportService,
+      myTimer,
+      if (isStoppable) Common.ProfilerTaskType.SYSTEM_TRACE else Common.ProfilerTaskType.HEAP_DUMP,
+    )
   }
 }

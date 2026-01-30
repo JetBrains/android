@@ -21,8 +21,5 @@ import java.awt.Cursor
 
 /** Helper function to assign predefined [Cursor] to the given [AdtUiCursorType] type. */
 fun replaceAdtUiCursorWithPredefinedCursor(type: AdtUiCursorType, predefinedCursor: Cursor) {
-  (AdtUiCursorsProvider.getInstance() as TestAdtUiCursorsProvider).replaceCursorForTest(
-    type,
-    predefinedCursor,
-  )
+  (AdtUiCursorsProvider.getInstance() as TestAdtUiCursorsProvider).replaceCursorForTest(type, predefinedCursor)
 }

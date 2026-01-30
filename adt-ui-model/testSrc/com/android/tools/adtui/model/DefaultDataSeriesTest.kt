@@ -19,8 +19,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class DefaultDataSeriesTest {
-  private val data =
-    listOf(SeriesData(0, "A"), SeriesData(1, "B"), SeriesData(2, "C"), SeriesData(3, "D"))
+  private val data = listOf(SeriesData(0, "A"), SeriesData(1, "B"), SeriesData(2, "C"), SeriesData(3, "D"))
 
   @Test
   fun `returns empty list for empty series`() {
@@ -83,7 +82,6 @@ class DefaultDataSeriesTest {
     val series = DefaultDataSeries<String>()
     data.forEach { series.add(it.x, it.value) }
 
-    assertThat(series.getDataForRange(Range(data[2].x.toDouble(), data[2].x.toDouble())))
-      .containsExactly(data[2])
+    assertThat(series.getDataForRange(Range(data[2].x.toDouble(), data[2].x.toDouble()))).containsExactly(data[2])
   }
 }

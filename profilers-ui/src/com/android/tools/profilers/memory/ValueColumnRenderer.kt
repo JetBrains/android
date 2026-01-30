@@ -30,20 +30,21 @@ import com.intellij.ui.PlatformIcons
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.PlatformIcons.*
 import icons.StudioIcons.Profiler.Overlays.*
-
 import java.awt.Color
 import javax.swing.Icon
 import javax.swing.JTree
 import javax.swing.SwingConstants
 
 open class ValueColumnRenderer : ColoredTreeCellRenderer() {
-  override fun customizeCellRenderer(tree: JTree,
-                                     value: Any,
-                                     selected: Boolean,
-                                     expanded: Boolean,
-                                     leaf: Boolean,
-                                     row: Int,
-                                     hasFocus: Boolean) {
+  override fun customizeCellRenderer(
+    tree: JTree,
+    value: Any,
+    selected: Boolean,
+    expanded: Boolean,
+    leaf: Boolean,
+    row: Int,
+    hasFocus: Boolean,
+  ) {
     when {
       value !is MemoryObjectTreeNode<*> -> append(value.toString())
       value.adapter !is ValueObject -> append(value.adapter.name)
@@ -61,11 +62,12 @@ open class ValueColumnRenderer : ColoredTreeCellRenderer() {
         append(if (valueText.isEmpty()) "" else " ")
 
         val toStringText = valueObject.toStringText
-        append(toStringText,
-               // TODO import IntelliJ colors for accessibility
-               if (valueObject.valueType == ValueObject.ValueType.STRING) STRING_ATTRIBUTES
-               else SimpleTextAttributes.REGULAR_ATTRIBUTES,
-               toStringText)
+        append(
+          toStringText,
+          // TODO import IntelliJ colors for accessibility
+          if (valueObject.valueType == ValueObject.ValueType.STRING) STRING_ATTRIBUTES else SimpleTextAttributes.REGULAR_ATTRIBUTES,
+          toStringText,
+        )
       }
     }
   }
@@ -77,24 +79,28 @@ open class ValueColumnRenderer : ColoredTreeCellRenderer() {
     val STRING_ATTRIBUTES = SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, Color(0, 0x80, 0))
 
     @JvmStatic
-    fun ValueObject.getValueObjectIcon() = when (this) {
-      is FieldObject -> when {
-        valueType == ARRAY -> asInstance.getStackedIcon(ARRAY_STACK, Db_array)
-        valueType.isPrimitive -> Db_primitive
-        else -> asInstance.getStackedIcon(FIELD_STACK, IconManager.getInstance().getPlatformIcon(PlatformIcons.Field))
+    fun ValueObject.getValueObjectIcon() =
+      when (this) {
+        is FieldObject ->
+          when {
+            valueType == ARRAY -> asInstance.getStackedIcon(ARRAY_STACK, Db_array)
+            valueType.isPrimitive -> Db_primitive
+            else -> asInstance.getStackedIcon(FIELD_STACK, IconManager.getInstance().getPlatformIcon(PlatformIcons.Field))
+          }
+        is ReferenceObject ->
+          when {
+            referenceInstance.isRoot -> Subtypes
+            referenceInstance.valueType == ARRAY -> referenceInstance.getStackedIcon(ARRAY_STACK, Db_array)
+            else -> referenceInstance.getStackedIcon(FIELD_STACK, IconManager.getInstance().getPlatformIcon(PlatformIcons.Field))
+          }
+        is InstanceObject ->
+          when (valueType) {
+            ValueObject.ValueType.CLASS -> CLASS_ICON
+            ARRAY -> getStackedIcon(ARRAY_STACK, Db_array)
+            else -> getStackedIcon(INTERFACE_STACK, INTERFACE_ICON)
+          }
+        else -> INTERFACE_ICON
       }
-      is ReferenceObject -> when {
-        referenceInstance.isRoot -> Subtypes
-        referenceInstance.valueType == ARRAY -> referenceInstance.getStackedIcon(ARRAY_STACK, Db_array)
-        else -> referenceInstance.getStackedIcon(FIELD_STACK, IconManager.getInstance().getPlatformIcon(PlatformIcons.Field))
-      }
-      is InstanceObject -> when (valueType) {
-        ValueObject.ValueType.CLASS -> CLASS_ICON
-        ARRAY -> getStackedIcon(ARRAY_STACK, Db_array)
-        else -> getStackedIcon(INTERFACE_STACK, INTERFACE_ICON)
-      }
-      else -> INTERFACE_ICON
-    }
 
     private fun InstanceObject?.getStackedIcon(stackedIcon: Icon, nonStackedIcon: Icon) =
       if (this == null || callStackDepth == 0) nonStackedIcon else stackedIcon

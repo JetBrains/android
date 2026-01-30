@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 @file:JvmName("ResourceIdManagerHelper")
+
 package com.android.tools.res.ids
 
 import com.android.tools.apk.analyzer.ResourceIdResolver
 
 /** Creates a [ResourceIdResolver] from [ResourceIdManager]. */
 val ResourceIdManager?.resolver: ResourceIdResolver
-  get() = ResourceIdResolver {
-      this?.findById(it)?.resourceUrl?.toString() ?: ResourceIdResolver.NO_RESOLUTION.resolve(it)
-    }
+  get() = ResourceIdResolver { this?.findById(it)?.resourceUrl?.toString() ?: ResourceIdResolver.NO_RESOLUTION.resolve(it) }

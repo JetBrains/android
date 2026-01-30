@@ -53,9 +53,7 @@ class SplittingPanelTest {
 
   @get:Rule val edtRule = EdtRule()
 
-  private val contentManager by lazy {
-    ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project).contentManager
-  }
+  private val contentManager by lazy { ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project).contentManager }
 
   // The mock content manager doesn't assign a parent to the content component so we need to provide
   // one
@@ -77,10 +75,7 @@ class SplittingPanelTest {
         createContent(null, "Tab", false),
         clientState = null,
         object : ChildComponentFactory {
-          override fun createChildComponent(
-            state: String?,
-            popupActionGroup: DefaultActionGroup,
-          ): JComponent = component
+          override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = component
         },
       )
 
@@ -106,87 +101,65 @@ class SplittingPanelTest {
     split(SplitCommand("1", VERTICAL), SplitCommand("1", HORIZONTAL), SplitCommand("2", HORIZONTAL))
 
     assertThat(buildTree(contentRootPanel))
-      .isEqualTo(
-        Parent(
-          VERTICAL,
-          0.5f,
-          Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("3")),
-          Parent(HORIZONTAL, 0.5f, Leaf("2"), Leaf("4")),
-        )
-      )
+      .isEqualTo(Parent(VERTICAL, 0.5f, Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("3")), Parent(HORIZONTAL, 0.5f, Leaf("2"), Leaf("4"))))
   }
 
   @Test
   fun close_1() {
     val count = AtomicInteger(0)
-    createSplittingPanelContent(contentRootPanel) { _, _ ->
-      DisposableLabel("${count.incrementAndGet()}")
-    }
+    createSplittingPanelContent(contentRootPanel) { _, _ -> DisposableLabel("${count.incrementAndGet()}") }
     split(SplitCommand("1", VERTICAL), SplitCommand("1", HORIZONTAL), SplitCommand("2", HORIZONTAL))
     val splittingPanel = fakeUi.getComponent<SplittingPanel> { it.isNamed("1") }
 
     splittingPanel.close()
 
-    assertThat(buildTree(contentRootPanel))
-      .isEqualTo(Parent(VERTICAL, 0.5f, Leaf("3"), Parent(HORIZONTAL, 0.5f, Leaf("2"), Leaf("4"))))
+    assertThat(buildTree(contentRootPanel)).isEqualTo(Parent(VERTICAL, 0.5f, Leaf("3"), Parent(HORIZONTAL, 0.5f, Leaf("2"), Leaf("4"))))
     assertThat(splittingPanel.isComponentDisposed()).isTrue()
   }
 
   @Test
   fun close_2() {
     val count = AtomicInteger(0)
-    createSplittingPanelContent(contentRootPanel) { _, _ ->
-      DisposableLabel("${count.incrementAndGet()}")
-    }
+    createSplittingPanelContent(contentRootPanel) { _, _ -> DisposableLabel("${count.incrementAndGet()}") }
     split(SplitCommand("1", VERTICAL), SplitCommand("1", HORIZONTAL), SplitCommand("2", HORIZONTAL))
     val splittingPanel = fakeUi.getComponent<SplittingPanel> { it.isNamed("2") }
 
     splittingPanel.close()
 
-    assertThat(buildTree(contentRootPanel))
-      .isEqualTo(Parent(VERTICAL, 0.5f, Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("3")), Leaf("4")))
+    assertThat(buildTree(contentRootPanel)).isEqualTo(Parent(VERTICAL, 0.5f, Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("3")), Leaf("4")))
     assertThat(splittingPanel.isComponentDisposed()).isTrue()
   }
 
   @Test
   fun close_3() {
     val count = AtomicInteger(0)
-    createSplittingPanelContent(contentRootPanel) { _, _ ->
-      DisposableLabel("${count.incrementAndGet()}")
-    }
+    createSplittingPanelContent(contentRootPanel) { _, _ -> DisposableLabel("${count.incrementAndGet()}") }
     split(SplitCommand("1", VERTICAL), SplitCommand("1", HORIZONTAL), SplitCommand("2", HORIZONTAL))
     val splittingPanel = fakeUi.getComponent<SplittingPanel> { it.isNamed("3") }
 
     splittingPanel.close()
 
-    assertThat(buildTree(contentRootPanel))
-      .isEqualTo(Parent(VERTICAL, 0.5f, Leaf("1"), Parent(HORIZONTAL, 0.5f, Leaf("2"), Leaf("4"))))
+    assertThat(buildTree(contentRootPanel)).isEqualTo(Parent(VERTICAL, 0.5f, Leaf("1"), Parent(HORIZONTAL, 0.5f, Leaf("2"), Leaf("4"))))
     assertThat(splittingPanel.isComponentDisposed()).isTrue()
   }
 
   @Test
   fun close_4() {
     val count = AtomicInteger(0)
-    createSplittingPanelContent(contentRootPanel) { _, _ ->
-      DisposableLabel("${count.incrementAndGet()}")
-    }
+    createSplittingPanelContent(contentRootPanel) { _, _ -> DisposableLabel("${count.incrementAndGet()}") }
     split(SplitCommand("1", VERTICAL), SplitCommand("1", HORIZONTAL), SplitCommand("2", HORIZONTAL))
     val splittingPanel = fakeUi.getComponent<SplittingPanel> { it.isNamed("4") }
 
     splittingPanel.close()
 
-    assertThat(buildTree(contentRootPanel))
-      .isEqualTo(Parent(VERTICAL, 0.5f, Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("3")), Leaf("2")))
+    assertThat(buildTree(contentRootPanel)).isEqualTo(Parent(VERTICAL, 0.5f, Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("3")), Leaf("2")))
     assertThat(splittingPanel.isComponentDisposed()).isTrue()
   }
 
   @Test
   fun disposeContent_disposesSplits() {
     val count = AtomicInteger(0)
-    val content =
-      createSplittingPanelContent(contentRootPanel) { _, _ ->
-        DisposableLabel("${count.incrementAndGet()}")
-      }
+    val content = createSplittingPanelContent(contentRootPanel) { _, _ -> DisposableLabel("${count.incrementAndGet()}") }
     split(SplitCommand("1", VERTICAL), SplitCommand("1", HORIZONTAL), SplitCommand("2", HORIZONTAL))
     val disposableLabels = fakeUi.findAllComponents<DisposableLabel>()
 
@@ -198,9 +171,7 @@ class SplittingPanelTest {
   @Test
   fun closeAll_removesContent() {
     val count = AtomicInteger(0)
-    createSplittingPanelContent(contentRootPanel) { _, _ ->
-      DisposableLabel("${count.incrementAndGet()}")
-    }
+    createSplittingPanelContent(contentRootPanel) { _, _ -> DisposableLabel("${count.incrementAndGet()}") }
     split(SplitCommand("1", VERTICAL), SplitCommand("1", HORIZONTAL), SplitCommand("2", HORIZONTAL))
 
     while (true) {
@@ -214,26 +185,18 @@ class SplittingPanelTest {
   @Test
   fun findFirstSplitter_noSplits() {
     val count = AtomicInteger(0)
-    val content =
-      createSplittingPanelContent(contentRootPanel) { _, _ ->
-        DisposableLabel("${count.incrementAndGet()}")
-      }
+    val content = createSplittingPanelContent(contentRootPanel) { _, _ -> DisposableLabel("${count.incrementAndGet()}") }
 
-    assertThat(content.findFirstSplitter())
-      .isSameAs(fakeUi.getComponent<SplittingPanel> { it.isNamed("1") })
+    assertThat(content.findFirstSplitter()).isSameAs(fakeUi.getComponent<SplittingPanel> { it.isNamed("1") })
   }
 
   @Test
   fun findFirstSplitter_withSplits() {
     val count = AtomicInteger(0)
-    val content =
-      createSplittingPanelContent(contentRootPanel) { _, _ ->
-        DisposableLabel("${count.incrementAndGet()}")
-      }
+    val content = createSplittingPanelContent(contentRootPanel) { _, _ -> DisposableLabel("${count.incrementAndGet()}") }
     split(SplitCommand("1", VERTICAL), SplitCommand("1", HORIZONTAL), SplitCommand("2", HORIZONTAL))
 
-    assertThat(content.findFirstSplitter())
-      .isSameAs(fakeUi.getComponent<SplittingPanel> { it.isNamed("1") })
+    assertThat(content.findFirstSplitter()).isSameAs(fakeUi.getComponent<SplittingPanel> { it.isNamed("1") })
   }
 
   @Test
@@ -260,8 +223,7 @@ class SplittingPanelTest {
   @Test
   fun splitAction_vertical() {
     val count = AtomicInteger(0)
-    val content =
-      createSplittingPanelContent(contentRootPanel) { _, _ -> JLabel("${count.incrementAndGet()}") }
+    val content = createSplittingPanelContent(contentRootPanel) { _, _ -> JLabel("${count.incrementAndGet()}") }
 
     SplitAction.Vertical().actionPerformed(content)
 
@@ -271,13 +233,11 @@ class SplittingPanelTest {
   @Test
   fun splitAction_horizontal() {
     val count = AtomicInteger(0)
-    val content =
-      createSplittingPanelContent(contentRootPanel) { _, _ -> JLabel("${count.incrementAndGet()}") }
+    val content = createSplittingPanelContent(contentRootPanel) { _, _ -> JLabel("${count.incrementAndGet()}") }
 
     SplitAction.Horizontal().actionPerformed(content)
 
-    assertThat(buildTree(contentRootPanel))
-      .isEqualTo(Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("2")))
+    assertThat(buildTree(contentRootPanel)).isEqualTo(Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("2")))
   }
 
   @Test
@@ -292,18 +252,11 @@ class SplittingPanelTest {
   @Test
   fun buildStateFromComponent() {
     val count = AtomicInteger(0)
-    createSplittingPanelContent(contentRootPanel) { _, _ ->
-      JLabelWithState("${count.incrementAndGet()}")
-    }
+    createSplittingPanelContent(contentRootPanel) { _, _ -> JLabelWithState("${count.incrementAndGet()}") }
 
-    split(
-      SplitCommand("1", VERTICAL, 0.3f),
-      SplitCommand("1", HORIZONTAL, 0.7f),
-      SplitCommand("2", HORIZONTAL, 0.6f),
-    )
+    split(SplitCommand("1", VERTICAL, 0.3f), SplitCommand("1", HORIZONTAL, 0.7f), SplitCommand("2", HORIZONTAL, 0.6f))
 
-    val state =
-      SplittingPanel.buildStateFromComponent(contentRootPanel.getComponent(0) as JComponent)
+    val state = SplittingPanel.buildStateFromComponent(contentRootPanel.getComponent(0) as JComponent)
 
     assertThat(state)
       .isEqualTo(
@@ -332,42 +285,23 @@ class SplittingPanelTest {
         content,
         state,
         object : ChildComponentFactory {
-          override fun createChildComponent(
-            state: String?,
-            popupActionGroup: DefaultActionGroup,
-          ): JComponent = JLabelWithState(state!!)
+          override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = JLabelWithState(state!!)
         },
       )
 
     assertThat(buildTree(component))
-      .isEqualTo(
-        Parent(
-          VERTICAL,
-          0.3f,
-          Parent(HORIZONTAL, 0.7f, Leaf("1"), Leaf("3")),
-          Parent(HORIZONTAL, 0.6f, Leaf("2"), Leaf("4")),
-        )
-      )
+      .isEqualTo(Parent(VERTICAL, 0.3f, Parent(HORIZONTAL, 0.7f, Leaf("1"), Leaf("3")), Parent(HORIZONTAL, 0.6f, Leaf("2"), Leaf("4"))))
   }
 
   @Test
   fun popupActionGroup_presentation() {
-    val content =
-      createSplittingPanelContent(contentRootPanel) { _, actionGroup ->
-        JLabelWithPopupActionGroup("Text", actionGroup)
-      }
+    val content = createSplittingPanelContent(contentRootPanel) { _, actionGroup -> JLabelWithPopupActionGroup("Text", actionGroup) }
 
     val actions =
-      (content.findFirstSplitter()?.component as JLabelWithPopupActionGroup)
-        .popupActionGroup
-        .getChildren(TestActionEvent.createTestEvent())
+      (content.findFirstSplitter()?.component as JLabelWithPopupActionGroup).popupActionGroup.getChildren(TestActionEvent.createTestEvent())
 
-    assertThat(actions.map { it.templateText })
-      .containsExactly("Split Right", "Split Down", "Close")
-      .inOrder()
-    assertThat(actions.map { it.templatePresentation.icon })
-      .containsExactly(VERTICAL.icon, HORIZONTAL.icon, Close)
-      .inOrder()
+    assertThat(actions.map { it.templateText }).containsExactly("Split Right", "Split Down", "Close").inOrder()
+    assertThat(actions.map { it.templatePresentation.icon }).containsExactly(VERTICAL.icon, HORIZONTAL.icon, Close).inOrder()
   }
 
   @Test
@@ -378,10 +312,7 @@ class SplittingPanelTest {
         JLabelWithPopupActionGroup("${count.incrementAndGet()}", actionGroup)
       }
     val event = TestActionEvent.createTestEvent()
-    val action =
-      (content.findFirstSplitter()?.component as JLabelWithPopupActionGroup)
-        .popupActionGroup
-        .getChildren(event)[0]
+    val action = (content.findFirstSplitter()?.component as JLabelWithPopupActionGroup).popupActionGroup.getChildren(event)[0]
 
     action.actionPerformed(event)
 
@@ -396,15 +327,11 @@ class SplittingPanelTest {
         JLabelWithPopupActionGroup("${count.incrementAndGet()}", actionGroup)
       }
     val event = TestActionEvent.createTestEvent()
-    val action =
-      (content.findFirstSplitter()?.component as JLabelWithPopupActionGroup)
-        .popupActionGroup
-        .getChildren(event)[1]
+    val action = (content.findFirstSplitter()?.component as JLabelWithPopupActionGroup).popupActionGroup.getChildren(event)[1]
 
     action.actionPerformed(event)
 
-    assertThat(buildTree(contentRootPanel))
-      .isEqualTo(Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("2")))
+    assertThat(buildTree(contentRootPanel)).isEqualTo(Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("2")))
   }
 
   @Test
@@ -416,15 +343,11 @@ class SplittingPanelTest {
     split(SplitCommand("1", VERTICAL), SplitCommand("1", HORIZONTAL), SplitCommand("2", HORIZONTAL))
     val splittingPanel = fakeUi.getComponent<SplittingPanel> { it.isNamed("1") }
     val event = TestActionEvent.createTestEvent()
-    val action =
-      (splittingPanel.component as JLabelWithPopupActionGroup)
-        .popupActionGroup
-        .getChildren(event)[2]
+    val action = (splittingPanel.component as JLabelWithPopupActionGroup).popupActionGroup.getChildren(event)[2]
 
     action.actionPerformed(event)
 
-    assertThat(buildTree(contentRootPanel))
-      .isEqualTo(Parent(VERTICAL, 0.5f, Leaf("3"), Parent(HORIZONTAL, 0.5f, Leaf("2"), Leaf("4"))))
+    assertThat(buildTree(contentRootPanel)).isEqualTo(Parent(VERTICAL, 0.5f, Leaf("3"), Parent(HORIZONTAL, 0.5f, Leaf("2"), Leaf("4"))))
     assertThat(splittingPanel.isComponentDisposed()).isTrue()
   }
 
@@ -438,10 +361,8 @@ class SplittingPanelTest {
         content,
         null,
         object : ChildComponentFactory {
-          override fun createChildComponent(
-            state: String?,
-            popupActionGroup: DefaultActionGroup,
-          ): JComponent = createChildComponent(state, popupActionGroup)
+          override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent =
+            createChildComponent(state, popupActionGroup)
         },
       )
     content.component = splittingPanel
@@ -479,8 +400,7 @@ class SplittingPanelTest {
           buildTree(component.firstComponent),
           buildTree(component.secondComponent),
         )
-      else ->
-        throw IllegalStateException("Unexpected component found: ${component::class.qualifiedName}")
+      else -> throw IllegalStateException("Unexpected component found: ${component::class.qualifiedName}")
     }
   }
 
@@ -493,12 +413,7 @@ class SplittingPanelTest {
       override fun toString(indent: String): String = "$indent$name"
     }
 
-    data class Parent(
-      val orientation: SplitOrientation,
-      val proportion: Float,
-      val first: TreeNode,
-      val second: TreeNode,
-    ) : TreeNode() {
+    data class Parent(val orientation: SplitOrientation, val proportion: Float, val first: TreeNode, val second: TreeNode) : TreeNode() {
       override fun toString(): String = toString("")
 
       override fun toString(indent: String): String =
@@ -511,11 +426,7 @@ class SplittingPanelTest {
    *
    * A null proportion means [#split] will not modify the proportion created by the tested code.
    */
-  private data class SplitCommand(
-    val name: String,
-    val orientation: SplitOrientation,
-    val proportion: Float? = null,
-  )
+  private data class SplitCommand(val name: String, val orientation: SplitOrientation, val proportion: Float? = null)
 
   private open class DisposableLabel(text: String) : JLabel(text), Disposable {
 
@@ -526,13 +437,11 @@ class SplittingPanelTest {
     }
   }
 
-  private class JLabelWithState(val componentState: String) :
-    JLabel(componentState), SplittingTabsStateProvider {
+  private class JLabelWithState(val componentState: String) : JLabel(componentState), SplittingTabsStateProvider {
     override fun getState(): String = componentState
   }
 
-  private class JLabelWithPopupActionGroup(text: String, val popupActionGroup: DefaultActionGroup) :
-    DisposableLabel(text)
+  private class JLabelWithPopupActionGroup(text: String, val popupActionGroup: DefaultActionGroup) : DisposableLabel(text)
 }
 
 private fun SplittingPanel.isComponentDisposed() = Disposer.isDisposed(component as Disposable)

@@ -32,8 +32,8 @@ import javax.swing.ListCellRenderer
 /**
  * Representation of values for the builtin [EnumSupport].
  *
- * This interface supports groups and separators in a popup. Headers and separators will implement
- * [CommonElementSelectability] which enables certain lists to skip the selection of these elements.
+ * This interface supports groups and separators in a popup. Headers and separators will implement [CommonElementSelectability] which
+ * enables certain lists to skip the selection of these elements.
  *
  * Example:
  *
@@ -61,13 +61,13 @@ interface EnumValue {
   /**
    * Specifies the operation done when this value is selected.
    *
-   * The default operation simply updates the value on the property. This method could be overridden
-   * to do something different like as opening a dialog.
+   * The default operation simply updates the value on the property. This method could be overridden to do something different like as
+   * opening a dialog.
    *
    * Use [newEnumValue] to let the UI controls see the new value before changing the property value.
    *
-   * A return value of true means the value of the [EnumValue] was assigned. A return value of false
-   * means the property was updated with other means e.g. from a dialog or an action.
+   * A return value of true means the value of the [EnumValue] was assigned. A return value of false means the property was updated with
+   * other means e.g. from a dialog or an action.
    */
   fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback): Boolean {
     newEnumValue.newValue(value)
@@ -86,8 +86,7 @@ interface EnumValue {
 
     fun indented(value: String): EnumValue = IndentedItemEnumValue(value)
 
-    fun indented(value: String, display: String): EnumValue =
-      IndentedItemWithDisplayEnumValue(value, display)
+    fun indented(value: String, display: String): EnumValue = IndentedItemWithDisplayEnumValue(value, display)
 
     fun action(action: AnAction): BaseActionEnumValue = AnActionEnumValue(action)
 
@@ -105,8 +104,7 @@ interface EnumValue {
         override val display = "Loading..."
       }
     val PROPERTY_ITEM_KEY = DataKey.create<PropertyItem>("PROPERTY_ITEM")
-    val NEW_ENUM_VALUE_CALLBACK_KEY =
-      DataKey.create<NewEnumValueCallback>("NEW_ENUM_VALUE_CALLBACK")
+    val NEW_ENUM_VALUE_CALLBACK_KEY = DataKey.create<NewEnumValueCallback>("NEW_ENUM_VALUE_CALLBACK")
   }
 }
 
@@ -122,8 +120,7 @@ interface ActionEnumValue : EnumValue {
  *
  * This element is not selectable.
  */
-class HeaderEnumValue(val header: String, val headerIcon: Icon? = null) :
-  EnumValue, CommonElementSelectability
+class HeaderEnumValue(val header: String, val headerIcon: Icon? = null) : EnumValue, CommonElementSelectability
 
 /** A callback for notifying the UI controls about a new selected enum value. */
 fun interface NewEnumValueCallback {

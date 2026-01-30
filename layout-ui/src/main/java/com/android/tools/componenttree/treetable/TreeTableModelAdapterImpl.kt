@@ -25,11 +25,8 @@ import javax.swing.event.TreeExpansionEvent
 import javax.swing.tree.TreePath
 
 /** Adapter for delegating events from a TreeModel to this TableModel. */
-class TreeTableModelAdapterImpl(
-  treeTableModel: TreeTableModel,
-  private val tree: JTree,
-  private val table: TreeTableImpl,
-) : TreeTableModelAdapter(treeTableModel, tree, table) {
+class TreeTableModelAdapterImpl(treeTableModel: TreeTableModel, private val tree: JTree, private val table: TreeTableImpl) :
+  TreeTableModelAdapter(treeTableModel, tree, table) {
   private val modificationCount = AtomicInteger()
   private var lastPathCollapsed: TreePath? = null
 
@@ -47,8 +44,8 @@ class TreeTableModelAdapterImpl(
   }
 
   /**
-   * Invokes fireActualTableDataChangeEvent after all the pending events have been processed. The
-   * [modificationCount] is used to collapse multiple data changed request to a single one.
+   * Invokes fireActualTableDataChangeEvent after all the pending events have been processed. The [modificationCount] is used to collapse
+   * multiple data changed request to a single one.
    */
   override fun delayedFireTableDataChanged() {
     val stamp = modificationCount.incrementAndGet().toLong()
@@ -60,9 +57,8 @@ class TreeTableModelAdapterImpl(
   }
 
   /**
-   * Note: This is called from the super class when a tree node is expanded/collapsed. Delay the
-   * table update to avoid paint problems during tree node expansions and closures. The problem seem
-   * to be caused by this being called from the selection update of the table.
+   * Note: This is called from the super class when a tree node is expanded/collapsed. Delay the table update to avoid paint problems during
+   * tree node expansions and closures. The problem seem to be caused by this being called from the selection update of the table.
    */
   override fun fireTableDataChanged() {
     delayedFireTableDataChanged()

@@ -31,12 +31,12 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JLabel
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 class CpuProfilerStageCpuUsageTooltipViewTest {
   private val timer = FakeTimer()
@@ -44,15 +44,11 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
   private lateinit var cpuStage: CpuProfilerStage
   private lateinit var usageTooltipView: FakeCpuUsageTooltipView
 
-  @Rule
-  @JvmField
-  val myGrpcChannel = FakeGrpcChannel("CpuUsageTooltipViewTest", transportService)
+  @Rule @JvmField val myGrpcChannel = FakeGrpcChannel("CpuUsageTooltipViewTest", transportService)
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Before
   fun setUp() {
@@ -83,42 +79,44 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
     assertThat(labels[0].text).isEqualTo("00:01.000")
     assertThat(labels[1].text).isEqualTo("Selection Unavailable")
 
-    cpuStage.timeline.tooltipRange.set(TimeUnit.SECONDS.toMicros(3).toDouble(),
-                                       TimeUnit.SECONDS.toMicros(3).toDouble())
+    cpuStage.timeline.tooltipRange.set(TimeUnit.SECONDS.toMicros(3).toDouble(), TimeUnit.SECONDS.toMicros(3).toDouble())
     labels = TreeWalker(usageTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
     assertThat(labels).hasSize(2) // time, name, state, details unavailable
     assertThat(labels[0].text).isEqualTo("00:03.000")
     assertThat(labels[1].text).isEqualTo(ProfilingTechnology.SYSTEM_TRACE.getName())
   }
 
-
   private fun addTraceInfo(traceId: Long, startTimeSec: Long, endTimeSec: Long, traceType: TraceType) {
     val configuration = Trace.TraceConfiguration.newBuilder()
     TraceConfigOptionsUtils.addDefaultTraceOptions(configuration, traceType)
 
-    val traceInfo: Trace.TraceInfo = Trace.TraceInfo.newBuilder()
-      .setTraceId(traceId)
-      .setFromTimestamp(TimeUnit.SECONDS.toNanos(startTimeSec))
-      .setToTimestamp(TimeUnit.SECONDS.toNanos(endTimeSec))
-      .setConfiguration(configuration).build()
-    val traceEventBuilder = Common.Event.newBuilder()
-      .setGroupId(traceId)
-      .setPid(FakeTransportService.FAKE_PROCESS.pid)
-      .setKind(Common.Event.Kind.CPU_TRACE)
-    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
-                                      traceEventBuilder.setTimestamp(TimeUnit.SECONDS.toNanos(startTimeSec)).setTraceData(
-                                        Trace.TraceData.newBuilder().setTraceStarted(
-                                          Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(traceInfo))).build())
-    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
-                                      traceEventBuilder.setTimestamp(TimeUnit.SECONDS.toNanos(endTimeSec)).setTraceData(
-                                        Trace.TraceData.newBuilder().setTraceEnded(
-                                          Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(traceInfo))).build())
+    val traceInfo: Trace.TraceInfo =
+      Trace.TraceInfo.newBuilder()
+        .setTraceId(traceId)
+        .setFromTimestamp(TimeUnit.SECONDS.toNanos(startTimeSec))
+        .setToTimestamp(TimeUnit.SECONDS.toNanos(endTimeSec))
+        .setConfiguration(configuration)
+        .build()
+    val traceEventBuilder =
+      Common.Event.newBuilder().setGroupId(traceId).setPid(FakeTransportService.FAKE_PROCESS.pid).setKind(Common.Event.Kind.CPU_TRACE)
+    transportService.addEventToStream(
+      FakeTransportService.FAKE_DEVICE_ID,
+      traceEventBuilder
+        .setTimestamp(TimeUnit.SECONDS.toNanos(startTimeSec))
+        .setTraceData(Trace.TraceData.newBuilder().setTraceStarted(Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(traceInfo)))
+        .build(),
+    )
+    transportService.addEventToStream(
+      FakeTransportService.FAKE_DEVICE_ID,
+      traceEventBuilder
+        .setTimestamp(TimeUnit.SECONDS.toNanos(endTimeSec))
+        .setTraceData(Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(traceInfo)))
+        .build(),
+    )
   }
 
-  private class FakeCpuUsageTooltipView(
-    parent: CpuProfilerStageView,
-    tooltip: CpuProfilerStageCpuUsageTooltip)
-    : CpuProfilerStageCpuUsageTooltipView(parent, tooltip) {
+  private class FakeCpuUsageTooltipView(parent: CpuProfilerStageView, tooltip: CpuProfilerStageCpuUsageTooltip) :
+    CpuProfilerStageCpuUsageTooltipView(parent, tooltip) {
     val tooltipPanel: JComponent = createComponent()
   }
 }

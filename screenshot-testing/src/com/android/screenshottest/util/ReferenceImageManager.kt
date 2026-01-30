@@ -21,19 +21,14 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import java.io.File
 import java.io.IOException
 
-/**
- * A simple data class to pass information from the UI layer to the file management layer.
- */
-data class ImageData(
-  val previewData: PreviewDetails,
-  val loadedImagePaths: Map<String, String>
-)
+/** A simple data class to pass information from the UI layer to the file management layer. */
+data class ImageData(val previewData: PreviewDetails, val loadedImagePaths: Map<String, String>)
 
 private val LOG = Logger.getInstance("com.android.screenshottest.util.ReferenceImageManager")
 
 /**
- * Copies the images from the provided data objects to the appropriate reference image directory.
- * This method should be called from a background thread.
+ * Copies the images from the provided data objects to the appropriate reference image directory. This method should be called from a
+ * background thread.
  *
  * @param module The module where the screenshots belong.
  * @param imagesToCopy The list of data objects representing the previews to be copied.

@@ -21,12 +21,8 @@ import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.PersistentStateComponent
 import javax.swing.SortOrder
 
-/**
- * An abstract [PersistentStateComponent] that persists a [CategoryTable] when supplied with a
- * [CategoryTableStateSerializer].
- */
-abstract class CategoryTablePersistentStateComponent :
-  PersistentStateComponent<CategoryTableState> {
+/** An abstract [PersistentStateComponent] that persists a [CategoryTable] when supplied with a [CategoryTableStateSerializer]. */
+abstract class CategoryTablePersistentStateComponent : PersistentStateComponent<CategoryTableState> {
   abstract val serializer: CategoryTableStateSerializer
   var table: CategoryTable<*>? = null
     set(value) {
@@ -51,13 +47,11 @@ abstract class CategoryTablePersistentStateComponent :
 }
 
 /**
- * The persistable state of a CategoryTable. While BaseState is normally meant to be used as the
- * canonical store for the data, it's completely unsuitable for CategoryTable's state: CategoryTable
- * works extensively with generic values of arbitrary types supplied by clients. BaseState needs to
- * know the concrete types to serialize based on reflection, which is impossible with generics.
+ * The persistable state of a CategoryTable. While BaseState is normally meant to be used as the canonical store for the data, it's
+ * completely unsuitable for CategoryTable's state: CategoryTable works extensively with generic values of arbitrary types supplied by
+ * clients. BaseState needs to know the concrete types to serialize based on reflection, which is impossible with generics.
  *
- * Thus, we perform our own conversion to simple types, and store converted data in these BaseState
- * classes.
+ * Thus, we perform our own conversion to simple types, and store converted data in these BaseState classes.
  */
 class CategoryTableState : BaseState() {
   // These lists *must* be var or else they will fail to be detected as properties, even though we
@@ -82,13 +76,11 @@ class CategoryTableState : BaseState() {
 }
 
 /**
- * A bridge between [CategoryTable] and [CategoryTableState]. [CategoryTable] can be used without
- * any persistence support; serialization-related code is isolated to
- * [CategoryTableStateSerializer], which is built from [AttributeSerializer].
+ * A bridge between [CategoryTable] and [CategoryTableState]. [CategoryTable] can be used without any persistence support;
+ * serialization-related code is isolated to [CategoryTableStateSerializer], which is built from [AttributeSerializer].
  */
 class CategoryTableStateSerializer(val attributeSerializers: List<AttributeSerializer<*>>) {
-  private fun findAttribute(name: String?): Attribute<*, *>? =
-    attributeSerializers.find { it.name == name }?.attribute
+  private fun findAttribute(name: String?): Attribute<*, *>? = attributeSerializers.find { it.name == name }?.attribute
 
   private fun Attribute<*, *>.name() = serializer()?.name
 
@@ -135,9 +127,7 @@ class CategoryTableStateSerializer(val attributeSerializers: List<AttributeSeria
   }
 
   // Helper function split from toCategory() for type-inference reasons
-  private fun <T, C> CategoryTableState.CategoryState.toCategory(
-    attribute: Attribute<T, C>
-  ): Category<T, C>? {
+  private fun <T, C> CategoryTableState.CategoryState.toCategory(attribute: Attribute<T, C>): Category<T, C>? {
     val value = attribute.serializer()?.converter?.fromString(value ?: "") ?: return null
     return Category(attribute, value)
   }
@@ -152,8 +142,7 @@ class CategoryTableStateSerializer(val attributeSerializers: List<AttributeSeria
   }
 
   fun <T> CategoryTableState.CategoryListState.toCategoryList(): CategoryList<T>? {
-    val result =
-      categories.mapNotNull<CategoryTableState.CategoryState, Category<T, *>> { it.toCategory() }
+    val result = categories.mapNotNull<CategoryTableState.CategoryState, Category<T, *>> { it.toCategory() }
     return result.takeIf { it.size == categories.size }
   }
 

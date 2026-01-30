@@ -45,13 +45,9 @@ interface PreferenceElementBase : XmlResourceElement {
     @Convert(ConstantFieldConverter::class)
     fun getAction(): AndroidAttributeValue<String>
 
-    @Convert(ClassValueConverterImpl::class)
-    @Attribute("targetClass")
-    fun getTargetClass(): AndroidAttributeValue<PsiClass>
+    @Convert(ClassValueConverterImpl::class) @Attribute("targetClass") fun getTargetClass(): AndroidAttributeValue<PsiClass>
 
-    @Convert(PsiPackageConverter::class)
-    @Attribute("targetPackage")
-    fun getTargetPackage(): AndroidAttributeValue<String>
+    @Convert(PsiPackageConverter::class) @Attribute("targetPackage") fun getTargetPackage(): AndroidAttributeValue<String>
 
     val extras: List<Extra>
     val categories: List<Category>

@@ -24,9 +24,7 @@ import javax.swing.ListCellRenderer
  * These values will be displayed in the dropdown of a ComboBox or DropDown control.
  */
 interface EnumSupport {
-  /**
-   * The values to display in the enum control. This getter should be called on a background thread.
-   */
+  /** The values to display in the enum control. This getter should be called on a background thread. */
   val values: List<EnumValue>
     @RequiresBackgroundThread get
 
@@ -37,8 +35,7 @@ interface EnumSupport {
   /**
    * Create an [EnumValue] from an initial string value.
    *
-   * This is used by DropDown controls for showing the initial value without asking for all possible
-   * enum values.
+   * This is used by DropDown controls for showing the initial value without asking for all possible enum values.
    */
   fun createValue(stringValue: String): EnumValue = EnumValue.item(stringValue)
 

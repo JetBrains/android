@@ -33,10 +33,7 @@ import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 
-/**
- * Rule that sets up a basic fixture for adding/opening files, etc. but without anything
- * Android-related.
- */
+/** Rule that sets up a basic fixture for adding/opening files, etc. but without anything Android-related. */
 interface FixtureRule : TestRule {
   val project: Project
   val module: Module
@@ -110,21 +107,13 @@ private class FixtureRuleWithTempDir : FixtureRuleBase() {
 
   override fun before() {
     super.before()
-    WriteCommandAction.runWriteCommandAction(fixture.project) {
-      addContentRootToTempDir(fixture.project.modules.single())
-    }
+    WriteCommandAction.runWriteCommandAction(fixture.project) { addContentRootToTempDir(fixture.project.modules.single()) }
   }
 
   private fun addContentRootToTempDir(module: Module) {
     val model = ModuleRootManager.getInstance(module).modifiableModel
-    val nioPath =
-      checkNotNull(fixture.tempDirFixture.tempDirPath.toNioPathOrNull()) {
-        "TempDir path is invalid!"
-      }
-    val dir =
-      checkNotNull(nioPath.refreshAndFindVirtualDirectory()) {
-        "Directory $nioPath does not exist!"
-      }
+    val nioPath = checkNotNull(fixture.tempDirFixture.tempDirPath.toNioPathOrNull()) { "TempDir path is invalid!" }
+    val dir = checkNotNull(nioPath.refreshAndFindVirtualDirectory()) { "Directory $nioPath does not exist!" }
     model.addContentEntry(dir)
     ApplicationManager.getApplication().runWriteAction(model::commit)
     SaveAndSyncHandler.getInstance().scheduleProjectSave(fixture.project)

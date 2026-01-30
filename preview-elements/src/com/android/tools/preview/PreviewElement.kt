@@ -28,18 +28,16 @@ enum class DisplayPositioning {
  * Settings that modify how a [PreviewElement] is rendered
  *
  * @param name display name of this preview element
- * @param baseName For parametrized previews, all of them have a same base name. For example for
- *   Composable it will be method name.
+ * @param baseName For parametrized previews, all of them have a same base name. For example for Composable it will be method name.
  * @param parameterName For parametrized previews, they might have a parameter name.
  * @param group name that allows multiple previews in separate groups
- * @param showDecoration when true, the system decorations (navigation and status bars) should be
- *   displayed as part of the render
+ * @param showDecoration when true, the system decorations (navigation and status bars) should be displayed as part of the render
  * @param background the background to be used for the preview.
- * @param displayPositioning the positioning of this preview element in the list of previews.
- *   Elements with [DisplayPositioning.TOP] will be displayed at the top of the list of previews.
- * @param organizationGroup an Organization group this [PreviewElement] belongs to. If not
- *   specified - default grouping method is used. Could be used to override default grouping method,
- *   for example for UI Check - grouping is done by UI Check type (Screen sizes, Font scales, etc).
+ * @param displayPositioning the positioning of this preview element in the list of previews. Elements with [DisplayPositioning.TOP] will be
+ *   displayed at the top of the list of previews.
+ * @param organizationGroup an Organization group this [PreviewElement] belongs to. If not specified - default grouping method is used.
+ *   Could be used to override default grouping method, for example for UI Check - grouping is done by UI Check type (Screen sizes, Font
+ *   scales, etc).
  * @param organizationName display name for the Organization group this [PreviewElement] belongs to.
  */
 data class PreviewDisplaySettings(
@@ -56,21 +54,18 @@ data class PreviewDisplaySettings(
   /** Represents the background settings for the current preview. */
   sealed interface Background {
 
-    /**
-     * The preview does not have a background. This will typically mean that the background will be
-     * transparent.
-     */
+    /** The preview does not have a background. This will typically mean that the background will be transparent. */
     object None : Background
 
     /**
-     * The preview will be rendered with the default background. The default might vary depending on
-     * the type of surface (e.g. Tiles vs Compose).
+     * The preview will be rendered with the default background. The default might vary depending on the type of surface (e.g. Tiles vs
+     * Compose).
      */
     object Default : Background
 
     /**
-     * The background is a solid color in any of the valid formats accepted by the annotation. One
-     * of either "#AARRGGBB" or "0xAARRGGBB" are accepted even with alpha omitted.
+     * The background is a solid color in any of the valid formats accepted by the annotation. One of either "#AARRGGBB" or "0xAARRGGBB" are
+     * accepted even with alpha omitted.
      */
     data class Color(val color: String) : Background
 
@@ -80,24 +75,17 @@ data class PreviewDisplaySettings(
 }
 
 /**
- * Definition of a preview element. [T] represents a generic type specifying the location of the
- * code. For example, in Studio it is specified as [SmartPsiElementPointer]<[PsiElement]> since
- * Studio heavily relies on Psi file structure. Out-of-studio we currently don't use it and
- * therefore the specification there is [Unit]. In the future, if we want to support referencing
- * previews out-of-studio it could be a data class with a file url and a line number properties.
+ * Definition of a preview element. [T] represents a generic type specifying the location of the code. For example, in Studio it is
+ * specified as [SmartPsiElementPointer]<[PsiElement]> since Studio heavily relies on Psi file structure. Out-of-studio we currently don't
+ * use it and therefore the specification there is [Unit]. In the future, if we want to support referencing previews out-of-studio it could
+ * be a data class with a file url and a line number properties.
  */
 interface PreviewElement<T> : PreviewNode {
 
-  /**
-   * Indicates if preview element has animation that could be inspected via
-   * [AnimationInspectorAction]
-   */
+  /** Indicates if preview element has animation that could be inspected via [AnimationInspectorAction] */
   val hasAnimations: Boolean
 
-  /**
-   * Dispatcher that can be used for navigating back within the preview. It should be handled via
-   * reflection.
-   */
+  /** Dispatcher that can be used for navigating back within the preview. It should be handled via reflection. */
   val backPressedDispatcher: Any?
     get() = null
 
@@ -105,16 +93,12 @@ interface PreviewElement<T> : PreviewNode {
   val displaySettings: PreviewDisplaySettings
 
   /**
-   * Location of the preview element definition or null if unknown. This means the code that
-   * indicates that [previewBody] should be previewed. This might be the [previewBody] itself or an
-   * annotation (annotating the composable method, that won't necessarily be a '@Preview' when
-   * Multipreview is enabled).
+   * Location of the preview element definition or null if unknown. This means the code that indicates that [previewBody] should be
+   * previewed. This might be the [previewBody] itself or an annotation (annotating the composable method, that won't necessarily be a
+   * '@Preview' when Multipreview is enabled).
    */
   val previewElementDefinition: T?
 
-  /**
-   * Location of the preview body or null if unknown. This is the code that will be run during
-   * preview.
-   */
+  /** Location of the preview body or null if unknown. This is the code that will be run during preview. */
   val previewBody: T?
 }

@@ -39,9 +39,7 @@ class ParametrizedComposePreviewElementInstanceTest {
         )
       }
 
-    previews.forEach {
-      assertEquals("$basePreviewElementName ($parameterName ${it.index})", it.displaySettings.name)
-    }
+    previews.forEach { assertEquals("$basePreviewElementName ($parameterName ${it.index})", it.displaySettings.name) }
   }
 
   @Test

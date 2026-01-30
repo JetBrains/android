@@ -19,10 +19,10 @@ import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.rendering.classloading.ClassTransform
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import org.jetbrains.annotations.TestOnly
 import java.util.LinkedList
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
+import org.jetbrains.annotations.TestOnly
 
 /**
  * How many different classloader types the hatchery stores. The current default is 2 with the idea of having:
@@ -30,14 +30,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  * 2. ModuleClassLoader for the interactive preview
  */
 private const val CAPACITY = 2
-/**
- * How many copies of the same classloader the hatchery maintains
- */
+/** How many copies of the same classloader the hatchery maintains */
 private const val COPIES = 1
 
-/**
- * Contains all the information that was used to create a [StudioModuleClassLoader].
- */
+/** Contains all the information that was used to create a [StudioModuleClassLoader]. */
 data class StudioModuleClassLoaderCreationContext(
   val parent: ClassLoader?,
   val moduleRenderContext: StudioModuleRenderContext,
@@ -46,16 +42,14 @@ data class StudioModuleClassLoaderCreationContext(
   val nonProjectTransformation: ClassTransform,
 ) {
 
-  /**
-   * Creates a new [StudioModuleClassLoader] from this [StudioModuleClassLoaderCreationContext].
-   */
+  /** Creates a new [StudioModuleClassLoader] from this [StudioModuleClassLoaderCreationContext]. */
   fun createClassLoader(): StudioModuleClassLoader =
     StudioModuleClassLoader(
       parent,
       moduleRenderContext,
       projectTransform,
       nonProjectTransformation,
-      StudioModuleClassLoaderManager.createDiagnostics()
+      StudioModuleClassLoaderManager.createDiagnostics(),
     )
 
   companion object {
@@ -67,7 +61,7 @@ data class StudioModuleClassLoaderCreationContext(
           moduleRenderContext = moduleRenderContext,
           classesToPreload = classLoader.nonProjectLoadedClasses,
           projectTransform = classLoader.projectClassesTransform,
-          nonProjectTransformation = classLoader.nonProjectClassesTransform
+          nonProjectTransformation = classLoader.nonProjectClassesTransform,
         )
       }
 
@@ -78,28 +72,23 @@ data class StudioModuleClassLoaderCreationContext(
 }
 
 /**
- * A storage of [StudioModuleClassLoader]s of the same type responsible for their preloading and
- * replenishment. [StudioModuleClassLoader]s managed by this storage do not get stale after updating
- * only the user code since module dependencies should change for these [StudioModuleClassLoader]s
- * to become invalid.
+ * A storage of [StudioModuleClassLoader]s of the same type responsible for their preloading and replenishment. [StudioModuleClassLoader]s
+ * managed by this storage do not get stale after updating only the user code since module dependencies should change for these
+ * [StudioModuleClassLoader]s to become invalid.
  */
 private class Clutch(
   private val cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader?,
   private val donor: StudioModuleClassLoaderCreationContext,
-  copies: Int = COPIES
+  copies: Int = COPIES,
 ) {
   private val eggs = ConcurrentLinkedQueue<StudioPreloader>()
+
   init {
     repeat(copies) { cloner(donor)?.let { eggs.add(StudioPreloader(it, donor.classesToPreload)) } }
   }
 
-  /**
-   * Checks if the clutch maintains the [StudioModuleClassLoader]s of this type.
-   */
-  fun isCompatible(
-    parent: ClassLoader?,
-    projectTransformations: ClassTransform,
-    nonProjectTransformations: ClassTransform) =
+  /** Checks if the clutch maintains the [StudioModuleClassLoader]s of this type. */
+  fun isCompatible(parent: ClassLoader?, projectTransformations: ClassTransform, nonProjectTransformations: ClassTransform) =
     eggs.peek()?.isForCompatible(parent, projectTransformations, nonProjectTransformations) ?: false
 
   /**
@@ -116,16 +105,12 @@ private class Clutch(
       }
       ?.let { compatibleClassLoader ->
         // Incubate the next one
-        cloner(donor)?.let { newClassLoader ->
-          eggs.add(StudioPreloader(newClassLoader, donor.classesToPreload))
-        }
+        cloner(donor)?.let { newClassLoader -> eggs.add(StudioPreloader(newClassLoader, donor.classesToPreload)) }
         compatibleClassLoader
       }
   }
 
-  /**
-   * Should be called when the clutch is no longer needed to free all the resources.
-   */
+  /** Should be called when the clutch is no longer needed to free all the resources. */
   fun destroy() {
     generateSequence { eggs.poll() }.forEach { it.dispose() }
   }
@@ -135,13 +120,12 @@ private class Clutch(
   }
 }
 
-/**
- * Data representing the identification of the [StudioModuleClassLoader] type.
- */
+/** Data representing the identification of the [StudioModuleClassLoader] type. */
 private data class Request(
   val parent: ClassLoader?,
   val projectTransformations: ClassTransform,
-  val nonProjectTransformations: ClassTransform) {
+  val nonProjectTransformations: ClassTransform,
+) {
   override fun equals(other: Any?): Boolean {
     if (other !is Request) {
       return false
@@ -158,9 +142,7 @@ private data class Request(
   }
 }
 
-/**
- * A data structure responsible for replenishing and providing on demand [StudioModuleClassLoader]s ready to use
- */
+/** A data structure responsible for replenishing and providing on demand [StudioModuleClassLoader]s ready to use */
 class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private val copies: Int = COPIES, parentDisposable: Disposable) {
   // Requests for ModuleClassLoaders type that hatchery does not know how to create
   private val requests = mutableSetOf<Request>()
@@ -177,11 +159,13 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
     }
   }
 
-  /**
-   * Request a ModuleClassLoader compatible with the input from this hatchery if such exists.
-   */
+  /** Request a ModuleClassLoader compatible with the input from this hatchery if such exists. */
   @Synchronized
-  fun requestClassLoader(parent: ClassLoader?, projectTransformations: ClassTransform, nonProjectTransformations: ClassTransform): StudioModuleClassLoader? {
+  fun requestClassLoader(
+    parent: ClassLoader?,
+    projectTransformations: ClassTransform,
+    nonProjectTransformations: ClassTransform,
+  ): StudioModuleClassLoader? {
     if (isDisposed.get()) return null
 
     storage
@@ -195,16 +179,17 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
   }
 
   /**
-   * Create a clutch from the [donor] [StudioModuleClassLoader] if a clutch of this type does not exist and such type was requested. The [donor]
-   * should only be used for cloning. Returns true if donor was used for cloning and false otherwise.
+   * Create a clutch from the [donor] [StudioModuleClassLoader] if a clutch of this type does not exist and such type was requested. The
+   * [donor] should only be used for cloning. Returns true if donor was used for cloning and false otherwise.
    */
   @Synchronized
-  fun incubateIfNeeded(donor: StudioModuleClassLoaderCreationContext, cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader?): Boolean {
+  fun incubateIfNeeded(
+    donor: StudioModuleClassLoaderCreationContext,
+    cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader?,
+  ): Boolean {
     if (isDisposed.get()) return false
 
-    val hasCompatibleDonor = storage.find {
-      it.isCompatible(donor.parent, donor.projectTransform, donor.nonProjectTransformation)
-    } != null
+    val hasCompatibleDonor = storage.find { it.isCompatible(donor.parent, donor.projectTransform, donor.nonProjectTransformation) } != null
     if (hasCompatibleDonor) return false
     val request = Request(donor.parent, donor.projectTransform, donor.nonProjectTransformation)
     if (requests.contains(request)) {
@@ -231,12 +216,8 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
   }
 }
 
-/**
- * Represents the current preloading [progress] (number of classes) out of full [toDo] number.
- */
+/** Represents the current preloading [progress] (number of classes) out of full [toDo] number. */
 data class ReadyState(val progress: Int, val toDo: Int)
 
-/**
- * Represents [ReadyState] stats for all eggs in a Clutch identified by [label]
- */
+/** Represents [ReadyState] stats for all eggs in a Clutch identified by [label] */
 data class Stats(val label: String, val states: List<ReadyState>)

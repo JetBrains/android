@@ -23,15 +23,13 @@ private const val ERROR_NOT_SEARCHABLE = "Component is not searchable"
 /**
  * The model of a line in an inspector.
  *
- * The inspector is generated from a list of [InspectorBuilder]s which in turn generates a list of
- * lines in the inspector.
+ * The inspector is generated from a list of [InspectorBuilder]s which in turn generates a list of lines in the inspector.
  */
 interface InspectorLineModel {
   /**
    * Controls the visibility of a line in the inspector.
    *
-   * The inspector will set this property based on sections being collapsed or search filters being
-   * applied.
+   * The inspector will set this property based on sections being collapsed or search filters being applied.
    */
   var visible: Boolean
 
@@ -45,9 +43,8 @@ interface InspectorLineModel {
   /**
    * If true, this line should be hidden at all times.
    *
-   * An [InspectorBuilder] may choose to hide certain lines based on the value of certain
-   * properties. Some components have properties that only make sense if another property has
-   * certain values. When this property is true, [visible] should return false independently of
+   * An [InspectorBuilder] may choose to hide certain lines based on the value of certain properties. Some components have properties that
+   * only make sense if another property has certain values. When this property is true, [visible] should return false independently of
    * inspector filters and collapsible sections.
    */
   var hidden: Boolean
@@ -58,8 +55,7 @@ interface InspectorLineModel {
   /**
    * Show this line in enabled state.
    *
-   * Title lines have the option of being displayed with a faded text color. Ignored for other
-   * lines.
+   * Title lines have the option of being displayed with a faded text color. Ignored for other lines.
    */
   var enabled: Boolean
 
@@ -69,8 +65,7 @@ interface InspectorLineModel {
   /**
    * Return true if it is possible to search inside this line.
    *
-   * Most lines are not searchable. Some lines may contain complex content, where searching is
-   * possible.
+   * Most lines are not searchable. Some lines may contain complex content, where searching is possible.
    */
   val isSearchable: Boolean
     get() = false
@@ -87,8 +82,8 @@ interface InspectorLineModel {
   /**
    * Return true, if this line should be shown for the specified search filter.
    *
-   * For implementing search in the inspector, allow a line to control whether it is a search match.
-   * This method will never be called if [isSearchable] is true.
+   * For implementing search in the inspector, allow a line to control whether it is a search match. This method will never be called if
+   * [isSearchable] is true.
    *
    * @param matcher the current string matcher.
    * @return true if this line is a match, false if not.
@@ -101,9 +96,8 @@ interface InspectorLineModel {
   /**
    * Make this line expandable.
    *
-   * Must be called before any children is added to this line. Note: Use with care since not all
-   * lines can be made expandable. If [initiallyExpanded] is true the group should be "open"
-   * initially unless we are restoring this state from earlier.
+   * Must be called before any children is added to this line. Note: Use with care since not all lines can be made expandable. If
+   * [initiallyExpanded] is true the group should be "open" initially unless we are restoring this state from earlier.
    */
   fun makeExpandable(initiallyExpanded: Boolean) {
     throw IllegalStateException()
@@ -112,16 +106,13 @@ interface InspectorLineModel {
   /**
    * Is the current line expanded, or set to make it expanded/collapsed.
    *
-   * The method makeExpandable must be called earlier. Note: Use with care since not all lines can
-   * be made expandable.
+   * The method makeExpandable must be called earlier. Note: Use with care since not all lines can be made expandable.
    */
   var expanded: Boolean
     get() = true
     set(_) = throw IllegalStateException()
 
-  /**
-   * Register a [ValueChangedListener] to be notified whenever a related property may have changed.
-   */
+  /** Register a [ValueChangedListener] to be notified whenever a related property may have changed. */
   fun addValueChangedListener(listener: ValueChangedListener) {}
 
   /** Remove a [ValueChangedListener] registered by [addValueChangedListener]. */

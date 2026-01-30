@@ -26,9 +26,7 @@ import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
 
-/**
- * This class defines the task handler to perform a native allocations task.
- */
+/** This class defines the task handler to perform a native allocations task. */
 class NativeAllocationsTaskHandler(sessionsManager: SessionsManager) : MemoryTaskHandler(sessionsManager) {
   override fun startCapture(stage: MainMemoryProfilerStage) {
     stage.startNativeAllocationCapture()
@@ -55,8 +53,7 @@ class NativeAllocationsTaskHandler(sessionsManager: SessionsManager) : MemoryTas
 
   override fun createStartTaskArgs(isStartupTask: Boolean) = NativeAllocationsTaskArgs(isStartupTask, null)
 
-  override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = NativeAllocationsTaskArgs(false,
-                                                                                               artifact as HeapProfdSessionArtifact)
+  override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = NativeAllocationsTaskArgs(false, artifact as HeapProfdSessionArtifact)
 
   override fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError? {
     val requiredDeviceLevel = AndroidVersion.VersionCodes.Q
@@ -66,8 +63,10 @@ class NativeAllocationsTaskHandler(sessionsManager: SessionsManager) : MemoryTas
       return null
     }
 
-    return StartTaskSelectionError(StartTaskSelectionError.StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN,
-                                   getMinApiStartTaskErrorMessage(requiredDeviceLevel))
+    return StartTaskSelectionError(
+      StartTaskSelectionError.StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN,
+      getMinApiStartTaskErrorMessage(requiredDeviceLevel),
+    )
   }
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?) = artifact is HeapProfdSessionArtifact

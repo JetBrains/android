@@ -22,17 +22,14 @@ import com.sun.jdi.ThreadGroupReference
 import com.sun.jdi.VirtualMachine
 import org.mockito.kotlin.mock
 
-class MockVirtualMachineProxy(
-  debugProcessImpl: DebugProcessImpl,
-  referencesByName: Map<String, ReferenceType>,
-) : VirtualMachineProxyImpl(debugProcessImpl, MockVirtualMachine(referencesByName)) {
+class MockVirtualMachineProxy(debugProcessImpl: DebugProcessImpl, referencesByName: Map<String, ReferenceType>) :
+  VirtualMachineProxyImpl(debugProcessImpl, MockVirtualMachine(referencesByName)) {
   override fun allClasses(): List<ReferenceType> = virtualMachine.allClasses()
 
   override fun classesByName(s: String): List<ReferenceType> = virtualMachine.classesByName(s)
 }
 
-private class MockVirtualMachine(private val referencesByName: Map<String, ReferenceType>) :
-  VirtualMachine by mock() {
+private class MockVirtualMachine(private val referencesByName: Map<String, ReferenceType>) : VirtualMachine by mock() {
   override fun name(): String = "MockDalvik"
 
   override fun allClasses(): List<ReferenceType> = referencesByName.values.toList()

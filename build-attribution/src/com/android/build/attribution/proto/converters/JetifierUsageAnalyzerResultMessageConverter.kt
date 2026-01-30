@@ -26,23 +26,23 @@ import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 
 class JetifierUsageAnalyzerResultMessageConverter {
   companion object {
-    fun transform(jetifierUsageAnalyzerResult: JetifierUsageAnalyzerResult)
-      : BuildAnalysisResultsMessage.JetifierUsageAnalyzerResult {
-      val jetifierUsageAnalyzerResultBuilder = BuildAnalysisResultsMessage.JetifierUsageAnalyzerResult.newBuilder()
-        .setProjectStatus(transformProjectStatus(jetifierUsageAnalyzerResult.projectStatus))
-        .setCheckJetifierBuild(jetifierUsageAnalyzerResult.checkJetifierBuild)
+    fun transform(jetifierUsageAnalyzerResult: JetifierUsageAnalyzerResult): BuildAnalysisResultsMessage.JetifierUsageAnalyzerResult {
+      val jetifierUsageAnalyzerResultBuilder =
+        BuildAnalysisResultsMessage.JetifierUsageAnalyzerResult.newBuilder()
+          .setProjectStatus(transformProjectStatus(jetifierUsageAnalyzerResult.projectStatus))
+          .setCheckJetifierBuild(jetifierUsageAnalyzerResult.checkJetifierBuild)
       if (jetifierUsageAnalyzerResult.lastCheckJetifierBuildTimestamp != null) {
         jetifierUsageAnalyzerResultBuilder.lastCheckJetifierBuildTimestamp = jetifierUsageAnalyzerResult.lastCheckJetifierBuildTimestamp
       }
       return jetifierUsageAnalyzerResultBuilder.build()
     }
 
-    fun construct(jetifierUsageAnalyzerResult: BuildAnalysisResultsMessage.JetifierUsageAnalyzerResult)
-      : JetifierUsageAnalyzerResult {
-      val lastCheckJetifierBuildTimestamp = when (jetifierUsageAnalyzerResult.lastCheckJetifierBuildTimestamp) {
-        0L -> null
-        else -> jetifierUsageAnalyzerResult.lastCheckJetifierBuildTimestamp
-      }
+    fun construct(jetifierUsageAnalyzerResult: BuildAnalysisResultsMessage.JetifierUsageAnalyzerResult): JetifierUsageAnalyzerResult {
+      val lastCheckJetifierBuildTimestamp =
+        when (jetifierUsageAnalyzerResult.lastCheckJetifierBuildTimestamp) {
+          0L -> null
+          else -> jetifierUsageAnalyzerResult.lastCheckJetifierBuildTimestamp
+        }
       return JetifierUsageAnalyzerResult(AnalyzerNotRun, lastCheckJetifierBuildTimestamp, jetifierUsageAnalyzerResult.checkJetifierBuild)
     }
 
@@ -50,9 +50,11 @@ class JetifierUsageAnalyzerResultMessageConverter {
       when (jetifierUsageProjectStatus) {
         AnalyzerNotRun -> BuildAnalysisResultsMessage.JetifierUsageAnalyzerResult.JetifierUsageProjectStatus.ANALYZER_NOT_RUN
         JetifierNotUsed -> BuildAnalysisResultsMessage.JetifierUsageAnalyzerResult.JetifierUsageProjectStatus.JETIFIER_NOT_USED
-        JetifierUsedCheckRequired -> BuildAnalysisResultsMessage.JetifierUsageAnalyzerResult.JetifierUsageProjectStatus.JETIFIER_USED_CHECK_REQUIRED
+        JetifierUsedCheckRequired ->
+          BuildAnalysisResultsMessage.JetifierUsageAnalyzerResult.JetifierUsageProjectStatus.JETIFIER_USED_CHECK_REQUIRED
         JetifierCanBeRemoved -> BuildAnalysisResultsMessage.JetifierUsageAnalyzerResult.JetifierUsageProjectStatus.JETIFIER_CAN_BE_REMOVED
-        is JetifierRequiredForLibraries -> BuildAnalysisResultsMessage.JetifierUsageAnalyzerResult.JetifierUsageProjectStatus.IS_JETIFIER_REQUIRED_FOR_LIBRARIES
+        is JetifierRequiredForLibraries ->
+          BuildAnalysisResultsMessage.JetifierUsageAnalyzerResult.JetifierUsageProjectStatus.IS_JETIFIER_REQUIRED_FOR_LIBRARIES
       }
   }
 }

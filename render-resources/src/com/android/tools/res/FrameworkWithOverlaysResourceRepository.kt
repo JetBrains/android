@@ -30,9 +30,8 @@ import com.google.common.collect.ListMultimap
 import java.util.EnumMap
 
 /**
- * This repository contains all the base framework resources plus the resources coming from overlays.
- * It ensures that resources from overlays are prioritised over the ones from the base framework.
- * The overlays are applied with decreasing order of priority.
+ * This repository contains all the base framework resources plus the resources coming from overlays. It ensures that resources from
+ * overlays are prioritised over the ones from the base framework. The overlays are applied with decreasing order of priority.
  */
 class FrameworkWithOverlaysResourceRepository(base: FrameworkResourceRepository, overlays: List<FrameworkResourceRepository>) :
   AbstractResourceRepository(), SingleNamespaceResourceRepository {
@@ -60,9 +59,7 @@ class FrameworkWithOverlaysResourceRepository(base: FrameworkResourceRepository,
     }
   }
 
-  override fun getResourcesInternal(
-    namespace: ResourceNamespace, resourceType: ResourceType
-  ): ListMultimap<String, ResourceItem> {
+  override fun getResourcesInternal(namespace: ResourceNamespace, resourceType: ResourceType): ListMultimap<String, ResourceItem> {
     if (namespace != ResourceNamespace.ANDROID) {
       return ImmutableListMultimap.of()
     }
@@ -71,14 +68,16 @@ class FrameworkWithOverlaysResourceRepository(base: FrameworkResourceRepository,
 
   private fun populatePublicResourcesMap() {
     resources.forEach { (type, items) ->
-      val visibleItems = items.values().filterIsInstance<ResourceItemWithVisibility>().filter { it.visibility == ResourceVisibility.PUBLIC }.toSet()
+      val visibleItems =
+        items.values().filterIsInstance<ResourceItemWithVisibility>().filter { it.visibility == ResourceVisibility.PUBLIC }.toSet()
       publicResources[type] = visibleItems
     }
   }
 
   override fun accept(visitor: ResourceVisitor): ResourceVisitor.VisitResult {
-    if (visitor.shouldVisitNamespace(ResourceNamespace.ANDROID)
-        && acceptByResources(resources, visitor) == ResourceVisitor.VisitResult.ABORT) {
+    if (
+      visitor.shouldVisitNamespace(ResourceNamespace.ANDROID) && acceptByResources(resources, visitor) == ResourceVisitor.VisitResult.ABORT
+    ) {
       return ResourceVisitor.VisitResult.ABORT
     }
     return ResourceVisitor.VisitResult.CONTINUE

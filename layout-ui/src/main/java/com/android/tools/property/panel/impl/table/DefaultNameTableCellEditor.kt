@@ -54,10 +54,9 @@ class DefaultNameTableCellEditor : DefaultPTableCellEditor(), TableSupport {
   /**
    * Toggle between 2 editor components.
    *
-   * This is done to allow a focus transfer from 1 PTableGroupItem to another. If the same component
-   * is used this would fail since Component.transferFocus() will be a noop if the new component
-   * already has focus or if the new component is the same instance we are trying to transfer from.
-   * The relevant lines in Component.transferFocus are:
+   * This is done to allow a focus transfer from 1 PTableGroupItem to another. If the same component is used this would fail since
+   * Component.transferFocus() will be a noop if the new component already has focus or if the new component is the same instance we are
+   * trying to transfer from. The relevant lines in Component.transferFocus are:
    *
    * <code> if (toFocus != null && !toFocus.isFocusOwner() && toFocus != this) { res =
    * toFocus.requestFocusInWindow(CausedFocusEvent.Cause.TRAVERSAL_FORWARD); } </code>

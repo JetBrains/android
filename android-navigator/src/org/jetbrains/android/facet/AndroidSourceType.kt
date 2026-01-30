@@ -24,184 +24,115 @@ import com.intellij.openapi.vfs.VirtualFile
 import java.util.Objects
 import javax.swing.Icon
 
-
 /**
  * A source type supported by the Android Gradle Plugin, for display in the Android view
  *
- * Third party gradle plugins can register new custom source directory types, which should
- * also be displayed in the content view
- * (for an example, see `com.android.build.gradle.integration.model.CustomSourceDirectoryTest`)
+ * Third party gradle plugins can register new custom source directory types, which should also be displayed in the content view (for an
+ * example, see `com.android.build.gradle.integration.model.CustomSourceDirectoryTest`)
  */
-sealed class AndroidSourceType(
-  val name: String,
-  val icon: Icon?,
-  val isGenerated: Boolean = false,
-  private val isCustom: Boolean = false,
-) : Comparable<AndroidSourceType> {
+sealed class AndroidSourceType(val name: String, val icon: Icon?, val isGenerated: Boolean = false, private val isCustom: Boolean = false) :
+  Comparable<AndroidSourceType> {
 
   companion object {
     private const val JAVA_NAME = "java"
     private const val RES_NAME = "res"
     private const val ASSETS_NAME = "assets"
-
   }
 
   abstract fun getSources(provider: IdeaSourceProvider): List<VirtualFile>
 
-  object MANIFEST : AndroidSourceType(
-    "manifest",
-    AllIcons.Modules.SourceRoot) {
+  object MANIFEST : AndroidSourceType("manifest", AllIcons.Modules.SourceRoot) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.manifestFiles)
   }
 
-  /** Java and Kotlin sources.  */
-  object JAVA : AndroidSourceType(
-    JAVA_NAME,
-    AllIcons.Modules.SourceRoot,
-  ) {
+  /** Java and Kotlin sources. */
+  object JAVA : AndroidSourceType(JAVA_NAME, AllIcons.Modules.SourceRoot) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> {
       val kotlinDirectories = provider.kotlinDirectories.toSet()
       return copyOf(provider.javaDirectories).filterNot { kotlinDirectories.contains(it) }
     }
   }
 
-  object KOTLIN : AndroidSourceType(
-    "kotlin",
-    AllIcons.Modules.SourceRoot,
-  ) {
+  object KOTLIN : AndroidSourceType("kotlin", AllIcons.Modules.SourceRoot) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> {
       val javaDirectories = provider.javaDirectories.toSet()
       return copyOf(provider.kotlinDirectories).filterNot { javaDirectories.contains(it) }
     }
   }
 
-  object KOTLIN_AND_JAVA : AndroidSourceType(
-    "kotlin+java",
-    AllIcons.Modules.SourceRoot,
-  ) {
+  object KOTLIN_AND_JAVA : AndroidSourceType("kotlin+java", AllIcons.Modules.SourceRoot) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> {
       val javaDirectories = provider.javaDirectories.toSet()
       return copyOf(provider.kotlinDirectories).filter { javaDirectories.contains(it) }
     }
   }
 
-  /** Generated java source folders, e.g. R, BuildConfig, and etc.  */
-  object GENERATED_JAVA : AndroidSourceType(
-    JAVA_NAME,
-    AllIcons.Modules.GeneratedSourceRoot,
-    isGenerated = true,
-  ) {
+  /** Generated java source folders, e.g. R, BuildConfig, and etc. */
+  object GENERATED_JAVA : AndroidSourceType(JAVA_NAME, AllIcons.Modules.GeneratedSourceRoot, isGenerated = true) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> =
       copyOf(Iterables.concat(provider.javaDirectories, provider.kotlinDirectories))
   }
 
-  /** C++ sources  */
-  object CPP : AndroidSourceType(
-    "cpp",
-    AllIcons.Modules.SourceRoot,
-  ) {
+  /** C++ sources */
+  object CPP : AndroidSourceType("cpp", AllIcons.Modules.SourceRoot) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = ImmutableList.of()
   }
 
-  object AIDL : AndroidSourceType(
-    "aidl",
-    AllIcons.Modules.SourceRoot,
-  ) {
+  object AIDL : AndroidSourceType("aidl", AllIcons.Modules.SourceRoot) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.aidlDirectories)
   }
 
-  object RENDERSCRIPT : AndroidSourceType(
-    "renderscript",
-    AllIcons.Modules.SourceRoot,
-  ) {
+  object RENDERSCRIPT : AndroidSourceType("renderscript", AllIcons.Modules.SourceRoot) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.renderscriptDirectories)
   }
 
-  object SHADERS : AndroidSourceType(
-    "shaders",
-    AllIcons.Modules.SourceRoot,
-  ) {
+  object SHADERS : AndroidSourceType("shaders", AllIcons.Modules.SourceRoot) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.shadersDirectories)
   }
 
-  object ASSETS : AndroidSourceType(
-    ASSETS_NAME,
-    AllIcons.Modules.ResourcesRoot,
-  ) {
+  object ASSETS : AndroidSourceType(ASSETS_NAME, AllIcons.Modules.ResourcesRoot) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.assetsDirectories)
   }
 
-  object GENERATED_ASSETS : AndroidSourceType(
-    ASSETS_NAME,
-    AllIcons.Modules.ResourcesRoot,
-    isGenerated = true,
-  ) {
+  object GENERATED_ASSETS : AndroidSourceType(ASSETS_NAME, AllIcons.Modules.ResourcesRoot, isGenerated = true) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.assetsDirectories)
   }
 
-  object JNILIBS : AndroidSourceType(
-    "jniLibs",
-    AllIcons.Modules.ResourcesRoot,
-  ) {
+  object JNILIBS : AndroidSourceType("jniLibs", AllIcons.Modules.ResourcesRoot) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.jniLibsDirectories)
   }
 
-  /** Android resources.  */
-  object RES : AndroidSourceType(
-    RES_NAME,
-    AllIcons.Modules.ResourcesRoot,
-  ) {
+  /** Android resources. */
+  object RES : AndroidSourceType(RES_NAME, AllIcons.Modules.ResourcesRoot) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.resDirectories)
   }
 
-  /** Generated Android resources, coming from the build system model.  */
-  object GENERATED_RES : AndroidSourceType(
-    RES_NAME,
-    AllIcons.Modules.ResourcesRoot,
-    isGenerated = true,
-  ) {
+  /** Generated Android resources, coming from the build system model. */
+  object GENERATED_RES : AndroidSourceType(RES_NAME, AllIcons.Modules.ResourcesRoot, isGenerated = true) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.resDirectories)
   }
 
-  /** Java-style resources.  */
-  object RESOURCES : AndroidSourceType(
-    "resources",
-    AllIcons.Modules.ResourcesRoot,
-  ) {
+  /** Java-style resources. */
+  object RESOURCES : AndroidSourceType("resources", AllIcons.Modules.ResourcesRoot) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.resourcesDirectories)
   }
 
-  /** Machine learning models.  */
-  object ML : AndroidSourceType(
-    "ml",
-    AllIcons.Modules.ResourcesRoot,
-  ) {
+  /** Machine learning models. */
+  object ML : AndroidSourceType("ml", AllIcons.Modules.ResourcesRoot) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.mlModelsDirectories)
   }
 
-  object BASELINE_PROFILES : AndroidSourceType(
-    "baselineProfiles",
-    AllIcons.Modules.SourceRoot,
-  ) {
+  object BASELINE_PROFILES : AndroidSourceType("baselineProfiles", AllIcons.Modules.SourceRoot) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.baselineProfileDirectories)
   }
 
-  object KEEP_RULES : AndroidSourceType(
-    "keepRules",
-    AllIcons.Modules.SourceRoot,
-  ) {
+  object KEEP_RULES : AndroidSourceType("keepRules", AllIcons.Modules.SourceRoot) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.keepRulesDirectories)
   }
 
-  class Custom(name: String) : AndroidSourceType(
-    name,
-    AllIcons.Modules.ResourcesRoot,
-    isGenerated = false,
-    isCustom = true,
-  ) {
+  class Custom(name: String) : AndroidSourceType(name, AllIcons.Modules.ResourcesRoot, isGenerated = false, isCustom = true) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> =
       copyOf(provider.custom[name]?.directories ?: emptyList<VirtualFile>())
-
   }
 
   override fun equals(other: Any?): Boolean =
@@ -209,21 +140,23 @@ sealed class AndroidSourceType(
 
   override fun hashCode(): Int = Objects.hash(name, isGenerated, isCustom)
 
-  override fun toString(): String = when {
-    isCustom -> "Custom($name)"
-    isGenerated -> "$name (generated)"
-    else -> name
-  }
+  override fun toString(): String =
+    when {
+      isCustom -> "Custom($name)"
+      isGenerated -> "$name (generated)"
+      else -> name
+    }
 
-  override fun compareTo(other: AndroidSourceType): Int = when {
-    this.isCustom != other.isCustom -> if (this.isCustom) 1 else -1
-    this.isCustom -> this.name.compareTo(other.name)
-    else -> BUILT_IN_TYPES.indexOf(this).compareTo(BUILT_IN_TYPES.indexOf(other))
-  }
-
+  override fun compareTo(other: AndroidSourceType): Int =
+    when {
+      this.isCustom != other.isCustom -> if (this.isCustom) 1 else -1
+      this.isCustom -> this.name.compareTo(other.name)
+      else -> BUILT_IN_TYPES.indexOf(this).compareTo(BUILT_IN_TYPES.indexOf(other))
+    }
 }
 
-/** The inbuilt types supported by the Android Gradle Plugin.
+/**
+ * The inbuilt types supported by the Android Gradle Plugin.
  *
  * The order here determines the sort order in the UI
  */

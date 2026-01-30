@@ -83,8 +83,7 @@ class PowerRangeUtilsTest {
       getLowerBoundDataInRange(emptyList, 5.0)
       // If the exception is not thrown, fail the test
       fail("Expected IndexOutOfBoundsException")
-    }
-    catch (e: AssertionError) {
+    } catch (e: AssertionError) {
       // Test passed
     }
   }
@@ -129,8 +128,7 @@ class PowerRangeUtilsTest {
       getUpperBoundDataInRange(emptyList, 10.0)
       // If the exception is not thrown, fail the test
       fail("Expected IndexOutOfBoundsException")
-    }
-    catch (e: AssertionError) {
+    } catch (e: AssertionError) {
       // Test passed
     }
   }

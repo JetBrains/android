@@ -28,15 +28,13 @@ import java.util.concurrent.Executor
 import javax.swing.JPanel
 import kotlinx.coroutines.flow.MutableStateFlow
 
-/**
- * Base class for a dropdown menu that filters memory captures.
- */
+/** Base class for a dropdown menu that filters memory captures. */
 internal abstract class BaseFilterMenu(
   protected val selection: MemoryCaptureSelection,
   private val defaultFilterDisplayName: String,
   private val filterDescription: String,
   private val onFilterChange: (CaptureObjectInstanceFilter?, Executor) -> Unit,
-  private val currentFilterAspect: CaptureSelectionAspect
+  private val currentFilterAspect: CaptureSelectionAspect,
 ) : AspectObserver() {
 
   protected val executor: Executor = Executor(ApplicationManager.getApplication()::invokeLater)
@@ -49,19 +47,21 @@ internal abstract class BaseFilterMenu(
   val component: JPanel
 
   init {
-    val dropDown = ProfilerDropDownComponent<CaptureObjectInstanceFilter?>(
-      defaultFilterDisplayName,
-      filterDescription,
-      null,
-      filterFlow,
-      null,
-      { filter -> onFilterChange(filter, executor) },
-      this::getFilterDisplayName
-    )
+    val dropDown =
+      ProfilerDropDownComponent<CaptureObjectInstanceFilter?>(
+        defaultFilterDisplayName,
+        filterDescription,
+        null,
+        filterFlow,
+        null,
+        { filter -> onFilterChange(filter, executor) },
+        this::getFilterDisplayName,
+      )
 
     component = createComponent(dropDown)
 
-    selection.aspect.addDependency(this)
+    selection.aspect
+      .addDependency(this)
       .onChange(CaptureSelectionAspect.CURRENT_LOADING_CAPTURE, ::setNewCapture)
       .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, ::updateCaptureState)
       .onChange(currentFilterAspect, ::refreshFilter)
@@ -71,7 +71,9 @@ internal abstract class BaseFilterMenu(
   }
 
   protected abstract fun createComponent(dropDown: ProfilerDropDownComponent<CaptureObjectInstanceFilter?>): JPanel
+
   protected abstract fun getAvailableFilters(capture: CaptureObject?): List<CaptureObjectInstanceFilter?>
+
   protected abstract fun getCurrentFilter(): CaptureObjectInstanceFilter?
 
   private fun setNewCapture() {

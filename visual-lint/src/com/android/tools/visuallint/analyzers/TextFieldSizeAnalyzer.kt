@@ -30,10 +30,7 @@ object TextFieldSizeAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.TEXT_FIELD_SIZE
 
-  override fun findIssues(
-    renderResult: RenderResult,
-    configuration: Configuration,
-  ): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
     while (viewsToAnalyze.isNotEmpty()) {
@@ -59,13 +56,9 @@ object TextFieldSizeAnalyzer : VisualLintAnalyzer() {
     val simpleName = simpleName(view)
     val provider = { count: Int ->
       HtmlBuilder()
-        .add(
-          "The text field $simpleName is wider than ${TEXT_FIELD_MAX_DP_WIDTH}dp in ${previewConfigurations(count)}."
-        )
+        .add("The text field $simpleName is wider than ${TEXT_FIELD_MAX_DP_WIDTH}dp in ${previewConfigurations(count)}.")
         .newline()
-        .add(
-          "Material Design recommends text fields to be no wider than ${TEXT_FIELD_MAX_DP_WIDTH}dp"
-        )
+        .add("Material Design recommends text fields to be no wider than ${TEXT_FIELD_MAX_DP_WIDTH}dp")
     }
     return VisualLintIssueContent(view = view, message = summary, descriptionProvider = provider)
   }

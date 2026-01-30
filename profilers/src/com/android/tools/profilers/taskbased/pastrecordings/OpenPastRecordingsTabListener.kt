@@ -17,18 +17,13 @@ package com.android.tools.profilers.taskbased.pastrecordings
 
 import com.intellij.util.messages.Topic
 
-/**
- * Listener of events requesting that the Profiler past recordings tab be open.
- */
+/** Listener of events requesting that the Profiler past recordings tab be open. */
 fun interface OpenPastRecordingsTabListener {
 
-  /**
-   * Opens the Profiler past recordings tab.
-   */
+  /** Opens the Profiler past recordings tab. */
   fun openPastRecordingsTab()
 
   companion object {
-    @JvmField
-    val TOPIC = Topic("Command to open the Profiler home tab", OpenPastRecordingsTabListener::class.java)
+    @JvmField val TOPIC = Topic("Command to open the Profiler home tab", OpenPastRecordingsTabListener::class.java)
   }
 }

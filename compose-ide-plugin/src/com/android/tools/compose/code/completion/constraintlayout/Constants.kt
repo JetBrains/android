@@ -23,8 +23,8 @@ internal object KeyWords {
   const val Transitions = "Transitions"
 
   /**
-   * Name of the property used to indicate that the containing ConstraintSet inherits its
-   * constraints from the ConstraintSet given by the `Extends` property value.
+   * Name of the property used to indicate that the containing ConstraintSet inherits its constraints from the ConstraintSet given by the
+   * `Extends` property value.
    */
   const val Extends = "Extends"
 
@@ -174,8 +174,7 @@ internal enum class KeyFrameField(override val keyWord: String) : ConstraintLayo
 }
 
 /** Common fields used by any of [KeyFrameField]. */
-internal enum class KeyFrameChildCommonField(override val keyWord: String) :
-  ConstraintLayoutKeyWord {
+internal enum class KeyFrameChildCommonField(override val keyWord: String) : ConstraintLayoutKeyWord {
   TargetId("target"),
   Frames("frames"),
   Easing("transitionEasing"),

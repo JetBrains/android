@@ -27,7 +27,8 @@ import com.android.tools.profilers.tasks.taskhandlers.singleartifact.SingleArtif
 import fleet.util.logging.logger
 
 private val logger = logger<LeakCanaryTaskHandler>()
-class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager): SingleArtifactTaskHandler<LeakCanaryModel>(sessionsManager) {
+
+class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : SingleArtifactTaskHandler<LeakCanaryModel>(sessionsManager) {
 
   override fun setupStage() {
     val studioProfilers = sessionsManager.studioProfilers
@@ -74,12 +75,9 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager): Singl
 
   override fun createStartTaskArgs(isStartupTask: Boolean) = LeakCanaryTaskArgs(false, null)
 
-  override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) =
-    LeakCanaryTaskArgs(false, artifact as LeakCanarySessionArtifact)
+  override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = LeakCanaryTaskArgs(false, artifact as LeakCanarySessionArtifact)
 
-  /**
-   * LeakCanary task supports debuggable processes only
-   */
+  /** LeakCanary task supports debuggable processes only */
   override fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError? {
     val isFeatureSupported = SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_LEAK_WITH_LEAKCANARY)
 
@@ -89,9 +87,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager): Singl
     return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
   }
 
-  /**
-   * Log a message, indicating the entering of a profiler stage for E2E testing.
-   */
+  /** Log a message, indicating the entering of a profiler stage for E2E testing. */
   private fun logEnterStage() {
     logger.info("Entering LeakCanary stage")
   }

@@ -21,11 +21,10 @@ import org.junit.Test
 /** This test is added to all IDE test suites. */
 class LastInIdeaTestSuite {
   /**
-   * Checks for IDEA project leaks and disposer tree leaks. To disable this check in a specific test
-   * target, set the system property idea.leak.check.enabled to false.
+   * Checks for IDEA project leaks and disposer tree leaks. To disable this check in a specific test target, set the system property
+   * idea.leak.check.enabled to false.
    *
-   * NOTE: By default, this test only runs in Bazel. To enable running it in the IDE, adjust the
-   * test run configuration.
+   * NOTE: By default, this test only runs in Bazel. To enable running it in the IDE, adjust the test run configuration.
    */
   @Test
   fun checkForLeaks() {
@@ -43,7 +42,7 @@ class LastInIdeaTestSuite {
         check is added to all IDE test target automatically. If you need to temporarily
         disable leak checks in a specific test target, set the system property
         idea.leak.check.enabled to false.
-      """
+        """
           .trimIndent()
       throw RuntimeException(header, e)
     }

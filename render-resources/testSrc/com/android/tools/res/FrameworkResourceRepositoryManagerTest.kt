@@ -16,9 +16,9 @@
 package com.android.tools.res
 
 import com.google.common.util.concurrent.MoreExecutors
+import java.nio.file.Files
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.nio.file.Files
 
 class FrameworkResourceRepositoryManagerTest {
   @Test
@@ -26,12 +26,7 @@ class FrameworkResourceRepositoryManagerTest {
     val tempPath = Files.createTempDirectory("broken")
     val brokenPath = tempPath.resolve("broken")
     val frameworkResourceRepositoryManager = FrameworkResourceRepositoryManagerImpl("", MoreExecutors.directExecutor())
-    val frameworkResourceRepository = frameworkResourceRepositoryManager.getFrameworkResources(
-      brokenPath,
-      true,
-      emptySet(),
-      emptyList()
-    )
+    val frameworkResourceRepository = frameworkResourceRepositoryManager.getFrameworkResources(brokenPath, true, emptySet(), emptyList())
 
     assertTrue(frameworkResourceRepository.allResources.isEmpty())
   }

@@ -29,20 +29,15 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import javax.swing.JLabel
 
-class FullTraceSummaryDetailsView(profilersView: StudioProfilersView,
-                                  tabModel: FullTraceAnalysisSummaryTabModel) : SummaryDetailsViewBase<FullTraceAnalysisSummaryTabModel>(
-  profilersView, tabModel) {
-  @get: VisibleForTesting
-  val timeRangeLabel = JLabel()
+class FullTraceSummaryDetailsView(profilersView: StudioProfilersView, tabModel: FullTraceAnalysisSummaryTabModel) :
+  SummaryDetailsViewBase<FullTraceAnalysisSummaryTabModel>(profilersView, tabModel) {
+  @get:VisibleForTesting val timeRangeLabel = JLabel()
 
-  @get: VisibleForTesting
-  val durationLabel = JLabel()
+  @get:VisibleForTesting val durationLabel = JLabel()
 
-  @get: VisibleForTesting
-  val energyUsedLabel = JLabel()
+  @get:VisibleForTesting val energyUsedLabel = JLabel()
 
-  @get: VisibleForTesting
-  var powerRailTable: PowerRailTable? = null
+  @get:VisibleForTesting var powerRailTable: PowerRailTable? = null
 
   init {
     addRowToCommonSection("Time Range", timeRangeLabel)
@@ -52,14 +47,18 @@ class FullTraceSummaryDetailsView(profilersView: StudioProfilersView,
     cpuCapture.systemTraceData?.powerRailCounters?.let { powerRailCounters ->
       if (powerRailCounters.isNotEmpty()) {
         addRowToCommonSectionWithInfoIcon("Total Energy Used in Range", energyUsedLabel, POWER_RAIL_TOTAL_VALUE_IN_RANGE_TOOLTIP_MSG)
-        powerRailTable = PowerRailTable(profilersView.studioProfilers, powerRailCounters, tabModel.selectionRange,
-                                            tabModel.captureRange)
+        powerRailTable = PowerRailTable(profilersView.studioProfilers, powerRailCounters, tabModel.selectionRange, tabModel.captureRange)
         addSection(powerRailTable!!.component)
       }
     }
     // Add a collapsible Usage Instructions section containing Navigation and Analysis instructions (initially collapsed)
-    addSection(HideablePanel.Builder(UsageInstructionsView.USAGE_INSTRUCTIONS_TITLE, UsageInstructionsView()).setInitiallyExpanded(false).setPanelBorder(
-      JBUI.Borders.empty()).build().apply { background = primaryContentBackground })
+    addSection(
+      HideablePanel.Builder(UsageInstructionsView.USAGE_INSTRUCTIONS_TITLE, UsageInstructionsView())
+        .setInitiallyExpanded(false)
+        .setPanelBorder(JBUI.Borders.empty())
+        .build()
+        .apply { background = primaryContentBackground }
+    )
 
     tabModel.selectionRange.addDependency(observer).onChange(Range.Aspect.RANGE) { updateRangeLabels() }
     updateRangeLabels()

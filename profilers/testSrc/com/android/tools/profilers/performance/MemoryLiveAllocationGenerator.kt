@@ -18,7 +18,6 @@ package com.android.tools.profilers.performance
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.database.MemoryLiveAllocationTable
 import com.android.tools.profiler.proto.Memory
-
 import java.sql.Connection
 
 class MemoryLiveAllocationGenerator(connection: Connection) : DataGenerator(connection) {
@@ -50,28 +49,29 @@ class MemoryLiveAllocationGenerator(connection: Connection) : DataGenerator(conn
     val eventCount = random.nextInt(100)
     val events = mutableListOf<Memory.AllocationEvent>()
     for (i in 0..eventCount) {
-      events.add(Memory.AllocationEvent.newBuilder()
-                   .setAllocData(Memory.AllocationEvent.Allocation.newBuilder()
-                                   .addLocationIds(1)
-                                   .addMethodIds(2)
-                                   .setClassTag(random.nextInt())
-                                   .setHeapId(random.nextInt())
-                                   .setLength(random.nextInt())
-                                   .setSize(random.nextLong())
-                                   .setStackId(stackIds[random.nextInt(stackIds.size)])
-                                   .setTag(random.nextInt())
-                                   .setThreadId(threadIds[random.nextInt(threadIds.size)]))
-                   .build())
+      events.add(
+        Memory.AllocationEvent.newBuilder()
+          .setAllocData(
+            Memory.AllocationEvent.Allocation.newBuilder()
+              .addLocationIds(1)
+              .addMethodIds(2)
+              .setClassTag(random.nextInt())
+              .setHeapId(random.nextInt())
+              .setLength(random.nextInt())
+              .setSize(random.nextLong())
+              .setStackId(stackIds[random.nextInt(stackIds.size)])
+              .setTag(random.nextInt())
+              .setThreadId(threadIds[random.nextInt(threadIds.size)])
+          )
+          .build()
+      )
     }
-    val sample = Memory.BatchAllocationEvents.newBuilder()
-      .addAllEvents(events)
-      .build()
+    val sample = Memory.BatchAllocationEvents.newBuilder().addAllEvents(events).build()
     myTable.insertAllocationEvents(properties.session, sample)
   }
 
   private fun generateJniRefData(properties: GeneratorProperties) {
-    val sample = Memory.BatchJNIGlobalRefEvent.newBuilder()
-      .build()
+    val sample = Memory.BatchJNIGlobalRefEvent.newBuilder().build()
     myTable.insertJniReferenceData(properties.session, sample)
   }
 
@@ -80,13 +80,15 @@ class MemoryLiveAllocationGenerator(connection: Connection) : DataGenerator(conn
     val methodCount = random.nextInt(128)
     for (i in 0..methodCount) {
       methodIds.add(random.nextLong())
-      method.add(Memory.AllocationStack.StackFrame.newBuilder()
-                   .setClassName("Test")
-                   .setFileName("SomeFile" + i)
-                   .setLineNumber(random.nextInt())
-                   .setMethodId(methodIds[i])
-                   .setMethodName("Some Name" + i)
-                   .build())
+      method.add(
+        Memory.AllocationStack.StackFrame.newBuilder()
+          .setClassName("Test")
+          .setFileName("SomeFile" + i)
+          .setLineNumber(random.nextInt())
+          .setMethodId(methodIds[i])
+          .setMethodName("Some Name" + i)
+          .build()
+      )
     }
 
     val stacks = mutableListOf<Memory.AllocationStack>()
@@ -95,10 +97,7 @@ class MemoryLiveAllocationGenerator(connection: Connection) : DataGenerator(conn
     for (i in 0..stackCount) {
       val frame = Memory.AllocationStack.EncodedFrameWrapper.newBuilder()
       for (j in 0..frameCount) {
-        frame.addFrames(Memory.AllocationStack.EncodedFrame.newBuilder()
-                          .setMethodId(methodIds[j])
-                          .setLineNumber(random.nextInt())
-                          .build())
+        frame.addFrames(Memory.AllocationStack.EncodedFrame.newBuilder().setMethodId(methodIds[j]).setLineNumber(random.nextInt()).build())
       }
       stackIds.add(random.nextInt())
       stacks.add(Memory.AllocationStack.newBuilder().setEncodedStack(frame).build())
@@ -108,17 +107,11 @@ class MemoryLiveAllocationGenerator(connection: Connection) : DataGenerator(conn
     val threads = random.nextInt(50)
     for (i in 0..threads) {
       threadIds.add(random.nextInt())
-      info.add(Memory.ThreadInfo.newBuilder()
-                 .setThreadId(threadIds[i])
-                 .setThreadName("Some Name " + i)
-                 .build())
+      info.add(Memory.ThreadInfo.newBuilder().setThreadId(threadIds[i]).setThreadName("Some Name " + i).build())
     }
 
-    val batchContexts = Memory.BatchAllocationContexts.newBuilder()
-      .addAllMethods(method)
-      .addAllEncodedStacks(stacks)
-      .addAllThreadInfos(info)
-      .build()
+    val batchContexts =
+      Memory.BatchAllocationContexts.newBuilder().addAllMethods(method).addAllEncodedStacks(stacks).addAllThreadInfos(info).build()
     myTable.insertAllocationContexts(properties.session, batchContexts)
   }
 }

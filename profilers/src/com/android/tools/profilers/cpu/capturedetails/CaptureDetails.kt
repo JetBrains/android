@@ -22,43 +22,44 @@ import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.VisualNodeCaptureNode
+import com.android.tools.profilers.cpu.capturedetails.Aggregate as AggregateTree
+import com.android.tools.profilers.cpu.capturedetails.Aggregate.BottomUp as BottomUpTree
+import com.android.tools.profilers.cpu.capturedetails.Aggregate.TopDown as TopDownTree
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.intellij.openapi.application.ApplicationManager
-import com.android.tools.profilers.cpu.capturedetails.Aggregate as AggregateTree
-import com.android.tools.profilers.cpu.capturedetails.Aggregate.TopDown as TopDownTree
-import com.android.tools.profilers.cpu.capturedetails.Aggregate.BottomUp as BottomUpTree
 import kotlin.math.max
 
 sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
   abstract val type: Type
 
-  sealed class ChartDetails(clockType: ClockType, cpuCapture: CpuCapture): CaptureDetails(clockType, cpuCapture) {
+  sealed class ChartDetails(clockType: ClockType, cpuCapture: CpuCapture) : CaptureDetails(clockType, cpuCapture) {
     abstract val node: CaptureNode?
   }
 
-  /**
-   * Helper class for common behavior of Top-Down and Bottom-Up
-   */
-  sealed class Aggregate<A: AggregateTree<A>>(clockType: ClockType,
-                                              range: Range,
-                                              nodes: List<CaptureNode>,
-                                              cpuCapture: CpuCapture,
-                                              rootNode: (CaptureNode) -> A,
-                                              runModelUpdate: (Runnable) -> Unit)
-    : CaptureDetails(clockType, cpuCapture) {
-    val model: CpuTreeModel<A>? = when {
-      nodes.isEmpty() -> null
-      else -> {
-        val visual = VisualNodeCaptureNode(SingleNameModel(""), clockType).apply {
-          nodes.forEach(::addChild)
-          startGlobal = nodes.minOf(CaptureNode::startGlobal)
-          endGlobal = nodes.maxOf(CaptureNode::endGlobal)
-          startThread = nodes.minOf(CaptureNode::startThread)
-          endThread = nodes.maxOf(CaptureNode::endThread)
+  /** Helper class for common behavior of Top-Down and Bottom-Up */
+  sealed class Aggregate<A : AggregateTree<A>>(
+    clockType: ClockType,
+    range: Range,
+    nodes: List<CaptureNode>,
+    cpuCapture: CpuCapture,
+    rootNode: (CaptureNode) -> A,
+    runModelUpdate: (Runnable) -> Unit,
+  ) : CaptureDetails(clockType, cpuCapture) {
+    val model: CpuTreeModel<A>? =
+      when {
+        nodes.isEmpty() -> null
+        else -> {
+          val visual =
+            VisualNodeCaptureNode(SingleNameModel(""), clockType).apply {
+              nodes.forEach(::addChild)
+              startGlobal = nodes.minOf(CaptureNode::startGlobal)
+              endGlobal = nodes.maxOf(CaptureNode::endGlobal)
+              startThread = nodes.minOf(CaptureNode::startThread)
+              endThread = nodes.maxOf(CaptureNode::endThread)
+            }
+          CpuTreeModel(clockType, range, rootNode(visual), runModelUpdate)
         }
-        CpuTreeModel(clockType, range, rootNode(visual), runModelUpdate)
       }
-    }
 
     fun onRemoved() {
       model?.onDestroyed()
@@ -69,41 +70,52 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
     }
   }
 
-  class TopDown internal constructor(clockType: ClockType,
-                                     range: Range,
-                                     nodes: List<CaptureNode>,
-                                     cpuCapture: CpuCapture,
-                                     runModelUpdate: (Runnable) -> Unit)
-    : Aggregate<TopDownTree>(clockType, range, nodes, cpuCapture, TopDownTree::rootAt, runModelUpdate) {
-    override val type get() = Type.TOP_DOWN
+  class TopDown
+  internal constructor(
+    clockType: ClockType,
+    range: Range,
+    nodes: List<CaptureNode>,
+    cpuCapture: CpuCapture,
+    runModelUpdate: (Runnable) -> Unit,
+  ) : Aggregate<TopDownTree>(clockType, range, nodes, cpuCapture, TopDownTree::rootAt, runModelUpdate) {
+    override val type
+      get() = Type.TOP_DOWN
   }
 
-  class BottomUp internal constructor(clockType: ClockType,
-                                      range: Range,
-                                      nodes: List<CaptureNode>,
-                                      cpuCapture: CpuCapture,
-                                      runModelUpdate: (Runnable) -> Unit)
-    : Aggregate<BottomUpTree>(clockType, range, nodes, cpuCapture, BottomUpTree::rootAt, runModelUpdate) {
-    override val type get() = Type.BOTTOM_UP
+  class BottomUp
+  internal constructor(
+    clockType: ClockType,
+    range: Range,
+    nodes: List<CaptureNode>,
+    cpuCapture: CpuCapture,
+    runModelUpdate: (Runnable) -> Unit,
+  ) : Aggregate<BottomUpTree>(clockType, range, nodes, cpuCapture, BottomUpTree::rootAt, runModelUpdate) {
+    override val type
+      get() = Type.BOTTOM_UP
   }
 
-  class CallChart(clockType: ClockType, val range: Range, nodes: List<CaptureNode>, cpuCapture: CpuCapture)
-    : ChartDetails(clockType, cpuCapture) {
+  class CallChart(clockType: ClockType, val range: Range, nodes: List<CaptureNode>, cpuCapture: CpuCapture) :
+    ChartDetails(clockType, cpuCapture) {
     override val node = nodes.firstOrNull()
-    override val type get() = Type.CALL_CHART
+    override val type
+      get() = Type.CALL_CHART
   }
 
-  class FlameChart internal constructor(clockType: ClockType,
-                                        private val selectionRange: Range,
-                                        captureNodes: List<CaptureNode>,
-                                        cpuCapture: CpuCapture,
-                                        private val runModelUpdate: (Runnable) -> Unit)
-    : ChartDetails(clockType, cpuCapture) {
-    override val type get() = Type.FLAME_CHART
+  class FlameChart
+  internal constructor(
+    clockType: ClockType,
+    private val selectionRange: Range,
+    captureNodes: List<CaptureNode>,
+    cpuCapture: CpuCapture,
+    private val runModelUpdate: (Runnable) -> Unit,
+  ) : ChartDetails(clockType, cpuCapture) {
+    override val type
+      get() = Type.FLAME_CHART
 
     val range: Range = Range()
     override var node: CaptureNode? = null
       private set
+
     val aspect: AspectModel<Aspect> = AspectModel()
     private val captureNodes = captureNodes.sortedWith(Comparator.comparingLong(CaptureNode::startGlobal))
 
@@ -149,29 +161,31 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
               // This range needs to account for the multiple children,
               // does it need to account for the merged children?
               val topDownNode = oldTopDownNode.withRange(clockType, selectionRange, treeRange, null)
-              val node = when {
-                // If the new selection range intersects the root node, we should reconstruct the flame chart node.
-                topDownNode.total > 0 -> {
-                  val start = max(topDownNode.base.nodes[0].start.toDouble(), selectionRange.min)
-                  val newNode = convertToFlameChart(topDownNode, start, 0)
-                  // The intersection check (root.getTotal() > 0) may be a false positive because the root's global total is the
-                  // sum of all its children for the purpose of mapping a multi-node tree to flame chart space. Thus we need to look at
-                  // its children to find out the actual intersection.
-                  when (newNode.lastChild) {
-                    // No child intersects the selection range, so effectively there's no intersection at all.
-                    null -> null
-                    else -> newNode.apply {
-                      // At least one child intersects the selection rage, use the last child as the real intersection end.
-                      endGlobal = lastChild!!.endGlobal
-                      // This is the range used by the HTreeChart to determine if a node is in the range or out of the range.
-                      // Because the node is already filtered to the selection we can use the length of the node.
-                      range.set(start, end.toDouble())
+              val node =
+                when {
+                  // If the new selection range intersects the root node, we should reconstruct the flame chart node.
+                  topDownNode.total > 0 -> {
+                    val start = max(topDownNode.base.nodes[0].start.toDouble(), selectionRange.min)
+                    val newNode = convertToFlameChart(topDownNode, start, 0)
+                    // The intersection check (root.getTotal() > 0) may be a false positive because the root's global total is the
+                    // sum of all its children for the purpose of mapping a multi-node tree to flame chart space. Thus we need to look at
+                    // its children to find out the actual intersection.
+                    when (newNode.lastChild) {
+                      // No child intersects the selection range, so effectively there's no intersection at all.
+                      null -> null
+                      else ->
+                        newNode.apply {
+                          // At least one child intersects the selection rage, use the last child as the real intersection end.
+                          endGlobal = lastChild!!.endGlobal
+                          // This is the range used by the HTreeChart to determine if a node is in the range or out of the range.
+                          // Because the node is already filtered to the selection we can use the length of the node.
+                          range.set(start, end.toDouble())
+                        }
                     }
                   }
+                  // Otherwise, clear the flame chart node and show an empty chart
+                  else -> null
                 }
-                // Otherwise, clear the flame chart node and show an empty chart
-                else -> null
-              }
               node to topDownNode
             },
             { (newNode, newTopDownNode) ->
@@ -179,7 +193,8 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
               treeRange.set(selectionRange)
               node = newNode
               aspect.changed(Aspect.NODE)
-            })
+            },
+          )
 
         selectionRange.addDependency(aspect).onChange(Range.Aspect.RANGE, selectionRangeChanged)
         selectionRangeChanged()
@@ -187,8 +202,8 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
     }
 
     /**
-     * Produces a flame chart that is similar to [CallChart], but the identical methods with the same sequence of callers
-     * are combined into one wider bar. It converts it from [TopDownNode] as it's similar to FlameChart.
+     * Produces a flame chart that is similar to [CallChart], but the identical methods with the same sequence of callers are combined into
+     * one wider bar. It converts it from [TopDownNode] as it's similar to FlameChart.
      */
     private fun convertToFlameChart(topDown: CpuTreeNode<TopDownTree>, start: Double, depth: Int): CaptureNode =
       CaptureNode(topDown.base.nodes[0].data, clockType).apply {
@@ -202,9 +217,10 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
         endThread = (start + topDown.total).toLong()
         this.depth = depth
 
-        topDown.children.asSequence()
+        topDown.children
+          .asSequence()
           .filter { it.total > 0 }
-          .sortedWith(compareBy({it.base.isUnmatched}, {-it.total}))
+          .sortedWith(compareBy({ it.base.isUnmatched }, { -it.total }))
           .fold(start) { accStart, child ->
             addChild(convertToFlameChart(child, accStart, depth + 1))
             accStart + child.total
@@ -212,9 +228,7 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
       }
 
     enum class Aspect {
-      /**
-       * When the root changes.
-       */
+      /** When the root changes. */
       NODE
     }
   }
@@ -222,7 +236,7 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
   enum class Type(val build: (ClockType, Range, List<CaptureNode>, CpuCapture, (Runnable) -> Unit) -> CaptureDetails) {
     TOP_DOWN(::TopDown),
     BOTTOM_UP(::BottomUp),
-    CALL_CHART({ clockType, range, captureNodes, cpuCapture, _ ->  CallChart(clockType, range, captureNodes, cpuCapture) }),
-    FLAME_CHART(::FlameChart)
+    CALL_CHART({ clockType, range, captureNodes, cpuCapture, _ -> CallChart(clockType, range, captureNodes, cpuCapture) }),
+    FLAME_CHART(::FlameChart),
   }
 }

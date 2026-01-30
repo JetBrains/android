@@ -133,10 +133,7 @@ $t
     ) : ComposePreviewElementInstance<Unit>() {
       override var hasAnimations = false
 
-      override fun createDerivedInstance(
-        displaySettings: PreviewDisplaySettings,
-        config: PreviewConfiguration,
-      ) =
+      override fun createDerivedInstance(displaySettings: PreviewDisplaySettings, config: PreviewConfiguration) =
         TestComposePreviewElementInstance(
           instanceId = instanceId,
           methodFqn = methodFqn,

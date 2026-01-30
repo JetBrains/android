@@ -34,10 +34,7 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.WEAR_MARGIN
 
-  override fun findIssues(
-    renderResult: RenderResult,
-    configuration: Configuration,
-  ): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque<ViewWithParentBounds>()
     val orientation = configuration.deviceState?.orientation ?: return issues
@@ -61,9 +58,7 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
         if (view.isRelevant()) {
           issues.add(createIssueContent(view))
         } else {
-          view.children.forEach {
-            viewsToAnalyze.add(ViewWithParentBounds(it, absoluteViewLeft, absoluteViewRight))
-          }
+          view.children.forEach { viewsToAnalyze.add(ViewWithParentBounds(it, absoluteViewLeft, absoluteViewRight)) }
         }
       }
     }
@@ -75,9 +70,7 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
     val simpleName = simpleName(view)
     val provider = { count: Int ->
       HtmlBuilder()
-        .add(
-          "In ${previewConfigurations(count)}, the view $simpleName is closer to the side of the device than the recommended amount."
-        )
+        .add("In ${previewConfigurations(count)}, the view $simpleName is closer to the side of the device than the recommended amount.")
         .newline()
         .add(
           "It is recommended that, for Wear OS layouts, margins should be at least ${MIN_RECT_MARGIN_RATIO * 100}% for square devices," +
@@ -88,9 +81,8 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
   }
 
   /**
-   * Decides whether a given view is relevant for margin analysis. Containers for example are not
-   * since they are not displaying anything themselves. For Compose, such containers are represented
-   * by accessibility objects View or ComposeView.
+   * Decides whether a given view is relevant for margin analysis. Containers for example are not since they are not displaying anything
+   * themselves. For Compose, such containers are represented by accessibility objects View or ComposeView.
    */
   private fun ViewInfo.isRelevant(): Boolean {
     return if (accessibilityObject != null) {
@@ -100,9 +92,5 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
     }
   }
 
-  private data class ViewWithParentBounds(
-    val view: ViewInfo,
-    val absoluteParentLeft: Int,
-    val absoluteParentRight: Int,
-  )
+  private data class ViewWithParentBounds(val view: ViewInfo, val absoluteParentLeft: Int, val absoluteParentRight: Int)
 }

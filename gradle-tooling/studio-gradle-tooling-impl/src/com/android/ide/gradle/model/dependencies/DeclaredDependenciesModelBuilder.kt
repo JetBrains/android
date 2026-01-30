@@ -15,12 +15,12 @@
  */
 package com.android.ide.gradle.model.dependencies
 
+import java.io.Serializable
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.util.GradleVersion
-import java.io.Serializable
 
 class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
   override fun canBuild(modelName: String): Boolean = modelName == DeclaredDependencies::class.java.name
@@ -34,8 +34,7 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
         path
       } else {
         // Need to be backwards compatible, should use reflection to get this value in 9.0 tooling api as it's being removed completely
-        @Suppress("DEPRECATION")
-        dependencyProject.path
+        @Suppress("DEPRECATION") dependencyProject.path
       }
 
     // The apparently-unnecessary toList() calls here are an attempt to defend against anything
@@ -45,18 +44,17 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
     // Why toMutableList() rather than toList()?  To defend against possible mis-implementations of the collection protocol,
     // with differing size() and iterator() behaviours, combined with Kotlin special-casing of collections with size = 1.  See
     // b/460504494.
-    project.configurations.toMutableList()
-      .forEach { configuration ->
-        configuration.dependencies.toMutableList().forEach { dependency ->
-          when (dependency) {
-            is ProjectDependency -> allOutgoingProjectDependencies.add(dependency.computePath())
-            else -> if (CONFIGURATIONS_OF_INTEREST.contains(configuration.name)) {
-              configurationsToCoordinates.getOrPut(configuration.name) { mutableListOf() }
-                .add(dependency.coordinates())
+    project.configurations.toMutableList().forEach { configuration ->
+      configuration.dependencies.toMutableList().forEach { dependency ->
+        when (dependency) {
+          is ProjectDependency -> allOutgoingProjectDependencies.add(dependency.computePath())
+          else ->
+            if (CONFIGURATIONS_OF_INTEREST.contains(configuration.name)) {
+              configurationsToCoordinates.getOrPut(configuration.name) { mutableListOf() }.add(dependency.coordinates())
             }
-          }
         }
       }
+    }
     return DeclaredDependenciesImpl(configurationsToCoordinates, allOutgoingProjectDependencies)
   }
 
@@ -79,6 +77,7 @@ interface DeclaredDependencies {
   val configurationsToCoordinates: Map<String, List<Coordinates>>
   val allOutgoingProjectDependencies: List<String>
 }
+
 interface Coordinates {
   val group: String?
   val name: String
@@ -89,9 +88,8 @@ data class DeclaredDependenciesImpl(
   override val configurationsToCoordinates: Map<String, List<Coordinates>>,
   override val allOutgoingProjectDependencies: List<String>,
 ) : DeclaredDependencies, Serializable
-data class CoordinatesImpl(
-  override val group: String?,
-  override val name: String,
-  override val version: String?,
-): Coordinates, Serializable
+
+data class CoordinatesImpl(override val group: String?, override val name: String, override val version: String?) :
+  Coordinates, Serializable
+
 fun Dependency.coordinates(): Coordinates = CoordinatesImpl(group, name, version)

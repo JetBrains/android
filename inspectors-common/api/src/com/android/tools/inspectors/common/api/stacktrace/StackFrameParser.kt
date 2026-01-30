@@ -28,21 +28,18 @@ object StackFrameParser {
   private const val FILE_NAME = "file"
   private const val LINE_NUMBER = "line"
 
-  private val patterns = listOf(
-    "(?<$CLASS_NAME>.+)\\.(?<$METHOD_NAME>.+)\\((?<$FILE_NAME>.+):(?<$LINE_NUMBER>.+)\\)",
-    "(?<$CLASS_NAME>.+)\\.(?<$METHOD_NAME>.+)\\((?<$FILE_NAME>.+)\\)",
-  )
+  private val patterns =
+    listOf(
+      "(?<$CLASS_NAME>.+)\\.(?<$METHOD_NAME>.+)\\((?<$FILE_NAME>.+):(?<$LINE_NUMBER>.+)\\)",
+      "(?<$CLASS_NAME>.+)\\.(?<$METHOD_NAME>.+)\\((?<$FILE_NAME>.+)\\)",
+    )
 
   private val expressions = patterns.map { Regex(it, RegexOption.IGNORE_CASE) }
 
-  /**
-   * Parse a Java stack trace. Any lines that could not be parsed will be ignored.
-   */
-  @JvmStatic
-  fun parseStack(lines: String): List<CodeLocation> = lines.lines().mapNotNull{ parseFrame(it) }
+  /** Parse a Java stack trace. Any lines that could not be parsed will be ignored. */
+  @JvmStatic fun parseStack(lines: String): List<CodeLocation> = lines.lines().mapNotNull { parseFrame(it) }
 
-  @JvmStatic
-  fun parseFrame(line: String): CodeLocation? = tryParseFrame(expressions.firstNotNullOfOrNull { it.matchEntire(line) })
+  @JvmStatic fun parseFrame(line: String): CodeLocation? = tryParseFrame(expressions.firstNotNullOfOrNull { it.matchEntire(line) })
 
   private fun tryParseFrame(match: MatchResult?): CodeLocation? {
     if (match == null) {
@@ -56,18 +53,21 @@ object StackFrameParser {
     // If there is no LINE_NUMBER group, we will throw an exception. If the line number is not an
     // integer, we will throw an exception. Either way, we will use an invalid line number in the
     // code location.
-    val lineNumber = try {
-      // Convert the line number from 1-base to 0-base. The Java stack traces use 1-base whereas we
-      // use 0-based.
-      Integer.parseInt(match.groups[LINE_NUMBER]!!.value) - 1
-    } catch (e: Exception) {
-      CodeLocation.INVALID_LINE_NUMBER
-    }
+    val lineNumber =
+      try {
+        // Convert the line number from 1-base to 0-base. The Java stack traces use 1-base whereas we
+        // use 0-based.
+        Integer.parseInt(match.groups[LINE_NUMBER]!!.value) - 1
+      } catch (e: Exception) {
+        CodeLocation.INVALID_LINE_NUMBER
+      }
 
-    return CodeLocation.Builder(className).apply {
-      setFileName(fileName)
-      setMethodName(methodName)
-      setLineNumber(lineNumber)
-    }.build()
+    return CodeLocation.Builder(className)
+      .apply {
+        setFileName(fileName)
+        setMethodName(methodName)
+        setLineNumber(lineNumber)
+      }
+      .build()
   }
 }

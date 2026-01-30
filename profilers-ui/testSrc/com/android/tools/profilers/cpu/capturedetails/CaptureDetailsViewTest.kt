@@ -21,32 +21,34 @@ import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetailsView.NO_DATA_FOR_RANGE_MESSAGE
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetailsView.NO_DATA_FOR_THREAD_MESSAGE
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.awt.CardLayout
 import javax.swing.JPanel
+import org.junit.Test
 
 class CaptureDetailsViewTest {
 
   @Test
   fun testNoDataForRange() {
-    val textInstruction = TreeWalker(CaptureDetailsView.getNoDataForRange())
-      .descendants()
-      .filterIsInstance<InstructionsPanel>()
-      .first()
-      .getRenderInstructionsForComponent(0)
-      .first() as TextInstruction
+    val textInstruction =
+      TreeWalker(CaptureDetailsView.getNoDataForRange())
+        .descendants()
+        .filterIsInstance<InstructionsPanel>()
+        .first()
+        .getRenderInstructionsForComponent(0)
+        .first() as TextInstruction
 
     assertThat(textInstruction.text).isEqualTo(NO_DATA_FOR_RANGE_MESSAGE)
   }
 
   @Test
   fun testNoDataForThread() {
-    val textInstruction = TreeWalker(CaptureDetailsView.getNoDataForThread())
-      .descendants()
-      .filterIsInstance<InstructionsPanel>()
-      .first()
-      .getRenderInstructionsForComponent(0)
-      .first() as TextInstruction
+    val textInstruction =
+      TreeWalker(CaptureDetailsView.getNoDataForThread())
+        .descendants()
+        .filterIsInstance<InstructionsPanel>()
+        .first()
+        .getRenderInstructionsForComponent(0)
+        .first() as TextInstruction
 
     assertThat(textInstruction.text).isEqualTo(NO_DATA_FOR_THREAD_MESSAGE)
   }

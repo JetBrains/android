@@ -38,14 +38,11 @@ fun StudioTheme(content: @Composable () -> Unit) {
   SwingBridgeTheme {
     val provider = StudioMarkdownFactory
     val markdownStyling =
-      remember(JewelTheme.name, provider) {
-        provider.createDefaultStyling(retrieveDefaultTextStyle(), retrieveEditorTextStyle())
-      }
+      remember(JewelTheme.name, provider) { provider.createDefaultStyling(retrieveDefaultTextStyle(), retrieveEditorTextStyle()) }
     val processorExtensions = getDefaultMarkdownProcessors()
     val markdownProcessor = remember { MarkdownProcessor(processorExtensions) }
     val renderExtensions = getDefaultRenderExtensions(markdownStyling)
-    val blockRenderer =
-      remember(markdownStyling) { MarkdownBlockRenderer.create(markdownStyling, renderExtensions) }
+    val blockRenderer = remember(markdownStyling) { MarkdownBlockRenderer.create(markdownStyling, renderExtensions) }
 
     CompositionLocalProvider(
       LocalMarkdownFactory provides provider,

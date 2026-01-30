@@ -16,8 +16,8 @@
 package org.jetbrains.android.refactoring
 
 import com.android.SdkConstants
-import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.dcl.lang.DeclarativeLanguage
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -27,15 +27,15 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.plugins.groovy.GroovyLanguage
 
-/**
- * Recognizes elements in files that [GradleFiles] considers to be build scripts.
- */
+/** Recognizes elements in files that [GradleFiles] considers to be build scripts. */
 class GradleUsageTypeProvider : UsageTypeProvider {
   override fun getUsageType(element: PsiElement): UsageType? {
-    if (element?.language != GroovyLanguage &&
+    if (
+      element?.language != GroovyLanguage &&
         element?.language != KotlinLanguage.INSTANCE &&
         (!DeclarativeStudioSupport.isEnabled() || element?.language != DeclarativeLanguage.INSTANCE)
-      ) return null
+    )
+      return null
     return if (GradleFiles.getInstance(element.project).isGradleFile(element.containingFile)) GRADLE_USAGE_TYPE else null
   }
 
@@ -44,9 +44,7 @@ class GradleUsageTypeProvider : UsageTypeProvider {
   }
 }
 
-/**
- * Recognizes gradle.properties
- */
+/** Recognizes gradle.properties */
 class AndroidPropertiesUsageType : UsageTypeProvider {
   companion object {
     private val ANDROID_PROPERTIES_FILE = UsageType(AndroidBundle.messagePointer("android.usageType.gradle.properties.file"))

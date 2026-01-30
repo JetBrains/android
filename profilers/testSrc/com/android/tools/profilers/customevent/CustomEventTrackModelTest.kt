@@ -25,53 +25,44 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class CustomEventTrackModelTest {
 
   val groupId1 = "group1".hashCode().toLong()
 
-  private val USER_EVENTS = ImmutableList.of<Common.Event>(
-    Common.Event.newBuilder()
-      .setGroupId(groupId1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(500))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder()
-          .setName(groupId1.toString())
-          .setRecordedValue(1).build())
-      .setIsEnded(false)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(groupId1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(1000))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder()
-          .setName(groupId1.toString())
-          .setRecordedValue(5).build())
-      .setIsEnded(false)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(groupId1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(2000))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder()
-          .setName(groupId1.toString())
-          .setRecordedValue(10).build())
-      .setIsEnded(false)
-      .build()
-  )
+  private val USER_EVENTS =
+    ImmutableList.of<Common.Event>(
+      Common.Event.newBuilder()
+        .setGroupId(groupId1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(500))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder().setName(groupId1.toString()).setRecordedValue(1).build())
+        .setIsEnded(false)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(groupId1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(1000))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder().setName(groupId1.toString()).setRecordedValue(5).build())
+        .setIsEnded(false)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(groupId1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(2000))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder().setName(groupId1.toString()).setRecordedValue(10).build())
+        .setIsEnded(false)
+        .build(),
+    )
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, true)
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("CustomEventTrackModelTest", transportService)
+  @get:Rule var grpcChannel = FakeGrpcChannel("CustomEventTrackModelTest", transportService)
 
   private lateinit var userCounterModel: UserCounterModel
   private lateinit var customEventTrackModel: CustomEventTrackModel
@@ -96,5 +87,4 @@ class CustomEventTrackModelTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(legend.trackLegend.value).isEqualTo("10")
   }
-
 }

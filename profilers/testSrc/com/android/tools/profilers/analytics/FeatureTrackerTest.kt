@@ -22,11 +22,12 @@ import org.junit.Before
 import org.junit.Test
 
 class FeatureTrackerTest {
-  private data class LoggingFeatureTracker(val log: MutableList<Any>, val backend: FeatureTracker): FeatureTracker by backend {
+  private data class LoggingFeatureTracker(val log: MutableList<Any>, val backend: FeatureTracker) : FeatureTracker by backend {
     override fun trackLoading(loading: Loading) {
       log.add(loading)
     }
   }
+
   private val log = mutableListOf<Any>()
   private val tracker = LoggingFeatureTracker(log, FakeFeatureTracker())
 
@@ -37,11 +38,7 @@ class FeatureTrackerTest {
 
   @Test
   fun `successful loading tracked at start and finish`() {
-    tracker.trackLoading(Loading.Type.UNSPECIFIED,
-                         sizeKb = 1024,
-                         measure = { 42L.also { log.add("measured") } }) {
-      log.add("run")
-    }
+    tracker.trackLoading(Loading.Type.UNSPECIFIED, sizeKb = 1024, measure = { 42L.also { log.add("measured") } }) { log.add("run") }
 
     assertThat(log).hasSize(4)
     // track attempt
@@ -59,14 +56,11 @@ class FeatureTrackerTest {
   @Test
   fun `failed loading does not send success metrics`() {
     try {
-      tracker.trackLoading(Loading.Type.UNSPECIFIED,
-                           sizeKb = 1024,
-                           measure = { 42L.also { log.add("measured") } }) {
+      tracker.trackLoading(Loading.Type.UNSPECIFIED, sizeKb = 1024, measure = { 42L.also { log.add("measured") } }) {
         log.add("run")
         throw RuntimeException()
       }
-    } catch(_: Exception) {
-    } finally {
+    } catch (_: Exception) {} finally {
       assertThat(log).hasSize(2)
       // track attempt
       assertThat(log[0]).isInstanceOf(Loading::class.java)

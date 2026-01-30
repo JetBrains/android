@@ -223,7 +223,6 @@ class ComposableFunctionRenderingTest {
 
   private fun getComposableFunctionRenderPartsAtCaret() = runReadAction {
     val element = myFixture.elementAtCaret as KtDeclaration
-    element.getComposableFunctionRenderParts()
-      ?: throw AssertionError("Test must contain a valid composable function")
+    element.getComposableFunctionRenderParts() ?: throw AssertionError("Test must contain a valid composable function")
   }
 }

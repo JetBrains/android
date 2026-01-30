@@ -16,8 +16,8 @@
 package com.android.tools.adtui.model
 
 /**
- * This class adds a name and an additional range to RangedSeries. This additional range represents
- * the Y axis to the default range which represents the x axis.
+ * This class adds a name and an additional range to RangedSeries. This additional range represents the Y axis to the default range which
+ * represents the x axis.
  */
 class RangedContinuousSeries
 @JvmOverloads

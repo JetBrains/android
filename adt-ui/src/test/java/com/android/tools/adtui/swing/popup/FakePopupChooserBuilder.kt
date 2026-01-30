@@ -38,10 +38,7 @@ import javax.swing.ListCellRenderer
  *
  * Note to contributors: As methods are implemented, please move them towards the top of the file.
  */
-internal class FakePopupChooserBuilder<T>(
-  private val factory: FakeJBPopupFactory,
-  private val list: List<T>,
-) : IPopupChooserBuilder<T> {
+internal class FakePopupChooserBuilder<T>(private val factory: FakeJBPopupFactory, private val list: List<T>) : IPopupChooserBuilder<T> {
 
   private var isMovable: Boolean? = null
   private var isRequestFocus: Boolean? = null
@@ -49,8 +46,7 @@ internal class FakePopupChooserBuilder<T>(
   private var callback: Consumer<in T>? = null
   private var renderer: ListCellRenderer<in T>? = null
 
-  override fun createPopup(): JBPopup =
-    FakeJBPopup(list, isMovable, isRequestFocus, title, renderer, callback).also(factory::addPopup)
+  override fun createPopup(): JBPopup = FakeJBPopup(list, isMovable, isRequestFocus, title, renderer, callback).also(factory::addPopup)
 
   override fun setMovable(forceMovable: Boolean): IPopupChooserBuilder<T> {
     isMovable = forceMovable
@@ -79,9 +75,7 @@ internal class FakePopupChooserBuilder<T>(
 
   // PLEASE KEEP UNIMPLEMENTED METHODS ONLY BELOW THIS COMMENT
 
-  override fun setItemsChosenCallback(
-    callback: Consumer<in MutableSet<out T>>
-  ): IPopupChooserBuilder<T> {
+  override fun setItemsChosenCallback(callback: Consumer<in MutableSet<out T>>): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
 
@@ -125,9 +119,7 @@ internal class FakePopupChooserBuilder<T>(
     TODO("Not yet implemented")
   }
 
-  override fun setAutoPackHeightOnFiltering(
-    autoPackHeightOnFiltering: Boolean
-  ): IPopupChooserBuilder<T> {
+  override fun setAutoPackHeightOnFiltering(autoPackHeightOnFiltering: Boolean): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
 
@@ -139,10 +131,7 @@ internal class FakePopupChooserBuilder<T>(
     TODO("Not yet implemented")
   }
 
-  override fun registerKeyboardAction(
-    keyStroke: KeyStroke?,
-    actionListener: ActionListener?,
-  ): IPopupChooserBuilder<T> {
+  override fun registerKeyboardAction(keyStroke: KeyStroke?, actionListener: ActionListener?): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
 
@@ -182,9 +171,7 @@ internal class FakePopupChooserBuilder<T>(
     TODO("Not yet implemented")
   }
 
-  override fun setCancelOnWindowDeactivation(
-    cancelOnWindowDeactivation: Boolean
-  ): IPopupChooserBuilder<T> {
+  override fun setCancelOnWindowDeactivation(cancelOnWindowDeactivation: Boolean): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
 

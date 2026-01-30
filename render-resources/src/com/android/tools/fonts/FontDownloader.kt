@@ -31,14 +31,15 @@ interface FontDownloader {
 
   companion object {
     @JvmField
-    val NOOP_FONT_DOWNLOADER = object : FontDownloader {
-      override fun download(fontsToDownload: List<FontFamily>, menuFontsOnly: Boolean, success: Runnable?, failure: Runnable?) { }
+    val NOOP_FONT_DOWNLOADER =
+      object : FontDownloader {
+        override fun download(fontsToDownload: List<FontFamily>, menuFontsOnly: Boolean, success: Runnable?, failure: Runnable?) {}
 
-      override fun createFontDirectoryDownloader(
-        fontLoader: FontLoader,
-        provider: FontProvider,
-        fontCachePath: File
-      ): FontDirectoryDownloader = NOOP_FONT_DIRECTORY_DOWNLOADER
-    }
+        override fun createFontDirectoryDownloader(
+          fontLoader: FontLoader,
+          provider: FontProvider,
+          fontCachePath: File,
+        ): FontDirectoryDownloader = NOOP_FONT_DIRECTORY_DOWNLOADER
+      }
   }
 }

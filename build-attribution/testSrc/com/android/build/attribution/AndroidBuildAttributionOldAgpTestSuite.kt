@@ -31,8 +31,6 @@ class AndroidBuildAttributionOldAgpTestSuite : IdeaTestSuiteBase() {
 
   companion object {
 
-    @ClassRule
-    @JvmField
-    val mavenRepos = MavenRepoRule.fromTestSuiteSystemProperty()
+    @ClassRule @JvmField val mavenRepos = MavenRepoRule.fromTestSuiteSystemProperty()
   }
 }

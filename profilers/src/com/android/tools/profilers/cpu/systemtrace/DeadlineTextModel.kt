@@ -22,8 +22,10 @@ import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profilers.cpu.LazyDataSeries
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 
-data class DeadlineTextModel(val multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
-                             val vsyncs: List<SeriesData<Long>>,
-                             val viewRange: Range) {
+data class DeadlineTextModel(
+  val multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
+  val vsyncs: List<SeriesData<Long>>,
+  val viewRange: Range,
+) {
   val vsyncSeries = RangedSeries(viewRange, LazyDataSeries { vsyncs })
 }

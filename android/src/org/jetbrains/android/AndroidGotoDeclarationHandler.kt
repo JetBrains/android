@@ -26,6 +26,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlTag
+import java.util.ArrayList
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.augment.ManifestInnerClass
@@ -35,7 +36,6 @@ import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.utils.KotlinExceptionWithAttachments
-import java.util.ArrayList
 
 /**
  * GotoDeclarationHandler for Resources. This class handles multiple cases:
@@ -50,11 +50,8 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
     }
     val targetElement =
       try {
-        TargetElementUtil.getInstance().findTargetElement(editor,
-                                                          TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED,
-                                                          offset)
-      }
-      catch (_: KotlinExceptionWithAttachments) {
+        TargetElementUtil.getInstance().findTargetElement(editor, TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED, offset)
+      } catch (_: KotlinExceptionWithAttachments) {
         null
       }
 
@@ -62,19 +59,20 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
       is ResourceReferencePsiElement -> {
         // Depending on the context, we might need to check DynamicFeature modules.
         if (requiresDynamicFeatureModuleResources(sourceElement)) {
-          AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargetsWithDynamicFeatureModules(
-            targetElement.resourceReference,
-            sourceElement.containingFile)
+          AndroidResourceToPsiResolver.getInstance()
+            .getGotoDeclarationTargetsWithDynamicFeatureModules(targetElement.resourceReference, sourceElement.containingFile)
         } else {
           // We take the containing file of the source element as context as ModuleUtilCore can only find the module of an AAR file, not an
           // element in that file.
-          AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargets(targetElement.resourceReference, sourceElement.containingFile)
+          AndroidResourceToPsiResolver.getInstance()
+            .getGotoDeclarationTargets(targetElement.resourceReference, sourceElement.containingFile)
         }
       }
       is StyleableAttrLightField -> {
         // For Styleable Attr fields, we go to the reference of the attr inside the declare styleable, not necessarily the attr definition
         val styleableAttrUrl = targetElement.styleableAttrFieldUrl
-        val styleables = StudioResourceRepositoryManager.getInstance(sourceElement)
+        val styleables =
+          StudioResourceRepositoryManager.getInstance(sourceElement)
             ?.getResourcesForNamespace(styleableAttrUrl.styleable.namespace)
             ?.getResources(styleableAttrUrl.styleable) ?: return PsiElement.EMPTY_ARRAY
         return findAttrElementsInStyleables(styleables, targetElement)
@@ -87,9 +85,7 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
             // The goto context element is used to find an appropriate ResourceRepository. We generally want the
             // containing R class as context, but in the case of AAR dependencies there's no module or repository
             // for that class. Instead, we can fall back to the source element in cases like that.
-            val gotoContext =
-              if (StudioResourceRepositoryManager.getInstance(containingClass) != null) containingClass
-              else sourceElement
+            val gotoContext = if (StudioResourceRepositoryManager.getInstance(containingClass) != null) containingClass else sourceElement
             AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargets(referencePsiElement.resourceReference, gotoContext)
           }
           is ManifestClass -> {
@@ -106,10 +102,9 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
         val containingClass = targetElement.containingClass ?: return PsiElement.EMPTY_ARRAY
         val resourceType = containingClass.name?.let { ResourceType.fromClassName(it) } ?: return PsiElement.EMPTY_ARRAY
         return if (SdkConstants.CLASS_R == containingClass.containingClass?.qualifiedName) {
-          AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargets(
-            ResourceReference(ResourceNamespace.ANDROID, resourceType, targetElement.name), sourceElement)
-        }
-        else {
+          AndroidResourceToPsiResolver.getInstance()
+            .getGotoDeclarationTargets(ResourceReference(ResourceNamespace.ANDROID, resourceType, targetElement.name), sourceElement)
+        } else {
           PsiElement.EMPTY_ARRAY
         }
       }
@@ -126,8 +121,8 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
         for (attributeValue in resourceValue.allAttributes) {
           if (attributeValue.asReference() == styleableAttrUrl.attr) {
             val declaration =
-              AndroidResourceToPsiResolver.getInstance()
-                .resolveToDeclaration(styleable, targetElement.project) as? XmlAttributeValue ?: continue
+              AndroidResourceToPsiResolver.getInstance().resolveToDeclaration(styleable, targetElement.project) as? XmlAttributeValue
+                ?: continue
             val attributeInStyleable = findAttributeResourceInStyleableTag(declaration, attributeValue.asReference()) ?: continue
             result.add(attributeInStyleable)
           }
@@ -139,7 +134,7 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
 
   private fun findAttributeResourceInStyleableTag(
     styleableDeclaration: XmlAttributeValue,
-    asReference: ResourceReference
+    asReference: ResourceReference,
   ): XmlAttributeValue? {
     val resourceType = getFolderType(styleableDeclaration.containingFile)
     if (resourceType != ResourceFolderType.VALUES) return null
@@ -158,17 +153,16 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
     return null
   }
 
-  private fun collectManifestElements(nestedClassName: String,
-                                      fieldName: String,
-                                      facet: AndroidFacet): Array<PsiElement> {
+  private fun collectManifestElements(nestedClassName: String, fieldName: String, facet: AndroidFacet): Array<PsiElement> {
     val result = ArrayList<PsiElement>()
     val manifest = Manifest.getMainManifest(facet) ?: return PsiElement.EMPTY_ARRAY
 
-    val list: List<ManifestElementWithRequiredName> = when (nestedClassName) {
-      "permission" ->  manifest.permissions
-      "permission_group" ->  manifest.permissionGroups
-      else -> return PsiElement.EMPTY_ARRAY
-    }
+    val list: List<ManifestElementWithRequiredName> =
+      when (nestedClassName) {
+        "permission" -> manifest.permissions
+        "permission_group" -> manifest.permissionGroups
+        else -> return PsiElement.EMPTY_ARRAY
+      }
 
     for (domElement in list) {
       val nameAttribute = domElement.name

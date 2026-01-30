@@ -23,9 +23,9 @@ import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class AllocationSamplingRateDataSeriesTest {
   companion object {
@@ -40,20 +40,22 @@ class AllocationSamplingRateDataSeriesTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer)
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("AllocationSamplingRateDataSeriesTest", myTransportService)
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("AllocationSamplingRateDataSeriesTest", myTransportService)
 
   @Test
   fun testGetDataForXRange() {
-    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId,
-                                        ProfilersTestData.generateMemoryAllocSamplingData(
-                                          ProfilersTestData.SESSION_DATA, TIMESTAMP1, SAMPLING_RATE1).build())
-    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId,
-                                        ProfilersTestData.generateMemoryAllocSamplingData(
-                                          ProfilersTestData.SESSION_DATA, TIMESTAMP2, SAMPLING_RATE2).build())
-    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId,
-                                        ProfilersTestData.generateMemoryAllocSamplingData(
-                                          ProfilersTestData.SESSION_DATA, TIMESTAMP3, SAMPLING_RATE3).build())
+    myTransportService.addEventToStream(
+      ProfilersTestData.SESSION_DATA.streamId,
+      ProfilersTestData.generateMemoryAllocSamplingData(ProfilersTestData.SESSION_DATA, TIMESTAMP1, SAMPLING_RATE1).build(),
+    )
+    myTransportService.addEventToStream(
+      ProfilersTestData.SESSION_DATA.streamId,
+      ProfilersTestData.generateMemoryAllocSamplingData(ProfilersTestData.SESSION_DATA, TIMESTAMP2, SAMPLING_RATE2).build(),
+    )
+    myTransportService.addEventToStream(
+      ProfilersTestData.SESSION_DATA.streamId,
+      ProfilersTestData.generateMemoryAllocSamplingData(ProfilersTestData.SESSION_DATA, TIMESTAMP3, SAMPLING_RATE3).build(),
+    )
 
     val series = AllocationSamplingRateDataSeries(ProfilerClient(myGrpcChannel.channel), ProfilersTestData.SESSION_DATA)
     val dataList = series.getDataForRange(Range(0.0, java.lang.Double.MAX_VALUE))
@@ -80,15 +82,18 @@ class AllocationSamplingRateDataSeriesTest {
 
   @Test
   fun testGetDataForXRangeNotReturnEventsBeforeRangeMin() {
-    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId,
-                                        ProfilersTestData.generateMemoryAllocSamplingData(
-                                          ProfilersTestData.SESSION_DATA, TIMESTAMP1, SAMPLING_RATE1).build())
-    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId,
-                                        ProfilersTestData.generateMemoryAllocSamplingData(
-                                          ProfilersTestData.SESSION_DATA, TIMESTAMP2, SAMPLING_RATE2).build())
-    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId,
-                                        ProfilersTestData.generateMemoryAllocSamplingData(
-                                          ProfilersTestData.SESSION_DATA, TIMESTAMP3, SAMPLING_RATE3).build())
+    myTransportService.addEventToStream(
+      ProfilersTestData.SESSION_DATA.streamId,
+      ProfilersTestData.generateMemoryAllocSamplingData(ProfilersTestData.SESSION_DATA, TIMESTAMP1, SAMPLING_RATE1).build(),
+    )
+    myTransportService.addEventToStream(
+      ProfilersTestData.SESSION_DATA.streamId,
+      ProfilersTestData.generateMemoryAllocSamplingData(ProfilersTestData.SESSION_DATA, TIMESTAMP2, SAMPLING_RATE2).build(),
+    )
+    myTransportService.addEventToStream(
+      ProfilersTestData.SESSION_DATA.streamId,
+      ProfilersTestData.generateMemoryAllocSamplingData(ProfilersTestData.SESSION_DATA, TIMESTAMP3, SAMPLING_RATE3).build(),
+    )
 
     val series = AllocationSamplingRateDataSeries(ProfilerClient(myGrpcChannel.channel), ProfilersTestData.SESSION_DATA)
     val dataList = series.getDataForRange(Range(4.0, java.lang.Double.MAX_VALUE))

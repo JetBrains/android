@@ -22,8 +22,8 @@ import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.inspectors.common.api.actions.NavigateToCodeAction
 import com.android.tools.leakcanarylib.data.Analysis
 import com.android.tools.leakcanarylib.data.AnalysisFailure
-import com.android.tools.leakcanarylib.data.AnalysisUpdate
 import com.android.tools.leakcanarylib.data.AnalysisSuccess
+import com.android.tools.leakcanarylib.data.AnalysisUpdate
 import com.android.tools.leakcanarylib.data.Leak
 import com.android.tools.leakcanarylib.data.LeakingStatus
 import com.android.tools.leakcanarylib.data.Node
@@ -35,7 +35,6 @@ import com.android.tools.profilers.ModelStage
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.tasks.analytics.TaskFinishedState
-import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -48,8 +47,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.NotNull
 
-class LeakCanaryModel(@NotNull private val profilers: StudioProfilers,
-                      heapDumper: LeakCanaryHeapDumper? = null) : ModelStage(profilers), Updatable {
+class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumper: LeakCanaryHeapDumper? = null) :
+  ModelStage(profilers), Updatable {
 
   private lateinit var statusListener: TransportEventListener
   private lateinit var objectCountListener: TransportEventListener
@@ -58,14 +57,12 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers,
   private val heapDumper: LeakCanaryHeapDumper
 
   init {
-    this.heapDumper = heapDumper ?: LeakCanaryHeapDumper(profilers).apply {
-      onHostAnalysisFinished = { analysis ->
-        handleLeakAnalysis(analysis)
-      }
-      onAnalysisProgress = { progress ->
-        setAnalysisProgress(progress)
-      }
-    }
+    this.heapDumper =
+      heapDumper
+        ?: LeakCanaryHeapDumper(profilers).apply {
+          onHostAnalysisFinished = { analysis -> handleLeakAnalysis(analysis) }
+          onAnalysisProgress = { progress -> setAnalysisProgress(progress) }
+        }
   }
 
   val requiredRetainedObjectCount = 5
@@ -121,9 +118,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers,
   }
 
   fun forceHeapDump() {
-    profilers.ideServices.poolExecutor.execute {
-      heapDumper.triggerAndAnalyze()
-    }
+    profilers.ideServices.poolExecutor.execute { heapDumper.triggerAndAnalyze() }
   }
 
   fun setIsRecording(isRecording: Boolean) {
@@ -149,68 +144,68 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers,
     _selectedLeak.value = newLeak
   }
 
-  /**
-   * Creates and registers transport event listeners that run from the start of the session until the end.
-   */
+  /** Creates and registers transport event listeners that run from the start of the session until the end. */
   private fun registerLeakCanaryListeners() {
     val startTime = profilers.session.startTimestamp
     // This is for shark running on the device and sending logcat readings.
-    statusListener = TransportEventListener(eventKind = Common.Event.Kind.LEAKCANARY_ANALYSIS,
-                                            executor = profilers.ideServices.mainExecutor,
-                                            streamId = { profilers.session.streamId },
-                                            processId = { profilers.session.pid },
-                                            startTime = { startTime },
-                                            callback = { event ->
-                                              false.also {
-                                                leakDetected(event)
-                                              }
-                                            })
+    statusListener =
+      TransportEventListener(
+        eventKind = Common.Event.Kind.LEAKCANARY_ANALYSIS,
+        executor = profilers.ideServices.mainExecutor,
+        streamId = { profilers.session.streamId },
+        processId = { profilers.session.pid },
+        startTime = { startTime },
+        callback = { event -> false.also { leakDetected(event) } },
+      )
     profilers.transportPoller.registerListener(statusListener)
 
     // This is for shark running on host and we are getting retained object count from the studio leakcanary integration library.
-    objectCountListener = TransportEventListener(eventKind = Common.Event.Kind.LEAKCANARY_OBJECT_COUNT,
-                                                 executor = profilers.ideServices.mainExecutor,
-                                                 streamId = { profilers.session.streamId },
-                                                 processId = { profilers.session.pid },
-                                                 startTime = { startTime },
-                                                 callback = { event ->
-                                                   val count = event.leakcanaryObjectCount.count
-                                                   setObjectRetainedCount(count)
-                                                   if (count >= requiredRetainedObjectCount) {
-                                                     forceHeapDump()
-                                                   }
-                                                   false
-                                                 })
+    objectCountListener =
+      TransportEventListener(
+        eventKind = Common.Event.Kind.LEAKCANARY_OBJECT_COUNT,
+        executor = profilers.ideServices.mainExecutor,
+        streamId = { profilers.session.streamId },
+        processId = { profilers.session.pid },
+        startTime = { startTime },
+        callback = { event ->
+          val count = event.leakcanaryObjectCount.count
+          setObjectRetainedCount(count)
+          if (count >= requiredRetainedObjectCount) {
+            forceHeapDump()
+          }
+          false
+        },
+      )
     profilers.transportPoller.registerListener(objectCountListener)
   }
 
   private fun checkLeakCanaryPresence() {
-    val command = Commands.Command.newBuilder().apply {
-      streamId = profilers.session.streamId
-      pid = profilers.session.pid
-      type = Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT
-    }.build()
+    val command =
+      Commands.Command.newBuilder()
+        .apply {
+          streamId = profilers.session.streamId
+          pid = profilers.session.pid
+          type = Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT
+        }
+        .build()
 
     profilers.ideServices.poolExecutor.execute {
-      val response = profilers.client.transportClient.execute(
-        Transport.ExecuteRequest.newBuilder().setCommand(command).build()
-      )
+      val response = profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
 
-      val listener = TransportEventListener(
-        eventKind = Common.Event.Kind.LEAKCANARY_PRESENCE_CHECK,
-        executor = profilers.ideServices.poolExecutor,
-        filter = { it.commandId == response.commandId },
-        streamId = { profilers.session.streamId },
-        processId = { profilers.session.pid },
-        callback = { event ->
-          val isPresent = event.leakcanaryPresenceCheck.isPresent
-          logger.info("LeakCanary presence check returned: $isPresent")
-          profilers.ideServices.mainExecutor.execute {
-            _isLeakCanaryPresent.value = isPresent
-          }
-          true // Unregister listener after first event.
-        }
-      )
+      val listener =
+        TransportEventListener(
+          eventKind = Common.Event.Kind.LEAKCANARY_PRESENCE_CHECK,
+          executor = profilers.ideServices.poolExecutor,
+          filter = { it.commandId == response.commandId },
+          streamId = { profilers.session.streamId },
+          processId = { profilers.session.pid },
+          callback = { event ->
+            val isPresent = event.leakcanaryPresenceCheck.isPresent
+            logger.info("LeakCanary presence check returned: $isPresent")
+            profilers.ideServices.mainExecutor.execute { _isLeakCanaryPresent.value = isPresent }
+            true // Unregister listener after first event.
+          },
+        )
       profilers.transportPoller.registerListener(listener)
     }
   }
@@ -230,10 +225,11 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers,
 
   /**
    * Gets the parsed logcat message and adds to list of leaks.
+   *
    * @param event: The LeakCanary logcat event.
    */
   private fun leakDetected(event: Common.Event) {
-    val analysis = Analysis.fromString(event.leakcanaryAnalysis.data)?: return
+    val analysis = Analysis.fromString(event.leakcanaryAnalysis.data) ?: return
     if (handleRetainedObject(analysis)) return
     if (handleAnalysisProgress(analysis)) return
     setObjectRetainedCount(0)
@@ -270,8 +266,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers,
 
     if (analysis is AnalysisSuccess) {
       addLeaks(analysis.leaks)
-    }
-    else if (analysis is AnalysisFailure){
+    } else if (analysis is AnalysisFailure) {
       // There is failure in leak analysis.
       logger.warn("Leak analysis failure", analysis.exception)
     }
@@ -284,42 +279,37 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers,
 
   /**
    * Starts or stops LeakCanary logcat tracking & retained object count tracking.
+   *
    * @param session: The profiler session.
    * @param enable: true to start tracking, false to stop tracking.
    * @param endSession: true to end the session when stopping tracking.
    */
-  private fun toggleLeakCanaryTracking(session: Common.Session,
-                                             enable: Boolean,
-                                             endSession: Boolean) {
+  private fun toggleLeakCanaryTracking(session: Common.Session, enable: Boolean, endSession: Boolean) {
     // Default to ON_DEVICE mode for now as per requirement.
     // This can be parameterized later when UI selection is available.
-    val startLeakCanaryTaskData = StartLeakCanaryTaskData.newBuilder()
-      .setMode(StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE)
-      .build()
+    val startLeakCanaryTaskData = StartLeakCanaryTaskData.newBuilder().setMode(StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE).build()
 
-    val cmd = Commands.Command.newBuilder().apply {
-      streamId = session.streamId
-      pid = session.pid
-      if (enable) {
-        type = Commands.Command.CommandType.START_LEAKCANARY_TASK
-        setStartLeakcanaryTask(startLeakCanaryTaskData)
-      }
-      else {
-        type = Commands.Command.CommandType.STOP_LEAKCANARY_TASK
-        if (endSession) {
-          sessionId = session.sessionId
+    val cmd =
+      Commands.Command.newBuilder().apply {
+        streamId = session.streamId
+        pid = session.pid
+        if (enable) {
+          type = Commands.Command.CommandType.START_LEAKCANARY_TASK
+          setStartLeakcanaryTask(startLeakCanaryTaskData)
+        } else {
+          type = Commands.Command.CommandType.STOP_LEAKCANARY_TASK
+          if (endSession) {
+            sessionId = session.sessionId
+          }
         }
       }
-    }
     profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(cmd).build())
   }
 
   // Setting it to UNKNOWN_STAGE since stage usage is avoided in task-based ux.
   override fun getStageType(): AndroidProfilerEvent.Stage = AndroidProfilerEvent.Stage.UNKNOWN_STAGE
 
-  fun loadFromPastSession(startTimestamp: Long,
-                          endTimeStamp: Long,
-                          session: Common.Session) {
+  fun loadFromPastSession(startTimestamp: Long, endTimeStamp: Long, session: Common.Session) {
     // Get all LeakCanary events from start time to end time.
     val analysisEvents = getAllLeakCanaryEvents(session, startTimestamp, endTimeStamp)
     analysisEvents.forEach { analysis ->
@@ -337,18 +327,13 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers,
     myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED)
   }
 
-  private fun getAllLeakCanaryEvents(session: Common.Session,
-                                     startTimestamp: Long,
-                                     endTimeStamp: Long): List<Analysis> {
+  private fun getAllLeakCanaryEvents(session: Common.Session, startTimestamp: Long, endTimeStamp: Long): List<Analysis> {
     val eventList = getLeaksFromRange(profilers.client, session, Range(startTimestamp.toDouble(), endTimeStamp.toDouble()))
     return eventList.mapNotNull { event -> Analysis.fromString(event.leakcanaryAnalysis.data) }
   }
 
   fun goToDeclaration(node: Node) {
-    val codeLocationSupplier: () -> CodeLocation = {
-      CodeLocation.Builder(node.className.removeSuffix("[]"))
-        .build()
-    }
+    val codeLocationSupplier: () -> CodeLocation = { CodeLocation.Builder(node.className.removeSuffix("[]")).build() }
     val navigator = this.studioProfilers.ideServices.codeNavigator
     val action = NavigateToCodeAction(codeLocationSupplier, navigator)
     val event = createEvent(action, DataContext.EMPTY_CONTEXT, null, ActionPlaces.CODE_INSPECTION, ActionUiKind.NONE, null)
@@ -363,45 +348,47 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers,
 
   companion object {
     /**
-     * Fetches all LeakCanary logcat dump events within a given session. It returns leaks that are within a given range, which is
-     * provided by the logcat end status events fetched by `getLeakCanaryLogcatInfo`.
+     * Fetches all LeakCanary logcat dump events within a given session. It returns leaks that are within a given range, which is provided
+     * by the logcat end status events fetched by `getLeakCanaryLogcatInfo`.
      */
-    fun getLeaksFromRange(
-      profilerClient: ProfilerClient,
-      session: Common.Session,
-      range: Range): List<Common.Event> {
-      return profilerClient.transportClient.getEventGroups(
-        Transport.GetEventGroupsRequest.newBuilder()
-          .setStreamId(session.streamId)
-          .setPid(session.pid)
-          .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS)
-          .setFromTimestamp(range.min.toLong())
-          .setToTimestamp(range.max.toLong())
-          .build()).groupsList.flatMap { group -> group.eventsList.toList() }
+    fun getLeaksFromRange(profilerClient: ProfilerClient, session: Common.Session, range: Range): List<Common.Event> {
+      return profilerClient.transportClient
+        .getEventGroups(
+          Transport.GetEventGroupsRequest.newBuilder()
+            .setStreamId(session.streamId)
+            .setPid(session.pid)
+            .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS)
+            .setFromTimestamp(range.min.toLong())
+            .setToTimestamp(range.max.toLong())
+            .build()
+        )
+        .groupsList
+        .flatMap { group -> group.eventsList.toList() }
     }
 
     /**
-     * Fetches all LeakCanary logcat dump events within a given session. It returns leaks that are within a given range, which is
-     * the session start and end time provided by `getSessionArtifacts`.
+     * Fetches all LeakCanary logcat dump events within a given session. It returns leaks that are within a given range, which is the
+     * session start and end time provided by `getSessionArtifacts`.
      */
-    fun getLeakCanaryAnalysisInfo(
-      profilerClient: ProfilerClient,
-      session: Common.Session,
-      range: Range): List<Common.Event> {
-      return profilerClient.transportClient.getEventGroups(
-        Transport.GetEventGroupsRequest.newBuilder()
-          .setStreamId(session.streamId)
-          .setPid(session.pid)
-          .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS)
-          .setFromTimestamp(range.min.toLong())
-          .setToTimestamp(range.max.toLong())
-          .build()).groupsList.flatMap { group -> group.eventsList.toList() }
+    fun getLeakCanaryAnalysisInfo(profilerClient: ProfilerClient, session: Common.Session, range: Range): List<Common.Event> {
+      return profilerClient.transportClient
+        .getEventGroups(
+          Transport.GetEventGroupsRequest.newBuilder()
+            .setStreamId(session.streamId)
+            .setPid(session.pid)
+            .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS)
+            .setFromTimestamp(range.min.toLong())
+            .setToTimestamp(range.max.toLong())
+            .build()
+        )
+        .groupsList
+        .flatMap { group -> group.eventsList.toList() }
         .filter { event -> event.isEnded }
     }
 
     /**
-     * Extracts the class name from a Leak object, prioritizing the leaking class if available.
-     * If the full class path is long, it shortens it to the last two segments.
+     * Extracts the class name from a Leak object, prioritizing the leaking class if available. If the full class path is long, it shortens
+     * it to the last two segments.
      *
      * @param leak The Leak object to extract the class name from.
      * @return The extracted class name or an empty string if no leak or class name is found.
@@ -411,13 +398,14 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers,
         return ""
       }
       val leakTrace = leak.displayedLeakTrace.first()
-      val suspectNodeList = leakTrace.nodes.filterIndexed { index, node ->
-        when (node.leakingStatus) {
-          LeakingStatus.UNKNOWN -> true
-          LeakingStatus.NO -> index == leakTrace.nodes.lastIndex || leakTrace.nodes[index + 1].leakingStatus != LeakingStatus.NO
-          else -> false
+      val suspectNodeList =
+        leakTrace.nodes.filterIndexed { index, node ->
+          when (node.leakingStatus) {
+            LeakingStatus.UNKNOWN -> true
+            LeakingStatus.NO -> index == leakTrace.nodes.lastIndex || leakTrace.nodes[index + 1].leakingStatus != LeakingStatus.NO
+            else -> false
+          }
         }
-      }
       return suspectNodeList.firstOrNull()?.let { node ->
         val referenceField = node.referencingField
         "${referenceField?.className ?: ""}.${referenceField?.referenceName ?: ""}"

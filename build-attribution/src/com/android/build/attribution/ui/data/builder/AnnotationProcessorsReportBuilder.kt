@@ -19,20 +19,19 @@ import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 
+class AnnotationProcessorsReportBuilder(val analyzersResultsProvider: BuildEventsAnalysisResult) {
 
-class AnnotationProcessorsReportBuilder(
-  val analyzersResultsProvider: BuildEventsAnalysisResult
-) {
-
-  fun build(): AnnotationProcessorsReport = object : AnnotationProcessorsReport {
-    override val nonIncrementalProcessors: List<AnnotationProcessorUiData> = analyzersResultsProvider
-      .getNonIncrementalAnnotationProcessorsData()
-      .map {
-        object : AnnotationProcessorUiData {
-          override val className = it.className
-          override val compilationTimeMs = it.compilationDuration.toMillis()
-        }
-      }
-      .sortedByDescending { it.compilationTimeMs }
-  }
+  fun build(): AnnotationProcessorsReport =
+    object : AnnotationProcessorsReport {
+      override val nonIncrementalProcessors: List<AnnotationProcessorUiData> =
+        analyzersResultsProvider
+          .getNonIncrementalAnnotationProcessorsData()
+          .map {
+            object : AnnotationProcessorUiData {
+              override val className = it.className
+              override val compilationTimeMs = it.compilationDuration.toMillis()
+            }
+          }
+          .sortedByDescending { it.compilationTimeMs }
+    }
 }

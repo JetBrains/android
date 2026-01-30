@@ -23,13 +23,11 @@ import javax.swing.LayoutFocusTraversalPolicy
 /**
  * A [FocusTraversalPolicy] that supports editable columns in a [TreeTableHeader].
  *
- * When navigating through the header, an attempt is made to navigate to a header column. If a focus
- * candidate can be found from a column editor the header is left in an editing state and the focus
- * will be transferred to the first (or last) component in the column. This implementation allows
- * multiple focusable component in a single column.
+ * When navigating through the header, an attempt is made to navigate to a header column. If a focus candidate can be found from a column
+ * editor the header is left in an editing state and the focus will be transferred to the first (or last) component in the column. This
+ * implementation allows multiple focusable component in a single column.
  */
-class TreeTableHeaderTraversalPolicy(private val header: TreeTableHeader) :
-  LayoutFocusTraversalPolicy() {
+class TreeTableHeaderTraversalPolicy(private val header: TreeTableHeader) : LayoutFocusTraversalPolicy() {
 
   override fun getComponentAfter(aContainer: Container, aComponent: Component): Component? {
     if (header.isEditing) {

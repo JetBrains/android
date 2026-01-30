@@ -18,17 +18,18 @@ package org.jetbrains.android.intentions
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.impl.IntentionActionFilter
-import com.intellij.pom.java.LanguageLevel
-import org.jetbrains.android.AndroidTestCase
 import com.intellij.java.JavaBundle
+import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.ExtensionTestUtil
+import org.jetbrains.android.AndroidTestCase
 
-class AndroidUpgradeSdkActionFilterTest : AndroidTestCase()  {
+class AndroidUpgradeSdkActionFilterTest : AndroidTestCase() {
   fun testNoIntention() {
     // add enhanced switch block to trigger the intention of upgrading to jdk 14+
     assertThat(languageLevel).isLessThan(LanguageLevel.JDK_14)
-    val psiClass = myFixture.addClass(
-      """
+    val psiClass =
+      myFixture.addClass(
+        """
         package p1.p2;
 
         class MyClass {
@@ -39,16 +40,14 @@ class AndroidUpgradeSdkActionFilterTest : AndroidTestCase()  {
             }
           }
         }
-      """.trimIndent()
-    )
+        """
+          .trimIndent()
+      )
     myFixture.openFileInEditor(psiClass.containingFile.virtualFile)
     myFixture.moveCaret("bar|")
     assertThat(myFixture.availableIntentions.filter { it.familyName == JavaBundle.message("intention.family.name.upgrade.jdk") }).isEmpty()
-    ExtensionTestUtil.maskExtensions(
-      IntentionActionFilter.EXTENSION_POINT_NAME,
-      listOf(),
-      testRootDisposable,
-    )
-    assertThat(myFixture.availableIntentions.filter { it.familyName == JavaBundle.message("intention.family.name.upgrade.jdk") }).isNotEmpty()
+    ExtensionTestUtil.maskExtensions(IntentionActionFilter.EXTENSION_POINT_NAME, listOf(), testRootDisposable)
+    assertThat(myFixture.availableIntentions.filter { it.familyName == JavaBundle.message("intention.family.name.upgrade.jdk") })
+      .isNotEmpty()
   }
 }

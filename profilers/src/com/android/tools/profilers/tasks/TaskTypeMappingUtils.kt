@@ -19,31 +19,28 @@ import com.android.tools.profiler.proto.Common
 import com.intellij.util.containers.reverse
 
 object TaskTypeMappingUtils {
-  private val taskTypeMapping = mapOf(
-    Common.ProfilerTaskType.UNSPECIFIED_TASK to ProfilerTaskType.UNSPECIFIED,
-    Common.ProfilerTaskType.CALLSTACK_SAMPLE to ProfilerTaskType.CALLSTACK_SAMPLE,
-    Common.ProfilerTaskType.SYSTEM_TRACE to ProfilerTaskType.SYSTEM_TRACE,
-    Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING to ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING,
-    Common.ProfilerTaskType.HEAP_DUMP to ProfilerTaskType.HEAP_DUMP,
-    Common.ProfilerTaskType.NATIVE_ALLOCATIONS to ProfilerTaskType.NATIVE_ALLOCATIONS,
-    Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS to ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
-    Common.ProfilerTaskType.LIVE_VIEW to ProfilerTaskType.LIVE_VIEW,
-    Common.ProfilerTaskType.LEAKCANARY to ProfilerTaskType.LEAKCANARY,
-  )
+  private val taskTypeMapping =
+    mapOf(
+      Common.ProfilerTaskType.UNSPECIFIED_TASK to ProfilerTaskType.UNSPECIFIED,
+      Common.ProfilerTaskType.CALLSTACK_SAMPLE to ProfilerTaskType.CALLSTACK_SAMPLE,
+      Common.ProfilerTaskType.SYSTEM_TRACE to ProfilerTaskType.SYSTEM_TRACE,
+      Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING to ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING,
+      Common.ProfilerTaskType.HEAP_DUMP to ProfilerTaskType.HEAP_DUMP,
+      Common.ProfilerTaskType.NATIVE_ALLOCATIONS to ProfilerTaskType.NATIVE_ALLOCATIONS,
+      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS to ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
+      Common.ProfilerTaskType.LIVE_VIEW to ProfilerTaskType.LIVE_VIEW,
+      Common.ProfilerTaskType.LEAKCANARY to ProfilerTaskType.LEAKCANARY,
+    )
 
   private val reverseTaskTypeMapping = taskTypeMapping.reverse()
 
-  /**
-   * Converts the proto-based ProfilerTaskType enum to the class-based ProfilerTaskType enum.
-   */
+  /** Converts the proto-based ProfilerTaskType enum to the class-based ProfilerTaskType enum. */
   @JvmStatic
   fun convertTaskType(taskType: Common.ProfilerTaskType): ProfilerTaskType {
     return taskTypeMapping.getOrDefault(taskType, ProfilerTaskType.UNSPECIFIED)
   }
 
-  /**
-   * Converts the class-based ProfilerTaskType enum to the proto-based ProfilerTaskType enum.
-   */
+  /** Converts the class-based ProfilerTaskType enum to the proto-based ProfilerTaskType enum. */
   @JvmStatic
   fun convertTaskType(taskType: ProfilerTaskType): Common.ProfilerTaskType {
     return reverseTaskTypeMapping.getOrDefault(taskType, Common.ProfilerTaskType.UNSPECIFIED_TASK)

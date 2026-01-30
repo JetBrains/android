@@ -22,9 +22,7 @@ import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.table.TableCellRenderer
 
-/**
- * The default border for each column is 2 scaled pixels on left and right side of the column data.
- */
+/** The default border for each column is 2 scaled pixels on left and right side of the column data. */
 internal val DEFAULT_INSETS = Insets(0, 2, 0, 2)
 
 /**

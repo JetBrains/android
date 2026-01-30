@@ -36,9 +36,7 @@ class CategoryTableStateTest {
   @State(name = "CategoryTableStateTest", storages = [Storage("categoryTableStateTest.xml")])
   class StateComponent : CategoryTablePersistentStateComponent() {
     override val serializer =
-      CategoryTableStateSerializer(
-        listOf(Name.attribute.stringSerializer("Name"), Status.attribute.stringSerializer("Status"))
-      )
+      CategoryTableStateSerializer(listOf(Name.attribute.stringSerializer("Name"), Status.attribute.stringSerializer("Status")))
   }
 
   @Test
@@ -70,8 +68,7 @@ class CategoryTableStateTest {
       stateComponent.table = table
 
       assertThat(table.groupByAttributes).containsExactly(Status.attribute)
-      assertThat(table.columnSorters)
-        .containsExactly(ColumnSortOrder(Name.attribute, SortOrder.ASCENDING))
+      assertThat(table.columnSorters).containsExactly(ColumnSortOrder(Name.attribute, SortOrder.ASCENDING))
       assertThat(table.collapsedNodes).containsExactly(offlineDevices)
     }
   }

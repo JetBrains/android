@@ -15,7 +15,6 @@
  */
 package org.jetbrains.kotlin.android.extensions
 
-import com.android.builder.model.AndroidGradlePluginProjectFlags
 import com.android.builder.model.proto.ide.AndroidGradlePluginProjectFlags.BooleanFlag
 import com.android.kotlin.multiplatform.ide.models.serialization.androidCompilationKey
 import com.android.kotlin.multiplatform.ide.models.serialization.androidDependencyKey
@@ -28,7 +27,6 @@ import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
-import com.android.tools.idea.gradle.project.sync.idea.setupAndroidContentEntriesPerSourceSet
 import com.android.tools.idea.io.FilePaths
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -40,18 +38,23 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.roots.DependencyScope
+import java.io.File
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.android.models.KotlinModelConverter
+import org.jetbrains.kotlin.android.models.KotlinModelConverter.Companion.getAssetsSourceDirectories
 import org.jetbrains.kotlin.android.models.KotlinModelConverter.Companion.getJavaSourceDirectories
+import org.jetbrains.kotlin.android.models.KotlinModelConverter.Companion.getResSourceDirectories
 import org.jetbrains.kotlin.config.ExternalSystemTestRunTask
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependency
+import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinResolvedBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinSourceDependency
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver.Context
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.KotlinMppGradleProjectResolverExtension
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.KotlinProjectArtifactDependencyResolver
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.KotlinSourceSetModuleId
+import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.addDependency
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.findLibraryDependencyNode
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.kotlinSourceSetModuleId
 import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
@@ -60,13 +63,8 @@ import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import java.io.File
-import org.jetbrains.kotlin.android.models.KotlinModelConverter.Companion.getAssetsSourceDirectories
-import org.jetbrains.kotlin.android.models.KotlinModelConverter.Companion.getResSourceDirectories
-import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinResolvedBinaryDependency
-import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.addDependency
 
-class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverExtension {
+class KotlinMppAndroidProjectResolverExtension : KotlinMppGradleProjectResolverExtension {
   private val modelConverter = KotlinModelConverter()
 
   private val sourceSetResolver = KotlinMppAndroidSourceSetResolver()
@@ -78,37 +76,41 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
   private val compilationModelMap = mutableMapOf<String, MutableMap<CompilationType, Pair<KotlinCompilation, AndroidCompilation>>>()
 
   override fun provideAdditionalProjectArtifactDependencyResolvers(): List<KotlinProjectArtifactDependencyResolver> {
-    return listOf(
-      KotlinAndroidProjectArtifactDependencyResolver(sourceSetResolver)
-    )
+    return listOf(KotlinAndroidProjectArtifactDependencyResolver(sourceSetResolver))
   }
 
-  override fun afterMppGradleSourceSetDataNodeCreated(context: Context,
-                                                      component: KotlinComponent,
-                                                      sourceSetDataNode: DataNode<GradleSourceSetData>) {
+  override fun afterMppGradleSourceSetDataNodeCreated(
+    context: Context,
+    component: KotlinComponent,
+    sourceSetDataNode: DataNode<GradleSourceSetData>,
+  ) {
     val kotlinCompilation = (component as? KotlinCompilation) ?: return
     val androidCompilation = kotlinCompilation.extras[androidCompilationKey] ?: return
 
     sourceSetResolver.recordSourceSetForModule(
       gradleProjectPath = context.mppModel.targets.firstNotNullOf { it.extras[androidTargetKey] }.projectPath,
       sourceSetName = androidCompilation.defaultSourceSetName,
-      sourceSetType = when(androidCompilation.type) {
-        CompilationType.MAIN -> KotlinMultiplatformAndroidSourceSetType.MAIN
-        CompilationType.UNIT_TEST -> KotlinMultiplatformAndroidSourceSetType.UNIT_TEST
-        CompilationType.INSTRUMENTED_TEST -> KotlinMultiplatformAndroidSourceSetType.ANDROID_TEST
-        CompilationType.UNRECOGNIZED, null -> error("Unexpected compilation type.")
-      }
+      sourceSetType =
+        when (androidCompilation.type) {
+          CompilationType.MAIN -> KotlinMultiplatformAndroidSourceSetType.MAIN
+          CompilationType.UNIT_TEST -> KotlinMultiplatformAndroidSourceSetType.UNIT_TEST
+          CompilationType.INSTRUMENTED_TEST -> KotlinMultiplatformAndroidSourceSetType.ANDROID_TEST
+          CompilationType.UNRECOGNIZED,
+          null -> error("Unexpected compilation type.")
+        },
     )
 
-    compilationModelMap.getOrPut(context.moduleDataNode.data.id) {
-      mutableMapOf()
-    }.putIfAbsent(androidCompilation.type, Pair(kotlinCompilation, androidCompilation))
+    compilationModelMap
+      .getOrPut(context.moduleDataNode.data.id) { mutableMapOf() }
+      .putIfAbsent(androidCompilation.type, Pair(kotlinCompilation, androidCompilation))
   }
 
-  override fun beforePopulateSourceSetDependencies(context: Context,
-                                                   sourceSetDataNode: DataNode<GradleSourceSetData>,
-                                                   sourceSet: KotlinSourceSet,
-                                                   dependencies: Set<IdeaKotlinDependency>): KotlinMppGradleProjectResolverExtension.Result {
+  override fun beforePopulateSourceSetDependencies(
+    context: Context,
+    sourceSetDataNode: DataNode<GradleSourceSetData>,
+    sourceSet: KotlinSourceSet,
+    dependencies: Set<IdeaKotlinDependency>,
+  ): KotlinMppGradleProjectResolverExtension.Result {
     val compileDependenciesMap = dependencies.compileDependenciesMap
     val runtimeDependenciesMap = dependencies.runtimeDependenciesMap
     val runtimeOnlyDependenciesMap = runtimeDependenciesMap - compileDependenciesMap.keys
@@ -116,18 +118,18 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
     // Ensure proper scope is defined for runtime only dependencies to avoid taking them into account for IDE highlight syntax
     // and leading to potential compilation errors
     runtimeOnlyDependenciesMap.values.forEach { dependency ->
-      sourceSetDataNode.addDependency(dependency).forEach { addedDependency ->
-        addedDependency.data.scope = DependencyScope.RUNTIME
-      }
+      sourceSetDataNode.addDependency(dependency).forEach { addedDependency -> addedDependency.data.scope = DependencyScope.RUNTIME }
     }
     return super.beforePopulateSourceSetDependencies(context, sourceSetDataNode, sourceSet, dependencies)
   }
 
-  override fun afterPopulateSourceSetDependencies(context: Context,
-                                                  sourceSetDataNode: DataNode<GradleSourceSetData>,
-                                                  sourceSet: KotlinSourceSet,
-                                                  dependencies: Set<IdeaKotlinDependency>,
-                                                  dependencyNodes: List<DataNode<out AbstractDependencyData<*>>>) {
+  override fun afterPopulateSourceSetDependencies(
+    context: Context,
+    sourceSetDataNode: DataNode<GradleSourceSetData>,
+    sourceSet: KotlinSourceSet,
+    dependencies: Set<IdeaKotlinDependency>,
+    dependencyNodes: List<DataNode<out AbstractDependencyData<*>>>,
+  ) {
     val compileDependenciesMap = dependencies.compileDependenciesMap
     val runtimeDependenciesMap = dependencies.runtimeDependenciesMap
 
@@ -135,8 +137,14 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
       val sourceSetCompileDependenciesMap = sourceSetCompileDependencies.getOrPut(context.moduleDataNode.data.id) { mutableMapOf() }
       val sourceSetRuntimeDependenciesMap = sourceSetRuntimeDependencies.getOrPut(context.moduleDataNode.data.id) { mutableMapOf() }
 
-      sourceSetCompileDependenciesMap.putIfAbsent(sourceSet.name, compileDependenciesMap.values.mapNotNull { modelConverter.recordDependency(it) }.toSet())
-      sourceSetRuntimeDependenciesMap.putIfAbsent(sourceSet.name, runtimeDependenciesMap.values.mapNotNull { modelConverter.recordDependency(it) }.toSet())
+      sourceSetCompileDependenciesMap.putIfAbsent(
+        sourceSet.name,
+        compileDependenciesMap.values.mapNotNull { modelConverter.recordDependency(it) }.toSet(),
+      )
+      sourceSetRuntimeDependenciesMap.putIfAbsent(
+        sourceSet.name,
+        runtimeDependenciesMap.values.mapNotNull { modelConverter.recordDependency(it) }.toSet(),
+      )
     }
     // TODO(KTIJ-28110): This is a workaround for an issue in the kotlin IDE plugin, after we resolve dependencies from a kmp module on an
     //  android module to the appropriate sourceSet by [KotlinAndroidProjectArtifactDependencyResolver], the kotlin IDE plugin is still not
@@ -153,27 +161,27 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
       val dependencyModuleId = KotlinSourceSetModuleId(ideaKotlinDependency.coordinates)
 
       // Kotlin Ide plugin did add the dependency already.
-      if (dependencyNodes.any {
+      if (
+        dependencyNodes.any {
           it.data is ModuleDependencyData && (it.data as ModuleDependencyData).target.id == dependencyModuleId.toString()
-        }) {
+        }
+      ) {
         return@forEach
       }
 
       if (sourceSetDataNodeMap == null) {
-        sourceSetDataNodeMap = ExternalSystemApiUtil.findAllRecursively(context.projectDataNode, ProjectKeys.MODULE).flatMap { moduleNode ->
-          ExternalSystemApiUtil.findAll(moduleNode, GradleSourceSetData.KEY).map {
-            it.data.kotlinSourceSetModuleId to it
-          }
-        }.toMap()
+        sourceSetDataNodeMap =
+          ExternalSystemApiUtil.findAllRecursively(context.projectDataNode, ProjectKeys.MODULE)
+            .flatMap { moduleNode ->
+              ExternalSystemApiUtil.findAll(moduleNode, GradleSourceSetData.KEY).map { it.data.kotlinSourceSetModuleId to it }
+            }
+            .toMap()
       }
 
       val dependencyNode = sourceSetDataNodeMap!![dependencyModuleId]
 
       dependencyNode?.let {
-        sourceSetDataNode.createChild(
-          ProjectKeys.MODULE_DEPENDENCY,
-          ModuleDependencyData(sourceSetDataNode.data, dependencyNode.data)
-        )
+        sourceSetDataNode.createChild(ProjectKeys.MODULE_DEPENDENCY, ModuleDependencyData(sourceSetDataNode.data, dependencyNode.data))
       }
     }
 
@@ -194,63 +202,68 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
       // Discard what the kotlin IDE plugin has added.
       node.data.target.forgetAllPaths()
 
-      androidLibInfo.library.androidLibraryData.takeIf { it.hasManifest() }?.manifest?.absolutePath?.toFile()?.let {
-        node.data.target.addPath(LibraryPathType.BINARY, it.path)
-      }
+      androidLibInfo.library.androidLibraryData
+        .takeIf { it.hasManifest() }
+        ?.manifest
+        ?.absolutePath
+        ?.toFile()
+        ?.let { node.data.target.addPath(LibraryPathType.BINARY, it.path) }
 
-      androidLibInfo.library.androidLibraryData.takeIf { it.hasResFolder() }?.resFolder?.absolutePath?.toFile()?.let {
-        node.data.target.addPath(LibraryPathType.BINARY, it.path)
-      }
+      androidLibInfo.library.androidLibraryData
+        .takeIf { it.hasResFolder() }
+        ?.resFolder
+        ?.absolutePath
+        ?.toFile()
+        ?.let { node.data.target.addPath(LibraryPathType.BINARY, it.path) }
 
-      androidLibInfo.library.androidLibraryData.compileJarFilesList.mapNotNull {it.absolutePath.toFile() }.forEach {
-        node.data.target.addPath(LibraryPathType.BINARY, it.path)
-      }
+      androidLibInfo.library.androidLibraryData.compileJarFilesList
+        .mapNotNull { it.absolutePath.toFile() }
+        .forEach { node.data.target.addPath(LibraryPathType.BINARY, it.path) }
     }
   }
 
-  override fun afterPopulateContentRoots(context: Context,
-                                         sourceSetDataNode: DataNode<GradleSourceSetData>,
-                                         sourceSet: KotlinSourceSet) {
+  override fun afterPopulateContentRoots(context: Context, sourceSetDataNode: DataNode<GradleSourceSetData>, sourceSet: KotlinSourceSet) {
     // We need to do this before populateSourceSetDependencies so that the android project resolver can read this data.
-    sourceSetResolver.attachSourceSetDataToProject(
-      context.projectDataNode
-    )
+    sourceSetResolver.attachSourceSetDataToProject(context.projectDataNode)
 
     val sourceSetInfo = sourceSet.extras[androidSourceSetKey] ?: return
     sourceSetDataNode.createChild(
       ProjectKeys.CONTENT_ROOT,
-      ContentRootData(GradleConstants.SYSTEM_ID, sourceSetInfo.sourceProvider.manifestFile.absolutePath)
+      ContentRootData(GradleConstants.SYSTEM_ID, sourceSetInfo.sourceProvider.manifestFile.absolutePath),
     )
 
     val androidTarget = context.mppModel.targets.mapNotNull { it.extras[androidTargetKey] }.singleOrNull() ?: return
 
-    val androidResourcesEnabled = androidTarget.flags.booleanFlagValuesList.firstOrNull {
-      it.flag == BooleanFlag.BUILD_FEATURE_ANDROID_RESOURCES
-    }?.value
+    val androidResourcesEnabled =
+      androidTarget.flags.booleanFlagValuesList.firstOrNull { it.flag == BooleanFlag.BUILD_FEATURE_ANDROID_RESOURCES }?.value
 
     if (androidResourcesEnabled == true) {
       val allResources = sourceSet.getResSourceDirectories() + sourceSet.getAssetsSourceDirectories()
 
-      allResources.distinctBy { it.absolutePath }.forEach { sourceDir ->
-        val contentRootData = ContentRootData(GradleConstants.SYSTEM_ID, sourceDir.absolutePath)
-        val sourceType = if (sourceSet.isTestComponent) {
-          ExternalSystemSourceType.TEST_RESOURCE
-        } else {
-          ExternalSystemSourceType.RESOURCE
+      allResources
+        .distinctBy { it.absolutePath }
+        .forEach { sourceDir ->
+          val contentRootData = ContentRootData(GradleConstants.SYSTEM_ID, sourceDir.absolutePath)
+          val sourceType =
+            if (sourceSet.isTestComponent) {
+              ExternalSystemSourceType.TEST_RESOURCE
+            } else {
+              ExternalSystemSourceType.RESOURCE
+            }
+          contentRootData.storePath(sourceType, sourceDir.absolutePath, null)
+          sourceSetDataNode.createChild(ProjectKeys.CONTENT_ROOT, contentRootData)
         }
-        contentRootData.storePath(sourceType, sourceDir.absolutePath, null)
-        sourceSetDataNode.createChild(ProjectKeys.CONTENT_ROOT, contentRootData)
-      }
     }
 
     if (androidTarget.withJava) {
       sourceSet.getJavaSourceDirectories().forEach { sourceDir ->
         val contentRootData = ContentRootData(GradleConstants.SYSTEM_ID, sourceDir.absolutePath)
-        val sourceType = if (sourceSet.isTestComponent) {
-          ExternalSystemSourceType.TEST
-        } else {
-          ExternalSystemSourceType.SOURCE
-        }
+        val sourceType =
+          if (sourceSet.isTestComponent) {
+            ExternalSystemSourceType.TEST
+          } else {
+            ExternalSystemSourceType.SOURCE
+          }
         contentRootData.storePath(sourceType, sourceDir.absolutePath, null)
         sourceSetDataNode.createChild(ProjectKeys.CONTENT_ROOT, contentRootData)
       }
@@ -265,9 +278,7 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
       val sourceSetCompileDependencies = sourceSetCompileDependencies[context.moduleDataNode.data.id] ?: return
       val sourceSetRuntimeDependencies = sourceSetRuntimeDependencies[context.moduleDataNode.data.id] ?: return
 
-      modelConverter.maybeCreateLibraryTable(
-        context.projectDataNode
-      )
+      modelConverter.maybeCreateLibraryTable(context.projectDataNode)
 
       compilationInfo[CompilationType.UNIT_TEST]?.let {
         fixUnitTestGradleTasksInKotlinSourceSets(
@@ -275,7 +286,7 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
           gradleModule = context.gradleModule,
           androidTarget = androidTarget,
           unitTestKotlinCompilation = it.first,
-          unitTestAndroidCompilation = it.second
+          unitTestAndroidCompilation = it.second,
         )
       }
 
@@ -284,7 +295,7 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
         targetInfo = targetInfo,
         compilationInfoMap = compilationInfo,
         sourceSetCompileDependenciesMap = sourceSetCompileDependencies,
-        sourceSetRuntimeDependenciesMap = sourceSetRuntimeDependencies
+        sourceSetRuntimeDependenciesMap = sourceSetRuntimeDependencies,
       )
     } finally { // cleanup
 
@@ -295,9 +306,7 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
         kotlinTarget.compilations.forEach { kotlinCompilation ->
           kotlinCompilation.extras.remove(androidCompilationKey)
 
-          kotlinCompilation.declaredSourceSets.forEach { kotlinSourceSet ->
-            kotlinSourceSet.extras.remove(androidSourceSetKey)
-          }
+          kotlinCompilation.declaredSourceSets.forEach { kotlinSourceSet -> kotlinSourceSet.extras.remove(androidSourceSetKey) }
         }
       }
       compilationModelMap.remove(context.moduleDataNode.data.id)
@@ -321,35 +330,35 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
     unitTestKotlinCompilation: KotlinCompilation,
     unitTestAndroidCompilation: AndroidCompilation,
   ) {
-    val allKotlinSourceSets = ExternalSystemApiUtil.findAllRecursively(moduleNode, KotlinSourceSetData.KEY).map {
-      it.data.sourceSetInfo
-    }
+    val allKotlinSourceSets = ExternalSystemApiUtil.findAllRecursively(moduleNode, KotlinSourceSetData.KEY).map { it.data.sourceSetInfo }
 
-    val runUnitTestTask = ExternalSystemTestRunTask(
-      unitTestAndroidCompilation.unitTestInfo.unitTestTaskName,
-      gradleModule.gradleProject.path,
-      androidTarget.name,
-      androidTarget.platform.id
-    )
+    val runUnitTestTask =
+      ExternalSystemTestRunTask(
+        unitTestAndroidCompilation.unitTestInfo.unitTestTaskName,
+        gradleModule.gradleProject.path,
+        androidTarget.name,
+        androidTarget.platform.id,
+      )
 
     allKotlinSourceSets.forEach { kotlinSourceSetInfo ->
       // Check if this is the android unitTest compilation.
-      if (kotlinSourceSetInfo.kotlinComponent is KotlinCompilation &&
+      if (
+        kotlinSourceSetInfo.kotlinComponent is KotlinCompilation &&
           kotlinSourceSetInfo.kotlinComponent.name == unitTestKotlinCompilation.name &&
-          (kotlinSourceSetInfo.kotlinComponent as KotlinCompilation).extras[androidCompilationKey] != null) {
+          (kotlinSourceSetInfo.kotlinComponent as KotlinCompilation).extras[androidCompilationKey] != null
+      ) {
         kotlinSourceSetInfo.externalSystemRunTasks = listOf(runUnitTestTask)
       }
       // Check if this is a sourceSet that is included in the android unitTest compilation, meaning that any tests inside will also run.
       // (e.g. commonTest).
-      else if (kotlinSourceSetInfo.kotlinComponent is KotlinSourceSet &&
-               unitTestKotlinCompilation.allSourceSets.any { it.name == kotlinSourceSetInfo.kotlinComponent.name }) {
+      else if (
+        kotlinSourceSetInfo.kotlinComponent is KotlinSourceSet &&
+          unitTestKotlinCompilation.allSourceSets.any { it.name == kotlinSourceSetInfo.kotlinComponent.name }
+      ) {
 
         // In that case, add the android unitTest task to the existing list, in case there is another target (e.g. jvm) that also runs this
         // test.
-        kotlinSourceSetInfo.externalSystemRunTasks = listOf(
-          runUnitTestTask,
-          *kotlinSourceSetInfo.externalSystemRunTasks.toTypedArray()
-        )
+        kotlinSourceSetInfo.externalSystemRunTasks = listOf(runUnitTestTask, *kotlinSourceSetInfo.externalSystemRunTasks.toTypedArray())
       }
     }
   }
@@ -364,14 +373,15 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
     val moduleName = moduleNode.data.internalName
     val rootModulePath = FilePaths.stringToFile(moduleNode.data.linkedExternalProjectPath)
 
-    val kotlinAndroidModel = modelConverter.createGradleAndroidModelData(
-      moduleName,
-      rootModulePath,
-      targetInfo,
-      compilationInfoMap,
-      sourceSetCompileDependenciesMap,
-      sourceSetRuntimeDependenciesMap
-    )
+    val kotlinAndroidModel =
+      modelConverter.createGradleAndroidModelData(
+        moduleName,
+        rootModulePath,
+        targetInfo,
+        compilationInfoMap,
+        sourceSetCompileDependenciesMap,
+        sourceSetRuntimeDependenciesMap,
+      )
     moduleNode.createChild(AndroidProjectKeys.ANDROID_MODEL, kotlinAndroidModel)
 
     return kotlinAndroidModel
@@ -383,13 +393,8 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
   private val Set<IdeaKotlinDependency>.runtimeDependenciesMap
     get() = dependenciesMapByBinaryType("KOTLIN_RUNTIME")
 
-  private fun Set<IdeaKotlinDependency>.dependenciesMapByBinaryType(
-    binaryType: String
-  ): Map<String, IdeaKotlinDependency> {
-    return this
-      .filter { dependency ->
-        (dependency as? IdeaKotlinResolvedBinaryDependency)?.let {
-          it.binaryType == binaryType } ?: true }
+  private fun Set<IdeaKotlinDependency>.dependenciesMapByBinaryType(binaryType: String): Map<String, IdeaKotlinDependency> {
+    return this.filter { dependency -> (dependency as? IdeaKotlinResolvedBinaryDependency)?.let { it.binaryType == binaryType } ?: true }
       .associateBy { it.coordinates.toString() }
   }
 }

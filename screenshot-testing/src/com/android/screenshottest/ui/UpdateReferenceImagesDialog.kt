@@ -15,7 +15,6 @@
  */
 package com.android.screenshottest.ui
 
-import com.intellij.execution.process.ProcessHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,6 +35,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotViewType
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
+import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -70,12 +70,12 @@ import org.jetbrains.jewel.ui.component.SegmentedControlButtonData
 import org.jetbrains.jewel.ui.component.Text
 
 /**
- * A dialog for selecting and viewing screenshot test previews. It features a two-pane layout with a
- * tree of previews on the left and a live-updating image viewer on the right.
+ * A dialog for selecting and viewing screenshot test previews. It features a two-pane layout with a tree of previews on the left and a
+ * live-updating image viewer on the right.
  */
 class UpdateReferenceImagesDialog(
   private val project: Project?,
-  private val logger: Logger = Logger.getInstance(UpdateReferenceImagesDialog::class.java)
+  private val logger: Logger = Logger.getInstance(UpdateReferenceImagesDialog::class.java),
 ) : DialogWrapper(project) {
 
   private val centerPanelCardLayout = CardLayout()
@@ -111,16 +111,18 @@ class UpdateReferenceImagesDialog(
     buildProcessHandler?.destroyProcess()
     // Log the SCREENSHOT_DIALOG_CLOSE event
     UsageTracker.log(
-      AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
-        screenshotTestComposePreviewEvent = ScreenshotTestComposePreviewEvent.newBuilder().apply {
-          type = ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_CLOSE
-        }.build()
-      }.withProjectId(project)
+      AndroidStudioEvent.newBuilder()
+        .apply {
+          kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
+          screenshotTestComposePreviewEvent =
+            ScreenshotTestComposePreviewEvent.newBuilder()
+              .apply { type = ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_CLOSE }
+              .build()
+        }
+        .withProjectId(project)
     )
     super.doCancelAction()
   }
-
 
   init {
     isModal = false
@@ -145,27 +147,29 @@ class UpdateReferenceImagesDialog(
 
       val (testId, className, methodName, previewName, testResult, destImagePath, srcImagePath, diffImagePath, diffPercent) = previewDetails
 
-      if(methodName.isNotBlank() && previewName.isNotBlank()) {
+      if (methodName.isNotBlank() && previewName.isNotBlank()) {
 
         val root = tree.model.root as CheckedTreeNode
         val model = tree.model as DefaultTreeModel
 
-        val classNode = classNodeMap.getOrPut(className) {
-          val newNode = CheckedTreeNode(className.substringAfterLast('.'))
-          newNode.isEnabled = true
-          model.insertNodeInto(newNode, root, root.childCount)
-          tree.expandPath(TreePath(root.path))
-          newNode
-        }
+        val classNode =
+          classNodeMap.getOrPut(className) {
+            val newNode = CheckedTreeNode(className.substringAfterLast('.'))
+            newNode.isEnabled = true
+            model.insertNodeInto(newNode, root, root.childCount)
+            tree.expandPath(TreePath(root.path))
+            newNode
+          }
 
         val methodMap = methodNodeMap.getOrPut(className) { mutableMapOf() }
-        val methodNode = methodMap.getOrPut(methodName) {
-          val newNode = CheckedTreeNode(methodName)
-          newNode.isEnabled = true
-          model.insertNodeInto(newNode, classNode, classNode.childCount)
-          tree.expandPath(TreePath(classNode.path))
-          newNode
-        }
+        val methodNode =
+          methodMap.getOrPut(methodName) {
+            val newNode = CheckedTreeNode(methodName)
+            newNode.isEnabled = true
+            model.insertNodeInto(newNode, classNode, classNode.childCount)
+            tree.expandPath(TreePath(classNode.path))
+            newNode
+          }
 
         val leafNode = CheckedTreeNode(previewDetails)
         leafNode.isChecked = isChecked
@@ -199,8 +203,7 @@ class UpdateReferenceImagesDialog(
   }
 
   /**
-   * Handles cases where the build or execution fails before tests start.
-   * Closes the dialog and opens the Run tool window to show errors.
+   * Handles cases where the build or execution fails before tests start. Closes the dialog and opens the Run tool window to show errors.
    */
   fun onBuildFailed() {
     ApplicationManager.getApplication().invokeLater {
@@ -210,9 +213,7 @@ class UpdateReferenceImagesDialog(
         close(CANCEL_EXIT_CODE)
 
         // Open the Run window so the user can see the build error
-        project?.let {
-          ToolWindowManager.getInstance(it).getToolWindow(ToolWindowId.RUN)?.activate(null)
-        }
+        project?.let { ToolWindowManager.getInstance(it).getToolWindow(ToolWindowId.RUN)?.activate(null) }
       }
     }
   }
@@ -255,27 +256,36 @@ class UpdateReferenceImagesDialog(
   private fun createPreviewTree(): CheckboxTree {
     val rootNode = CheckedTreeNode("Select previews to update")
 
-    val renderer = object : CheckboxTree.CheckboxTreeCellRenderer() {
-      override fun customizeRenderer(
-        tree: JTree, value: Any, selected: Boolean, expanded: Boolean,
-        leaf: Boolean, row: Int, hasFocus: Boolean
-      ) {
-        val userObject = (value as? CheckedTreeNode)?.userObject
-        val displayText = when(userObject) {
-          is PreviewDetails -> userObject.previewName
-          else -> userObject?.toString() ?: ""
+    val renderer =
+      object : CheckboxTree.CheckboxTreeCellRenderer() {
+        override fun customizeRenderer(
+          tree: JTree,
+          value: Any,
+          selected: Boolean,
+          expanded: Boolean,
+          leaf: Boolean,
+          row: Int,
+          hasFocus: Boolean,
+        ) {
+          val userObject = (value as? CheckedTreeNode)?.userObject
+          val displayText =
+            when (userObject) {
+              is PreviewDetails -> userObject.previewName
+              else -> userObject?.toString() ?: ""
+            }
+          textRenderer.append(displayText)
         }
-        textRenderer.append(displayText)
       }
-    }
 
     return CheckboxTree(renderer, rootNode).apply {
       isRootVisible = true
-      addCheckboxTreeListener(object : CheckboxTreeListener {
-        override fun nodeStateChanged(node: CheckedTreeNode) {
-          updateOkButtonState()
+      addCheckboxTreeListener(
+        object : CheckboxTreeListener {
+          override fun nodeStateChanged(node: CheckedTreeNode) {
+            updateOkButtonState()
+          }
         }
-      })
+      )
       addTreeSelectionListener { updateRightPane(this) }
       // Select the root node by default when the dialog opens.
       // The tree will be expanded dynamically as nodes are added.
@@ -287,29 +297,29 @@ class UpdateReferenceImagesDialog(
     return ComposePanel().apply {
       setContent {
         SwingBridgeTheme {
-          val availableViews = if (isLeafSelected) {
-            ScreenshotViewType.values().toList()
-          } else {
-            ScreenshotViewType.values().filter { it != ScreenshotViewType.ALL }
-          }
-          val buttonData = remember(selectedViewType, isLeafSelected) {
-            availableViews.map { viewId ->
-              SegmentedControlButtonData(
-                selected = viewId == selectedViewType,
-                content = { _ -> Text(viewId.displayText) },
-                onSelect = {
-                  selectedViewType = viewId
-                  updateRightPane(tree)
-                },
-              )
+          val availableViews =
+            if (isLeafSelected) {
+              ScreenshotViewType.values().toList()
+            } else {
+              ScreenshotViewType.values().filter { it != ScreenshotViewType.ALL }
             }
-          }
+          val buttonData =
+            remember(selectedViewType, isLeafSelected) {
+              availableViews.map { viewId ->
+                SegmentedControlButtonData(
+                  selected = viewId == selectedViewType,
+                  content = { _ -> Text(viewId.displayText) },
+                  onSelect = {
+                    selectedViewType = viewId
+                    updateRightPane(tree)
+                  },
+                )
+              }
+            }
           Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
           ) {
             SegmentedControl(buttons = buttonData, enabled = true)
           }
@@ -323,9 +333,7 @@ class UpdateReferenceImagesDialog(
     val nodesToVisit = ArrayDeque<CheckedTreeNode>().apply { add(startNode) }
     while (nodesToVisit.isNotEmpty()) {
       val currentNode = nodesToVisit.removeFirst()
-      (currentNode.userObject as? PreviewDetails)?.let {
-        previews.add(it)
-      }
+      (currentNode.userObject as? PreviewDetails)?.let { previews.add(it) }
       for (child in currentNode.children()) {
         if (child is CheckedTreeNode) {
           nodesToVisit.add(child)
@@ -350,7 +358,7 @@ class UpdateReferenceImagesDialog(
     if (previewsToShow.isEmpty()) {
       rightPaneCardLayout.show(rightPaneContent, "placeholder")
     } else {
-      if(isLeafSelected) {
+      if (isLeafSelected) {
         rightPaneWrapper.remove(previewToolbar)
         previewToolbar.border = null
         previewDetailsPanel.displayPreviews(previewsToShow, selectedViewType, previewToolbar)
@@ -395,12 +403,13 @@ class UpdateReferenceImagesDialog(
       return
     }
 
-    val imagesToCopy = checkedPreviews.map { previewDetails ->
-      val sourceImageMap = mutableMapOf<String, String>()
-      val simpleClassName = previewDetails.testId.split('.', limit = 2).first()
-      previewDetails.srcImagePath?.let { sourceImageMap[it] = simpleClassName }
-      ImageData(previewDetails, sourceImageMap)
-    }
+    val imagesToCopy =
+      checkedPreviews.map { previewDetails ->
+        val sourceImageMap = mutableMapOf<String, String>()
+        val simpleClassName = previewDetails.testId.split('.', limit = 2).first()
+        previewDetails.srcImagePath?.let { sourceImageMap[it] = simpleClassName }
+        ImageData(previewDetails, sourceImageMap)
+      }
 
     val missingFiles = imagesToCopy.filter { it.previewData.srcImagePath == null || !File(it.previewData.srcImagePath).exists() }
     if (missingFiles.isNotEmpty()) {
@@ -409,7 +418,7 @@ class UpdateReferenceImagesDialog(
       Messages.showErrorDialog(
         project,
         "The following selected previews have no source image. Please uncheck them to proceed:\n\n$failedNames",
-        "Cannot Add Reference Images"
+        "Cannot Add Reference Images",
       )
       return
     }
@@ -429,14 +438,17 @@ class UpdateReferenceImagesDialog(
 
       ApplicationManager.getApplication().invokeLater {
         if (failures.isEmpty()) {
-          //Log the UPDATE_CLICKED event for analytics on successful copy of reference images.
+          // Log the UPDATE_CLICKED event for analytics on successful copy of reference images.
           UsageTracker.log(
-            AndroidStudioEvent.newBuilder().apply {
-              kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
-              screenshotTestComposePreviewEvent = ScreenshotTestComposePreviewEvent.newBuilder().apply {
-                type = ScreenshotTestComposePreviewEvent.Type.UPDATE_CLICKED
-              }.build()
-            }.withProjectId(project)
+            AndroidStudioEvent.newBuilder()
+              .apply {
+                kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
+                screenshotTestComposePreviewEvent =
+                  ScreenshotTestComposePreviewEvent.newBuilder()
+                    .apply { type = ScreenshotTestComposePreviewEvent.Type.UPDATE_CLICKED }
+                    .build()
+              }
+              .withProjectId(project)
           )
           close(OK_EXIT_CODE)
           logger.info("Reference images were updated successfully")
@@ -464,12 +476,7 @@ data class PreviewDetails(
   val destImagePath: String? = null,
   val srcImagePath: String? = null,
   val diffImagePath: String? = null,
-  val diffPercent: String? = null
+  val diffPercent: String? = null,
 )
 
-data class MethodGroup(
-  val className: String,
-  val methodName: String,
-  val labelText: String,
-  val previews: List<PreviewDetails>
-)
+data class MethodGroup(val className: String, val methodName: String, val labelText: String, val previews: List<PreviewDetails>)

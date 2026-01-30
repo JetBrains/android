@@ -22,22 +22,16 @@ import com.android.tools.visuallint.VisualLintAnalyzer
 import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
 
-private const val BOTTOM_NAVIGATION_CLASS_NAME =
-  "com.google.android.material.bottomnavigation.BottomNavigationView"
-private const val NAVIGATION_RAIL_URL =
-  "https://d.android.com/r/studio-ui/designer/material/navigation-rail"
-private const val NAVIGATION_DRAWER_URL =
-  "https://d.android.com/r/studio-ui/designer/material/navigation-drawer"
+private const val BOTTOM_NAVIGATION_CLASS_NAME = "com.google.android.material.bottomnavigation.BottomNavigationView"
+private const val NAVIGATION_RAIL_URL = "https://d.android.com/r/studio-ui/designer/material/navigation-rail"
+private const val NAVIGATION_DRAWER_URL = "https://d.android.com/r/studio-ui/designer/material/navigation-drawer"
 
 /** [VisualLintAnalyzer] for issues where a BottomNavigationView is wider than 600dp. */
 object BottomNavAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BOTTOM_NAV
 
-  override fun findIssues(
-    renderResult: RenderResult,
-    configuration: Configuration,
-  ): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
     while (viewsToAnalyze.isNotEmpty()) {

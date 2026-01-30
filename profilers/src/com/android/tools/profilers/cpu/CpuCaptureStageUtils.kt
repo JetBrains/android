@@ -23,21 +23,20 @@ import java.io.IOException
 
 object CpuCaptureStageUtils {
   /**
-   * If the unified preview is enabled, we need to ensure that we create a permanent trace
-   * file and put in directory specific to the project
-   * This method checks if the given capture file is already in the temp directory with the correct
-   * name. If so, it returns the file.
+   * If the unified preview is enabled, we need to ensure that we create a permanent trace file and put in directory specific to the project
+   * This method checks if the given capture file is already in the temp directory with the correct name. If so, it returns the file.
    * Otherwise, it creates a copy in the temp directory with the correct name and returns the copy.
-   * TODO(b/472667234) Remove file copy logic since original file will be used
-   * If copying fails, null is returned.
+   *
+   * TODO(b/472667234) Remove file copy logic since original file will be used If copying fails, null is returned.
    */
   @JvmStatic
   fun getPermanentCaptureFile(services: IdeProfilerServices, captureFile: File, targetFileName: String): File? {
-    val projectId = if (services.projectHomeHash.isNotEmpty()) {
-      services.projectHomeHash
-    } else {
-      Integer.toHexString(System.identityHashCode(services))
-    }
+    val projectId =
+      if (services.projectHomeHash.isNotEmpty()) {
+        services.projectHomeHash
+      } else {
+        Integer.toHexString(System.identityHashCode(services))
+      }
     val rootDir = File(FileUtil.getTempDirectory(), "AndroidStudioProfiler")
     val outputDir = File(rootDir, projectId)
 
@@ -46,8 +45,7 @@ object CpuCaptureStageUtils {
     }
     // If a copy of the file is already present in temp directory. Return that
     // instead of creating a new one
-    if (FileUtil.filesEqual(captureFile.parentFile, outputDir) &&
-        captureFile.name == targetFileName) {
+    if (FileUtil.filesEqual(captureFile.parentFile, outputDir) && captureFile.name == targetFileName) {
       return captureFile
     }
     try {
@@ -57,8 +55,7 @@ object CpuCaptureStageUtils {
       }
       FileUtil.copy(captureFile, permanentFile)
       return permanentFile
-    }
-    catch (e: IOException) {
+    } catch (e: IOException) {
       Logger.getInstance(CpuCaptureStage::class.java).warn("Failed to create permanent capture file", e)
     }
     return null

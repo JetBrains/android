@@ -36,8 +36,8 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
   /**
    * Fire an ActionEvent for every navigation key stroke.
    *
-   * When this is true modify ComboBox.selectedIndex (which causes an ActionEvent when changed).
-   * When this is false modify List.selectedIndex instead.
+   * When this is true modify ComboBox.selectedIndex (which causes an ActionEvent when changed). When this is false modify
+   * List.selectedIndex instead.
    */
   var actionOnKeyNavigation = !UIManager.getBoolean("ComboBox.noActionOnKeyNavigation")
 
@@ -63,46 +63,16 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
     // Register key stroke navigation for dropdowns (textField is not editable)
     registerActionKey({ moveNext() }, KeyStrokes.DOWN, "moveNext", { consumeKeyNavigation })
     registerActionKey({ movePrevious() }, KeyStrokes.UP, "movePrevious", { consumeKeyNavigation })
-    registerActionKey(
-      { moveNextPage() },
-      KeyStrokes.PAGE_DOWN,
-      "moveNextPage",
-      { consumeKeyNavigation },
-    )
-    registerActionKey(
-      { movePreviousPage() },
-      KeyStrokes.PAGE_UP,
-      "movePreviousPage",
-      { consumeKeyNavigation },
-    )
+    registerActionKey({ moveNextPage() }, KeyStrokes.PAGE_DOWN, "moveNextPage", { consumeKeyNavigation })
+    registerActionKey({ movePreviousPage() }, KeyStrokes.PAGE_UP, "movePreviousPage", { consumeKeyNavigation })
     registerActionKey({ togglePopup() }, KeyStrokes.ALT_DOWN, "toggle")
 
     // Register key stroke navigation for dropdowns (textField is editable)
     textField = editor.editorComponent as CommonTextField<*>
-    textField?.registerActionKey(
-      { moveNext() },
-      KeyStrokes.DOWN,
-      "moveNext",
-      { consumeKeyNavigation },
-    )
-    textField?.registerActionKey(
-      { movePrevious() },
-      KeyStrokes.UP,
-      "movePrevious",
-      { consumeKeyNavigation },
-    )
-    textField?.registerActionKey(
-      { moveNextPage() },
-      KeyStrokes.PAGE_DOWN,
-      "moveNextPage",
-      { consumeKeyNavigation },
-    )
-    textField?.registerActionKey(
-      { movePreviousPage() },
-      KeyStrokes.PAGE_UP,
-      "movePreviousPage",
-      { consumeKeyNavigation },
-    )
+    textField?.registerActionKey({ moveNext() }, KeyStrokes.DOWN, "moveNext", { consumeKeyNavigation })
+    textField?.registerActionKey({ movePrevious() }, KeyStrokes.UP, "movePrevious", { consumeKeyNavigation })
+    textField?.registerActionKey({ moveNextPage() }, KeyStrokes.PAGE_DOWN, "moveNextPage", { consumeKeyNavigation })
+    textField?.registerActionKey({ movePreviousPage() }, KeyStrokes.PAGE_UP, "movePreviousPage", { consumeKeyNavigation })
     textField?.registerActionKey({ togglePopup() }, KeyStrokes.ALT_DOWN, "toggle")
 
     setFromModel()
@@ -193,7 +163,8 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
   }
 
   override fun getModel(): M {
-    @Suppress("UNCHECKED_CAST") return super.getModel() as M
+    @Suppress("UNCHECKED_CAST")
+    return super.getModel() as M
   }
 
   // Install a default renderer in order to adjust the left margin of the popup.
@@ -204,10 +175,8 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
     }
   }
 
-  private class CommonComboBoxEditor<E, out M : CommonTextFieldModel>(
-    model: M,
-    private val comboBox: CommonComboBox<E, *>,
-  ) : BasicComboBoxEditor() {
+  private class CommonComboBoxEditor<E, out M : CommonTextFieldModel>(model: M, private val comboBox: CommonComboBox<E, *>) :
+    BasicComboBoxEditor() {
     init {
       editor = TextFieldForComboBox(model, comboBox)
       editor.border = JBUI.Borders.empty()
@@ -227,10 +196,8 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
     }
   }
 
-  private class TextFieldForComboBox<E, out M : CommonTextFieldModel>(
-    model: M,
-    private val comboBox: JComboBox<E>,
-  ) : CommonTextField<M>(model) {
+  private class TextFieldForComboBox<E, out M : CommonTextFieldModel>(model: M, private val comboBox: JComboBox<E>) :
+    CommonTextField<M>(model) {
     override fun getToolTipText(): String? {
       return comboBox.toolTipText
     }
@@ -248,8 +215,7 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
   }
 
   /** A list selection model that prevent the selection of non selectable elements. */
-  private class MyPopupListSelectionModel<E>(private val model: ListModel<E>) :
-    DefaultListSelectionModel() {
+  private class MyPopupListSelectionModel<E>(private val model: ListModel<E>) : DefaultListSelectionModel() {
 
     override fun setSelectionInterval(index0: Int, index1: Int) {
       val index = findFirstSelectableIndex(index0)

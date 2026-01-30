@@ -28,8 +28,7 @@ import androidx.compose.ui.test.performMouseInput
  *
  * @param rule The [StudioComposeTestRule] to advance the clock on.
  * @param durationMillis The duration to linger, in milliseconds.
- * @param positionProvider A function that returns the position to hover over. Defaults to the
- *   center of the node.
+ * @param positionProvider A function that returns the position to hover over. Defaults to the center of the node.
  */
 @OptIn(ExperimentalTestApi::class)
 fun SemanticsNodeInteraction.lingerMouseHover(

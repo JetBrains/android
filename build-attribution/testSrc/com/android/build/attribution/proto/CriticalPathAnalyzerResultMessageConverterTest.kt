@@ -30,28 +30,16 @@ class CriticalPathAnalyzerResultMessageConverterTest {
     val pluginCache = mutableMapOf<String, PluginData>()
     val criticalPathData = mutableListOf<TaskData>()
     val pluginDatum = PluginData(PluginData.PluginType.BINARY_PLUGIN, "id name")
-    val criticalPathDatum = TaskData(
-      "task name",
-      "project path",
-      pluginDatum,
-      12345,
-      12345,
-      TaskData.TaskExecutionMode.FULL,
-      listOf("abc", "def", "ghi")
-    )
+    val criticalPathDatum =
+      TaskData("task name", "project path", pluginDatum, 12345, 12345, TaskData.TaskExecutionMode.FULL, listOf("abc", "def", "ghi"))
     taskCache[criticalPathDatum.getTaskPath()] = criticalPathDatum
     pluginCache[pluginDatum.idName] = pluginDatum
     criticalPathData.add(criticalPathDatum)
-    val criticalPathAnalyzerResult = CriticalPathAnalyzer.Result(
-      criticalPathData,
-      listOf(PluginBuildData(pluginDatum, 12345)),
-      12345,
-      12345
-    )
-    val criticalPathAnalyzerResultMessage = CriticalPathAnalyzerResultMessageConverter
-      .transform(criticalPathAnalyzerResult)
-    val criticalPathAnalyzerResultConverted = CriticalPathAnalyzerResultMessageConverter
-      .construct(criticalPathAnalyzerResultMessage, taskCache, pluginCache)
+    val criticalPathAnalyzerResult =
+      CriticalPathAnalyzer.Result(criticalPathData, listOf(PluginBuildData(pluginDatum, 12345)), 12345, 12345)
+    val criticalPathAnalyzerResultMessage = CriticalPathAnalyzerResultMessageConverter.transform(criticalPathAnalyzerResult)
+    val criticalPathAnalyzerResultConverted =
+      CriticalPathAnalyzerResultMessageConverter.construct(criticalPathAnalyzerResultMessage, taskCache, pluginCache)
     Truth.assertThat(criticalPathAnalyzerResult).isEqualTo(criticalPathAnalyzerResultConverted)
   }
 }

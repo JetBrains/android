@@ -84,8 +84,7 @@ open class IconWithFocusBorder(
     }
     val action = actionToPerform() ?: return
     if (action is ActionGroup) {
-      val popupMenu =
-        ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, action)
+      val popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, action)
       val location = locationFromEvent(mouseEvent)
       popupMenu.component.show(this, location.x, location.y)
     } else {

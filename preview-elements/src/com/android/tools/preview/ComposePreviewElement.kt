@@ -35,18 +35,15 @@ import kotlin.math.min
 private const val DEFAULT_PREVIEW_BACKGROUND = "?android:attr/windowBackground"
 
 /**
- * Method name to be used when we fail to load a PreviewParameterProvider. In this case, we should
- * create a fake [PreviewElement] and pass this fake method + the PreviewParameterProvider as the
- * composable FQN. `ComposeRenderErrorContributor` should handle the resulting
+ * Method name to be used when we fail to load a PreviewParameterProvider. In this case, we should create a fake [PreviewElement] and pass
+ * this fake method + the PreviewParameterProvider as the composable FQN. `ComposeRenderErrorContributor` should handle the resulting
  * [NoSuchMethodException] that will be thrown.
  */
-@VisibleForTesting
-const val FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD = "${'$'}FailToLoadPreviewParameterProvider"
+@VisibleForTesting const val FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD = "${'$'}FailToLoadPreviewParameterProvider"
 
 /**
- * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the
- * dimension is [UNDEFINED_DIMENSION], the value is converted to `wrap_content`. Otherwise, the
- * value is returned concatenated with `dp`.
+ * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value is
+ * converted to `wrap_content`. Otherwise, the value is returned concatenated with `dp`.
  *
  * @param dimension the dimension in dp or [UNDEFINED_DIMENSION]
  * @param defaultValue the value to be used when the given dimension is [UNDEFINED_DIMENSION]
@@ -59,41 +56,30 @@ fun dimensionToString(dimension: Int, defaultValue: String = VALUE_WRAP_CONTENT)
   }
 
 /**
- * Definition of a preview parameter provider. This is defined by annotating parameters with
- * `PreviewParameter`
+ * Definition of a preview parameter provider. This is defined by annotating parameters with `PreviewParameter`
  *
  * @param name the name of the parameter using the provider
  * @param index the parameter position
  * @param providerClassFqn the class name for the provider
  * @param limit the limit passed to the annotation
  */
-data class PreviewParameter(
-  val name: String,
-  val index: Int,
-  val providerClassFqn: String,
-  val limit: Int,
-)
+data class PreviewParameter(val name: String, val index: Int, val providerClassFqn: String, val limit: Int)
 
 /**
- * Definition of a Composable preview element. [T] represents a generic type specifying the location
- * of the code. See [PreviewElement] for more details.
+ * Definition of a Composable preview element. [T] represents a generic type specifying the location of the code. See [PreviewElement] for
+ * more details.
  */
 interface ComposePreviewElement<T> : MethodPreviewElement<T>, ConfigurablePreviewElement<T> {
   /**
-   * [ComposePreviewElementInstance]s that this [ComposePreviewElement] can be resolved into. A
-   * single [ComposePreviewElement] can produce multiple [ComposePreviewElementInstance]s for
-   * example if @Composable method has parameters.
+   * [ComposePreviewElementInstance]s that this [ComposePreviewElement] can be resolved into. A single [ComposePreviewElement] can produce
+   * multiple [ComposePreviewElementInstance]s for example if @Composable method has parameters.
    */
   fun resolve(): Sequence<ComposePreviewElementInstance<T>>
 }
 
 /** Definition of a preview element */
-abstract class ComposePreviewElementInstance<T> :
-  ComposePreviewElement<T>, XmlSerializable, PreviewElementInstance<T> {
-  /**
-   * Whether the Composable being previewed contains animations. If true, the Preview should allow
-   * opening the animation inspector.
-   */
+abstract class ComposePreviewElementInstance<T> : ComposePreviewElement<T>, XmlSerializable, PreviewElementInstance<T> {
+  /** Whether the Composable being previewed contains animations. If true, the Preview should allow opening the animation inspector. */
   override var hasAnimations = false
 
   var mutableBackPressDispatcher: Any? = null
@@ -122,10 +108,8 @@ abstract class ComposePreviewElementInstance<T> :
         .toolsAttribute("composableName", methodFqn)
 
     when (val background = displaySettings.background) {
-      is PreviewDisplaySettings.Background.Default ->
-        xmlBuilder.androidAttribute(ATTR_BACKGROUND, DEFAULT_PREVIEW_BACKGROUND)
-      is PreviewDisplaySettings.Background.Color ->
-        xmlBuilder.androidAttribute(ATTR_BACKGROUND, background.color)
+      is PreviewDisplaySettings.Background.Default -> xmlBuilder.androidAttribute(ATTR_BACKGROUND, DEFAULT_PREVIEW_BACKGROUND)
+      is PreviewDisplaySettings.Background.Color -> xmlBuilder.androidAttribute(ATTR_BACKGROUND, background.color)
       // Images are not passed down to the xml since they are not rendered by layoutlib but
       // composited by Android Studio.
       is PreviewDisplaySettings.Background.Image -> {}
@@ -153,9 +137,7 @@ abstract class ComposePreviewElementInstance<T> :
   override fun hashCode(): Int = Objects.hash(methodFqn, displaySettings, configuration, instanceId)
 }
 
-/**
- * Definition of a single preview element instance. This represents a `Preview` with no parameters.
- */
+/** Definition of a single preview element instance. This represents a `Preview` with no parameters. */
 class SingleComposePreviewElementInstance<T>(
   override val methodFqn: String,
   override val displaySettings: PreviewDisplaySettings,
@@ -165,17 +147,8 @@ class SingleComposePreviewElementInstance<T>(
 ) : ComposePreviewElementInstance<T>() {
   override val instanceId: String = methodFqn
 
-  override fun createDerivedInstance(
-    displaySettings: PreviewDisplaySettings,
-    config: PreviewConfiguration,
-  ) =
-    SingleComposePreviewElementInstance(
-      methodFqn,
-      displaySettings,
-      previewElementDefinition,
-      previewBody,
-      config,
-    )
+  override fun createDerivedInstance(displaySettings: PreviewDisplaySettings, config: PreviewConfiguration) =
+    SingleComposePreviewElementInstance(methodFqn, displaySettings, previewElementDefinition, previewBody, config)
 
   companion object {
     @JvmStatic
@@ -212,21 +185,16 @@ class SingleComposePreviewElementInstance<T>(
 }
 
 /**
- * Definition of a single preview element instance that is derived from a parameterized preview.
- * This represents a single instance of a `@Preview` with parameters, where the parameters have been
- * resolved to a specific value.
+ * Definition of a single preview element instance that is derived from a parameterized preview. This represents a single instance of a
+ * `@Preview` with parameters, where the parameters have been resolved to a specific value.
  *
  * @param parameterName The name of the parameter for this specific instance, if applicable.
- * @property basePreviewElement The base [ComposePreviewElement] from which this instance is
- *   derived.
+ * @property basePreviewElement The base [ComposePreviewElement] from which this instance is derived.
  * @property providerClassFqn The fully qualified name of the parameter provider class.
- * @property index The index of this instance within the [PreviewParameterProvider]'s sequence of
- *   values.
- * @property maxIndex The maximum index (inclusive) of values provided by the
- *   [PreviewParameterProvider].
- * @property displayName An optional, explicit display name for this instance, provided by the
- *   [PreviewParameterProvider]. If null, the parameter name will be used to generate the display
- *   name.
+ * @property index The index of this instance within the [PreviewParameterProvider]'s sequence of values.
+ * @property maxIndex The maximum index (inclusive) of values provided by the [PreviewParameterProvider].
+ * @property displayName An optional, explicit display name for this instance, provided by the [PreviewParameterProvider]. If null, the
+ *   parameter name will be used to generate the display name.
  */
 class ParametrizedComposePreviewElementInstance<T>(
   private val basePreviewElement: ComposePreviewElement<T>,
@@ -243,34 +211,15 @@ class ParametrizedComposePreviewElementInstance<T>(
     displaySettings: PreviewDisplaySettings,
     config: PreviewConfiguration,
   ): ParametrizedComposePreviewElementInstance<T> {
-    val singleInstance =
-      SingleComposePreviewElementInstance(
-        methodFqn,
-        displaySettings,
-        previewElementDefinition,
-        previewBody,
-        config,
-      )
-    return ParametrizedComposePreviewElementInstance(
-      singleInstance,
-      null,
-      providerClassFqn,
-      index,
-      maxIndex,
-      null,
-    )
+    val singleInstance = SingleComposePreviewElementInstance(methodFqn, displaySettings, previewElementDefinition, previewBody, config)
+    return ParametrizedComposePreviewElementInstance(singleInstance, null, providerClassFqn, index, maxIndex, null)
   }
 
   override val displaySettings: PreviewDisplaySettings =
     PreviewDisplaySettings(
       name = getDisplayName(parameterName),
       baseName = basePreviewElement.displaySettings.baseName,
-      parameterName =
-        getParameterName(
-          basePreviewElement.displaySettings.parameterName,
-          parameterName,
-          displayName,
-        ),
+      parameterName = getParameterName(basePreviewElement.displaySettings.parameterName, parameterName, displayName),
       group = basePreviewElement.displaySettings.group,
       showDecoration = basePreviewElement.displaySettings.showDecoration,
       background = basePreviewElement.displaySettings.background,
@@ -300,9 +249,8 @@ class ParametrizedComposePreviewElementInstance<T>(
   /**
    * Returns a formatted name for the parameterized preview instance
    *
-   * This function combines the [baseParameterName] with [parameterName] and [displayName] to create
-   * a full name displayed in the Compose Preview panel for parameterized previews (e.g., "Base
-   * Parameter Name - Parameter Name").
+   * This function combines the [baseParameterName] with [parameterName] and [displayName] to create a full name displayed in the Compose
+   * Preview panel for parameterized previews (e.g., "Base Parameter Name - Parameter Name").
    *
    * Example:
    * ```kotlin
@@ -311,22 +259,14 @@ class ParametrizedComposePreviewElementInstance<T>(
    * fun LoginPreview(@PreviewParameter(provider = UserProvider::class) user: User)
    * ```
    *
-   * The final result would be [Login - user 0], when no custom display name is defined (i.e.,
-   * `Preview name` - `Parameter name` `index`].
+   * The final result would be [Login - user 0], when no custom display name is defined (i.e., `Preview name` - `Parameter name` `index`].
    *
    * @param baseParameterName The name from the `@Preview` annotation.
-   * @param parameterName The name of the parameter for the current context, usually from the
-   *   `@PreviewParameter` annotation.
-   * @param displayName An optional, explicit display name for the current context, provided by the
-   *   `PreviewParameterProvider`.
-   * @return The combined name for display in the preview panel. Returns `null` only if all provided
-   *   names are null.
+   * @param parameterName The name of the parameter for the current context, usually from the `@PreviewParameter` annotation.
+   * @param displayName An optional, explicit display name for the current context, provided by the `PreviewParameterProvider`.
+   * @return The combined name for display in the preview panel. Returns `null` only if all provided names are null.
    */
-  private fun getParameterName(
-    baseParameterName: String?,
-    parameterName: String?,
-    displayName: String?,
-  ): String? {
+  private fun getParameterName(baseParameterName: String?, parameterName: String?, displayName: String?): String? {
     if (baseParameterName == null) return getParameterName(parameterName, displayName)
     if (parameterName == null) return baseParameterName
     return "$baseParameterName - ${getParameterName(parameterName, displayName)}"
@@ -335,44 +275,38 @@ class ParametrizedComposePreviewElementInstance<T>(
   /**
    * Formats the parameter name for a single preview instance.
    *
-   * The display name is prioritized. If it's null or blank, the `parameterName` is used and
-   * formatted with a zero-padded index to ensure proper lexicographical sorting in lists. For
-   * example, with a `maxIndex` of 100, an index of 5 would be formatted as "005".
+   * The display name is prioritized. If it's null or blank, the `parameterName` is used and formatted with a zero-padded index to ensure
+   * proper lexicographical sorting in lists. For example, with a `maxIndex` of 100, an index of 5 would be formatted as "005".
    *
    * @param parameterName The name of the parameter from the `@PreviewParameter` annotation.
    * @param displayName The explicit display name from the `PreviewParameterProvider`.
-   * @return The formatted parameter name, or null if both `displayName` and `parameterName` are
-   *   null or blank.
+   * @return The formatted parameter name, or null if both `displayName` and `parameterName` are null or blank.
    */
   private fun getParameterName(parameterName: String?, displayName: String?): String? =
     when {
       !displayName.isNullOrBlank() -> displayName
       // Pad the index with leading zeros to match the number of digits in maxIndex.
       // This ensures correct sorting (e.g., "item 01", "item 02", ..., "item 10").
-      !parameterName.isNullOrBlank() ->
-        "$parameterName ${index.toString().padStart(maxIndex.toString().length, '0')}"
+      !parameterName.isNullOrBlank() -> "$parameterName ${index.toString().padStart(maxIndex.toString().length, '0')}"
       else -> null
     }
 }
 
 /**
- * Definition of a preview element that can spawn multiple [ComposePreviewElement]s based on
- * parameters. [ModuleClassLoader] constructed with the provided [parentClassLoader] should be able
- * to load classes of [PreviewParameter.providerClassFqn] and create instances of those. Therefore,
- * the caller should make sure [parentClassLoader] is aware of Android platform classes as those
- * might be referenced by [parameterProviders]s.
+ * Definition of a preview element that can spawn multiple [ComposePreviewElement]s based on parameters. [ModuleClassLoader] constructed
+ * with the provided [parentClassLoader] should be able to load classes of [PreviewParameter.providerClassFqn] and create instances of
+ * those. Therefore, the caller should make sure [parentClassLoader] is aware of Android platform classes as those might be referenced by
+ * [parameterProviders]s.
  */
 open class ParametrizedComposePreviewElementTemplate<T>(
   private val basePreviewElement: ComposePreviewElement<T>,
   val parameterProviders: Collection<PreviewParameter>,
-  private val parentClassLoader: ClassLoader =
-    ParametrizedComposePreviewElementTemplate::class.java.classLoader,
-  private val privateClassLoaderFactory:
-    (ComposePreviewElement<T>) -> RenderModelModule.ClassLoaderProvider?,
+  private val parentClassLoader: ClassLoader = ParametrizedComposePreviewElementTemplate::class.java.classLoader,
+  private val privateClassLoaderFactory: (ComposePreviewElement<T>) -> RenderModelModule.ClassLoaderProvider?,
 ) : ComposePreviewElement<T> by basePreviewElement {
   /**
-   * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The [ComposePreviewElement]s
-   * will be populated with data from the parameter providers.
+   * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The [ComposePreviewElement]s will be populated with data from the
+   * parameter providers.
    */
   override fun resolve(): Sequence<ComposePreviewElementInstance<T>> {
     assert(parameterProviders.isNotEmpty()) { "ParametrizedPreviewElement used with no parameters" }
@@ -383,16 +317,9 @@ open class ParametrizedComposePreviewElementTemplate<T>(
     }
 
     (privateClassLoaderFactory(basePreviewElement) ?: return sequenceOf())
-      .getClassLoader(
-        parentClassLoader,
-        ClassTransform.identity,
-        ClassTransform.identity,
-        Runnable {},
-      )
+      .getClassLoader(parentClassLoader, ClassTransform.identity, ClassTransform.identity, Runnable {})
       .useWithClassLoader { classLoader ->
-        return parameterProviders
-          .map { previewParameter -> loadPreviewParameterProvider(classLoader, previewParameter) }
-          .first()
+        return parameterProviders.map { previewParameter -> loadPreviewParameterProvider(classLoader, previewParameter) }.first()
       }
   }
 
@@ -402,10 +329,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
   ): Sequence<ComposePreviewElementInstance<T>> {
     try {
       val parameterProviderClass = classLoader.loadClass(previewParameter.providerClassFqn)
-      val parameterProviderSizeMethod =
-        parameterProviderClass.methods
-          .single { "getCount" == it.name }
-          .also { it.isAccessible = true }
+      val parameterProviderSizeMethod = parameterProviderClass.methods.single { "getCount" == it.name }.also { it.isAccessible = true }
       val parameterProvider =
         parameterProviderClass.constructors
           .single { it.parameters.isEmpty() } // Find the default constructor
@@ -427,9 +351,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
         // TODO(b/238315228): propagate the exception so it's shown on the issues panel instead of
         //  forcing the error changing the index.
         Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java)
-          .warn(
-            "Failed to instantiate ${previewParameter.providerClassFqn} parameter provider: no parameters found"
-          )
+          .warn("Failed to instantiate ${previewParameter.providerClassFqn} parameter provider: no parameters found")
         return sequenceOf(
           ParametrizedComposePreviewElementInstance(
             basePreviewElement = basePreviewElement,
@@ -449,8 +371,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
               index = index,
               maxIndex = providerCount - 1,
               providerClassFqn = previewParameter.providerClassFqn,
-              displayName =
-                parameterProviderDisplayNameMethod?.invoke(parameterProvider, index) as? String,
+              displayName = parameterProviderDisplayNameMethod?.invoke(parameterProvider, index) as? String,
             )
           }
           .asSequence()
@@ -462,8 +383,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
     // Return a fake SingleComposePreviewElementInstance here. ComposeRenderErrorContributor
     // should handle the exception that will be thrown for this method not being found.
     // TODO(b/238315228): propagate the exception so it's shown on the issues panel.
-    val fakeElementFqn =
-      "${previewParameter.providerClassFqn}.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD"
+    val fakeElementFqn = "${previewParameter.providerClassFqn}.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD"
     return sequenceOf(
       SingleComposePreviewElementInstance(
         fakeElementFqn,
@@ -474,9 +394,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
           group = null,
           showDecoration = false,
           background = PreviewDisplaySettings.Background.None,
-          organizationGroup =
-            basePreviewElement.displaySettings.baseName +
-              basePreviewElement.displaySettings.parameterName,
+          organizationGroup = basePreviewElement.displaySettings.baseName + basePreviewElement.displaySettings.parameterName,
           organizationName = basePreviewElement.displaySettings.organizationName,
         ),
         null,
@@ -492,8 +410,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
 
     other as ParametrizedComposePreviewElementTemplate<*>
 
-    return basePreviewElement == other.basePreviewElement &&
-      parameterProviders == other.parameterProviders
+    return basePreviewElement == other.basePreviewElement && parameterProviders == other.parameterProviders
   }
 
   override fun hashCode(): Int = Objects.hash(basePreviewElement, parameterProviders)

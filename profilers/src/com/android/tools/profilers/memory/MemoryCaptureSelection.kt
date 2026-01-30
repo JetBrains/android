@@ -35,24 +35,22 @@ import com.google.common.util.concurrent.ListenableFuture
 import java.util.Objects
 import java.util.concurrent.Executor
 
-/**
- * This class manages the capture selection state and fires aspects when it is changed.
- */
+/** This class manages the capture selection state and fires aspects when it is changed. */
 class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
   val aspect = AspectModel<CaptureSelectionAspect>()
 
-  val classGroupingModel = ConditionalEnumComboBoxModel(ClassGrouping::class.java) { grouping ->
-    selectedCapture?.isGroupingSupported(grouping) ?: true
-  }
-  val filterHandler = object : FilterHandler() {
-    override fun applyFilter(filter: Filter): FilterResult {
-      selectCaptureFilter(filter)
-      return when (val heapSet = this@MemoryCaptureSelection.selectedHeapSet) {
-        null -> FilterResult.EMPTY_RESULT
-        else -> FilterResult(heapSet.filterMatchCount, 0, true)
+  val classGroupingModel =
+    ConditionalEnumComboBoxModel(ClassGrouping::class.java) { grouping -> selectedCapture?.isGroupingSupported(grouping) ?: true }
+  val filterHandler =
+    object : FilterHandler() {
+      override fun applyFilter(filter: Filter): FilterResult {
+        selectCaptureFilter(filter)
+        return when (val heapSet = this@MemoryCaptureSelection.selectedHeapSet) {
+          null -> FilterResult.EMPTY_RESULT
+          else -> FilterResult(heapSet.filterMatchCount, 0, true)
+        }
       }
     }
-  }
   val allocationStackTraceModel = StackTraceModel(ideServices.codeNavigator)
   val deallocationStackTraceModel = StackTraceModel(ideServices.codeNavigator)
 
@@ -61,6 +59,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
   private var myCaptureEntry: CaptureEntry<*>? = null
   var selectedCapture: CaptureObject? = null
     private set
+
   var selectedHeapSet: HeapSet? = null
     private set(heapSet) {
       if (field !== heapSet) {
@@ -68,6 +67,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
         aspect.changed(CaptureSelectionAspect.CURRENT_HEAP)
       }
     }
+
   var selectedClassSet: ClassSet? = null
     private set(classSet) {
       if (field !== classSet) {
@@ -75,6 +75,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
         aspect.changed(CaptureSelectionAspect.CURRENT_CLASS)
       }
     }
+
   var selectedInstanceObject: InstanceObject? = null
     private set(instanceObject) {
       if (field !== instanceObject) {
@@ -82,6 +83,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
         aspect.changed(CaptureSelectionAspect.CURRENT_INSTANCE)
       }
     }
+
   var selectedFieldObjectPath: List<FieldObject> = emptyList()
     private set(fieldObjectPath) {
       if (field !== fieldObjectPath) {
@@ -89,6 +91,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
         aspect.changed(CaptureSelectionAspect.CURRENT_FIELD_PATH)
       }
     }
+
   var selectedClassTypeFilter: CaptureObjectInstanceFilter? = null
     private set(filter) {
       if (field !== filter) {
@@ -96,6 +99,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
         aspect.changed(CaptureSelectionAspect.CURRENT_CLASS_TYPE_FILTER)
       }
     }
+
   var selectedIssueTypeFilter: CaptureObjectInstanceFilter? = null
     private set(filter) {
       if (field !== filter) {
@@ -103,6 +107,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
         aspect.changed(CaptureSelectionAspect.CURRENT_ISSUE_TYPE_FILTER)
       }
     }
+
   var classGrouping = ClassGrouping.ARRANGE_BY_CLASS
     set(newGrouping) {
       if (field != newGrouping) {
@@ -113,10 +118,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
       }
     }
 
-
-  /**
-   * @return true if the internal state changed, otherwise false
-   */
+  /** @return true if the internal state changed, otherwise false */
   fun selectCaptureEntry(captureEntry: CaptureEntry<out CaptureObject>?): Boolean {
     if (Objects.equals(myCaptureEntry, captureEntry)) {
       return false
@@ -146,14 +148,10 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
     }
 
     filterHandler.refreshFilterContent()
-    heapSet?.let {
-      ideServices.featureTracker.trackSelectMemoryHeap(it.name)
-    }
+    heapSet?.let { ideServices.featureTracker.trackSelectMemoryHeap(it.name) }
   }
 
-  /**
-   * @return true if the internal state changed, otherwise false
-   */
+  /** @return true if the internal state changed, otherwise false */
   fun selectClassSet(classSet: ClassSet?): Boolean {
     assert(classSet == null || selectedCapture != null)
     if (selectedClassSet === classSet) {
@@ -165,9 +163,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
     return true
   }
 
-  /**
-   * @return true if the internal state changed, otherwise false
-   */
+  /** @return true if the internal state changed, otherwise false */
   fun selectInstanceObject(instanceObject: InstanceObject?): Boolean {
     assert(instanceObject == null || selectedCapture != null)
     if (selectedInstanceObject === instanceObject) {
@@ -178,9 +174,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
     return true
   }
 
-  /**
-   * @return true if the internal state changed, otherwise false
-   */
+  /** @return true if the internal state changed, otherwise false */
   fun selectFieldObjectPath(fieldObjectPath: List<FieldObject>): Boolean {
     assert(fieldObjectPath.isEmpty() || selectedCapture != null && selectedInstanceObject != null)
     if (Objects.equals(selectedFieldObjectPath, fieldObjectPath)) {
@@ -190,9 +184,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
     return true
   }
 
-  /**
-   * Re-apply the filter to selected heap's instances after they have changed
-   */
+  /** Re-apply the filter to selected heap's instances after they have changed */
   fun refreshSelectedHeap() {
     aspect.changed(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS)
     filterHandler.refreshFilterContent()
@@ -223,9 +215,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
     }
   }
 
-  /**
-   * @return true if selection was committed successfully
-   */
+  /** @return true if selection was committed successfully */
   fun finishSelectingCaptureObject(captureObject: CaptureObject?): Boolean {
     if (captureObject != null && captureObject === selectedCapture && !captureObject.isError && captureObject.isDoneLoading) {
       aspect.changed(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE)
@@ -247,10 +237,14 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
   private fun runCaptureInstanceFilter(joiner: Executor, update: (CaptureObject) -> ListenableFuture<Void?>) {
     selectedCapture?.let { capture ->
       aspect.changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATING)
-      update(capture).addListener({
-                                    aspect.changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATED)
-                                    refreshSelectedHeap()
-                                  }, joiner)
+      update(capture)
+        .addListener(
+          {
+            aspect.changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATED)
+            refreshSelectedHeap()
+          },
+          joiner,
+        )
     }
   }
 
@@ -277,8 +271,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
       ClassGrouping.ARRANGE_BY_PACKAGE -> filterMetadata.view = FilterMetadata.View.MEMORY_PACKAGE
       ClassGrouping.ARRANGE_BY_CALLSTACK -> filterMetadata.view = FilterMetadata.View.MEMORY_CALLSTACK
       ClassGrouping.NATIVE_ARRANGE_BY_ALLOCATION_METHOD,
-      ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK -> {
-      }
+      ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK -> {}
     }
     filterMetadata.setFeaturesUsed(filter.isMatchCase, filter.isRegex)
     selectedHeapSet?.let {

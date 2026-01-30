@@ -22,6 +22,8 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.buildAndWait
 import com.intellij.openapi.project.Project
+import java.io.File
+import java.net.URI
 import org.gradle.tooling.Failure
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.FailureResult
@@ -46,8 +48,6 @@ import org.gradle.tooling.events.task.TaskSuccessResult
 import org.gradle.tooling.model.ProjectIdentifier
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
-import java.io.File
-import java.net.URI
 
 fun createBinaryPluginIdentifierStub(displayName: String, className: String): BinaryPluginIdentifier {
   val pluginIdentifier = Mockito.mock(BinaryPluginIdentifier::class.java)
@@ -62,9 +62,7 @@ fun createScriptPluginIdentifierStub(pluginName: String): ScriptPluginIdentifier
   return pluginIdentifier
 }
 
-fun createOperationDescriptorStub(name: String,
-                                  displayName: String = name,
-                                  parent: OperationDescriptor? = null): OperationDescriptor {
+fun createOperationDescriptorStub(name: String, displayName: String = name, parent: OperationDescriptor? = null): OperationDescriptor {
   val descriptor = Mockito.mock(OperationDescriptor::class.java)
   whenever(descriptor.name).thenReturn(name)
   whenever(descriptor.displayName).thenReturn(displayName)
@@ -83,9 +81,11 @@ fun createFinishEventStub(displayName: String, startTime: Long, endTime: Long, d
   return event
 }
 
-fun createTaskOperationDescriptorStub(taskPath: String,
-                                      originPlugin: PluginIdentifier,
-                                      dependencies: List<TaskOperationDescriptor>): TaskOperationDescriptor {
+fun createTaskOperationDescriptorStub(
+  taskPath: String,
+  originPlugin: PluginIdentifier,
+  dependencies: List<TaskOperationDescriptor>,
+): TaskOperationDescriptor {
   val taskOperationDescriptor = Mockito.mock(TaskOperationDescriptor::class.java)
   whenever(taskOperationDescriptor.taskPath).thenReturn(taskPath)
   whenever(taskOperationDescriptor.originPlugin).thenReturn(originPlugin)
@@ -93,19 +93,20 @@ fun createTaskOperationDescriptorStub(taskPath: String,
   return taskOperationDescriptor
 }
 
-fun createTaskSuccessResultStub(taskExecutionStartTime: Long,
-                                taskExecutionEndTime: Long): TaskSuccessResult {
+fun createTaskSuccessResultStub(taskExecutionStartTime: Long, taskExecutionEndTime: Long): TaskSuccessResult {
   val taskSuccessResult = Mockito.mock(TaskSuccessResult::class.java)
   whenever(taskSuccessResult.startTime).thenReturn(taskExecutionStartTime)
   whenever(taskSuccessResult.endTime).thenReturn(taskExecutionEndTime)
   return taskSuccessResult
 }
 
-fun createTaskFinishEventStub(taskPath: String,
-                              originPlugin: PluginIdentifier,
-                              dependencies: List<TaskFinishEvent>,
-                              taskExecutionStartTime: Long,
-                              taskExecutionEndTime: Long): TaskFinishEvent {
+fun createTaskFinishEventStub(
+  taskPath: String,
+  originPlugin: PluginIdentifier,
+  dependencies: List<TaskFinishEvent>,
+  taskExecutionStartTime: Long,
+  taskExecutionEndTime: Long,
+): TaskFinishEvent {
   val taskFinishEvent = Mockito.mock(TaskFinishEvent::class.java)
   val descriptor = createTaskOperationDescriptorStub(taskPath, originPlugin, dependencies.map { it.descriptor })
   val result = createTaskSuccessResultStub(taskExecutionStartTime, taskExecutionEndTime)
@@ -131,7 +132,7 @@ fun createProjectConfigurationFinishEventStub(
   projectPath: String,
   projectConfigurationStartTime: Long,
   projectConfigurationEndTime: Long,
-  appliedPlugins: List<PluginIdentifier>
+  appliedPlugins: List<PluginIdentifier>,
 ): ProjectConfigurationFinishEvent {
   val projectConfigurationFinishEvent = Mockito.mock(ProjectConfigurationFinishEvent::class.java)
 
@@ -140,11 +141,12 @@ fun createProjectConfigurationFinishEventStub(
   val result = Mockito.mock(ProjectConfigurationSuccessResult::class.java)
   whenever(result.startTime).thenReturn(projectConfigurationStartTime)
   whenever(result.endTime).thenReturn(projectConfigurationEndTime)
-  val pluginApplicationResults = appliedPlugins.map { pluginIdentifier ->
-    Mockito.mock(ProjectConfigurationOperationResult.PluginApplicationResult::class.java).apply {
-      whenever(plugin).thenReturn(pluginIdentifier)
+  val pluginApplicationResults =
+    appliedPlugins.map { pluginIdentifier ->
+      Mockito.mock(ProjectConfigurationOperationResult.PluginApplicationResult::class.java).apply {
+        whenever(plugin).thenReturn(pluginIdentifier)
+      }
     }
-  }
   whenever(result.pluginApplicationResults).thenReturn(pluginApplicationResults)
 
   whenever(projectConfigurationFinishEvent.descriptor).thenReturn(descriptor)
@@ -154,25 +156,22 @@ fun createProjectConfigurationFinishEventStub(
 
 fun createProjectConfigurationOperationDescriptor(projectPath: String) =
   Mockito.mock(ProjectConfigurationOperationDescriptor::class.java).apply {
-  val project = Mockito.mock(ProjectIdentifier::class.java)
-  whenever(project.projectPath).thenReturn(projectPath)
-  whenever(this.project).thenReturn(project)
-}
+    val project = Mockito.mock(ProjectIdentifier::class.java)
+    whenever(project.projectPath).thenReturn(projectPath)
+    whenever(this.project).thenReturn(project)
+  }
 
 // Stubs and constants for Download events
 val url1 = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.pom"
 val url2 = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.jar"
 val url3 = "https://repo.maven.apache.org/maven2/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.pom"
 
-
 interface FailedDownloadResult : FileDownloadResult, FailureResult
+
 interface SuccessDownloadResult : FileDownloadResult, SuccessResult
 
 fun downloadStartEventStub(descriptor: FileDownloadOperationDescriptor) =
-  Mockito.mock(FileDownloadStartEvent::class.java).apply {
-    Mockito.`when`(this.descriptor).thenReturn(descriptor)
-  }
-
+  Mockito.mock(FileDownloadStartEvent::class.java).apply { Mockito.`when`(this.descriptor).thenReturn(descriptor) }
 
 fun downloadFinishEventStub(descriptor: FileDownloadOperationDescriptor, result: FileDownloadResult) =
   Mockito.mock(FileDownloadFinishEvent::class.java).apply {
@@ -180,32 +179,42 @@ fun downloadFinishEventStub(descriptor: FileDownloadOperationDescriptor, result:
     Mockito.`when`(this.result).thenReturn(result)
   }
 
-fun downloadOperationDescriptorStub(url: String, parent: OperationDescriptor?) = Mockito.mock(
-  FileDownloadOperationDescriptor::class.java).apply {
-  Mockito.`when`(this.uri).thenReturn(URI(url))
-  Mockito.`when`(this.parent).thenReturn(parent)
-}
+fun downloadOperationDescriptorStub(url: String, parent: OperationDescriptor?) =
+  Mockito.mock(FileDownloadOperationDescriptor::class.java).apply {
+    Mockito.`when`(this.uri).thenReturn(URI(url))
+    Mockito.`when`(this.parent).thenReturn(parent)
+  }
 
-fun downloadSuccessStub(start: Long, end: Long, bytes: Long) = object : SuccessDownloadResult {
-  override fun getStartTime(): Long = start
-  override fun getEndTime(): Long = end
-  override fun getBytesDownloaded(): Long = bytes
-}
+fun downloadSuccessStub(start: Long, end: Long, bytes: Long) =
+  object : SuccessDownloadResult {
+    override fun getStartTime(): Long = start
 
-fun downloadFailureStub(start: Long, end: Long, bytes: Long, failures: List<Failure>) = object : FailedDownloadResult {
-  override fun getStartTime(): Long = start
-  override fun getEndTime(): Long = end
-  override fun getBytesDownloaded(): Long = bytes
-  override fun getFailures(): List<Failure> = failures
-}
+    override fun getEndTime(): Long = end
 
-fun failureStub(message: String, causes: List<Failure>) = object : Failure {
-  override fun getMessage(): String = message
-  override fun getCauses(): List<Failure> = causes
-  override fun getProblems(): List<Problem> = emptyList()
-  override fun getDescription(): String = "Failure description"
-}
+    override fun getBytesDownloaded(): Long = bytes
+  }
 
+fun downloadFailureStub(start: Long, end: Long, bytes: Long, failures: List<Failure>) =
+  object : FailedDownloadResult {
+    override fun getStartTime(): Long = start
+
+    override fun getEndTime(): Long = end
+
+    override fun getBytesDownloaded(): Long = bytes
+
+    override fun getFailures(): List<Failure> = failures
+  }
+
+fun failureStub(message: String, causes: List<Failure>) =
+  object : Failure {
+    override fun getMessage(): String = message
+
+    override fun getCauses(): List<Failure> = causes
+
+    override fun getProblems(): List<Problem> = emptyList()
+
+    override fun getDescription(): String = "Failure description"
+  }
 
 fun AndroidGradleProjectRule.invokeTasksRethrowingErrors(vararg tasks: String): GradleInvocationResult {
   val invocationResult = invokeTasks(tasks = tasks)
@@ -216,12 +225,13 @@ fun AndroidGradleProjectRule.invokeTasksRethrowingErrors(vararg tasks: String): 
 interface TestContext {
   val project: Project
   val projectDir: File
+
   fun invokeTasks(vararg tasks: String): GradleInvocationResult
 }
 
 fun PreparedTestProject.runTest(
   updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions = { it },
-  testAction: TestContext.() -> Unit
+  testAction: TestContext.() -> Unit,
 ) {
   val projectDir = root
   open(updateOptions) { project ->
@@ -229,10 +239,10 @@ fun PreparedTestProject.runTest(
       object : TestContext {
         override val project: Project = project
         override val projectDir: File = projectDir
+
         override fun invokeTasks(vararg tasks: String): GradleInvocationResult {
-          val invocationResult = project.buildAndWait {
-            it.executeTasks(GradleBuildInvoker.Request.builder(project, projectDir, *tasks).build())
-          }
+          val invocationResult =
+            project.buildAndWait { it.executeTasks(GradleBuildInvoker.Request.builder(project, projectDir, *tasks).build()) }
           invocationResult.buildError?.let { throw it }
           return invocationResult
         }

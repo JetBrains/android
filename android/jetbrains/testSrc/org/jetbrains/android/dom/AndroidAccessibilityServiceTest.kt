@@ -82,7 +82,6 @@ class AndroidAccessibilityServiceTest {
     fixture.configureFromExistingVirtualFile(accessibilityService.virtualFile)
     fixture.completeBasic()
 
-    assertThat(fixture.lookupElementStrings)
-      .containsAllOf("android:description", "android:accessibilityFeedbackType")
+    assertThat(fixture.lookupElementStrings).containsAllOf("android:description", "android:accessibilityFeedbackType")
   }
 }

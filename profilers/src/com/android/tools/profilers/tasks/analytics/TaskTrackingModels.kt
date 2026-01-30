@@ -23,9 +23,7 @@ import com.android.tools.profilers.cpu.CpuCaptureMetadata
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.tasks.ProfilerTaskType
 
-/**
- * Metadata required to track the lifecycle of a profiler task.
- */
+/** Metadata required to track the lifecycle of a profiler task. */
 data class TaskMetadata(
   val taskType: ProfilerTaskType,
   val taskId: Long,
@@ -33,51 +31,41 @@ data class TaskMetadata(
   val taskAttachmentPoint: TaskAttachmentPoint,
   val exposureLevel: ExposureLevel,
   // Null if there is no custom task configuration for the respective task.
-  val taskConfig: ProfilingConfiguration?
+  val taskConfig: ProfilingConfiguration?,
 )
 
-/**
- * Metadata for a task that failed to start.
- * Only one of the properties will be non-null.
- */
+/** Metadata for a task that failed to start. Only one of the properties will be non-null. */
 data class TaskStartFailedMetadata(
   val traceStartStatus: Trace.TraceStartStatus? = null,
   val allocationTrackStatus: TrackStatus? = null,
-  val heapDumpStatus: Memory.HeapDumpStatus? = null
+  val heapDumpStatus: Memory.HeapDumpStatus? = null,
 )
 
-/**
- * Metadata for a task that failed to stop.
- * Only one of the properties will be non-null.
- */
+/** Metadata for a task that failed to stop. Only one of the properties will be non-null. */
 data class TaskStopFailedMetadata(
   val traceStopStatus: Trace.TraceStopStatus? = null,
   val allocationTrackStatus: TrackStatus? = null,
-  val cpuCaptureMetadata: CpuCaptureMetadata? = null
+  val cpuCaptureMetadata: CpuCaptureMetadata? = null,
 )
 
-/**
- * Metadata for a task that failed during processing.
- */
-data class TaskProcessingFailedMetadata(
-  val cpuCaptureMetadata: CpuCaptureMetadata?
-)
+/** Metadata for a task that failed during processing. */
+data class TaskProcessingFailedMetadata(val cpuCaptureMetadata: CpuCaptureMetadata?)
 
 enum class TaskDataOrigin {
   UNSPECIFIED,
   NEW,
   PAST_RECORDING,
-  IMPORTED
+  IMPORTED,
 }
 
 enum class TaskAttachmentPoint {
   UNSPECIFIED,
   NEW_PROCESS,
-  EXISTING_PROCESS
+  EXISTING_PROCESS,
 }
 
 enum class TaskFinishedState {
   UNSPECIFIED,
   COMPLETED,
-  USER_CANCELLED
+  USER_CANCELLED,
 }

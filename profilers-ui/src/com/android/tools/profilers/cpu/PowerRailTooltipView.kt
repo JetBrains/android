@@ -22,6 +22,8 @@ import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTooltip
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.POWER_RAIL_UNIT
 import com.google.common.annotations.VisibleForTesting
+import javax.swing.JComponent
+import javax.swing.JPanel
 import kotlinx.html.body
 import kotlinx.html.classes
 import kotlinx.html.head
@@ -32,14 +34,11 @@ import kotlinx.html.table
 import kotlinx.html.td
 import kotlinx.html.tr
 import kotlinx.html.unsafe
-import javax.swing.JComponent
-import javax.swing.JPanel
 
 class PowerRailTooltipView(parent: JComponent, val tooltip: PowerRailTooltip) : TooltipView(tooltip.timeline) {
   private val content = JPanel(TabularLayout("*").setVGap(12))
 
-  @VisibleForTesting
-  val valueLabel = createTooltipLabel()
+  @VisibleForTesting val valueLabel = createTooltipLabel()
 
   override fun createTooltip(): JComponent {
     return content
@@ -53,13 +52,12 @@ class PowerRailTooltipView(parent: JComponent, val tooltip: PowerRailTooltip) : 
   }
 
   /**
-   * Returns HTML string for a table formatting the primary and secondary values right justified,
-   * with their respective value title left justified on the same line.
+   * Returns HTML string for a table formatting the primary and secondary values right justified, with their respective value title left
+   * justified on the same line.
    *
    * Returned table formatting:
    *
-   * power.rail.sample - value-title-1 (unit)           value-1
-   * power.rail.sample - value-title-2 (unit)           value-2
+   * power.rail.sample - value-title-1 (unit) value-1 power.rail.sample - value-title-2 (unit) value-2
    */
   @VisibleForTesting
   fun getFormattedTooltipValueText(primaryValueText: String, secondaryValueText: String): String {
@@ -95,7 +93,8 @@ class PowerRailTooltipView(parent: JComponent, val tooltip: PowerRailTooltip) : 
                   .key-column {
                       padding-right: ${spaceBetweenTitleAndValuePx}px;
                   }
-              """.trimIndent()
+              """
+                .trimIndent()
             }
           }
         }
@@ -130,11 +129,9 @@ class PowerRailTooltipView(parent: JComponent, val tooltip: PowerRailTooltip) : 
         }
       }
     }
-}
+  }
 
-  /**
-   * Helper method to format the value title (which includes the track name, value type, and the unit).
-   */
+  /** Helper method to format the value title (which includes the track name, value type, and the unit). */
   private fun getFormattedValueTitle(trackName: String, valueType: String, unit: String): String {
     return "$trackName - $valueType${if (unit.isBlank()) "" else " ($unit)"}"
   }

@@ -56,7 +56,9 @@ import javax.swing.SwingConstants
 
 interface BuildAttributionUiManager : Disposable {
   fun openTab(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource)
+
   fun showNewReport()
+
   fun showBuildAnalysisReportById(buildID: String)
 
   companion object {
@@ -76,54 +78,47 @@ class BuildAnalyzerStorageManagerListenerImpl(val project: Project) : Listener {
   }
 }
 
-/**
- * This class is responsible for creating, opening and properly disposing of Build attribution UI.
- */
-class BuildAttributionUiManagerImpl(
-  private val project: Project
-) : BuildAttributionUiManager {
+/** This class is responsible for creating, opening and properly disposing of Build attribution UI. */
+class BuildAttributionUiManagerImpl(private val project: Project) : BuildAttributionUiManager {
 
   // We are holding reference to view to:
   // 1) dispose it when replaced with a new one
   // 2) get component size for analytics
   // 3) to reinit (re-add) ui components on theme change
-  @VisibleForTesting
-  var buildAttributionView: ComponentContainer? = null
+  @VisibleForTesting var buildAttributionView: ComponentContainer? = null
 
   // We are holding reference to content to:
   // 1) check tab state
   // 2) track in analytics for tab open/closed
   // 3) to reinit (re-add) ui components on theme change
   // 4) request to open it when asked
-  @VisibleForTesting
-  var buildContent: Content? = null
+  @VisibleForTesting var buildContent: Content? = null
 
   private var contentManager: ContentManager? = null
 
-  private val contentManagerListener = object : ContentManagerListener {
-    override fun selectionChanged(event: ContentManagerEvent) {
-      if (event.content !== buildContent) {
-        return
-      }
-      if (event.operation == ContentManagerEvent.ContentOperation.add) {
-        uiAnalytics.tabOpened()
-      }
-      else if (event.operation == ContentManagerEvent.ContentOperation.remove) {
-        uiAnalytics.tabHidden()
+  private val contentManagerListener =
+    object : ContentManagerListener {
+      override fun selectionChanged(event: ContentManagerEvent) {
+        if (event.content !== buildContent) {
+          return
+        }
+        if (event.operation == ContentManagerEvent.ContentOperation.add) {
+          uiAnalytics.tabOpened()
+        } else if (event.operation == ContentManagerEvent.ContentOperation.remove) {
+          uiAnalytics.tabHidden()
+        }
       }
     }
-  }
 
-  private val uiAnalytics = BuildAttributionUiAnalytics(
-    project,
-    uiSizeProvider = { buildAttributionView?.component?.size }
-  )
+  private val uiAnalytics = BuildAttributionUiAnalytics(project, uiSizeProvider = { buildAttributionView?.component?.size })
 
   private val notificationManager = BuildAnalyzerNotificationManager(project, uiAnalytics)
 
   init {
     Disposer.register(project, this)
-    ApplicationManager.getApplication().messageBus.connect(this)
+    ApplicationManager.getApplication()
+      .messageBus
+      .connect(this)
       .subscribe(LafManagerListener.TOPIC, LafManagerListener { reInitReportUI() })
   }
 
@@ -147,10 +142,8 @@ class BuildAttributionUiManagerImpl(
 
   @UiThread
   private fun doShowNewSuccessReport(buildAnalysisResult: BuildAnalysisResults) {
-    val reportUiData = BuildAttributionReportBuilder(
-      buildAnalysisResult,
-      WindowsDefenderCheckService.getInstance(project).warningData
-    ).build()
+    val reportUiData =
+      BuildAttributionReportBuilder(buildAnalysisResult, WindowsDefenderCheckService.getInstance(project).warningData).build()
 
     val viewFactory = {
       val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
@@ -159,8 +152,7 @@ class BuildAttributionUiManagerImpl(
     val content = buildContent
     if (content != null && content.isValid) {
       placeNewViewInExistingTab(content, viewFactory)
-    }
-    else {
+    } else {
       createTabWithNewView(viewFactory)
     }
 
@@ -171,9 +163,7 @@ class BuildAttributionUiManagerImpl(
 
     notificationManager.showToolWindowBalloonIfNeeded(reportUiData) {
       openTab(BuildAttributionUiAnalytics.TabOpenEventSource.BALLOON_LINK)
-      (buildAttributionView as? NewViewComponentContainer)?.let {
-        it.model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
-      }
+      (buildAttributionView as? NewViewComponentContainer)?.let { it.model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS }
     }
   }
 
@@ -190,9 +180,8 @@ class BuildAttributionUiManagerImpl(
       invokeLaterIfNotDisposed {
         if (buildContent?.isValid != true) {
           // If tab is closed, we need to retrieve the latest data from the storage and recreate the view.
-          val viewFactory = getViewFactoryFromLatestResultStatus(
-            BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults()
-          )
+          val viewFactory =
+            getViewFactoryFromLatestResultStatus(BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults())
           createTabWithNewView(viewFactory)
         }
 
@@ -206,10 +195,8 @@ class BuildAttributionUiManagerImpl(
     when (buildAnalysisResult) {
       is BuildAnalysisResults -> {
         // If latest build was successful, get data from storage and recreate the normal view.
-        val reportUiData = BuildAttributionReportBuilder(
-          buildAnalysisResult,
-          WindowsDefenderCheckService.getInstance(project).warningData
-        ).build()
+        val reportUiData =
+          BuildAttributionReportBuilder(buildAnalysisResult, WindowsDefenderCheckService.getInstance(project).warningData).build()
         return {
           val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
           NewViewComponentContainer(reportUiData, project, issueReporter, uiAnalytics)
@@ -251,17 +238,18 @@ class BuildAttributionUiManagerImpl(
 
   private fun createNewTab() {
     buildAttributionView?.let { view ->
-      buildContent = ContentImpl(BorderLayoutPanel(), "Build Analyzer", true).also { content ->
-        content.component.add(view.component, BorderLayout.CENTER)
-        Disposer.register(this, content)
-        Disposer.register(content, view)
-        // When tab is getting closed (and disposed) we want to release the reference on the view.
-        Disposer.register(content, Disposable { onContentClosed() })
-        BuildContentManager.getInstance(project).addContent(content)
-        uiAnalytics.tabCreated()
-        contentManager = content.manager
-        contentManager?.addContentManagerListener(contentManagerListener)
-      }
+      buildContent =
+        ContentImpl(BorderLayoutPanel(), "Build Analyzer", true).also { content ->
+          content.component.add(view.component, BorderLayout.CENTER)
+          Disposer.register(this, content)
+          Disposer.register(content, view)
+          // When tab is getting closed (and disposed) we want to release the reference on the view.
+          Disposer.register(content, Disposable { onContentClosed() })
+          BuildContentManager.getInstance(project).addContent(content)
+          uiAnalytics.tabCreated()
+          contentManager = content.manager
+          contentManager?.addContentManagerListener(contentManagerListener)
+        }
     }
   }
 
@@ -294,15 +282,13 @@ class BuildAttributionUiManagerImpl(
   private fun invokeLaterIfNotDisposed(runnable: () -> Unit) = project.invokeLaterIfNotDisposed(runnable)
 }
 
-fun Project.invokeLaterIfNotDisposed(runnable: () -> Unit) = ApplicationManager.getApplication().invokeLater(
-  runnable
-) { this.isDisposed }
+fun Project.invokeLaterIfNotDisposed(runnable: () -> Unit) = ApplicationManager.getApplication().invokeLater(runnable) { this.isDisposed }
 
 class NewViewComponentContainer(
   uiData: BuildAttributionReportUiData,
   project: Project,
   issueReporter: TaskIssueReporter,
-  uiAnalytics: BuildAttributionUiAnalytics
+  uiAnalytics: BuildAttributionUiAnalytics,
 ) : ComponentContainer {
   val model = BuildAnalyzerViewModel(uiData, BuildAttributionWarningsFilter.getInstance(project))
   private val controller = BuildAnalyzerViewController(model, project, uiAnalytics, issueReporter)
@@ -324,34 +310,43 @@ class NewViewComponentContainer(
 
 private class BuildFailureViewComponentContainer(failureType: FailureResult.Type) : ComponentContainer {
 
-  private val errorMessage: String = when (failureType) {
-    FailureResult.Type.BUILD_FAILURE -> """
-      The Build Analyzer isn't able to analyze your build as the most recent build failed.<br>
-      Please address any warnings in the Build Output window and rebuild your project.<br>
-    """.trimIndent()
-    FailureResult.Type.ANALYSIS_FAILURE -> """
-      There was an internal failure in Build Analyzer while running analysis of this build.<br>
-      Please help us fix it by reporting the problem using Help > Submit a Bug Report${'\u2026'}<br>
-    """.trimIndent()
-    FailureResult.Type.ANALYSIS_CANCELED -> """
-      Build operation was canceled before Build Analyzer completed analysis of this build.<br>
-    """.trimIndent()
-  }
+  private val errorMessage: String =
+    when (failureType) {
+      FailureResult.Type.BUILD_FAILURE ->
+        """
+        The Build Analyzer isn't able to analyze your build as the most recent build failed.<br>
+        Please address any warnings in the Build Output window and rebuild your project.<br>
+        """
+          .trimIndent()
+      FailureResult.Type.ANALYSIS_FAILURE ->
+        """
+        There was an internal failure in Build Analyzer while running analysis of this build.<br>
+        Please help us fix it by reporting the problem using Help > Submit a Bug Report${'\u2026'}<br>
+        """
+          .trimIndent()
+      FailureResult.Type.ANALYSIS_CANCELED ->
+        """
+        Build operation was canceled before Build Analyzer completed analysis of this build.<br>
+        """
+          .trimIndent()
+    }
 
   override fun getPreferredFocusableComponent(): JComponent = component
 
-  override fun getComponent(): JComponent = JPanel().apply {
-    layout = BorderLayout(5, 5)
-    name = "Build failure empty view"
-    border = JBUI.Borders.empty(20)
-    add(JLabel(warningIcon()).apply { verticalAlignment = SwingConstants.TOP }, BorderLayout.WEST)
-    add(htmlTextLabelWithFixedLines(errorMessage), BorderLayout.CENTER)
-  }
+  override fun getComponent(): JComponent =
+    JPanel().apply {
+      layout = BorderLayout(5, 5)
+      name = "Build failure empty view"
+      border = JBUI.Borders.empty(20)
+      add(JLabel(warningIcon()).apply { verticalAlignment = SwingConstants.TOP }, BorderLayout.WEST)
+      add(htmlTextLabelWithFixedLines(errorMessage), BorderLayout.CENTER)
+    }
 
   override fun dispose() = Unit
 }
 
-private fun BuildAttributionReportUiData.shouldAutoOpenTab() : Boolean = when {
-  jetifierData.checkJetifierBuild -> true
-  else -> false
-}
+private fun BuildAttributionReportUiData.shouldAutoOpenTab(): Boolean =
+  when {
+    jetifierData.checkJetifierBuild -> true
+    else -> false
+  }

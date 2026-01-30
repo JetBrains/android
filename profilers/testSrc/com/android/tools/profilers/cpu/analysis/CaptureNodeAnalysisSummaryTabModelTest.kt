@@ -19,20 +19,21 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 
 class CaptureNodeAnalysisSummaryTabModelTest {
   @Test
   fun selectionRangeSingleNode() {
     val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, 100.0), TraceType.ART)
-    val node = CaptureNode(SingleNameModel("Foo")).apply {
-      startGlobal = 10
-      endGlobal = 20
-    }
+    val node =
+      CaptureNode(SingleNameModel("Foo")).apply {
+        startGlobal = 10
+        endGlobal = 20
+      }
     model.dataSeries.add(CaptureNodeAnalysisModel(node, Mockito.mock(CpuCapture::class.java), Utils::runOnUi))
 
     assertThat(model.selectionRange.isSameAs(Range(10.0, 20.0))).isTrue()
@@ -41,16 +42,17 @@ class CaptureNodeAnalysisSummaryTabModelTest {
   @Test
   fun selectionRangeMultipleNodes() {
     val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, 100.0), TraceType.ART)
-    val nodes = listOf(
-      CaptureNode(SingleNameModel("Foo")).apply {
-        startGlobal = 10
-        endGlobal = 20
-      },
-      CaptureNode(SingleNameModel("Bar")).apply {
-        startGlobal = 15
-        endGlobal = 30
-      }
-    )
+    val nodes =
+      listOf(
+        CaptureNode(SingleNameModel("Foo")).apply {
+          startGlobal = 10
+          endGlobal = 20
+        },
+        CaptureNode(SingleNameModel("Bar")).apply {
+          startGlobal = 15
+          endGlobal = 30
+        },
+      )
     nodes.forEach { model.dataSeries.add(CaptureNodeAnalysisModel(it, Mockito.mock(CpuCapture::class.java), Utils::runOnUi)) }
 
     assertThat(model.selectionRange.isSameAs(Range(10.0, 30.0))).isTrue()

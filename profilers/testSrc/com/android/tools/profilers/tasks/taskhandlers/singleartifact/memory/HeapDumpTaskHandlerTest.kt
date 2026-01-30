@@ -29,34 +29,30 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils.createHprofSessionArtifact
 import com.android.tools.profilers.SessionArtifactUtils.createSessionItem
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.HeapDumpTaskArgs
+import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.google.common.truth.Truth.assertThat
-import org.junit.Assert.assertThrows
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import org.junit.Assert.assertThrows
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 class HeapDumpTaskHandlerTest {
   private val myTimer = FakeTimer()
-  private val ideProfilerServices = FakeIdeProfilerServices().apply {
-    enableTaskBasedUx(true)
-  }
+  private val ideProfilerServices = FakeIdeProfilerServices().apply { enableTaskBasedUx(true) }
   private val myTransportService = FakeTransportService(myTimer, false, ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("HeapDumpTaskHandlerTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("HeapDumpTaskHandlerTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -64,11 +60,7 @@ class HeapDumpTaskHandlerTest {
 
   @Before
   fun setup() {
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     myHeapDumpTaskHandler = HeapDumpTaskHandler(myManager)
     myProfilers.addTaskHandler(ProfilerTaskType.HEAP_DUMP, myHeapDumpTaskHandler)
@@ -97,9 +89,13 @@ class HeapDumpTaskHandlerTest {
 
   @Test
   fun testSupportsArtifactWithNonHprofArtifact() {
-    val heapProfdSessionArtifact = HeapProfdSessionArtifact(myProfilers, Common.Session.getDefaultInstance(),
-                                                            Common.SessionMetaData.getDefaultInstance(),
-                                                            Trace.TraceInfo.getDefaultInstance())
+    val heapProfdSessionArtifact =
+      HeapProfdSessionArtifact(
+        myProfilers,
+        Common.Session.getDefaultInstance(),
+        Common.SessionMetaData.getDefaultInstance(),
+        Trace.TraceInfo.getDefaultInstance(),
+      )
     assertThat(myHeapDumpTaskHandler.supportsArtifact(heapProfdSessionArtifact)).isFalse()
   }
 
@@ -127,18 +123,15 @@ class HeapDumpTaskHandlerTest {
   fun testStartTaskWithUnsetStage() {
     // To start the task and thus the capture, the stage must be set up before. Here we will test the case where startTask is invoked
     // without the stage being set precondition being met.
-    val exception = assertFailsWith<Throwable> {
-      myHeapDumpTaskHandler.startTask(HeapDumpTaskArgs(false, null))
-    }
+    val exception = assertFailsWith<Throwable> { myHeapDumpTaskHandler.startTask(HeapDumpTaskArgs(false, null)) }
     assertThat(myHeapDumpTaskHandler.stage).isNull()
-    assertThat(exception.message).isEqualTo("There was an error with the Heap Dump task. Error message: Cannot start the task as the " +
-                                            "InterimStage was null.")
+    assertThat(exception.message)
+      .isEqualTo("There was an error with the Heap Dump task. Error message: Cannot start the task as the " + "InterimStage was null.")
   }
 
   @Test
   fun testStopTaskSuccessfullyTerminatesTasksSession() {
-    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer,
-                                      Common.ProfilerTaskType.HEAP_DUMP)
+    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.HEAP_DUMP)
 
     (myTransportService.getRegisteredCommand(Commands.Command.CommandType.HEAP_DUMP) as HeapDump).apply {
       dumpStatus = Memory.HeapDumpStatus.Status.SUCCESS
@@ -186,13 +179,13 @@ class HeapDumpTaskHandlerTest {
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
-    val exception = assertFailsWith<Throwable> {
-      myHeapDumpTaskHandler.loadTask(HeapDumpTaskArgs(false, null))
-    }
+    val exception = assertFailsWith<Throwable> { myHeapDumpTaskHandler.loadTask(HeapDumpTaskArgs(false, null)) }
 
-    assertThat(exception.message).isEqualTo(
-      "There was an error with the Heap Dump task. Error message: The task arguments (HeapDumpTaskArgs) supplied do not contains a valid " +
-      "artifact to load.")
+    assertThat(exception.message)
+      .isEqualTo(
+        "There was an error with the Heap Dump task. Error message: The task arguments (HeapDumpTaskArgs) supplied do not contains a valid " +
+          "artifact to load."
+      )
 
     // Verify that the artifact doSelect behavior was not called by checking if the stage was not set to MainMemoryProfilerStage.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
@@ -201,9 +194,10 @@ class HeapDumpTaskHandlerTest {
   @Test
   fun testCreateArgsSuccessfully() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1, listOf(createHprofSessionArtifact(myProfilers, selectedSession, 1, 100))),
-    )
+    val sessionIdToSessionItems =
+      mapOf(
+        1L to createSessionItem(myProfilers, selectedSession, 1, listOf(createHprofSessionArtifact(myProfilers, selectedSession, 1, 100)))
+      )
 
     val heapDumpTaskArgs = myHeapDumpTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(heapDumpTaskArgs).isNotNull()
@@ -219,13 +213,12 @@ class HeapDumpTaskHandlerTest {
     // By setting a session id that does not match any of the session items, the task artifact will not be found in the call to createArgs
     // will fail to be constructed.
     val selectedSession = Common.Session.newBuilder().setSessionId(0).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1, listOf(createHprofSessionArtifact(myProfilers, selectedSession, 1, 100))),
-    )
+    val sessionIdToSessionItems =
+      mapOf(
+        1L to createSessionItem(myProfilers, selectedSession, 1, listOf(createHprofSessionArtifact(myProfilers, selectedSession, 1, 100)))
+      )
 
-    assertThrows(IllegalStateException::class.java) {
-      myHeapDumpTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
-    }
+    assertThrows(IllegalStateException::class.java) { myHeapDumpTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession) }
   }
 
   @Test
@@ -235,9 +228,10 @@ class HeapDumpTaskHandlerTest {
 
     val profileableProcess = TaskHandlerTestUtils.createProcess(isProfileable = true)
     assertNotNull(myHeapDumpTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess))
-    assertEquals(myHeapDumpTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess)!!.startTaskSelectionErrorCode,
-                 StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
-
+    assertEquals(
+      myHeapDumpTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess)!!.startTaskSelectionErrorCode,
+      StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS,
+    )
 
     val debuggableProcess = TaskHandlerTestUtils.createProcess(isProfileable = false)
     assertNull(myHeapDumpTaskHandler.checkSupportForDeviceAndProcess(device, debuggableProcess))

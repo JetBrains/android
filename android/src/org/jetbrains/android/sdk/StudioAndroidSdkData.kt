@@ -27,9 +27,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * Studio specific constructors for [AndroidSdkData].
- */
+/** Studio specific constructors for [AndroidSdkData]. */
 class StudioAndroidSdkData {
   private class ModuleSdkDataHolder private constructor(facet: AndroidFacet) : Disposable {
     private var myFacet: AndroidFacet?
@@ -51,6 +49,7 @@ class StudioAndroidSdkData {
 
     companion object {
       private val KEY: Key<ModuleSdkDataHolder> = Key.create(ModuleSdkDataHolder::class.java.name)
+
       fun getInstance(facet: AndroidFacet): ModuleSdkDataHolder {
         var sdkDataHolder = facet.getUserData(KEY)
         if (sdkDataHolder == null) {
@@ -63,19 +62,14 @@ class StudioAndroidSdkData {
   }
 
   companion object {
-    @JvmStatic
-    fun getSdkData(facet: AndroidFacet) = ModuleSdkDataHolder.getInstance(facet).sdkData
+    @JvmStatic fun getSdkData(facet: AndroidFacet) = ModuleSdkDataHolder.getInstance(facet).sdkData
 
-    @JvmStatic
-    fun getSdkHolder(facet: AndroidFacet) = ModuleSdkDataHolder.getInstance(facet).sdkHandler
+    @JvmStatic fun getSdkHolder(facet: AndroidFacet) = ModuleSdkDataHolder.getInstance(facet).sdkHandler
 
-    @JvmStatic
-    fun getSdkData(project: Project) = ProjectRootManager.getInstance(project).projectSdk?.let { getSdkData(it) }
+    @JvmStatic fun getSdkData(project: Project) = ProjectRootManager.getInstance(project).projectSdk?.let { getSdkData(it) }
 
-    @JvmStatic
-    fun getSdkData(sdk: Sdk) = sdk.homePath?.let(AndroidSdkData::getSdkData)
+    @JvmStatic fun getSdkData(sdk: Sdk) = sdk.homePath?.let(AndroidSdkData::getSdkData)
 
-    @JvmStatic
-    fun getSdkData(module: Module) = getSdkData(module.project)
+    @JvmStatic fun getSdkData(module: Module) = getSdkData(module.project)
   }
 }

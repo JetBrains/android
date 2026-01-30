@@ -24,20 +24,19 @@ import java.net.URL
 class IdeNetworkCacheUtils {
   companion object {
     @Slow
-    fun readHttpUrlData(url: String, timeout: Int, lastModified: Long, mimeType: String? = null): ReadUrlDataResult = HttpRequests
-      .request(URL(url).toExternalForm())
-      .connectTimeout(timeout)
-      .readTimeout(timeout)
-      .accept(mimeType)
-      .tuner { c -> c.ifModifiedSince = lastModified }
-      .connect { r ->
-        r.connection.let { connection ->
-          when (connection) {
-            is HttpURLConnection -> if (connection.responseCode == 304) return@let ReadUrlDataResult(null, false)
+    fun readHttpUrlData(url: String, timeout: Int, lastModified: Long, mimeType: String? = null): ReadUrlDataResult =
+      HttpRequests.request(URL(url).toExternalForm())
+        .connectTimeout(timeout)
+        .readTimeout(timeout)
+        .accept(mimeType)
+        .tuner { c -> c.ifModifiedSince = lastModified }
+        .connect { r ->
+          r.connection.let { connection ->
+            when (connection) {
+              is HttpURLConnection -> if (connection.responseCode == 304) return@let ReadUrlDataResult(null, false)
+            }
+            ReadUrlDataResult(r.readBytes(null), true)
           }
-          ReadUrlDataResult(r.readBytes(null), true)
         }
-      }
   }
 }
-

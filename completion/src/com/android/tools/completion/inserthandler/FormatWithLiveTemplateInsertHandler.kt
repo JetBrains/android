@@ -23,9 +23,11 @@ import com.intellij.codeInsight.template.TemplateManager
 import com.intellij.codeInsight.template.impl.ConstantNode
 
 /**
- * Handles insertions of an [InsertionFormat] using the [TemplateManager], stopping at every '<>' for user input.
+ * Handles insertions of an [InsertionFormat] using the [TemplateManager], stopping at every '<>'
+ * for user input.
  */
-class FormatWithLiveTemplateInsertHandler(private val format: InsertionFormat) : InsertHandler<LookupElement> {
+class FormatWithLiveTemplateInsertHandler(private val format: InsertionFormat) :
+  InsertHandler<LookupElement> {
   override fun handleInsert(context: InsertionContext, item: LookupElement) {
     val templateManager = TemplateManager.getInstance(context.project)
     val template = templateManager.createTemplate("", "")
@@ -36,12 +38,10 @@ class FormatWithLiveTemplateInsertHandler(private val format: InsertionFormat) :
       if (segment.takesUserInput) {
         if (text.isNotEmpty()) {
           template.addVariable(ConstantNode(text), true)
-        }
-        else {
+        } else {
           template.addVariable(EmptyExpression(), true)
         }
-      }
-      else {
+      } else {
         template.addTextSegment(text)
       }
     }
@@ -51,8 +51,8 @@ class FormatWithLiveTemplateInsertHandler(private val format: InsertionFormat) :
 }
 
 /**
- * Extracts the insertable text segments from the [InsertionFormat] indicating whether each segment is simple text or if it expects user
- * input.
+ * Extracts the insertable text segments from the [InsertionFormat] indicating whether each segment
+ * is simple text or if it expects user input.
  */
 private fun getTemplateSegments(format: InsertionFormat): List<LiveTemplateSegment> {
   val segments = mutableListOf<LiveTemplateSegment>()
@@ -66,21 +66,22 @@ private fun getTemplateSegments(format: InsertionFormat): List<LiveTemplateSegme
     val currentChar = templateText.elementAtOrNull(end)
     if (currentChar == '<' || currentChar == '>') {
       // Stop at the marker characters and add any pending segment
-      segments.add(LiveTemplateSegment(takesUserInput = !isNormalText, templateText.substring(start, end)))
+      segments.add(
+        LiveTemplateSegment(takesUserInput = !isNormalText, templateText.substring(start, end))
+      )
       isNormalText = currentChar == '>'
-      start = end + 1  // update start but skip this char
+      start = end + 1 // update start but skip this char
     }
     end++
   }
   if (end - start > 1) {
     // Add the last segment if not empty (end index is exclusive)
-    segments.add(LiveTemplateSegment(takesUserInput = !isNormalText, templateText.substring(start, end)))
+    segments.add(
+      LiveTemplateSegment(takesUserInput = !isNormalText, templateText.substring(start, end))
+    )
   }
 
   return segments
 }
 
-private data class LiveTemplateSegment(
-  val takesUserInput: Boolean,
-  val textSegment: String
-)
+private data class LiveTemplateSegment(val takesUserInput: Boolean, val textSegment: String)

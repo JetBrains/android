@@ -42,11 +42,7 @@ class LingeringTooltipTest {
     val lingerMillis = 1200
     composeTestRule.setContent {
       Column {
-        LingeringTooltip(
-          tooltip = { Text("Tooltip", Modifier.size(200.dp)) },
-          delayMillis = delayMillis,
-          lingerMillis = lingerMillis,
-        ) {
+        LingeringTooltip(tooltip = { Text("Tooltip", Modifier.size(200.dp)) }, delayMillis = delayMillis, lingerMillis = lingerMillis) {
           Text("Target", Modifier.size(50.dp))
         }
         Spacer(Modifier.size(200.dp))

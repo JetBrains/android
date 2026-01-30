@@ -29,13 +29,10 @@ import org.jetbrains.android.actions.GenerateSignedAppBundleOrApkAction
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [GenerateSignedAppBundleOrApkAction]
- */
+/** Tests for [GenerateSignedAppBundleOrApkAction] */
 @RunsInEdt
 class GenerateSignedAppBundleOrApkActionTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
   val project by lazy { projectRule.project }
 
   @Test

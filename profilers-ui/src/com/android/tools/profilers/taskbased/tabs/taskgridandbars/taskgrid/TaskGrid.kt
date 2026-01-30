@@ -55,23 +55,22 @@ private fun TaskGridContainer(taskGridModel: TaskGridModel, taskGridContent: (Pr
     LazyVerticalGrid(
       columns = GridCells.Adaptive(TASK_WIDTH_DP),
       state = listState,
-      modifier = Modifier
-        .align(Alignment.Center)
-        .widthIn(
-          max = ((TASK_WIDTH_DP * MAX_NUM_TASKS_IN_ROW) +
-                 (TASK_GRID_HORIZONTAL_SPACE_DP * (MAX_NUM_TASKS_IN_ROW - 1)) +
-                 (TASK_GRID_HORIZONTAL_PADDING_DP * 2)))
-        .padding(horizontal = TASK_GRID_HORIZONTAL_PADDING_DP),
+      modifier =
+        Modifier.align(Alignment.Center)
+          .widthIn(
+            max =
+              ((TASK_WIDTH_DP * MAX_NUM_TASKS_IN_ROW) +
+                (TASK_GRID_HORIZONTAL_SPACE_DP * (MAX_NUM_TASKS_IN_ROW - 1)) +
+                (TASK_GRID_HORIZONTAL_PADDING_DP * 2))
+          )
+          .padding(horizontal = TASK_GRID_HORIZONTAL_PADDING_DP),
       horizontalArrangement = Arrangement.spacedBy(TASK_GRID_HORIZONTAL_SPACE_DP),
       verticalArrangement = Arrangement.spacedBy(TASK_GRID_VERTICAL_SPACE_DP),
-      contentPadding = PaddingValues(vertical = TASK_GRID_VERTICAL_PADDING_DP)
+      contentPadding = PaddingValues(vertical = TASK_GRID_VERTICAL_PADDING_DP),
     ) {
       taskGridContent(selectedTask, this)
     }
-    VerticalScrollbar(
-      adapter = rememberScrollbarAdapter(listState),
-      modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
-    )
+    VerticalScrollbar(adapter = rememberScrollbarAdapter(listState), modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd))
   }
 }
 
@@ -85,9 +84,7 @@ fun TaskGrid(taskGridModel: TaskGridModel, taskTypes: List<ProfilerTaskType>) {
           TaskGridItem(
             task = task,
             isSelectedTask = task == selectedTask,
-            onTaskSelection = {
-              taskGridModel.onTaskSelection(it)
-            },
+            onTaskSelection = { taskGridModel.onTaskSelection(it) },
             isTaskTitleV2Enabled = taskGridModel.profilers.ideServices.featureConfig.isTaskTitleV2Enabled,
           )
         }
@@ -101,9 +98,11 @@ fun TaskGrid(taskGridModel: TaskGridModel, selectedRecording: SessionItem?, task
   TaskGridContainer(taskGridModel) { selectedTask: ProfilerTaskType, lazyGridScope: LazyGridScope ->
     with(lazyGridScope) {
       // If the task is not supported/enabled, do not render it for the recording-based task selection.
-      items(taskHandlers.entries.toList().filter {
-        selectedRecording != null && TaskSupportUtils.isTaskSupportedByRecording(it.value, selectedRecording)
-      }) { (taskType, _) ->
+      items(
+        taskHandlers.entries.toList().filter {
+          selectedRecording != null && TaskSupportUtils.isTaskSupportedByRecording(it.value, selectedRecording)
+        }
+      ) { (taskType, _) ->
         taskType.let {
           TaskGridItem(
             task = it,

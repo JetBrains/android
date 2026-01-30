@@ -23,9 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.android.tools.idea.IdeInfo
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.DROPDOWN_HORIZONTAL_PADDING_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.DEVICE_SELECTION_DROPDOWN_VERTICAL_PADDING_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.DEVICE_SELECTION_VERTICAL_PADDING_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.DROPDOWN_HORIZONTAL_PADDING_DP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.NO_SUPPORTED_DEVICES_TITLE
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
@@ -35,30 +35,33 @@ import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
-fun DeviceSelectionDropdown(deviceList: List<Common.Device>,
-                            selectedDevice: ProfilerDeviceSelection?,
-                            onDeviceSelection: (Common.Device) -> Unit) {
+fun DeviceSelectionDropdown(
+  deviceList: List<Common.Device>,
+  selectedDevice: ProfilerDeviceSelection?,
+  onDeviceSelection: (Common.Device) -> Unit,
+) {
   // Only the standalone profiler should be using this dropdown component.
   assert(IdeInfo.isGameTool())
   Dropdown(
-    modifier = Modifier.fillMaxWidth().padding(horizontal = DROPDOWN_HORIZONTAL_PADDING_DP,
-                                               vertical = DEVICE_SELECTION_DROPDOWN_VERTICAL_PADDING_DP).testTag("DeviceSelectionDropdown"),
+    modifier =
+      Modifier.fillMaxWidth()
+        .padding(horizontal = DROPDOWN_HORIZONTAL_PADDING_DP, vertical = DEVICE_SELECTION_DROPDOWN_VERTICAL_PADDING_DP)
+        .testTag("DeviceSelectionDropdown"),
     menuContent = {
       if (deviceList.isEmpty()) {
         passiveItem {
-          Text(NO_SUPPORTED_DEVICES_TITLE,
-               modifier = Modifier.padding(horizontal = DROPDOWN_HORIZONTAL_PADDING_DP).testTag(
-                 "DefaultDeviceSelectionDropdownItem"))
+          Text(
+            NO_SUPPORTED_DEVICES_TITLE,
+            modifier = Modifier.padding(horizontal = DROPDOWN_HORIZONTAL_PADDING_DP).testTag("DefaultDeviceSelectionDropdownItem"),
+          )
         }
-      }
-      else {
+      } else {
         deviceList.forEach {
-          selectableItem(
-            selected = selectedDevice?.device == it,
-            onClick = { onDeviceSelection(it) }
-          ) {
-            Text(text = it.model,
-                 modifier = Modifier.padding(horizontal = DROPDOWN_HORIZONTAL_PADDING_DP).testTag("DeviceSelectionDropdownItem"))
+          selectableItem(selected = selectedDevice?.device == it, onClick = { onDeviceSelection(it) }) {
+            Text(
+              text = it.model,
+              modifier = Modifier.padding(horizontal = DROPDOWN_HORIZONTAL_PADDING_DP).testTag("DeviceSelectionDropdownItem"),
+            )
           }
         }
       }
@@ -67,8 +70,7 @@ fun DeviceSelectionDropdown(deviceList: List<Common.Device>,
     Box(modifier = Modifier.padding(vertical = DEVICE_SELECTION_VERTICAL_PADDING_DP)) {
       if (selectedDevice == null) {
         DeviceText(TaskBasedUxStrings.NO_DEVICE_SELECTED_TITLE)
-      }
-      else {
+      } else {
         SingleDeviceSelectionContent(selectedDevice)
       }
     }

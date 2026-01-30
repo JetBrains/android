@@ -59,11 +59,7 @@ interface MockValueScope {
   fun value(value: Value)
 }
 
-fun mockDebugProcess(
-  project: Project,
-  disposable: Disposable,
-  block: MockDebugProcessScope.() -> Unit,
-): MockDebugProcessImpl {
+fun mockDebugProcess(project: Project, disposable: Disposable, block: MockDebugProcessScope.() -> Unit): MockDebugProcessImpl {
   val debugProcess = MockDebugProcessImpl(project)
   Disposer.register(disposable) {
     // Stop and dispose the debugger process in order to avoid leaking the project via
@@ -82,8 +78,7 @@ fun mockDebugProcess(
         interfaces: List<InterfaceType>,
         block: MockReferenceTypeScope.() -> Unit,
       ): ClassType {
-        val classType =
-          debugProcess.addClassType(signature, superClass, interfaces) as MockClassType
+        val classType = debugProcess.addClassType(signature, superClass, interfaces) as MockClassType
         object : MockReferenceTypeScope {
             override fun method(
               name: String,
@@ -92,8 +87,7 @@ fun mockDebugProcess(
               lines: List<Int>,
               block: MockValueScope.() -> Unit,
             ) {
-              val method =
-                MockMethod(name, signature, argumentTypeNames, lines, classType, debugProcess)
+              val method = MockMethod(name, signature, argumentTypeNames, lines, classType, debugProcess)
               classType.addMethod(method)
 
               object : MockValueScope {
@@ -119,10 +113,7 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
   val prepareRequestPatterns = mutableListOf<String>()
   private val mockRequestManager =
     object : RequestManagerImpl(this) {
-      override fun createClassPrepareRequest(
-        requestor: ClassPrepareRequestor,
-        pattern: String,
-      ): ClassPrepareRequest? {
+      override fun createClassPrepareRequest(requestor: ClassPrepareRequestor, pattern: String): ClassPrepareRequest? {
         prepareRequestPatterns.add(pattern)
         return mock()
       }
@@ -144,15 +135,9 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
 
   override fun isAttached() = true
 
-  override fun invokeMethod(
-    evaluationContext: EvaluationContext,
-    objRef: ObjectReference,
-    method: Method,
-    args: List<Value>,
-  ): Value {
+  override fun invokeMethod(evaluationContext: EvaluationContext, objRef: ObjectReference, method: Method, args: List<Value>): Value {
     val referenceType: ReferenceType =
-      referencesByName[objRef.type().name()]
-        ?: error("Reference type \"${objRef.type()}\" is not available when asked.")
+      referencesByName[objRef.type().name()] ?: error("Reference type \"${objRef.type()}\" is not available when asked.")
 
     return when (referenceType) {
       is ClassType -> referenceType.invokeMethod(objRef.owningThread(), method, args, 0)
@@ -170,11 +155,7 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
     return invokeMethod(evaluationContext, objRef, method, args)
   }
 
-  fun addClassType(
-    name: String,
-    superClass: ClassType?,
-    interfaces: List<InterfaceType>,
-  ): ClassType {
+  fun addClassType(name: String, superClass: ClassType?, interfaces: List<InterfaceType>): ClassType {
     return MockClassType(this, name, superClass, interfaces).apply { referencesByName[name] = this }
   }
 }

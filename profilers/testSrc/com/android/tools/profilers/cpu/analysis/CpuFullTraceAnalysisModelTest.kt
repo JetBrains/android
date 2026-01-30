@@ -27,9 +27,7 @@ import org.mockito.kotlin.whenever
 class CpuFullTraceAnalysisModelTest {
   @Test
   fun analysisTabs() {
-    val capture = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(this.range).thenReturn(Range())
-    }
+    val capture = Mockito.mock(CpuCapture::class.java).apply { whenever(this.range).thenReturn(Range()) }
     val model = CpuFullTraceAnalysisModel(capture, Range(), Utils::runOnUi)
     val analysisModels = model.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()
     assertThat(analysisModels).containsExactly(Type.SUMMARY, Type.FLAME_CHART, Type.TOP_DOWN, Type.BOTTOM_UP)

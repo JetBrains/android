@@ -23,20 +23,15 @@ import com.android.build.attribution.ui.MockUiData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-
 class BuildAnalyzerViewModelTest {
 
   private var callsCount = 0
-  private val listenerMock: () -> Unit = {
-    callsCount++
-  }
+  private val listenerMock: () -> Unit = { callsCount++ }
 
   private val mockData = MockUiData()
   private val warningSuppressions = BuildAttributionWarningsFilter()
 
-  private val model = BuildAnalyzerViewModel(mockData, warningSuppressions).apply {
-    dataSetSelectionListener = listenerMock
-  }
+  private val model = BuildAnalyzerViewModel(mockData, warningSuppressions).apply { dataSetSelectionListener = listenerMock }
 
   @Test
   fun testInitialDataSetSelection() {
@@ -46,12 +41,14 @@ class BuildAnalyzerViewModelTest {
   @Test
   fun testInitialDataSetListOrderWithDownloadsEnabled() {
     val model = BuildAnalyzerViewModel(mockData, warningSuppressions)
-    assertThat(model.availableDataSets).containsExactly(
-      BuildAnalyzerViewModel.DataSet.OVERVIEW,
-      BuildAnalyzerViewModel.DataSet.TASKS,
-      BuildAnalyzerViewModel.DataSet.WARNINGS,
-      BuildAnalyzerViewModel.DataSet.DOWNLOADS
-    ).inOrder()
+    assertThat(model.availableDataSets)
+      .containsExactly(
+        BuildAnalyzerViewModel.DataSet.OVERVIEW,
+        BuildAnalyzerViewModel.DataSet.TASKS,
+        BuildAnalyzerViewModel.DataSet.WARNINGS,
+        BuildAnalyzerViewModel.DataSet.DOWNLOADS,
+      )
+      .inOrder()
   }
 
   @Test
@@ -74,16 +71,15 @@ class BuildAnalyzerViewModelTest {
 
   @Test
   fun testJetifierWarningAutoSelectedOnCheckJetifierBuilds() {
-    mockData.jetifierData = JetifierUsageAnalyzerResult(JetifierCanBeRemoved, lastCheckJetifierBuildTimestamp = 0, checkJetifierBuild = true)
-    val model = BuildAnalyzerViewModel(mockData, warningSuppressions).apply {
-      dataSetSelectionListener = listenerMock
-    }
+    mockData.jetifierData =
+      JetifierUsageAnalyzerResult(JetifierCanBeRemoved, lastCheckJetifierBuildTimestamp = 0, checkJetifierBuild = true)
+    val model = BuildAnalyzerViewModel(mockData, warningSuppressions).apply { dataSetSelectionListener = listenerMock }
     assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.WARNINGS)
   }
 
   /**
-   * This test is needed to make sure we show downloads page in dropdown if flag is true even if analyzer did not run
-   * because of older gradle version. Initial intention was to not show the page in that case but as we changed it, let's better test.
+   * This test is needed to make sure we show downloads page in dropdown if flag is true even if analyzer did not run because of older
+   * gradle version. Initial intention was to not show the page in that case but as we changed it, let's better test.
    */
   @Test
   fun testDownloadsPageShownInComboBoxWhenNoDataBecauseOfGradle() {

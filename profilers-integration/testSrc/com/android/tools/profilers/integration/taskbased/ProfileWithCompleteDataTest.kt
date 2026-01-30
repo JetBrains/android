@@ -21,12 +21,16 @@ import org.junit.Test
 class ProfileWithCompleteDataTest : ProfilersTestBase() {
 
   /**
-   * Validate “Profile ‘app’ with complete data” is  working.
+   * Validate “Profile ‘app’ with complete data” is working.
+   *
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
+   *
    * <p>
    * TT ID: 0ed907de-b0d9-414e-9677-41949626a434
+   *
    * <p>
+   *
    *   <pre>
    *   Test Steps:
    *   1. Import minapp in the testData directory of this module.
@@ -34,17 +38,18 @@ class ProfileWithCompleteDataTest : ProfilersTestBase() {
    *   Verify:
    *   1. Verify in the logs that the running debuggable process is found.
    *   </pre>
+   *
    * <p>
    */
   @Test
   fun testProfileAppWithComplete() {
     taskBasedProfiling(
-      deployApp=false,
+      deployApp = false,
       testFunction = { studio, adb ->
         profileWithCompleteData(studio, adb)
 
         verifyIdeaLog(".*Found\\s+running\\s+project\\s+process:\\s+\\d+,\\s+Debuggable\$", 120)
-      }
+      },
     )
   }
 }

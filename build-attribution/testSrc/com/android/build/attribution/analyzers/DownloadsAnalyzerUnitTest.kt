@@ -23,18 +23,19 @@ import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 import com.google.common.truth.Truth
+import java.net.URI
 import org.gradle.util.GradleVersion
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.mock
-import java.net.URI
 
 class DownloadsAnalyzerUnitTest {
 
   @Test
   fun testDownloadsAnalyzerReceivingEvents() {
     val result = testDownloadsAnalyzer()
-    Truth.assertThat((result as DownloadsAnalyzer.ActiveResult).repositoryResults.map { it.toExpectedRepositoryResult() }).containsExactly(
+    Truth.assertThat((result as DownloadsAnalyzer.ActiveResult).repositoryResults.map { it.toExpectedRepositoryResult() })
+      .containsExactly(
         ExpectedRepositoryResult(
           repository = DownloadsAnalyzer.KnownRepository.GOOGLE,
           successRequestsCount = 5,
@@ -44,7 +45,7 @@ class DownloadsAnalyzerUnitTest {
           missedRequestsTimeMs = 0,
           failedRequestsCount = 0,
           failedRequestsTimeMs = 0,
-          failedRequestsBytesDownloaded = 0
+          failedRequestsBytesDownloaded = 0,
         ),
         ExpectedRepositoryResult(
           repository = DownloadsAnalyzer.KnownRepository.MAVEN_CENTRAL,
@@ -55,7 +56,7 @@ class DownloadsAnalyzerUnitTest {
           missedRequestsTimeMs = 10,
           failedRequestsCount = 0,
           failedRequestsTimeMs = 0,
-          failedRequestsBytesDownloaded = 0
+          failedRequestsBytesDownloaded = 0,
         ),
         ExpectedRepositoryResult(
           repository = DownloadsAnalyzer.OtherRepository("bad.repo.one"),
@@ -66,7 +67,7 @@ class DownloadsAnalyzerUnitTest {
           missedRequestsTimeMs = 0,
           failedRequestsCount = 1,
           failedRequestsTimeMs = 20,
-          failedRequestsBytesDownloaded = 0
+          failedRequestsBytesDownloaded = 0,
         ),
         ExpectedRepositoryResult(
           repository = DownloadsAnalyzer.OtherRepository("bad.repo.two"),
@@ -77,9 +78,9 @@ class DownloadsAnalyzerUnitTest {
           missedRequestsTimeMs = 0,
           failedRequestsCount = 1,
           failedRequestsTimeMs = 10,
-          failedRequestsBytesDownloaded = 0
-        )
-    )
+          failedRequestsBytesDownloaded = 0,
+        ),
+      )
   }
 
   private fun testDownloadsAnalyzer(): DownloadsAnalyzer.Result {
@@ -87,13 +88,11 @@ class DownloadsAnalyzerUnitTest {
     val taskContainer = TaskContainer()
     val analyzer = DownloadsAnalyzer()
     val wrapper = BuildAnalyzersWrapper(listOf(analyzer), taskContainer, pluginContainer)
-    val attributionData = AndroidGradlePluginAttributionData(
-      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(
-        agpVersion = "7.3.0",
-        gradleVersion = "8.0.0",
-        configurationCacheIsOn = false
+    val attributionData =
+      AndroidGradlePluginAttributionData(
+        buildInfo =
+          AndroidGradlePluginAttributionData.BuildInfo(agpVersion = "7.3.0", gradleVersion = "8.0.0", configurationCacheIsOn = false)
       )
-    )
 
     val projectConfigurationDescriptor = createProjectConfigurationOperationDescriptor(":")
     val pluginA = createBinaryPluginIdentifierStub("pluginA", "my.gradle.plugin.PluginA")
@@ -102,74 +101,91 @@ class DownloadsAnalyzerUnitTest {
     wrapper.onBuildStart()
     // Below is the sample download events sequence based on events from a real build.
     // 1.1) during configuration request agp artifact from google repo. First pom file is requested.
-    wrapper.receiveEvent(downloadFinishEventStub(
-      downloadOperationDescriptorStub(
-        url = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.pom",
-        parent = projectConfigurationDescriptor
-      ),
-      downloadSuccessStub(0, 100, 10000) // time: 100, totalRepoTime: 100, totalRepoBytes: 10000
-    ))
+    wrapper.receiveEvent(
+      downloadFinishEventStub(
+        downloadOperationDescriptorStub(
+          url = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.pom",
+          parent = projectConfigurationDescriptor,
+        ),
+        downloadSuccessStub(0, 100, 10000), // time: 100, totalRepoTime: 100, totalRepoBytes: 10000
+      )
+    )
     // 1.2) Second module file is requested.
-    wrapper.receiveEvent(downloadFinishEventStub(
-      downloadOperationDescriptorStub(
-        url = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.module",
-        parent = projectConfigurationDescriptor
-      ),
-      downloadSuccessStub(110, 210, 15000) // time: 100, totalRepoTime: 200, totalRepoBytes: 25000
-    ))
+    wrapper.receiveEvent(
+      downloadFinishEventStub(
+        downloadOperationDescriptorStub(
+          url = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.module",
+          parent = projectConfigurationDescriptor,
+        ),
+        downloadSuccessStub(110, 210, 15000), // time: 100, totalRepoTime: 200, totalRepoBytes: 25000
+      )
+    )
     // 1.3) Jar file downloaded.
-    wrapper.receiveEvent(downloadFinishEventStub(
-      downloadOperationDescriptorStub(
-        url = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.jar",
-        parent = projectConfigurationDescriptor
-      ),
-      downloadSuccessStub(220, 320, 200000) // time: 100, totalRepoTime: 300, totalRepoBytes: 225000
-    ))
+    wrapper.receiveEvent(
+      downloadFinishEventStub(
+        downloadOperationDescriptorStub(
+          url = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.jar",
+          parent = projectConfigurationDescriptor,
+        ),
+        downloadSuccessStub(220, 320, 200000), // time: 100, totalRepoTime: 300, totalRepoBytes: 225000
+      )
+    )
     // 2) During task execution try to download lint-gradle.
     // 2.1) Request badly configured repo, download fails.
-    wrapper.receiveEvent(downloadFinishEventStub(
-      downloadOperationDescriptorStub(
-        url = "https://bad.repo.one/snapshot/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.pom",
-        parent = sampleTaskDescriptor
-      ),
-      downloadFailureStub(200, 220, 0, listOf(failureStub(
-        "Failed request 1",
-        listOf(failureStub("Caused by 1", emptyList()))
-      ))) // time: 20, totalRepoTime: 20, totalRepoBytes: 0
-    ))
+    wrapper.receiveEvent(
+      downloadFinishEventStub(
+        downloadOperationDescriptorStub(
+          url = "https://bad.repo.one/snapshot/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.pom",
+          parent = sampleTaskDescriptor,
+        ),
+        downloadFailureStub(
+          200,
+          220,
+          0,
+          listOf(failureStub("Failed request 1", listOf(failureStub("Caused by 1", emptyList())))),
+        ), // time: 20, totalRepoTime: 20, totalRepoBytes: 0
+      )
+    )
     // 2.2) Request another badly configured repo, download fails.
-    wrapper.receiveEvent(downloadFinishEventStub(
-      downloadOperationDescriptorStub(
-        url = "https://bad.repo.two/snapshot/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.pom",
-        parent = sampleTaskDescriptor
-      ),
-      downloadFailureStub(230, 240, 0, listOf(
-        failureStub("Failed request 2", emptyList())))
-    )) // time: 10, totalRepoTime: 10, totalRepoBytes: 0
+    wrapper.receiveEvent(
+      downloadFinishEventStub(
+        downloadOperationDescriptorStub(
+          url = "https://bad.repo.two/snapshot/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.pom",
+          parent = sampleTaskDescriptor,
+        ),
+        downloadFailureStub(230, 240, 0, listOf(failureStub("Failed request 2", emptyList()))),
+      )
+    ) // time: 10, totalRepoTime: 10, totalRepoBytes: 0
     // 2.3) Request maven central, but it could not be found there.
-    wrapper.receiveEvent(downloadFinishEventStub(
-      downloadOperationDescriptorStub(
-        url = "https://repo.maven.apache.org/maven2/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.pom",
-        parent = sampleTaskDescriptor
-      ),
-      downloadSuccessStub(240, 250, 0) // time: 10, totalRepoTime: 10, totalRepoBytes: 0
-    ))
+    wrapper.receiveEvent(
+      downloadFinishEventStub(
+        downloadOperationDescriptorStub(
+          url = "https://repo.maven.apache.org/maven2/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.pom",
+          parent = sampleTaskDescriptor,
+        ),
+        downloadSuccessStub(240, 250, 0), // time: 10, totalRepoTime: 10, totalRepoBytes: 0
+      )
+    )
     // 2.4) Request google repo, downloaded.
-    wrapper.receiveEvent(downloadFinishEventStub(
-      downloadOperationDescriptorStub(
-        url = "https://dl.google.com/dl/android/maven2/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.pom",
-        parent = sampleTaskDescriptor
-      ),
-      downloadSuccessStub(250, 300, 2000) // time: 50, totalRepoTime: 350, totalRepoBytes: 227000
-    ))
+    wrapper.receiveEvent(
+      downloadFinishEventStub(
+        downloadOperationDescriptorStub(
+          url = "https://dl.google.com/dl/android/maven2/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.pom",
+          parent = sampleTaskDescriptor,
+        ),
+        downloadSuccessStub(250, 300, 2000), // time: 50, totalRepoTime: 350, totalRepoBytes: 227000
+      )
+    )
     // 2.5) Jar file downloaded.
-    wrapper.receiveEvent(downloadFinishEventStub(
-      downloadOperationDescriptorStub(
-        url = "https://dl.google.com/dl/android/maven2/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.jar",
-        parent = sampleTaskDescriptor
-      ),
-      downloadSuccessStub(310, 410, 60000) // time: 100, totalRepoTime: 450, totalRepoBytes: 287000
-    ))
+    wrapper.receiveEvent(
+      downloadFinishEventStub(
+        downloadOperationDescriptorStub(
+          url = "https://dl.google.com/dl/android/maven2/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.jar",
+          parent = sampleTaskDescriptor,
+        ),
+        downloadSuccessStub(310, 410, 60000), // time: 100, totalRepoTime: 450, totalRepoBytes: 287000
+      )
+    )
 
     // When the build is finished successfully and the analyzer is run
     wrapper.onBuildSuccess(
@@ -183,8 +199,8 @@ class DownloadsAnalyzerUnitTest {
         buildInvocationType = BuildInvocationType.REGULAR_BUILD,
         enableJetifierPropertyState = false,
         useAndroidXPropertyState = false,
-        buildRequestHolder = mock()
-      )
+        buildRequestHolder = mock(),
+      ),
     )
 
     return analyzer.result
@@ -201,54 +217,65 @@ class DownloadsAnalyzerUnitTest {
   }
 
   @Test
-  fun testDownloadsAnalyzerInactiveWithOldGradleAndAgpVersions() = runTestWithNoEventsForAgpAndGradleVersions(
-    agpVersionFromBuild = "4.3.0",
-    gradleVersion = "7.2",
-    expectAnalyzerResult = DownloadsAnalyzer.GradleDoesNotProvideEvents
-  )
+  fun testDownloadsAnalyzerInactiveWithOldGradleAndAgpVersions() =
+    runTestWithNoEventsForAgpAndGradleVersions(
+      agpVersionFromBuild = "4.3.0",
+      gradleVersion = "7.2",
+      expectAnalyzerResult = DownloadsAnalyzer.GradleDoesNotProvideEvents,
+    )
 
   @Test
-  fun testDownloadsAnalyzerInactiveWithOldGradleAndMissingAgpVersions() = runTestWithNoEventsForAgpAndGradleVersions(
-    // This would mean some real old AGP as we added it at least in 4.3
-    agpVersionFromBuild = null,
-    gradleVersion = "7.2",
-    expectAnalyzerResult = DownloadsAnalyzer.GradleDoesNotProvideEvents
-  )
+  fun testDownloadsAnalyzerInactiveWithOldGradleAndMissingAgpVersions() =
+    runTestWithNoEventsForAgpAndGradleVersions(
+      // This would mean some real old AGP as we added it at least in 4.3
+      agpVersionFromBuild = null,
+      gradleVersion = "7.2",
+      expectAnalyzerResult = DownloadsAnalyzer.GradleDoesNotProvideEvents,
+    )
 
   @Test
-  fun testDownloadsAnalyzerInactiveWithOldAgpAndMissingGradleVersions() = runTestWithNoEventsForAgpAndGradleVersions(
-    agpVersionFromBuild = "4.3.0",
-    gradleVersion = null,
-    expectAnalyzerResult = DownloadsAnalyzer.GradleDoesNotProvideEvents
-  )
+  fun testDownloadsAnalyzerInactiveWithOldAgpAndMissingGradleVersions() =
+    runTestWithNoEventsForAgpAndGradleVersions(
+      agpVersionFromBuild = "4.3.0",
+      gradleVersion = null,
+      expectAnalyzerResult = DownloadsAnalyzer.GradleDoesNotProvideEvents,
+    )
 
   @Test
-  fun testDownloadsAnalyzerWithRecentAGP() = runTestWithNoEventsForAgpAndGradleVersions(
-    // Case for when we assume Gradle version base on AGP version received from build.
-    agpVersionFromBuild = "7.3.0",
-    gradleVersion = null,
-    expectAnalyzerResult = DownloadsAnalyzer.ActiveResult(emptyList())
-  )
+  fun testDownloadsAnalyzerWithRecentAGP() =
+    runTestWithNoEventsForAgpAndGradleVersions(
+      // Case for when we assume Gradle version base on AGP version received from build.
+      agpVersionFromBuild = "7.3.0",
+      gradleVersion = null,
+      expectAnalyzerResult = DownloadsAnalyzer.ActiveResult(emptyList()),
+    )
 
   @Test
-  fun testDownloadsAnalyzerWithOldAGPButRecentGradle() = runTestWithNoEventsForAgpAndGradleVersions(
-    agpVersionFromBuild = "4.3.0",
-    gradleVersion = "7.3",
-    expectAnalyzerResult = DownloadsAnalyzer.ActiveResult(emptyList())
-  )
+  fun testDownloadsAnalyzerWithOldAGPButRecentGradle() =
+    runTestWithNoEventsForAgpAndGradleVersions(
+      agpVersionFromBuild = "4.3.0",
+      gradleVersion = "7.3",
+      expectAnalyzerResult = DownloadsAnalyzer.ActiveResult(emptyList()),
+    )
 
-  private fun runTestWithNoEventsForAgpAndGradleVersions(agpVersionFromBuild: String?, gradleVersion: String?, expectAnalyzerResult: DownloadsAnalyzer.Result) {
+  private fun runTestWithNoEventsForAgpAndGradleVersions(
+    agpVersionFromBuild: String?,
+    gradleVersion: String?,
+    expectAnalyzerResult: DownloadsAnalyzer.Result,
+  ) {
     val pluginContainer = PluginContainer()
     val taskContainer = TaskContainer()
     val analyzer = DownloadsAnalyzer()
     val wrapper = BuildAnalyzersWrapper(listOf(analyzer), taskContainer, pluginContainer)
-    val attributionData = AndroidGradlePluginAttributionData(
-      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(
-        agpVersion = agpVersionFromBuild,
-        gradleVersion = "8.0.0",
-        configurationCacheIsOn = false
+    val attributionData =
+      AndroidGradlePluginAttributionData(
+        buildInfo =
+          AndroidGradlePluginAttributionData.BuildInfo(
+            agpVersion = agpVersionFromBuild,
+            gradleVersion = "8.0.0",
+            configurationCacheIsOn = false,
+          )
       )
-    )
 
     wrapper.onBuildStart()
     // When the build is finished successfully and the analyzer is run
@@ -258,13 +285,13 @@ class DownloadsAnalyzerUnitTest {
       Mockito.mock(BuildEventsAnalyzersProxy::class.java),
       StudioProvidedInfo(
         agpVersion = null,
-        gradleVersion = gradleVersion?.let{ GradleVersion.version(it) },
+        gradleVersion = gradleVersion?.let { GradleVersion.version(it) },
         configurationCachingGradlePropertyState = null,
         buildInvocationType = BuildInvocationType.REGULAR_BUILD,
         enableJetifierPropertyState = false,
         useAndroidXPropertyState = false,
-        buildRequestHolder = mock()
-      )
+        buildRequestHolder = mock(),
+      ),
     )
 
     Truth.assertThat(analyzer.result).isEqualTo(expectAnalyzerResult)
@@ -283,14 +310,15 @@ private data class ExpectedRepositoryResult(
   val failedRequestsBytesDownloaded: Long,
 )
 
-private fun DownloadsAnalyzer.RepositoryResult.toExpectedRepositoryResult() = ExpectedRepositoryResult(
-  repository,
-  successRequestsCount,
-  successRequestsTimeMs,
-  successRequestsBytesDownloaded,
-  missedRequestsCount,
-  missedRequestsTimeMs,
-  failedRequestsCount,
-  failedRequestsTimeMs,
-  failedRequestsBytesDownloaded
-)
+private fun DownloadsAnalyzer.RepositoryResult.toExpectedRepositoryResult() =
+  ExpectedRepositoryResult(
+    repository,
+    successRequestsCount,
+    successRequestsTimeMs,
+    successRequestsBytesDownloaded,
+    missedRequestsCount,
+    missedRequestsTimeMs,
+    failedRequestsCount,
+    failedRequestsTimeMs,
+    failedRequestsBytesDownloaded,
+  )

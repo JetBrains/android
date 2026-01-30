@@ -23,11 +23,9 @@ import org.jetbrains.annotations.Nls
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 class AndroidNonConstantResIdsInSwitchInspection : LocalInspectionTool() {
-  override fun getGroupDisplayName(): @Nls String =
-    AndroidBundle.message("android.inspections.group.name")
+  override fun getGroupDisplayName(): @Nls String = AndroidBundle.message("android.inspections.group.name")
 
-  override fun getDisplayName(): @Nls String =
-    AndroidBundle.message("android.inspections.non.constant.res.ids.in.switch.name")
+  override fun getDisplayName(): @Nls String = AndroidBundle.message("android.inspections.non.constant.res.ids.in.switch.name")
 
   override fun getShortName() = "AndroidNonConstantResIdsInSwitch"
 
@@ -40,9 +38,7 @@ class AndroidNonConstantResIdsInSwitchInspection : LocalInspectionTool() {
         val switchStatement = statement.getParentOfType<PsiSwitchStatement>(true) ?: return
         if (!ReplaceSwitchWithIfIntention.canProcess(switchStatement)) return
 
-        val problemCaseLabels =
-          statement.caseLabelElementList?.elements?.filter(::resolvesToNonFinalResourceField)
-            ?: return
+        val problemCaseLabels = statement.caseLabelElementList?.elements?.filter(::resolvesToNonFinalResourceField) ?: return
 
         for (caseLabel in problemCaseLabels) {
           holder.registerProblem(
@@ -56,8 +52,7 @@ class AndroidNonConstantResIdsInSwitchInspection : LocalInspectionTool() {
   }
 
   private fun resolvesToNonFinalResourceField(caseValue: PsiCaseLabelElement): Boolean {
-    val resolvedField =
-      (caseValue as? PsiReferenceExpression)?.resolve() as? PsiField ?: return false
+    val resolvedField = (caseValue as? PsiReferenceExpression)?.resolve() as? PsiField ?: return false
 
     if (!isResourceField(resolvedField)) return false
 
@@ -71,12 +66,9 @@ class AndroidNonConstantResIdsInSwitchInspection : LocalInspectionTool() {
     override fun getFamilyName() = getQuickFixName()
 
     override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
-      descriptor.psiElement
-        ?.getParentOfType<PsiSwitchStatement>(true)
-        ?.let(ConvertSwitchToIfIntention::doProcessIntention)
+      descriptor.psiElement?.getParentOfType<PsiSwitchStatement>(true)?.let(ConvertSwitchToIfIntention::doProcessIntention)
     }
   }
 }
 
-private fun getQuickFixName() =
-  IntentionPowerPackBundle.message("replace.switch.with.if.intention.name")
+private fun getQuickFixName() = IntentionPowerPackBundle.message("replace.switch.with.if.intention.name")

@@ -19,17 +19,15 @@ import com.intellij.ide.plugins.PluginManagerCore.getPlugin
 import com.intellij.openapi.extensions.PluginId
 
 /**
- * An adapter for accessing environment-dependent code version. For example, the version of the
- * plugin or library containing this class. See subclasses for descriptions of behavior in specific
- * environments.
+ * An adapter for accessing environment-dependent code version. For example, the version of the plugin or library containing this class. See
+ * subclasses for descriptions of behavior in specific environments.
  */
 object CodeVersionAdapter {
 
   private const val ANDROID_PLUGIN_ID = "org.jetbrains.android"
 
   /**
-   * Returns the version of library of plugin containing this class or null if the code is not a
-   * part of a plugin or a versioned library.
+   * Returns the version of library of plugin containing this class or null if the code is not a part of a plugin or a versioned library.
    */
   @JvmStatic
   fun getCodeVersion(): String? {

@@ -31,88 +31,100 @@ import java.io.OutputStreamWriter
 import java.util.stream.Stream
 import javax.swing.JTree
 
-class CsvExporter(private val getTree: () -> JTree?,
-                  private val getCaptureObject: () -> CaptureObject,
-                  private val ideProfilerComponents: IdeProfilerComponents,
-                  private val ideServices: IdeProfilerServices) {
+class CsvExporter(
+  private val getTree: () -> JTree?,
+  private val getCaptureObject: () -> CaptureObject,
+  private val ideProfilerComponents: IdeProfilerComponents,
+  private val ideServices: IdeProfilerServices,
+) {
 
   fun makeClassExportItem(): ContextMenuItem {
-    fun classStream(c: ClassifierSet): Stream<ClassSet> = when (c) {
-      is ClassSet -> Stream.of(c)
-      else -> c.childrenClassifierSets.stream().flatMap(::classStream)
-    }
-    return makeContextMenuItem("Export class entries under selection",
-                               { getCaptureObject().classifierAttributes },
-                               ::classStream,
-                               mapOf(
-                                 ClassifierAttribute.LABEL to ClassifierSet::getName,
-                                 ClassifierAttribute.ALLOCATIONS to ClassifierSet::deltaAllocationCount,
-                                 ClassifierAttribute.DEALLOCATIONS to ClassifierSet::deltaDeallocationCount,
-                                 ClassifierAttribute.TOTAL_COUNT to ClassifierSet::totalObjectCount,
-                                 ClassifierAttribute.NATIVE_SIZE to ClassifierSet::totalNativeSize,
-                                 ClassifierAttribute.SHALLOW_SIZE to ClassifierSet::totalShallowSize,
-                                 ClassifierAttribute.SHALLOW_DIFFERENCE to ClassifierSet::deltaShallowSize,
-                                 ClassifierAttribute.RETAINED_SIZE to ClassifierSet::totalRetainedSize,
-                                 ClassifierAttribute.ALLOCATIONS_SIZE to ClassifierSet::allocationSize,
-                                 ClassifierAttribute.DEALLOCATIONS_SIZE to ClassifierSet::deallocationSize,
-                                 ClassifierAttribute.REMAINING_SIZE to ClassifierSet::totalRemainingSize
-                               ))
+    fun classStream(c: ClassifierSet): Stream<ClassSet> =
+      when (c) {
+        is ClassSet -> Stream.of(c)
+        else -> c.childrenClassifierSets.stream().flatMap(::classStream)
+      }
+    return makeContextMenuItem(
+      "Export class entries under selection",
+      { getCaptureObject().classifierAttributes },
+      ::classStream,
+      mapOf(
+        ClassifierAttribute.LABEL to ClassifierSet::getName,
+        ClassifierAttribute.ALLOCATIONS to ClassifierSet::deltaAllocationCount,
+        ClassifierAttribute.DEALLOCATIONS to ClassifierSet::deltaDeallocationCount,
+        ClassifierAttribute.TOTAL_COUNT to ClassifierSet::totalObjectCount,
+        ClassifierAttribute.NATIVE_SIZE to ClassifierSet::totalNativeSize,
+        ClassifierAttribute.SHALLOW_SIZE to ClassifierSet::totalShallowSize,
+        ClassifierAttribute.SHALLOW_DIFFERENCE to ClassifierSet::deltaShallowSize,
+        ClassifierAttribute.RETAINED_SIZE to ClassifierSet::totalRetainedSize,
+        ClassifierAttribute.ALLOCATIONS_SIZE to ClassifierSet::allocationSize,
+        ClassifierAttribute.DEALLOCATIONS_SIZE to ClassifierSet::deallocationSize,
+        ClassifierAttribute.REMAINING_SIZE to ClassifierSet::totalRemainingSize,
+      ),
+    )
   }
 
   fun makeInstanceExportItem() =
-    makeContextMenuItem("Export instance entries under selection",
-                        { getCaptureObject().instanceAttributes },
-                        { it.instancesStream },
-                        mapOf(
-                          InstanceAttribute.LABEL to InstanceObject::getValueText,
-                          InstanceAttribute.DEPTH to InstanceObject::getDepth,
-                          InstanceAttribute.ALLOCATION_TIME to InstanceObject::getAllocTime,
-                          InstanceAttribute.DEALLOCATION_TIME to InstanceObject::getDeallocTime,
-                          InstanceAttribute.NATIVE_SIZE to InstanceObject::getNativeSize,
-                          InstanceAttribute.SHALLOW_SIZE to InstanceObject::getShallowSize,
-                          InstanceAttribute.RETAINED_SIZE to InstanceObject::getRetainedSize,
-                        ))
-
-  @VisibleForTesting
-  fun<E, A> makeContextMenuItem(title: String,
-                                getAttributes: () -> List<A>,
-                                getEntryStream: (ClassifierSet) -> Stream<E>,
-                                formatters: Map<A, (E) -> Any>) = object : RunnableContextMenuItem {
-    override fun getText() = title
-    override fun getIcon() = null
-    override fun isEnabled() = getTree()?.let { !it.isSelectionEmpty } ?: false
-    override fun run() = ideProfilerComponents.createExportDialog().open(
-      { "Export As" },
-      MemoryProfiler::generateCaptureFileName,
-      { "csv" },
-      { ideServices.saveFile(it, ::exportEntries, null) }
+    makeContextMenuItem(
+      "Export instance entries under selection",
+      { getCaptureObject().instanceAttributes },
+      { it.instancesStream },
+      mapOf(
+        InstanceAttribute.LABEL to InstanceObject::getValueText,
+        InstanceAttribute.DEPTH to InstanceObject::getDepth,
+        InstanceAttribute.ALLOCATION_TIME to InstanceObject::getAllocTime,
+        InstanceAttribute.DEALLOCATION_TIME to InstanceObject::getDeallocTime,
+        InstanceAttribute.NATIVE_SIZE to InstanceObject::getNativeSize,
+        InstanceAttribute.SHALLOW_SIZE to InstanceObject::getShallowSize,
+        InstanceAttribute.RETAINED_SIZE to InstanceObject::getRetainedSize,
+      ),
     )
 
-    override fun exportEntries(output: OutputStream) {
-      val writer = BufferedWriter(OutputStreamWriter(output))
-      getTree()?.selectionPath?.lastPathComponent?.let { selection ->
-        val (initAttrs, lastAttr) = with(getAttributes()) {
-          assert(isNotEmpty())
-          Pair(subList(0, size - 1), last())
-        }
+  @VisibleForTesting
+  fun <E, A> makeContextMenuItem(
+    title: String,
+    getAttributes: () -> List<A>,
+    getEntryStream: (ClassifierSet) -> Stream<E>,
+    formatters: Map<A, (E) -> Any>,
+  ) =
+    object : RunnableContextMenuItem {
+      override fun getText() = title
 
-        fun outputLine(onAttr: (A) -> Any) {
-          initAttrs.forEach {
-            writer.write(onAttr(it).toString())
-            writer.write(",")
+      override fun getIcon() = null
+
+      override fun isEnabled() = getTree()?.let { !it.isSelectionEmpty } ?: false
+
+      override fun run() =
+        ideProfilerComponents
+          .createExportDialog()
+          .open({ "Export As" }, MemoryProfiler::generateCaptureFileName, { "csv" }, { ideServices.saveFile(it, ::exportEntries, null) })
+
+      override fun exportEntries(output: OutputStream) {
+        val writer = BufferedWriter(OutputStreamWriter(output))
+        getTree()?.selectionPath?.lastPathComponent?.let { selection ->
+          val (initAttrs, lastAttr) =
+            with(getAttributes()) {
+              assert(isNotEmpty())
+              Pair(subList(0, size - 1), last())
+            }
+
+          fun outputLine(onAttr: (A) -> Any) {
+            initAttrs.forEach {
+              writer.write(onAttr(it).toString())
+              writer.write(",")
+            }
+            writer.write(onAttr(lastAttr).toString())
+            writer.newLine()
           }
-          writer.write(onAttr(lastAttr).toString())
-          writer.newLine()
-        }
 
-        outputLine {it.toString()}
-        getEntryStream((selection as MemoryObjectTreeNode<*>).adapter as ClassifierSet).forEach { inst ->
-          outputLine { formatters[it]!!(inst) }
+          outputLine { it.toString() }
+          getEntryStream((selection as MemoryObjectTreeNode<*>).adapter as ClassifierSet).forEach { inst ->
+            outputLine { formatters[it]!!(inst) }
+          }
+          writer.flush()
         }
-        writer.flush()
       }
     }
-  }
 
   @VisibleForTesting
   interface RunnableContextMenuItem : ContextMenuItem {

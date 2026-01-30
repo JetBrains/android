@@ -18,13 +18,11 @@ package com.android.ide.gradle.model.impl
 import nl.jqno.equalsverifier.EqualsVerifier
 import org.junit.Test
 
-/**
- * Test class for [GradlePluginModelImpl].
- */
+/** Test class for [GradlePluginModelImpl]. */
 class GradlePluginModelImplTest {
-    @Test
-    @Throws(Exception::class)
-    fun equals() {
-        EqualsVerifier.forClass(GradlePluginModelImpl::class.java).verify()
-    }
+  @Test
+  @Throws(Exception::class)
+  fun equals() {
+    EqualsVerifier.forClass(GradlePluginModelImpl::class.java).verify()
+  }
 }

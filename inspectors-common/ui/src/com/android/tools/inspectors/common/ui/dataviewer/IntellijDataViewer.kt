@@ -69,7 +69,6 @@ class IntellijDataViewer private constructor(private val component: JComponent, 
     /**
      * Create a data viewer that renders its content as is, without any attempt to clean it up.
      *
-     *
      * Note: to prevent UI from being frozen by large text, the content will be truncated.
      */
     @JvmOverloads
@@ -83,13 +82,12 @@ class IntellijDataViewer private constructor(private val component: JComponent, 
     }
 
     /**
-     * Create a data viewer that automatically formats the content it receives. In cases where it is
-     * not able to do this, or it is not desirable to do this (e.g. plain text), it returns a
-     * [RAW] viewer instead. Be sure to check [IntellijDataViewer.getStyle] if
-     * this matters for your use-case.
+     * Create a data viewer that automatically formats the content it receives. In cases where it is not able to do this, or it is not
+     * desirable to do this (e.g. plain text), it returns a [RAW] viewer instead. Be sure to check [IntellijDataViewer.getStyle] if this
+     * matters for your use-case.
      *
-     * @param fileType An optional file type that can be associated with this content, which,
-     * if provided, hints to the editor how it should format it.
+     * @param fileType An optional file type that can be associated with this content, which, if provided, hints to the editor how it should
+     *   format it.
      */
     fun createPrettyViewerIfPossible(
       project: Project,
@@ -104,11 +102,12 @@ class IntellijDataViewer private constructor(private val component: JComponent, 
         var showNotification = false
         var style = PRETTY
 
-        val virtualFile = when {
-          !formatted || fileType == null || fileType == PlainTextFileType.INSTANCE -> createFile(fileType, content).also { style = RAW }
-          content.length > maxSizeToFormat -> createFile(fileType, content).also { showNotification = true }
-          else -> createFormattedFile(project, fileType, content)
-        }
+        val virtualFile =
+          when {
+            !formatted || fileType == null || fileType == PlainTextFileType.INSTANCE -> createFile(fileType, content).also { style = RAW }
+            content.length > maxSizeToFormat -> createFile(fileType, content).also { showNotification = true }
+            else -> createFormattedFile(project, fileType, content)
+          }
 
         val textEditor = PsiAwareTextEditorProvider().createEditor(project, virtualFile) as TextEditor
         configureEditor(textEditor.editor as EditorEx)
@@ -118,7 +117,6 @@ class IntellijDataViewer private constructor(private val component: JComponent, 
 
         val component = if (showNotification) getComponentWithNotification(textEditor.editor) else textEditor.editor.component
         IntellijDataViewer(component, style)
-
       } catch (e: Throwable) {
         // Exceptions and AssertionErrors can be thrown by editorFactory.createDocument and editorFactory.createViewer
         logger.warn("Failed to create pretty viewer", e)
@@ -136,31 +134,25 @@ class IntellijDataViewer private constructor(private val component: JComponent, 
 
 /** Wrap the `Editor.component` with a panel that adds a notification banner above it */
 private fun getComponentWithNotification(editor: Editor): JComponent {
-  val banner = EditorNotificationPanel(WARNING_BACKGROUND).apply {
-    border = BorderFactory.createCompoundBorder(JBUI.Borders.customLine(JBColor.border(), 1, 1, 0, 1), border)
-    text = "Response was not auto-formatted because it was too large."
-    createActionLabel("Reformat now") {
-      val project = editor.project ?: return@createActionLabel logger.warn("Editor with no project")
-      val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
-        ?: return@createActionLabel logger.warn("Missing PsiFile")
-      reformatPsiFile(project, psiFile)
-      isVisible = false
+  val banner =
+    EditorNotificationPanel(WARNING_BACKGROUND).apply {
+      border = BorderFactory.createCompoundBorder(JBUI.Borders.customLine(JBColor.border(), 1, 1, 0, 1), border)
+      text = "Response was not auto-formatted because it was too large."
+      createActionLabel("Reformat now") {
+        val project = editor.project ?: return@createActionLabel logger.warn("Editor with no project")
+        val psiFile =
+          PsiDocumentManager.getInstance(project).getPsiFile(editor.document) ?: return@createActionLabel logger.warn("Missing PsiFile")
+        reformatPsiFile(project, psiFile)
+        isVisible = false
+      }
     }
-  }
 
   return JPanel(null).apply {
-    layout = GroupLayout(this).apply {
-      setVerticalGroup(
-        createSequentialGroup()
-          .addComponent(banner)
-          .addComponent(editor.component)
-      )
-      setHorizontalGroup(
-        createParallelGroup(GroupLayout.Alignment.CENTER)
-          .addComponent(banner)
-          .addComponent(editor.component)
-      )
-    }
+    layout =
+      GroupLayout(this).apply {
+        setVerticalGroup(createSequentialGroup().addComponent(banner).addComponent(editor.component))
+        setHorizontalGroup(createParallelGroup(GroupLayout.Alignment.CENTER).addComponent(banner).addComponent(editor.component))
+      }
   }
 }
 
@@ -184,11 +176,9 @@ private fun reformatPsiFile(project: Project, psiFile: PsiFile) {
 }
 
 /**
- * We need to support documents with \r newlines in them (since network payloads can contain
- * data from any OS); however, Document will assert if it finds a \r as a line ending in its
- * content and the user will see a mysterious "NO PREVIEW" message without any information
- * on why. The Document class allows you to change a setting to allow \r, but this breaks
- * soft wrapping in the editor.
+ * We need to support documents with \r newlines in them (since network payloads can contain data from any OS); however, Document will
+ * assert if it finds a \r as a line ending in its content and the user will see a mysterious "NO PREVIEW" message without any information
+ * on why. The Document class allows you to change a setting to allow \r, but this breaks soft wrapping in the editor.
  */
 private fun ByteArray.toContent() = decodeToString().replace("\r\n", "\n")
 

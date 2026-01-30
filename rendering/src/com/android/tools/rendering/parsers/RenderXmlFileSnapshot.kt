@@ -47,9 +47,7 @@ class RenderXmlFileSnapshot(
   override val resourceNamespace: ResourceNamespace = ResourceNamespace.RES_AUTO
 
   override fun getRootTagAttribute(attribute: String, namespace: String?): String? =
-    (namespace?.let { rootTag.getAttribute(namespace, attribute) }
-        ?: rootTag.getAttribute(attribute))
-      ?.value
+    (namespace?.let { rootTag.getAttribute(namespace, attribute) } ?: rootTag.getAttribute(attribute))?.value
 
   override fun get(): PsiFile {
     throw NotImplementedError("Getting PsiFile from XmlFileSnapshot is not supported.")

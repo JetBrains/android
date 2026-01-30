@@ -24,13 +24,11 @@ class SliceStreamTest {
   fun testCallbackOnlyOnMatchingPattern() {
     val sliceList = buildSliceGroup(5)
     var callBackTimes = 0
-    SliceStream(sliceList)
-      .matchName("Test1")
-      .enumerate { slice ->
-        assertThat(slice.name).isEqualTo("Test1")
-        callBackTimes++
-        SliceStream.EnumerationResult.CONTINUE
-      }
+    SliceStream(sliceList).matchName("Test1").enumerate { slice ->
+      assertThat(slice.name).isEqualTo("Test1")
+      callBackTimes++
+      SliceStream.EnumerationResult.CONTINUE
+    }
     assertThat(callBackTimes).isEqualTo(1)
   }
 
@@ -39,14 +37,12 @@ class SliceStreamTest {
     val sliceList = buildSliceGroup(5)
     val rangeList = listOf(Range(0.0, 1.0), Range(1.0, 2.0), Range(2.0, 3.0))
     var rangeIndex = 0
-    SliceStream(sliceList)
-      .overlapsRange(Range(1.0, 2.0))
-      .enumerate { slice ->
-        assertThat(slice.startTimestampUs).isEqualTo(rangeList[rangeIndex].min.toLong())
-        assertThat(slice.endTimestampUs).isEqualTo(rangeList[rangeIndex].max.toLong())
-        rangeIndex++
-        SliceStream.EnumerationResult.CONTINUE
-      }
+    SliceStream(sliceList).overlapsRange(Range(1.0, 2.0)).enumerate { slice ->
+      assertThat(slice.startTimestampUs).isEqualTo(rangeList[rangeIndex].min.toLong())
+      assertThat(slice.endTimestampUs).isEqualTo(rangeList[rangeIndex].max.toLong())
+      rangeIndex++
+      SliceStream.EnumerationResult.CONTINUE
+    }
     assertThat(rangeList).hasSize(rangeIndex)
   }
 

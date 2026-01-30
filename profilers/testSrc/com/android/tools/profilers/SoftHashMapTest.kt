@@ -22,8 +22,8 @@ class SoftHashMapTest {
   @Test
   fun `map gives back what was put in (modulo null)`() {
     val m = SoftHashMap<Int, String>()
-    (0 .. 10).forEach { m[it] = it.toString() }
-    fun check() = (0 .. 10).forEach { assertThat(m[it]).isAnyOf(it.toString(), null) }
+    (0..10).forEach { m[it] = it.toString() }
+    fun check() = (0..10).forEach { assertThat(m[it]).isAnyOf(it.toString(), null) }
     check()
     repeat(3) { System.gc() }
     check()
@@ -32,7 +32,7 @@ class SoftHashMapTest {
   @Test
   fun `soft references are cleared when not enough memory`() {
     val m = SoftHashMap<Int, String>()
-    (0 .. 10).forEach { m[it] = it.toString() }
+    (0..10).forEach { m[it] = it.toString() }
     try {
       tailrec fun allocTillDeath(size: Int) {
         IntArray(size)

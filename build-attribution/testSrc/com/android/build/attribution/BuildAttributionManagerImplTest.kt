@@ -33,6 +33,10 @@ import com.google.wireless.android.sdk.stats.BuildAttributionStats
 import com.intellij.testFramework.LoggedErrorProcessor
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
+import java.io.BufferedWriter
+import java.io.File
+import java.io.FileWriter
+import java.util.EnumSet
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.junit.After
 import org.junit.Before
@@ -41,16 +45,11 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
-import java.io.BufferedWriter
-import java.io.File
-import java.io.FileWriter
-import java.util.EnumSet
 
 class BuildAttributionManagerImplTest {
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   @Before
   fun setUp() {
@@ -80,11 +79,12 @@ class BuildAttributionManagerImplTest {
     Truth.assertThat(buildAttributionFile.parentFile.exists()).isFalse()
 
     // Check events
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
-      .map { use -> use.studioEvent.buildAttributionStats.let { it.buildType to it.buildAnalysisStatus } }
-    Truth.assertThat(buildAttributionEvents).isEqualTo(listOf(
-      BuildAttributionStats.BuildType.REGULAR_BUILD to BuildAttributionStats.BuildAnalysisStatus.SUCCESS,
-    ))
+    val buildAttributionEvents =
+      tracker.usages
+        .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
+        .map { use -> use.studioEvent.buildAttributionStats.let { it.buildType to it.buildAnalysisStatus } }
+    Truth.assertThat(buildAttributionEvents)
+      .isEqualTo(listOf(BuildAttributionStats.BuildType.REGULAR_BUILD to BuildAttributionStats.BuildAnalysisStatus.SUCCESS))
   }
 
   @Test
@@ -105,11 +105,12 @@ class BuildAttributionManagerImplTest {
     Truth.assertThat(buildAttributionFile.parentFile.exists()).isFalse()
 
     // Check events
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
-      .map { use -> use.studioEvent.buildAttributionStats.let { it.buildType to it.buildAnalysisStatus } }
-    Truth.assertThat(buildAttributionEvents).isEqualTo(listOf(
-      BuildAttributionStats.BuildType.REGULAR_BUILD to BuildAttributionStats.BuildAnalysisStatus.BUILD_FAILURE,
-    ))
+    val buildAttributionEvents =
+      tracker.usages
+        .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
+        .map { use -> use.studioEvent.buildAttributionStats.let { it.buildType to it.buildAnalysisStatus } }
+    Truth.assertThat(buildAttributionEvents)
+      .isEqualTo(listOf(BuildAttributionStats.BuildType.REGULAR_BUILD to BuildAttributionStats.BuildAnalysisStatus.BUILD_FAILURE))
   }
 
   @Test
@@ -124,15 +125,17 @@ class BuildAttributionManagerImplTest {
     Truth.assertThat(buildAttributionFile.exists()).isTrue()
 
     // Expect exception to be caught and logged.
-    LoggedErrorProcessor.executeWith<RuntimeExceptionAnswer.TestException>(object : LoggedErrorProcessor() {
-      override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): Set<Action> {
-        if (t is RuntimeExceptionAnswer.TestException) {
-          exceptionWasLogged = true
-          return EnumSet.noneOf(Action::class.java)
+    LoggedErrorProcessor.executeWith<RuntimeExceptionAnswer.TestException>(
+      object : LoggedErrorProcessor() {
+        override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): Set<Action> {
+          if (t is RuntimeExceptionAnswer.TestException) {
+            exceptionWasLogged = true
+            return EnumSet.noneOf(Action::class.java)
+          }
+          return super.processError(category, message, details, t)
         }
-        return super.processError(category, message, details, t)
       }
-    }) {
+    ) {
       buildAttributionManager.onBuildStart(request)
       buildAttributionManager.statusChanged(brokenTaskFinishEvent)
       buildAttributionManager.onBuildSuccess(request)
@@ -148,13 +151,13 @@ class BuildAttributionManagerImplTest {
     Truth.assertThat(exceptionWasLogged).isTrue()
 
     // Check events.
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
-      .map { use -> use.studioEvent.buildAttributionStats.let { it.buildType to it.buildAnalysisStatus } }
-    Truth.assertThat(buildAttributionEvents).isEqualTo(listOf(
-      BuildAttributionStats.BuildType.REGULAR_BUILD to BuildAttributionStats.BuildAnalysisStatus.ANALYSIS_FAILURE,
-    ))
+    val buildAttributionEvents =
+      tracker.usages
+        .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
+        .map { use -> use.studioEvent.buildAttributionStats.let { it.buildType to it.buildAnalysisStatus } }
+    Truth.assertThat(buildAttributionEvents)
+      .isEqualTo(listOf(BuildAttributionStats.BuildType.REGULAR_BUILD to BuildAttributionStats.BuildAnalysisStatus.ANALYSIS_FAILURE))
   }
-
 
   @Test
   fun testCheckJetifierBuild() {
@@ -175,11 +178,12 @@ class BuildAttributionManagerImplTest {
     Truth.assertThat(buildAttributionFile.parentFile.exists()).isFalse()
 
     // Check events
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
-      .map { use -> use.studioEvent.buildAttributionStats.let { it.buildType to it.buildAnalysisStatus } }
-    Truth.assertThat(buildAttributionEvents).isEqualTo(listOf(
-      BuildAttributionStats.BuildType.CHECK_JETIFIER_BUILD to BuildAttributionStats.BuildAnalysisStatus.SUCCESS,
-    ))
+    val buildAttributionEvents =
+      tracker.usages
+        .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
+        .map { use -> use.studioEvent.buildAttributionStats.let { it.buildType to it.buildAnalysisStatus } }
+    Truth.assertThat(buildAttributionEvents)
+      .isEqualTo(listOf(BuildAttributionStats.BuildType.CHECK_JETIFIER_BUILD to BuildAttributionStats.BuildAnalysisStatus.SUCCESS))
   }
 
   private fun createBuildAttributionFile(request: GradleBuildInvoker.Request): File {
@@ -187,11 +191,7 @@ class BuildAttributionManagerImplTest {
     val outputDir = getAgpAttributionFileDir(request.data)
     val file = AndroidGradlePluginAttributionData.getAttributionFile(outputDir)
     file.parentFile.mkdirs()
-    BufferedWriter(FileWriter(file)).use {
-      it.write(AndroidGradlePluginAttributionData.AttributionDataAdapter.toJson(
-        attributionData
-      ))
-    }
+    BufferedWriter(FileWriter(file)).use { it.write(AndroidGradlePluginAttributionData.AttributionDataAdapter.toJson(attributionData)) }
     return file
   }
 
@@ -202,6 +202,7 @@ class BuildAttributionManagerImplTest {
 
   private class RuntimeExceptionAnswer : Answer<Any> {
     class TestException : RuntimeException()
+
     override fun answer(invocation: InvocationOnMock): Any {
       throw TestException()
     }

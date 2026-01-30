@@ -15,7 +15,6 @@
  */
 package com.android.tools.res.ids
 
-import org.jetbrains.annotations.TestOnly
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.FieldVisitor
@@ -26,6 +25,7 @@ import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.NoSuchElementException
+import org.jetbrains.annotations.TestOnly
 
 /** Loads the given [Class] from disk if available. */
 private fun Class<*>.loadClassBytes(fqcn: String = simpleName): ByteArray =
@@ -69,8 +69,7 @@ data class ResourceClass(
     get() = declaredFieldsIndex.values.toList()
 
   /**
-   * A Java field declaration. The [ResourceClass] only supports int and int array fields as they
-   * are the only needed by R class parsing.
+   * A Java field declaration. The [ResourceClass] only supports int and int array fields as they are the only needed by R class parsing.
    */
   sealed class Field {
     abstract val name: String
@@ -81,38 +80,31 @@ data class ResourceClass(
      * @param name The name of the field.
      * @param value The integer value of the field.
      */
-    data class Int(override val name: String, val isStatic: Boolean, val value: kotlin.Int) :
-      Field()
+    data class Int(override val name: String, val isStatic: Boolean, val value: kotlin.Int) : Field()
 
     /**
-     * Represents an integer field that could not be calculated at load time. This can happen if the
-     * value of the field depends on other classes that might not have been loaded at yet. The
-     * resource class loading will do a pass once everything is loaded to fix the unresolved
-     * references.
+     * Represents an integer field that could not be calculated at load time. This can happen if the value of the field depends on other
+     * classes that might not have been loaded at yet. The resource class loading will do a pass once everything is loaded to fix the
+     * unresolved references.
      */
-    data class UnresolvedInt(
-      override val name: String,
-      val sourceType: String,
-      val sourceFieldName: String,
-    ) : Field()
+    data class UnresolvedInt(override val name: String, val sourceType: String, val sourceFieldName: String) : Field()
 
-    data class IntArray(override val name: String, val isStatic: Boolean, val value: List<Field>) :
-      Field()
+    data class IntArray(override val name: String, val isStatic: Boolean, val value: List<Field>) : Field()
   }
 }
 
 /**
- * A [MethodVisitor] that "executes" the static initializer so we can resolve the value of int
- * arrays or fields that are not known at compile time.
+ * A [MethodVisitor] that "executes" the static initializer so we can resolve the value of int arrays or fields that are not known at
+ * compile time.
  *
  * This class looks basically for 3 types of instructions:
- * - GETSTATIC: This indicates that we are trying to load a value from somewhere else. Typically,
- *   this is left as an [Field.UndefinedInt] value and will be resolved at a later stage.
- * - PUTSTATIC: This indicates one of two things. Either we are trying to set the value of an array
- *   or we are initializing a field that was not initialized at compile time.
+ * - GETSTATIC: This indicates that we are trying to load a value from somewhere else. Typically, this is left as an [Field.UndefinedInt]
+ *   value and will be resolved at a later stage.
+ * - PUTSTATIC: This indicates one of two things. Either we are trying to set the value of an array or we are initializing a field that was
+ *   not initialized at compile time.
  * - IASTORE: This signals that we are putting a new int value in the array.
- * - ICONST_M1, ICONST_X: These instructions push a constant integer value (-1 to 5) onto the
- *   operand stack. These values are used in conjunction with PUTSTATIC or IASTORE.
+ * - ICONST_M1, ICONST_X: These instructions push a constant integer value (-1 to 5) onto the operand stack. These values are used in
+ *   conjunction with PUTSTATIC or IASTORE.
  */
 private class InitializerMethodVisitor(
   val onArrayDeclaration: (Boolean, ResourceClass.Field.IntArray) -> Unit,
@@ -126,27 +118,16 @@ private class InitializerMethodVisitor(
     when (opcode) {
       Opcodes.GETSTATIC -> {
         if (descriptor == Type.INT_TYPE.descriptor) {
-          operandStack.add(
-            ResourceClass.Field.UnresolvedInt(
-              "[${arrayStack.size}]",
-              owner.substringAfterLast("$"),
-              name,
-            )
-          )
+          operandStack.add(ResourceClass.Field.UnresolvedInt("[${arrayStack.size}]", owner.substringAfterLast("$"), name))
           hasUnresolvedFields = true
         }
       }
       Opcodes.PUTSTATIC -> {
         if (descriptor == "[I") {
-          onArrayDeclaration(
-            hasUnresolvedFields,
-            ResourceClass.Field.IntArray(name, isStatic = true, arrayStack.toList()),
-          )
+          onArrayDeclaration(hasUnresolvedFields, ResourceClass.Field.IntArray(name, isStatic = true, arrayStack.toList()))
           arrayStack.clear()
         } else if (descriptor == Type.INT_TYPE.descriptor) {
-          onFieldDeclaration(
-            (operandStack.removeLast() as ResourceClass.Field.Int).copy(name = name)
-          )
+          onFieldDeclaration((operandStack.removeLast() as ResourceClass.Field.Int).copy(name = name))
         }
       }
     }
@@ -179,20 +160,15 @@ private class InitializerMethodVisitor(
   }
 }
 
-private class ResourceClassVisitor(private val resourceClassResolver: (String) -> ByteArray) :
-  ClassVisitor(Opcodes.ASM9) {
+private class ResourceClassVisitor(private val resourceClassResolver: (String) -> ByteArray) : ClassVisitor(Opcodes.ASM9) {
   private val declaredClassesIndex: MutableMap<String, ResourceClass> = mutableMapOf()
   private val declaredFieldsIndex: MutableMap<String, ResourceClass.Field> = mutableMapOf()
   private var hasUnresolvedFields = false
   private var className: String? = null
 
-  /**
-   * Resolve an [ResourceClass.Field.UnresolvedInt] to an [ResourceClass.Field.Int] by using the
-   * values in the parsed classes.
-   */
+  /** Resolve an [ResourceClass.Field.UnresolvedInt] to an [ResourceClass.Field.Int] by using the values in the parsed classes. */
   private fun ResourceClass.Field.UnresolvedInt.resolve(): ResourceClass.Field.Int =
-    declaredClassesIndex[sourceType]!!.declaredFieldsIndex[sourceFieldName]
-      as ResourceClass.Field.Int
+    declaredClassesIndex[sourceType]!!.declaredFieldsIndex[sourceFieldName] as ResourceClass.Field.Int
 
   /** Resolve all [ResourceClass.Field.UnresolvedInt] in this [ResourceClass]. */
   private fun ResourceClass.resolveUnresolvedFields(): ResourceClass {
@@ -210,8 +186,7 @@ private class ResourceClassVisitor(private val resourceClassResolver: (String) -
                   when (it) {
                     is ResourceClass.Field.Int -> it
                     is ResourceClass.Field.UnresolvedInt -> it.resolve()
-                    is ResourceClass.Field.IntArray ->
-                      throw IllegalStateException("Nested arrays are not supported")
+                    is ResourceClass.Field.IntArray -> throw IllegalStateException("Nested arrays are not supported")
                   }
                 }
                 .toList(),
@@ -223,33 +198,25 @@ private class ResourceClassVisitor(private val resourceClassResolver: (String) -
   }
 
   /**
-   * Returns the parsed [ResourceClass]. The class returned by this method will have all the
-   * unresolved values of the inner classes resolved at this point.
+   * Returns the parsed [ResourceClass]. The class returned by this method will have all the unresolved values of the inner classes resolved
+   * at this point.
    */
   fun getResourceClass(): ResourceClass =
     ResourceClass(
       className!!,
-      declaredClassesIndex
-        .mapValues { (name, rclass) ->
-          // If a class had unresolved fields, we resolve them at this point.
-          if (rclass.hasUnresolvedFields) {
-            rclass.resolveUnresolvedFields()
-          } else {
-            rclass
-          }
-        },
+      declaredClassesIndex.mapValues { (name, rclass) ->
+        // If a class had unresolved fields, we resolve them at this point.
+        if (rclass.hasUnresolvedFields) {
+          rclass.resolveUnresolvedFields()
+        } else {
+          rclass
+        }
+      },
       declaredFieldsIndex,
       this.hasUnresolvedFields,
     )
 
-  override fun visit(
-    version: Int,
-    access: Int,
-    name: String,
-    signature: String?,
-    superName: String?,
-    interfaces: Array<out String>?,
-  ) {
+  override fun visit(version: Int, access: Int, name: String, signature: String?, superName: String?, interfaces: Array<out String>?) {
     className = name.substringAfterLast("/").substringAfterLast("$")
     super.visit(version, access, name, signature, superName, interfaces)
   }
@@ -275,17 +242,10 @@ private class ResourceClassVisitor(private val resourceClassResolver: (String) -
     return super.visitMethod(access, name, descriptor, signature, exceptions)
   }
 
-  override fun visitField(
-    access: Int,
-    name: String,
-    descriptor: String?,
-    signature: String?,
-    value: Any?,
-  ): FieldVisitor? {
+  override fun visitField(access: Int, name: String, descriptor: String?, signature: String?, value: Any?): FieldVisitor? {
     if (value is Int) {
       // Easy case, declaration of an Int value
-      declaredFieldsIndex[name] =
-        ResourceClass.Field.Int(name, isStatic = (access and Opcodes.ACC_STATIC) != 0, value)
+      declaredFieldsIndex[name] = ResourceClass.Field.Int(name, isStatic = (access and Opcodes.ACC_STATIC) != 0, value)
     }
     return super.visitField(access, name, descriptor, signature, value)
   }
@@ -302,9 +262,7 @@ private class ResourceClassVisitor(private val resourceClassResolver: (String) -
       resourceIdClassBinaryParser(
         rClassBytes = bytes,
         resourceClassResolver = {
-          throw IllegalStateException(
-            "Invalid R class format. Type classes should not contain inner classes. $it"
-          )
+          throw IllegalStateException("Invalid R class format. Type classes should not contain inner classes. $it")
         },
       )
     super.visitInnerClass(name, outerName, innerName, access)
@@ -315,15 +273,11 @@ private class ResourceClassVisitor(private val resourceClassResolver: (String) -
  * Parses an R class from byte code and returns the R class data structure.
  *
  * @param rClassBytes The byte code of the R class.
- * @param resourceClassResolver A function that resolves resource classes by their fully qualified
- *   names.
+ * @param resourceClassResolver A function that resolves resource classes by their fully qualified names.
  * @return The R class data structure.
  * @throws IllegalStateException If the R class format is invalid.
  */
-fun resourceIdClassBinaryParser(
-  rClassBytes: ByteArray,
-  resourceClassResolver: (String) -> ByteArray,
-): ResourceClass {
+fun resourceIdClassBinaryParser(rClassBytes: ByteArray, resourceClassResolver: (String) -> ByteArray): ResourceClass {
   try {
     val classReader = ClassReader(rClassBytes)
     val resourceClassVisitor = ResourceClassVisitor(resourceClassResolver)
@@ -342,17 +296,15 @@ fun resourceIdClassBinaryParser(
  * @return The R class data structure.
  */
 fun resourceIdClassBinaryParser(rClass: Class<*>) =
-  resourceIdClassBinaryParser(
-    rClass.loadClassBytes(),
-    resourceClassResolver = { rClass.loadClassBytes(it) },
-  )
+  resourceIdClassBinaryParser(rClass.loadClassBytes(), resourceClassResolver = { rClass.loadClassBytes(it) })
 
-private fun dumpClassToText(classBytes: ByteArray): String = try {
-  val classReader = ClassReader(classBytes)
-  val stringWriter = StringWriter()
-  val traceClassVisitor = TraceClassVisitor(PrintWriter(stringWriter))
-  classReader.accept(traceClassVisitor, 0)
-  stringWriter.toString()
-} catch (t: Throwable) {
-  ""
-}
+private fun dumpClassToText(classBytes: ByteArray): String =
+  try {
+    val classReader = ClassReader(classBytes)
+    val stringWriter = StringWriter()
+    val traceClassVisitor = TraceClassVisitor(PrintWriter(stringWriter))
+    classReader.accept(traceClassVisitor, 0)
+    stringWriter.toString()
+  } catch (t: Throwable) {
+    ""
+  }

@@ -24,32 +24,28 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.descendants
+import java.awt.event.MouseEvent
+import javax.swing.JLabel
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.util.GradleConstants.GRADLE_PROPERTIES_FILE_NAME
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.mock
-import java.awt.event.MouseEvent
-import javax.swing.JLabel
 
 class AndroidPropertiesLineMarkerProviderTest : AndroidTestCase() {
 
   fun testEmptyLocalProperties() {
-    createPropertiesFileMarkersInfo(
-      fileName = FN_LOCAL_PROPERTIES,
-      properties = ""
-    ) {
-      assertEmpty(this)
-    }
+    createPropertiesFileMarkersInfo(fileName = FN_LOCAL_PROPERTIES, properties = "") { assertEmpty(this) }
   }
 
   fun testUnexpectedLocalProperties() {
     createPropertiesFileMarkersInfo(
       fileName = FN_LOCAL_PROPERTIES,
-      properties = """
+      properties =
+        """
         unknown.dir=/test/unknown/path
         unknown.dir2=/test/unknown2/path
         unknown.dir3=/test/unknown3/path
-       """
+       """,
     ) {
       assertEmpty(this)
     }
@@ -59,11 +55,12 @@ class AndroidPropertiesLineMarkerProviderTest : AndroidTestCase() {
     createPropertiesFileMarkersInfo(
       fileName = FN_LOCAL_PROPERTIES,
       headerComment = LocalProperties.getHeaderComment(),
-      properties = """
+      properties =
+        """
         sdk.dir=/test/sdk/path
         sdk.dir=
         sdk.dir
-      """
+      """,
     ) {
       assertEquals(3, size)
       assertMarkersInfo(this)
@@ -74,10 +71,7 @@ class AndroidPropertiesLineMarkerProviderTest : AndroidTestCase() {
     val mockService = mock<AndroidProjectSettingsService>()
     replaceProjectService(ProjectSettingsService::class.java, mockService)
 
-    createPropertiesFileMarkersInfo(
-      fileName = FN_LOCAL_PROPERTIES,
-      properties = "sdk.dir=/test/sdk/path"
-    ) {
+    createPropertiesFileMarkersInfo(fileName = FN_LOCAL_PROPERTIES, properties = "sdk.dir=/test/sdk/path") {
       assertEquals(1, size)
       first().navigationHandler.navigate(simpleClickEvent, null)
       verify(mockService).openSdkSettings()
@@ -88,10 +82,7 @@ class AndroidPropertiesLineMarkerProviderTest : AndroidTestCase() {
     val mockService = mock<AndroidProjectSettingsService>()
     replaceProjectService(ProjectSettingsService::class.java, mockService)
 
-    createPropertiesFileMarkersInfo(
-      fileName = FN_LOCAL_PROPERTIES,
-      properties = "ndk.dir=/test/ndk/path"
-    ) {
+    createPropertiesFileMarkersInfo(fileName = FN_LOCAL_PROPERTIES, properties = "ndk.dir=/test/ndk/path") {
       assertEquals(1, size)
       first().navigationHandler.navigate(simpleClickEvent, null)
       verify(mockService).openSdkSettings()
@@ -102,10 +93,11 @@ class AndroidPropertiesLineMarkerProviderTest : AndroidTestCase() {
     createPropertiesFileMarkersInfo(
       fileName = FN_LOCAL_PROPERTIES,
       headerComment = LocalProperties.getHeaderComment(),
-      properties = """
+      properties =
+        """
         sdk.dir=/test/sdk/path
         ndk.dir=/test/ndk/path
-      """
+      """,
     ) {
       assertEquals(2, size)
       assertMarkersInfo(this)
@@ -115,11 +107,12 @@ class AndroidPropertiesLineMarkerProviderTest : AndroidTestCase() {
   fun testExpectedPropertiesInNonLocalProperties() {
     createPropertiesFileMarkersInfo(
       fileName = GRADLE_PROPERTIES_FILE_NAME,
-      properties = """
+      properties =
+        """
         sdk.dir=/test/sdk/path
         ndk.dir=/test/ndk/path
         test.dir=/test/ndk/path
-      """
+      """,
     ) {
       assertEmpty(this)
     }
@@ -130,7 +123,7 @@ class AndroidPropertiesLineMarkerProviderTest : AndroidTestCase() {
     properties: String,
     headerComment: String? = null,
     onFileCreated: (PsiFile.() -> Unit)? = null,
-    onCollectMarkersInfo: List<RelatedItemLineMarkerInfo<*>>.() -> Unit
+    onCollectMarkersInfo: List<RelatedItemLineMarkerInfo<*>>.() -> Unit,
   ) {
     val propertiesFile = createPropertiesFile(fileName, properties, headerComment)
     onFileCreated?.invoke(propertiesFile)
@@ -161,6 +154,5 @@ class AndroidPropertiesLineMarkerProviderTest : AndroidTestCase() {
       }
   }
 
-  private val simpleClickEvent =
-    MouseEvent(JLabel(), MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, false, 0)
+  private val simpleClickEvent = MouseEvent(JLabel(), MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, false, 0)
 }

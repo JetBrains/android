@@ -27,14 +27,14 @@ class WearTilePreviewElementTest {
       WearTilePreviewElement<Int>(
         displaySettings =
           PreviewDisplaySettings(
-            name =  "some name",
-            baseName =   "some base name",
-            parameterName =  "parameter name",
-            group =  "some group",
-            showDecoration =   false,
+            name = "some name",
+            baseName = "some base name",
+            parameterName = "parameter name",
+            group = "some group",
+            showDecoration = false,
             background = PreviewDisplaySettings.Background.None,
-            organizationGroup =  "organization group",
-            organizationName =  "organization name"
+            organizationGroup = "organization group",
+            organizationName = "organization name",
           ),
         previewElementDefinition = 1,
         previewBody = 2,
@@ -46,14 +46,14 @@ class WearTilePreviewElementTest {
       WearTilePreviewElement(
         displaySettings =
           PreviewDisplaySettings(
-            name =  "some name",
-            baseName =   "some base name",
-            parameterName =  "parameter name",
-            group =  "some group",
-            showDecoration =   false,
+            name = "some name",
+            baseName = "some base name",
+            parameterName = "parameter name",
+            group = "some group",
+            showDecoration = false,
             background = PreviewDisplaySettings.Background.None,
-            organizationGroup =  "organization group",
-            organizationName =  "organization name"
+            organizationGroup = "organization group",
+            organizationName = "organization name",
           ),
         previewElementDefinition = 1,
         previewBody = 2,
@@ -70,14 +70,14 @@ class WearTilePreviewElementTest {
       WearTilePreviewElement(
         displaySettings =
           PreviewDisplaySettings(
-            name =  "some name",
-            baseName =   "some base name",
-            parameterName =  "parameter name",
-            group =  "some group",
-            showDecoration =   false,
+            name = "some name",
+            baseName = "some base name",
+            parameterName = "parameter name",
+            group = "some group",
+            showDecoration = false,
             background = PreviewDisplaySettings.Background.Color("0xffabcd"),
-            organizationGroup =  "organization group",
-            organizationName =  "organization name"
+            organizationGroup = "organization group",
+            organizationName = "organization name",
           ),
         previewElementDefinition = 1,
         previewBody = 2,
@@ -87,33 +87,24 @@ class WearTilePreviewElementTest {
 
     val newPreviewDisplaySettings =
       PreviewDisplaySettings(
-       name =   "derived name",
-        baseName =  "derived base name",
-       parameterName =  "parameter name",
-       group =  "derived group",
-       showDecoration =  true,
-       background = PreviewDisplaySettings.Background.Color("0xffffff"),
-       organizationGroup =  "organization group",
-       organizationName =  "organization name"
+        name = "derived name",
+        baseName = "derived base name",
+        parameterName = "parameter name",
+        group = "derived group",
+        showDecoration = true,
+        background = PreviewDisplaySettings.Background.Color("0xffffff"),
+        organizationGroup = "organization group",
+        organizationName = "organization name",
       )
-    val newConfig =
-      PreviewConfiguration.Companion.cleanAndGet(
-        device = "id:wearos_square",
-        fontScale = 3f,
-        locale = "fr-FR",
-      )
+    val newConfig = PreviewConfiguration.Companion.cleanAndGet(device = "id:wearos_square", fontScale = 3f, locale = "fr-FR")
 
-    val derivedPreviewElement =
-      originalPreviewElement.createDerivedInstance(newPreviewDisplaySettings, newConfig)
+    val derivedPreviewElement = originalPreviewElement.createDerivedInstance(newPreviewDisplaySettings, newConfig)
 
     assertEquals(newPreviewDisplaySettings, derivedPreviewElement.displaySettings)
     assertEquals(newConfig, derivedPreviewElement.configuration)
     assertEquals(originalPreviewElement.methodFqn, derivedPreviewElement.methodFqn)
     assertEquals(originalPreviewElement.instanceId, derivedPreviewElement.instanceId)
-    assertEquals(
-      originalPreviewElement.previewElementDefinition,
-      derivedPreviewElement.previewElementDefinition,
-    )
+    assertEquals(originalPreviewElement.previewElementDefinition, derivedPreviewElement.previewElementDefinition)
     assertEquals(originalPreviewElement.previewBody, derivedPreviewElement.previewBody)
     assertEquals(originalPreviewElement.hasAnimations, derivedPreviewElement.hasAnimations)
   }
@@ -124,14 +115,14 @@ class WearTilePreviewElementTest {
       WearTilePreviewElement(
         displaySettings =
           PreviewDisplaySettings(
-            name =  "some name",
-            baseName =   "some base name",
-            parameterName =  "parameter name",
-            group =  "some group",
-            showDecoration =   false,
+            name = "some name",
+            baseName = "some base name",
+            parameterName = "parameter name",
+            group = "some group",
+            showDecoration = false,
             background = PreviewDisplaySettings.Background.Color("0xffabcd"),
-            organizationGroup =  "organization group",
-            organizationName =  "organization name"
+            organizationGroup = "organization group",
+            organizationName = "organization name",
           ),
         previewElementDefinition = null,
         previewBody = null,
@@ -140,17 +131,18 @@ class WearTilePreviewElementTest {
       )
 
     assertEquals(
-      """<androidx.wear.tiles.tooling.TileServiceViewAdapter
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="0xffabcd"
-    android:minWidth="1px"
-    android:minHeight="1px"
-    tools:tilePreviewMethodFqn="someMethodFqn" />
+      """
+      <androidx.wear.tiles.tooling.TileServiceViewAdapter
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:background="0xffabcd"
+          android:minWidth="1px"
+          android:minHeight="1px"
+          tools:tilePreviewMethodFqn="someMethodFqn" />
 
-"""
+      """
         .trimIndent(),
       previewElement.toPreviewXml().buildString(),
     )
@@ -162,14 +154,14 @@ class WearTilePreviewElementTest {
       WearTilePreviewElement(
         displaySettings =
           PreviewDisplaySettings(
-            name =  "some name",
-            baseName =   "some base name",
-            parameterName =  "parameter name",
-            group =  "some group",
-            showDecoration =   false,
+            name = "some name",
+            baseName = "some base name",
+            parameterName = "parameter name",
+            group = "some group",
+            showDecoration = false,
             background = PreviewDisplaySettings.Background.None,
-            organizationGroup =  "organization group",
-            organizationName =  "organization name"
+            organizationGroup = "organization group",
+            organizationName = "organization name",
           ),
         previewElementDefinition = null,
         previewBody = null,
@@ -178,17 +170,18 @@ class WearTilePreviewElementTest {
       )
 
     assertEquals(
-      """<androidx.wear.tiles.tooling.TileServiceViewAdapter
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#ff000000"
-    android:minWidth="1px"
-    android:minHeight="1px"
-    tools:tilePreviewMethodFqn="someMethodFqn" />
+      """
+      <androidx.wear.tiles.tooling.TileServiceViewAdapter
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:background="#ff000000"
+          android:minWidth="1px"
+          android:minHeight="1px"
+          tools:tilePreviewMethodFqn="someMethodFqn" />
 
-"""
+      """
         .trimIndent(),
       previewElement.toPreviewXml().buildString(),
     )

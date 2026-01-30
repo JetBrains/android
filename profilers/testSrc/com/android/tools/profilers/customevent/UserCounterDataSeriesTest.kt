@@ -27,53 +27,48 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
-/**
- * Tests the UserCounterDataSeries that holds the event count for Custom Event Visualization.
- */
+/** Tests the UserCounterDataSeries that holds the event count for Custom Event Visualization. */
 class UserCounterDataSeriesTest {
 
   private val groupId1 = 1L
   private val groupId2 = 2L
 
-  private val USER_EVENTS = ImmutableList.of<Common.Event>(
-    Common.Event.newBuilder()
-      .setGroupId(groupId1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(100))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(groupId2)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(1600))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(groupId2)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(720))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(groupId2)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(722))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build()
-  )
+  private val USER_EVENTS =
+    ImmutableList.of<Common.Event>(
+      Common.Event.newBuilder()
+        .setGroupId(groupId1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(100))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(groupId2)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(1600))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(groupId2)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(720))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(groupId2)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(722))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+    )
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, true)
@@ -81,8 +76,7 @@ class UserCounterDataSeriesTest {
   private lateinit var profilers: StudioProfilers
   private lateinit var userCounterDataSeries: UserCounterDataSeries
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("UserCounterDataSeriesTest", transportService)
+  @get:Rule var grpcChannel = FakeGrpcChannel("UserCounterDataSeriesTest", transportService)
 
   @Before
   fun setUp() {
@@ -101,7 +95,6 @@ class UserCounterDataSeriesTest {
     assertThat(dataSeries).isEmpty()
   }
 
-
   @Test
   fun testNonEmptyRange() {
     val dataSeriesForRange1 = userCounterDataSeries.getDataForRange(Range(0.0, 100000.0))
@@ -110,7 +103,6 @@ class UserCounterDataSeriesTest {
     val dataSeriesForRange2 = userCounterDataSeries.getDataForRange(Range(700000.0, 1100000.0))
     assertThat(dataSeriesForRange2).containsExactly(SeriesData(700000L, 2L), SeriesData(1000000L, 0L))
   }
-
 
   @Test
   fun testEventsOutsideRange() {
@@ -125,9 +117,13 @@ class UserCounterDataSeriesTest {
   fun testBucketDistribution() {
     val dataSeriesForRange = userCounterDataSeries.getDataForRange(Range(0.0, 2800000.0))
 
-    assertThat(dataSeriesForRange).containsExactly(SeriesData(0L, 1L), SeriesData(500000L, 2L), SeriesData(1000000L, 0L),
-                                                   SeriesData(1500000L, 1L), SeriesData(2000000L, 0L))
+    assertThat(dataSeriesForRange)
+      .containsExactly(
+        SeriesData(0L, 1L),
+        SeriesData(500000L, 2L),
+        SeriesData(1000000L, 0L),
+        SeriesData(1500000L, 1L),
+        SeriesData(2000000L, 0L),
+      )
   }
 }
-
-

@@ -48,11 +48,7 @@ class SourceSetItemTest {
           mainSourceProvider = {
             buildMainSourceProviderStub()
               .appendDirectories(
-                resDirectories =
-                  listOf(
-                    moduleBasePath.resolve("myResDir"),
-                    moduleBasePath.resolve("foo/bar/deep/resources/android/res"),
-                  )
+                resDirectories = listOf(moduleBasePath.resolve("myResDir"), moduleBasePath.resolve("foo/bar/deep/resources/android/res"))
               )
           }
         ),
@@ -62,8 +58,8 @@ class SourceSetItemTest {
   @Before
   fun setup() {
     module = rule.project.gradleModule(":app") ?: error("Unable to find gradle module ':app'")
-    sourceProvider = module.androidFacet!!.sourceProviders.mainIdeaSourceProvider
-                     ?: error("mainIdeaSourceProvider expected not to be null.")
+    sourceProvider =
+      module.androidFacet!!.sourceProviders.mainIdeaSourceProvider ?: error("mainIdeaSourceProvider expected not to be null.")
   }
 
   @Test
@@ -75,18 +71,9 @@ class SourceSetItemTest {
     val resDirUrl2 = resDirectoryUrls[1]
     val resDirUrl3 = resDirectoryUrls[2]
 
-    assertEquals(
-      "src/main/res",
-      SourceSetItem.create(sourceProvider, module, resDirUrl1)?.displayableResDir,
-    )
-    assertEquals(
-      "myResDir",
-      SourceSetItem.create(sourceProvider, module, resDirUrl2)?.displayableResDir,
-    )
-    assertEquals(
-      "...bar/deep/resources/android/res",
-      SourceSetItem.create(sourceProvider, module, resDirUrl3)?.displayableResDir,
-    )
+    assertEquals("src/main/res", SourceSetItem.create(sourceProvider, module, resDirUrl1)?.displayableResDir)
+    assertEquals("myResDir", SourceSetItem.create(sourceProvider, module, resDirUrl2)?.displayableResDir)
+    assertEquals("...bar/deep/resources/android/res", SourceSetItem.create(sourceProvider, module, resDirUrl3)?.displayableResDir)
   }
 
   @Test

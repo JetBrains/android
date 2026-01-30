@@ -20,10 +20,7 @@ import java.awt.Point
 
 @JvmField val PANNABLE_KEY = DataKey.create<Pannable>(Pannable::class.java.name)
 
-/**
- * Interface for components that can be panned (drag and move a view within a Scrolling panel) to
- * support Panning actions.
- */
+/** Interface for components that can be panned (drag and move a view within a Scrolling panel) to support Panning actions. */
 interface Pannable {
   var isPanning: Boolean
 

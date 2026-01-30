@@ -20,18 +20,20 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-/**
- * Holds statistics for capture node analysis, e.g. count, average.
- */
+/** Holds statistics for capture node analysis, e.g. count, average. */
 class CaptureNodeAnalysisStats private constructor() {
   var count = 0L
     private set
+
   var sum = 0L
     private set
+
   var min = Long.MAX_VALUE
     private set
+
   var max = 0L
     private set
+
   var standardDeviation = 0.0
     private set
 
@@ -39,24 +41,21 @@ class CaptureNodeAnalysisStats private constructor() {
     get() = if (count == 0L) 0.0 else sum.toDouble() / count
 
   companion object {
-    /**
-     * Takes a list of [CaptureNode]s and compute their statistics, e.g. standard deviation.
-     */
-    fun fromNodes(nodes: List<CaptureNode>) = CaptureNodeAnalysisStats().apply {
-      // First pass to compute count, min, max and average.
-      nodes.forEach {
-        val duration = it.duration
-        count++
-        sum += duration
-        min = min(min, duration)
-        max = max(max, duration)
+    /** Takes a list of [CaptureNode]s and compute their statistics, e.g. standard deviation. */
+    fun fromNodes(nodes: List<CaptureNode>) =
+      CaptureNodeAnalysisStats().apply {
+        // First pass to compute count, min, max and average.
+        nodes.forEach {
+          val duration = it.duration
+          count++
+          sum += duration
+          min = min(min, duration)
+          max = max(max, duration)
+        }
+        // Second pass to compute standard deviation.
+        val avg = average
+        val sumOfSquareDiff = nodes.asSequence().map { (it.duration - avg) * (it.duration - avg) }.sum()
+        standardDeviation = sqrt(sumOfSquareDiff / count)
       }
-      // Second pass to compute standard deviation.
-      val avg = average
-      val sumOfSquareDiff = nodes.asSequence()
-        .map { (it.duration - avg) * (it.duration - avg) }
-        .sum()
-      standardDeviation = sqrt(sumOfSquareDiff / count)
-    }
   }
 }

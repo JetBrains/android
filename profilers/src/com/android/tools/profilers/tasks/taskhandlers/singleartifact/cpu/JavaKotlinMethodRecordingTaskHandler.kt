@@ -28,15 +28,15 @@ class JavaKotlinMethodRecordingTaskHandler(private val sessionsManager: Sessions
     val taskHomeTabModel = sessionsManager.studioProfilers.taskHomeTabModel
     val taskRecordingMode = taskHomeTabModel.taskRecordingType.value
     return when (taskRecordingMode) {
-      TaskHomeTabModel.TaskRecordingType.SAMPLED ->  ArtSampledConfiguration("Java/Kotlin Method Sample (legacy)")
-      TaskHomeTabModel.TaskRecordingType.INSTRUMENTED ->  ArtInstrumentedConfiguration("Java/Kotlin Method Trace")
+      TaskHomeTabModel.TaskRecordingType.SAMPLED -> ArtSampledConfiguration("Java/Kotlin Method Sample (legacy)")
+      TaskHomeTabModel.TaskRecordingType.INSTRUMENTED -> ArtInstrumentedConfiguration("Java/Kotlin Method Trace")
     }
   }
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?) =
-    artifact is CpuCaptureSessionArtifact
-    && artifact.artifactProto.hasConfiguration()
-    && artifact.artifactProto.configuration.hasArtOptions()
+    artifact is CpuCaptureSessionArtifact &&
+      artifact.artifactProto.hasConfiguration() &&
+      artifact.artifactProto.configuration.hasArtOptions()
 
   override fun getTaskName() = "Java/Kotlin Method Recording"
 }

@@ -28,26 +28,23 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Dimension
 import org.jetbrains.android.UndisposedAndroidObjectsCheckerRule
 import org.jetbrains.kotlin.utils.keysToMap
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import java.awt.Dimension
 
 class BuildAnalyzerComboBoxViewTest {
-  @get:Rule
-  val applicationRule: ApplicationRule = ApplicationRule()
+  @get:Rule val applicationRule: ApplicationRule = ApplicationRule()
 
   private val disposableRule: DisposableRule = DisposableRule()
   private val undisposedAndroidObjectsCheckerRule = UndisposedAndroidObjectsCheckerRule()
 
-  @get:Rule
-  val disposableRuleChain = RuleChain(undisposedAndroidObjectsCheckerRule, disposableRule)
+  @get:Rule val disposableRuleChain = RuleChain(undisposedAndroidObjectsCheckerRule, disposableRule)
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   val model = BuildAnalyzerViewModel(MockUiData(), BuildAttributionWarningsFilter())
   val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
@@ -55,9 +52,7 @@ class BuildAnalyzerComboBoxViewTest {
 
   @Before
   fun setUp() {
-    view = BuildAnalyzerComboBoxView(model, mockHandlers).apply {
-      wholePanel.size = Dimension(600, 200)
-    }
+    view = BuildAnalyzerComboBoxView(model, mockHandlers).apply { wholePanel.size = Dimension(600, 200) }
     Disposer.register(disposableRule.disposable, view)
   }
 
@@ -65,16 +60,17 @@ class BuildAnalyzerComboBoxViewTest {
   @RunsInEdt
   fun testViewCreated() {
     // Assert
-    val expectedElementsVisibility = mapOf(
-      "build-overview" to true,
-      "build-overview-additional-controls" to true,
-      "tasks-view" to false,
-      "tasks-view-additional-controls" to false,
-      "warnings-view" to false,
-      "warnings-view-additional-controls" to false,
-      "downloads-info-view" to false,
-      "downloads-info-view-additional-controls" to false,
-    )
+    val expectedElementsVisibility =
+      mapOf(
+        "build-overview" to true,
+        "build-overview-additional-controls" to true,
+        "tasks-view" to false,
+        "tasks-view-additional-controls" to false,
+        "warnings-view" to false,
+        "warnings-view-additional-controls" to false,
+        "downloads-info-view" to false,
+        "downloads-info-view-additional-controls" to false,
+      )
     assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
     assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.OVERVIEW)
     Mockito.verifyNoMoreInteractions(mockHandlers)
@@ -87,16 +83,17 @@ class BuildAnalyzerComboBoxViewTest {
     model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
 
     // Assert
-    val expectedElementsVisibility = mapOf(
-      "build-overview" to false,
-      "build-overview-additional-controls" to false,
-      "tasks-view" to true,
-      "tasks-view-additional-controls" to true,
-      "warnings-view" to false,
-      "warnings-view-additional-controls" to false,
-      "downloads-info-view" to false,
-      "downloads-info-view-additional-controls" to false,
-    )
+    val expectedElementsVisibility =
+      mapOf(
+        "build-overview" to false,
+        "build-overview-additional-controls" to false,
+        "tasks-view" to true,
+        "tasks-view-additional-controls" to true,
+        "warnings-view" to false,
+        "warnings-view-additional-controls" to false,
+        "downloads-info-view" to false,
+        "downloads-info-view-additional-controls" to false,
+      )
     assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
     Mockito.verifyNoMoreInteractions(mockHandlers)
     assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.TASKS)
@@ -109,16 +106,17 @@ class BuildAnalyzerComboBoxViewTest {
     model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
 
     // Assert
-    val expectedElementsVisibility = mapOf(
-      "build-overview" to false,
-      "build-overview-additional-controls" to false,
-      "tasks-view" to false,
-      "tasks-view-additional-controls" to false,
-      "warnings-view" to true,
-      "warnings-view-additional-controls" to true,
-      "downloads-info-view" to false,
-      "downloads-info-view-additional-controls" to false,
-    )
+    val expectedElementsVisibility =
+      mapOf(
+        "build-overview" to false,
+        "build-overview-additional-controls" to false,
+        "tasks-view" to false,
+        "tasks-view-additional-controls" to false,
+        "warnings-view" to true,
+        "warnings-view-additional-controls" to true,
+        "downloads-info-view" to false,
+        "downloads-info-view-additional-controls" to false,
+      )
     assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
     Mockito.verifyNoMoreInteractions(mockHandlers)
     assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.WARNINGS)
@@ -131,16 +129,17 @@ class BuildAnalyzerComboBoxViewTest {
     model.selectedData = BuildAnalyzerViewModel.DataSet.DOWNLOADS
 
     // Assert
-    val expectedElementsVisibility = mapOf(
-      "build-overview" to false,
-      "build-overview-additional-controls" to false,
-      "tasks-view" to false,
-      "tasks-view-additional-controls" to false,
-      "warnings-view" to false,
-      "warnings-view-additional-controls" to false,
-      "downloads-info-view" to true,
-      "downloads-info-view-additional-controls" to true,
-    )
+    val expectedElementsVisibility =
+      mapOf(
+        "build-overview" to false,
+        "build-overview-additional-controls" to false,
+        "tasks-view" to false,
+        "tasks-view-additional-controls" to false,
+        "warnings-view" to false,
+        "warnings-view-additional-controls" to false,
+        "downloads-info-view" to true,
+        "downloads-info-view-additional-controls" to true,
+      )
     assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
     Mockito.verifyNoMoreInteractions(mockHandlers)
     assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.DOWNLOADS)
@@ -190,8 +189,6 @@ class BuildAnalyzerComboBoxViewTest {
 
   private fun grabElementsVisibilityStatus(names: Set<String>): Map<String, Boolean> {
     val descendants = TreeWalker(view.wholePanel).descendants()
-    return names.keysToMap { name ->
-      descendants.find { it.name == name }?.isVisible == true
-    }
+    return names.keysToMap { name -> descendants.find { it.name == name }?.isVisible == true }
   }
 }

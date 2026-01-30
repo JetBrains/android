@@ -22,7 +22,7 @@ import javax.swing.DefaultComboBoxModel
 import javax.swing.ListModel
 import javax.swing.MutableComboBoxModel
 
-class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
+class RecordingOptionsModel : AspectModel<RecordingOptionsModel.Aspect>() {
   var isRecording = false
     private set
 
@@ -30,9 +30,10 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
     private set
 
   var selectedOption: RecordingOption? = null
-    @VisibleForTesting set(newOption) {
+    @VisibleForTesting
+    set(newOption) {
       if (newOption != field) {
-        require (!isRecording && newOption.isValid())
+        require(!isRecording && newOption.isValid())
         field = newOption
         changed(Aspect.SELECTION_CHANGED)
       }
@@ -40,15 +41,20 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
 
   // 'builtInOptionList' contains task configurations when task-based ux is enabled and default configurations when disabled.
   private val builtInOptionList = mutableListOf<RecordingOption>()
-  val builtInOptions: List<RecordingOption> get() = Collections.unmodifiableList(builtInOptionList)
+  val builtInOptions: List<RecordingOption>
+    get() = Collections.unmodifiableList(builtInOptionList)
+
   val customConfigurationModel: MutableComboBoxModel<RecordingOption> = ConfigModel(emptyArray())
 
   // Map each option that's not currently ready to a message explaining why
   // This is also the source of truth regarding whether option is ready
   private val notReadyOptions = mutableMapOf<RecordingOption, String>()
 
-  val isSelectedOptionBuiltIn get() = selectedOption in builtInOptionList
-  val isSelectedOptionCustom get() = selectedOption in customConfigurationModel
+  val isSelectedOptionBuiltIn
+    get() = selectedOption in builtInOptionList
+
+  val isSelectedOptionCustom
+    get() = selectedOption in customConfigurationModel
 
   fun selectBuiltInOption(opt: RecordingOption) {
     require(opt in builtInOptionList)
@@ -60,16 +66,14 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
   }
 
   /**
-   * Select the first recording option when the [criteria] is met. If no option
-   * meets the [criteria], the first built-in option is selected.
+   * Select the first recording option when the [criteria] is met. If no option meets the [criteria], the first built-in option is selected.
    */
   fun selectOptionBy(criteria: (recordingOption: RecordingOption) -> Boolean) {
     // Search in built-in options first.
     val builtInOption = builtInOptionList.firstOrNull(criteria)
     if (builtInOption != null) {
       selectBuiltInOption(builtInOption)
-    }
-    else {
+    } else {
       // Search in custom options.
       for (i in 0 until customConfigurationModel.size) {
         val customOption = customConfigurationModel.getElementAt(i)
@@ -85,6 +89,7 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
   }
 
   fun canStop() = isRecording && selectedOption?.stopAction != null
+
   fun canStart() = !isRecording && selectedOption != null && selectedOption !in notReadyOptions
 
   fun start() {
@@ -137,7 +142,7 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
   }
 
   fun setOptionNotReady(opt: RecordingOption, message: String) {
-    require (opt in builtInOptions) { "Marking options not ready is only supported for builtin options for now" }
+    require(opt in builtInOptions) { "Marking options not ready is only supported for builtin options for now" }
     notReadyOptions[opt] = message
     changed(Aspect.READY_OPTIONS_CHANGED)
   }
@@ -150,11 +155,10 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
   }
 
   fun getOptionNotReadyMessage(opt: RecordingOption) = notReadyOptions[opt]
+
   fun isOptionReady(opt: RecordingOption) = getOptionNotReadyMessage(opt) == null
 
-  /**
-   * Check if the recording option is recognized by this model
-   */
+  /** Check if the recording option is recognized by this model */
   private fun RecordingOption?.isValid(): Boolean = this == null || this in builtInOptionList || this in customConfigurationModel
 
   private inner class ConfigModel(configs: Array<RecordingOption>) : DefaultComboBoxModel<RecordingOption>(configs) {
@@ -169,17 +173,24 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
     }
 
     override fun addAll(c: MutableCollection<out RecordingOption>?) = trackEmptinessChanged { super.addAll(c) }
+
     override fun addAll(index: Int, c: MutableCollection<out RecordingOption>?) = trackEmptinessChanged { super.addAll(index, c) }
+
     override fun addElement(anObject: RecordingOption?) = trackEmptinessChanged { super.addElement(anObject) }
+
     override fun insertElementAt(anObject: RecordingOption?, index: Int) = trackEmptinessChanged { super.insertElementAt(anObject, index) }
+
     override fun removeAllElements() = trackEmptinessChanged { super.removeAllElements() }
+
     override fun removeElement(anObject: Any?) = trackEmptinessChanged { super.removeElement(anObject) }
+
     override fun removeElementAt(index: Int) = trackEmptinessChanged { super.removeElementAt(index) }
-    private fun trackEmptinessChanged(run: () -> Any) = (size > 0).let {
-      run()
-      if (size > 0 != it)
-        changed(Aspect.CONFIGURATIONS_EMPTINESS_CHANGED)
-    }
+
+    private fun trackEmptinessChanged(run: () -> Any) =
+      (size > 0).let {
+        run()
+        if (size > 0 != it) changed(Aspect.CONFIGURATIONS_EMPTINESS_CHANGED)
+      }
   }
 
   enum class Aspect {
@@ -194,19 +205,20 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
   companion object {
     operator fun invoke(builtInRecordings: Array<RecordingOption>, configs: Array<RecordingOption> = emptyArray()) =
       RecordingOptionsModel().apply {
-      addBuiltInOptions(*builtInRecordings)
+        addBuiltInOptions(*builtInRecordings)
         addConfigurations(*configs)
-    }
+      }
   }
 }
 
-open class RecordingOption @JvmOverloads constructor(val title: String, val description: String,
-                                                     val startAction: Runnable, val stopAction: Runnable? = null) {
+open class RecordingOption
+@JvmOverloads
+constructor(val title: String, val description: String, val startAction: Runnable, val stopAction: Runnable? = null) {
   override fun toString() = title
 }
 
 // Singleton object for the prototype display value
 // of the custom config dropdown.
-object PrototypeDisplayRecordingOption: RecordingOption("", "", {})
+object PrototypeDisplayRecordingOption : RecordingOption("", "", {})
 
-private operator fun<T> ListModel<T>?.contains(item: T?): Boolean = this != null && (0 until size).any { getElementAt(it) == item }
+private operator fun <T> ListModel<T>?.contains(item: T?): Boolean = this != null && (0 until size).any { getElementAt(it) == item }

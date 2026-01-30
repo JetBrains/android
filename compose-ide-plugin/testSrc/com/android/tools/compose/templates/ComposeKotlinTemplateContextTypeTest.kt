@@ -57,16 +57,12 @@ internal class ComposeKotlinTemplateContextTypeTest(
     application.runReadAction {
       val templateActionContext = TemplateActionContext.surrounding(fixture.file, fixture.editor)
       withMockedKotlinTemplate(templateActionContext) {
-        assertThat(composeTemplateClass.createInstance().isInContext(templateActionContext))
-          .isEqualTo(composeEnabled && kotlinInContext)
+        assertThat(composeTemplateClass.createInstance().isInContext(templateActionContext)).isEqualTo(composeEnabled && kotlinInContext)
       }
     }
   }
 
-  private fun withMockedKotlinTemplate(
-    templateActionContext: TemplateActionContext,
-    block: () -> Unit,
-  ) {
+  private fun withMockedKotlinTemplate(templateActionContext: TemplateActionContext, block: () -> Unit) {
     mockConstruction(kotlinTemplateClass.java) { mock, _ ->
         whenever(mock.isInContext(templateActionContext)).thenReturn(kotlinInContext)
         whenever(mock.presentableName).thenReturn("name")
@@ -77,8 +73,7 @@ internal class ComposeKotlinTemplateContextTypeTest(
 
   companion object {
     private val BOOLEANS = listOf(true, false)
-    private val SIMPLE_NAMES =
-      ComposeKotlinTemplateContextType::class.sealedSubclasses.mapNotNull { it.simpleName }
+    private val SIMPLE_NAMES = ComposeKotlinTemplateContextType::class.sealedSubclasses.mapNotNull { it.simpleName }
 
     @JvmStatic
     @Parameterized.Parameters(name = "contextClass={0} compose={2} kotlin={3}")

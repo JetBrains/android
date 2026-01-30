@@ -16,6 +16,8 @@ import com.android.tools.profilers.WithFakeTimer
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
 import com.google.common.truth.Truth.assertThat
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
@@ -24,15 +26,12 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.Mockito.spy
 import org.mockito.kotlin.whenever
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 @RunWith(Parameterized::class)
-class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
+class AllocationStageTest(private val isLive: Boolean) : WithFakeTimer {
   override val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
-  @Rule @JvmField
-  val grpcChannel = FakeGrpcChannel("LiveAllocationStageTestChannel", transportService)
+  @Rule @JvmField val grpcChannel = FakeGrpcChannel("LiveAllocationStageTestChannel", transportService)
   private lateinit var profilers: StudioProfilers
   private lateinit var stage: AllocationStage
   private lateinit var mockLoader: FakeCaptureObjectLoader
@@ -49,8 +48,9 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     ideProfilerServices.enableTaskBasedUx(true)
     mockLoader = FakeCaptureObjectLoader()
-    stage = if (isLive) spy(AllocationStage.makeLiveStage(profilers, mockLoader))
-            else AllocationStage.makeStaticStage(profilers, minTrackingTimeUs = 1.0, maxTrackingTimeUs = 5.0)
+    stage =
+      if (isLive) spy(AllocationStage.makeLiveStage(profilers, mockLoader))
+      else AllocationStage.makeStaticStage(profilers, minTrackingTimeUs = 1.0, maxTrackingTimeUs = 5.0)
     observer = MemoryAspectObserver(stage.aspect, stage.captureSelection.aspect)
   }
 
@@ -124,7 +124,7 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
     assertThat(stage.hasEndedTracking).isTrue()
     assertThat(stage.confirmExitMessage).isNull()
     tickOneSec()
-    assertThat(stage.liveAllocationSamplingMode).isEqualTo(SAMPLED)  // Stop command doesn't change sampling mode
+    assertThat(stage.liveAllocationSamplingMode).isEqualTo(SAMPLED) // Stop command doesn't change sampling mode
     assertThat(handler.lastCommand.type).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING)
     assertThat(handler.lastCommand.commandId).isNotEqualTo(prevCommand.commandId)
   }
@@ -179,7 +179,6 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
   private fun getSelectedRange() = with(stage.timeline.selectionRange) { Pair(min, max) }
 
   companion object {
-    @Parameterized.Parameters @JvmStatic
-    fun isLiveAllocationStage() = listOf(false, true)
+    @Parameterized.Parameters @JvmStatic fun isLiveAllocationStage() = listOf(false, true)
   }
 }

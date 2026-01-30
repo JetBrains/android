@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 @file:JvmName("ResourceUtils")
+
 package com.android.tools.res
 
 import com.android.SdkConstants
 
-/**
- * Studio Independent resource util functions
- */
-
+/** Studio Independent resource util functions */
 
 /**
- * @return ResourceUrl representation of a style from qualifiedName
- * e.g. for "android:Theme" returns "@android:style/Theme" or for "AppTheme" returns "@style/AppTheme"
+ * @return ResourceUrl representation of a style from qualifiedName e.g. for "android:Theme" returns "@android:style/Theme" or for
+ *   "AppTheme" returns "@style/AppTheme"
  */
 fun getStyleResourceUrl(qualifiedName: String): String {
   return getResourceUrlFromQualifiedName(qualifiedName, SdkConstants.TAG_STYLE)
@@ -42,4 +40,3 @@ fun getResourceUrlFromQualifiedName(qualifiedName: String, type: String): String
   }
   return "$startChar$type/$qualifiedName"
 }
-

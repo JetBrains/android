@@ -27,12 +27,12 @@ import com.google.common.truth.Truth
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.util.text.DateFormatUtil
 import com.intellij.util.ui.UIUtil
-import org.junit.Test
-import org.mockito.Mockito
 import java.awt.Component
 import javax.swing.JButton
 import javax.swing.JEditorPane
 import javax.swing.JLabel
+import org.junit.Test
+import org.mockito.Mockito
 
 class BuildOverviewPageViewTest {
 
@@ -52,12 +52,12 @@ class BuildOverviewPageViewTest {
   fun testInfoContent() {
     val view = BuildOverviewPageView(model, mockHandlers)
     val infoPanel = TreeWalker(view.component).descendants().single { it.name == "info" }
-    val text = TreeWalker(infoPanel).descendants()
-      .mapNotNull { visibleText(it) }
-      .joinToString(separator = "\n")
+    val text = TreeWalker(infoPanel).descendants().mapNotNull { visibleText(it) }.joinToString(separator = "\n")
 
     val expectedBuildFinishedString = DateFormatUtil.formatDateTime(model.reportUiData.buildSummary.buildFinishedTimestamp)
-    Truth.assertThat(text).isEqualTo("""
+    Truth.assertThat(text)
+      .isEqualTo(
+        """
       <b>Build finished on $expectedBuildFinishedString</b>
       Total build duration was 20.0s
       
@@ -65,7 +65,9 @@ class BuildOverviewPageViewTest {
       Build configuration: 4.0s - <a href="configuration-cache">Optimize this</a>
       Critical path tasks execution: 15.0s
       
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
   }
 
   @Test
@@ -73,16 +75,18 @@ class BuildOverviewPageViewTest {
     val view = BuildOverviewPageView(model, mockHandlers)
     val linksPanel = TreeWalker(view.component).descendants().single { it.name == "links" }
 
-    val linksPanelContent = TreeWalker(linksPanel).descendants()
-      .mapNotNull { visibleText(it) }
-      .joinToString(separator = "\n")
+    val linksPanelContent = TreeWalker(linksPanel).descendants().mapNotNull { visibleText(it) }.joinToString(separator = "\n")
 
-    Truth.assertThat(linksPanelContent).isEqualTo("""
-      <b>Common views into this build</b>
-      [Tasks impacting build duration]
-      [Plugins with tasks impacting build duration]
-      [All warnings]
-    """.trimIndent())
+    Truth.assertThat(linksPanelContent)
+      .isEqualTo(
+        """
+        <b>Common views into this build</b>
+        [Tasks impacting build duration]
+        [Plugins with tasks impacting build duration]
+        [All warnings]
+        """
+          .trimIndent()
+      )
 
     val links = TreeWalker(linksPanel).descendants().filterIsInstance(HyperlinkLabel::class.java)
     Truth.assertThat(links).hasSize(3)
@@ -122,9 +126,7 @@ class BuildOverviewPageViewTest {
 
   @Test
   fun testNoGcSettingWarning() {
-    val mockData = MockUiData().apply {
-      buildSummary = mockBuildOverviewData(javaVersionUsed = 11, isGarbageCollectorSettingSet = false)
-    }
+    val mockData = MockUiData().apply { buildSummary = mockBuildOverviewData(javaVersionUsed = 11, isGarbageCollectorSettingSet = false) }
     val model = BuildOverviewPageModel(mockData, warningSuppressions)
     val view = BuildOverviewPageView(model, mockHandlers)
     val memoryPanel = TreeWalker(view.component).descendants().single { it.name == "memory" }
@@ -140,15 +142,15 @@ class BuildOverviewPageViewTest {
 
   @Test
   fun testDownloadsOverviewInfo() {
-    val mockData = MockUiData().apply {
-      downloadsData = mockDownloadsData()
-    }
+    val mockData = MockUiData().apply { downloadsData = mockDownloadsData() }
     val model = BuildOverviewPageModel(mockData, warningSuppressions)
     val view = BuildOverviewPageView(model, mockHandlers)
     val html = view.generateInfoPanelHtml()
     val buildFinishedTimeString = DateFormatUtil.formatDateTime(mockData.buildSummary.buildFinishedTimestamp)
 
-    Truth.assertThat(html).isEqualTo("""
+    Truth.assertThat(html)
+      .isEqualTo(
+        """
       <b>Build finished on $buildFinishedTimeString</b><br/>
       Total build duration was 20.0s<br/>
       <br/>
@@ -159,30 +161,26 @@ class BuildOverviewPageViewTest {
       This build had 8 network requests,&lt;br/&gt;
       downloaded in total 310 kB in 1.5s.
       &lt;/html&gt;' src='AllIcons.General.ContextHelp'><br/>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 
   @Test
   fun testInfoContentForDownloadsAnalyzerDisabled() {
-    val mockData = MockUiData().apply {
-      downloadsData = DownloadsAnalyzer.AnalyzerIsDisabled
-    }
+    val mockData = MockUiData().apply { downloadsData = DownloadsAnalyzer.AnalyzerIsDisabled }
     verifyFileDownloadsInfoNotVisible(mockData)
   }
 
   @Test
   fun testInfoContentForDownloadsAnalyzerWhenNoDataBecauseOfGradle() {
-    val mockData = MockUiData().apply {
-      downloadsData = DownloadsAnalyzer.GradleDoesNotProvideEvents
-    }
+    val mockData = MockUiData().apply { downloadsData = DownloadsAnalyzer.GradleDoesNotProvideEvents }
     verifyFileDownloadsInfoNotVisible(mockData)
   }
 
   @Test
   fun testInfoContentForEmptyDownloadsAnalyzer() {
-    val mockData = MockUiData().apply {
-      downloadsData = DownloadsAnalyzer.ActiveResult(emptyList())
-    }
+    val mockData = MockUiData().apply { downloadsData = DownloadsAnalyzer.ActiveResult(emptyList()) }
     verifyFileDownloadsInfoNotVisible(mockData)
   }
 
@@ -192,28 +190,34 @@ class BuildOverviewPageViewTest {
     val html = view.generateInfoPanelHtml()
     val buildFinishedTimeString = DateFormatUtil.formatDateTime(mockData.buildSummary.buildFinishedTimestamp)
 
-    Truth.assertThat(html).isEqualTo("""
+    Truth.assertThat(html)
+      .isEqualTo(
+        """
       <b>Build finished on $buildFinishedTimeString</b><br/>
       Total build duration was 20.0s<br/>
       <br/>
       Includes:<br/>
       Build configuration: 4.0s - <a href='configuration-cache'>Optimize this</a><br/>
       Critical path tasks execution: 15.0s<br/>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 
-  private fun visibleText(component: Component): String? = when (component) {
-    is JLabel -> component.text
-    is JEditorPane -> clearHtml(component.text)
-    is HyperlinkLabel -> "[${component.text}]"
-    else -> null
-  }
+  private fun visibleText(component: Component): String? =
+    when (component) {
+      is JLabel -> component.text
+      is JEditorPane -> clearHtml(component.text)
+      is HyperlinkLabel -> "[${component.text}]"
+      else -> null
+    }
 
-  private fun clearHtml(html: String): String = UIUtil.getHtmlBody(html)
-    .trimIndent()
-    .replace("\n","")
-    // java21 uses NNBSP prefix to AM/PM in time formats
-    // https://bugs.openjdk.org/browse/JDK-8284840
-    .replace("&#8239;", "\u202F")
-    .replace("<br>","\n")
+  private fun clearHtml(html: String): String =
+    UIUtil.getHtmlBody(html)
+      .trimIndent()
+      .replace("\n", "")
+      // java21 uses NNBSP prefix to AM/PM in time formats
+      // https://bugs.openjdk.org/browse/JDK-8284840
+      .replace("&#8239;", "\u202F")
+      .replace("<br>", "\n")
 }

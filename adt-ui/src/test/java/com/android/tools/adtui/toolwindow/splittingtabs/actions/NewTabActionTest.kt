@@ -26,8 +26,7 @@ import org.mockito.kotlin.mock
 class NewTabActionTest {
   @Test
   fun isDumbAware() {
-    assertThat(NewTabAction(textSupplier = { "" }, createNewTab = {}))
-      .isInstanceOf(DumbAware::class.java)
+    assertThat(NewTabAction(textSupplier = { "" }, createNewTab = {})).isInstanceOf(DumbAware::class.java)
   }
 
   @Test

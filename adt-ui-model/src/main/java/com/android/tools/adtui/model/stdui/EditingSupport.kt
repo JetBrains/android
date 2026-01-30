@@ -28,8 +28,8 @@ interface EditingSupport {
   /**
    * Validation support.
    *
-   * Supply a callback for validating a value currently in the editor. The return of the validation
-   * is an error category (error / warning) and a message to display to the user.
+   * Supply a callback for validating a value currently in the editor. The return of the validation is an error category (error / warning)
+   * and a message to display to the user.
    */
   val validation: EditingValidation
     get() = { EDITOR_NO_ERROR }
@@ -45,8 +45,8 @@ interface EditingSupport {
   /**
    * Are custom values (in addition to the choices from the completion) acceptable?
    *
-   * If true the completion popup would display the current edited value as the first choice.
-   * Otherwise the popup would only contain the elements from the completion choices.
+   * If true the completion popup would display the current edited value as the first choice. Otherwise the popup would only contain the
+   * elements from the completion choices.
    */
   val allowCustomValues: Boolean
     get() = true

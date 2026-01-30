@@ -52,14 +52,11 @@ class TaskGridTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
-  @get:Rule
-  val composeTestRule = createStudioComposeTestRule()
+  @get:Rule val composeTestRule = createStudioComposeTestRule()
 
-  @get:Rule
-  val ignoreTestRule = IgnoreTestRule()
+  @get:Rule val ignoreTestRule = IgnoreTestRule()
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("TaskGridTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskGridTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -69,11 +66,7 @@ class TaskGridTest {
   @Before
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     taskGridModel = TaskGridModel(myProfilers)
     ideProfilerServices.enableTaskBasedUx(true)
@@ -85,26 +78,25 @@ class TaskGridTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, light theme, process-selection based`() {
-    standaloneSingleWindowApplication(
-      title = "Testing TaskGrid in Dark Theme",
-    ) {
-      StudioTestTheme(darkMode = false) {
-        TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
-      }
+    standaloneSingleWindowApplication(title = "Testing TaskGrid in Dark Theme") {
+      StudioTestTheme(darkMode = false) { TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList()) }
     }
   }
 
   @Ignore("b/309566948")
   @Test
   fun `visual test, light theme, recording-selection based`() {
-    standaloneSingleWindowApplication(
-      title = "Testing TaskGrid in Dark Theme",
-    ) {
+    standaloneSingleWindowApplication(title = "Testing TaskGrid in Dark Theme") {
       StudioTestTheme(darkMode = false) {
-        val heapDumpArtifact = SessionArtifactUtils.createHprofSessionArtifact(myProfilers,
-                                                                               Common.Session.newBuilder().setSessionId(1L).build(), 0L, 1L)
-        val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, heapDumpArtifact.session, heapDumpArtifact.session.sessionId,
-                                                                 listOf(heapDumpArtifact))
+        val heapDumpArtifact =
+          SessionArtifactUtils.createHprofSessionArtifact(myProfilers, Common.Session.newBuilder().setSessionId(1L).build(), 0L, 1L)
+        val sessionItem =
+          SessionArtifactUtils.createSessionItem(
+            myProfilers,
+            heapDumpArtifact.session,
+            heapDumpArtifact.session.sessionId,
+            listOf(heapDumpArtifact),
+          )
         TaskGrid(taskGridModel, sessionItem, myProfilers.taskHandlers)
       }
     }
@@ -113,26 +105,25 @@ class TaskGridTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, dark theme, process-selection based`() {
-    standaloneSingleWindowApplication(
-      title = "Testing TaskGrid in Dark Theme",
-    ) {
-      StudioTestTheme(darkMode = true) {
-        TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
-      }
+    standaloneSingleWindowApplication(title = "Testing TaskGrid in Dark Theme") {
+      StudioTestTheme(darkMode = true) { TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList()) }
     }
   }
 
   @Ignore("b/309566948")
   @Test
   fun `visual test, dark theme, recording-selection based`() {
-    standaloneSingleWindowApplication(
-      title = "Testing TaskGrid in Dark Theme",
-    ) {
+    standaloneSingleWindowApplication(title = "Testing TaskGrid in Dark Theme") {
       StudioTestTheme(darkMode = true) {
-        val heapDumpArtifact = SessionArtifactUtils.createHprofSessionArtifact(myProfilers,
-                                                                               Common.Session.newBuilder().setSessionId(1L).build(), 0L, 1L)
-        val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, heapDumpArtifact.session, heapDumpArtifact.session.sessionId,
-                                                                 listOf(heapDumpArtifact))
+        val heapDumpArtifact =
+          SessionArtifactUtils.createHprofSessionArtifact(myProfilers, Common.Session.newBuilder().setSessionId(1L).build(), 0L, 1L)
+        val sessionItem =
+          SessionArtifactUtils.createSessionItem(
+            myProfilers,
+            heapDumpArtifact.session,
+            heapDumpArtifact.session.sessionId,
+            listOf(heapDumpArtifact),
+          )
         TaskGrid(taskGridModel, sessionItem, myProfilers.taskHandlers)
       }
     }
@@ -141,9 +132,7 @@ class TaskGridTest {
   @Test
   fun `correct number of task grid items are displayed and clickable`() {
     // There should be one task grid item for every task handler. Eight task handlers were added in the setup step of this test.
-    composeTestRule.setContent {
-      TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
-    }
+    composeTestRule.setContent { TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList()) }
 
     composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(8)
 
@@ -159,9 +148,7 @@ class TaskGridTest {
 
   @Test
   fun `clicking task registers task type selection in model`() {
-    composeTestRule.setContent {
-      TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
-    }
+    composeTestRule.setContent { TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList()) }
 
     composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(8)
 
@@ -174,10 +161,15 @@ class TaskGridTest {
   @Test
   fun `only supported tasks show up on recording selection (single supported task)`() {
     composeTestRule.setContent {
-      val heapDumpArtifact = SessionArtifactUtils.createHprofSessionArtifact(myProfilers,
-                                                                             Common.Session.newBuilder().setSessionId(1L).build(), 0L, 1L)
-      val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, heapDumpArtifact.session, heapDumpArtifact.session.sessionId,
-                                                               listOf(heapDumpArtifact))
+      val heapDumpArtifact =
+        SessionArtifactUtils.createHprofSessionArtifact(myProfilers, Common.Session.newBuilder().setSessionId(1L).build(), 0L, 1L)
+      val sessionItem =
+        SessionArtifactUtils.createSessionItem(
+          myProfilers,
+          heapDumpArtifact.session,
+          heapDumpArtifact.session.sessionId,
+          listOf(heapDumpArtifact),
+        )
       TaskGrid(taskGridModel, sessionItem, myProfilers.taskHandlers)
     }
 

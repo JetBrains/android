@@ -20,12 +20,12 @@ import com.android.tools.adtui.stdui.ResizableImage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.LightPlatformTestCase
+import javax.swing.JLabel
 import kotlin.time.Duration.Companion.seconds
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import javax.swing.JLabel
 
 private val TIMEOUT = 5.seconds
 
@@ -36,10 +36,7 @@ class IntellijImageDataViewerTest : LightPlatformTestCase() {
   @Test
   fun testCanCreateImageViewer() {
     val viewer =
-      IntellijImageDataViewer(
-        IntellijImageDataViewerTest::class.java.getResource("/image.png")!!.readBytes(),
-        disposableRule.disposable
-      )
+      IntellijImageDataViewer(IntellijImageDataViewerTest::class.java.getResource("/image.png")!!.readBytes(), disposableRule.disposable)
 
     waitForCondition(TIMEOUT) { viewer.component.components.isNotEmpty() }
     assertThat(viewer.component.components.map { it::class.java }).containsExactly(ResizableImage::class.java)
@@ -47,7 +44,7 @@ class IntellijImageDataViewerTest : LightPlatformTestCase() {
 
   @Test
   fun testInvalidImageViewerReturnsInvalid() {
-    val viewer =  IntellijImageDataViewer("invalid".toByteArray(), disposableRule.disposable)
+    val viewer = IntellijImageDataViewer("invalid".toByteArray(), disposableRule.disposable)
 
     waitForCondition(TIMEOUT) { viewer.component.components.isNotEmpty() }
     assertThat(viewer.component.components.map { it::class.java }).containsExactly(JLabel::class.java)

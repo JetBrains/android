@@ -31,10 +31,7 @@ import com.intellij.openapi.project.Project
 
 const val BUILD_ANALYZER_NOTIFICATION_GROUP_ID = "Build Analyzer"
 
-class BuildAnalyzerNotificationManager(
-  private val project: Project,
-  private val uiAnalytics: BuildAttributionUiAnalytics
-) {
+class BuildAnalyzerNotificationManager(private val project: Project, private val uiAnalytics: BuildAttributionUiAnalytics) {
 
   private val alreadyNotifiedAbout: MutableSet<WarningType> = mutableSetOf()
 
@@ -49,21 +46,25 @@ class BuildAnalyzerNotificationManager(
   }
 
   private fun showAsNotification(viewDetailsLinkClickListener: () -> Unit) {
-    NotificationGroupManager.getInstance().getNotificationGroup(BUILD_ANALYZER_NOTIFICATION_GROUP_ID)
+    NotificationGroupManager.getInstance()
+      .getNotificationGroup(BUILD_ANALYZER_NOTIFICATION_GROUP_ID)
       .createNotification("Build Analyzer detected new build performance issues", NotificationType.WARNING)
-      .addAction(object : AnAction("Review to improve build performance") {
-        override fun actionPerformed(e: AnActionEvent) {
-          viewDetailsLinkClickListener()
+      .addAction(
+        object : AnAction("Review to improve build performance") {
+          override fun actionPerformed(e: AnActionEvent) {
+            viewDetailsLinkClickListener()
+          }
         }
-      }).notify(project)
+      )
+      .notify(project)
     uiAnalytics.toolWindowBalloonShown()
   }
 }
 
 /**
- * Migrates notification setting from old flag on BA Settings page to Notifications system settings.
- * Only need to convert previously set false flag into [NotificationDisplayType]`.NONE`.
- * In any case set the old field to a new default `"deprecated"` to mark as migrated.
+ * Migrates notification setting from old flag on BA Settings page to Notifications system settings. Only need to convert previously set
+ * false flag into [NotificationDisplayType]`.NONE`. In any case set the old field to a new default `"deprecated"` to mark as migrated.
+ *
  * @see NotificationsConfiguration
  */
 fun migrateSetting(project: Project) {
@@ -71,42 +72,51 @@ fun migrateSetting(project: Project) {
   val defaultSettings = BuildAnalyzerSettings.State()
   if (buildAnalyzerSettings.settingsState.notifyAboutWarnings == "false") {
     // Not yet migrated value, user has manually set to no notifications. Migrate that to NotificationsConfiguration.
-    NotificationsConfiguration.getNotificationsConfiguration().changeSettings(
-      BUILD_ANALYZER_NOTIFICATION_GROUP_ID, NotificationDisplayType.NONE, false, false
-    )
+    NotificationsConfiguration.getNotificationsConfiguration()
+      .changeSettings(BUILD_ANALYZER_NOTIFICATION_GROUP_ID, NotificationDisplayType.NONE, false, false)
   }
   buildAnalyzerSettings.settingsState.notifyAboutWarnings = defaultSettings.notifyAboutWarnings
 }
 
-private sealed class WarningType(val triggerNotification: Boolean){
+private sealed class WarningType(val triggerNotification: Boolean) {
   object ALWAYS_RUN_TASK : WarningType(triggerNotification = true)
+
   object TASK_SETUP_ISSUE : WarningType(triggerNotification = true)
+
   object NON_INCREMENTAL_ANNOTATION_PROCESSOR : WarningType(triggerNotification = true)
+
   object CONFIGURATION_CACHE : WarningType(triggerNotification = false)
+
   object JETIFIER_USAGE : WarningType(triggerNotification = true)
+
   object WINDOWS_DEFENDER : WarningType(triggerNotification = true)
 
-  data class TaskCategoryWarning(val taskCategoryIssue: TaskCategoryIssue) : WarningType(triggerNotification = taskCategoryIssue.severity == TaskCategoryIssue.Severity.WARNING)
+  data class TaskCategoryWarning(val taskCategoryIssue: TaskCategoryIssue) :
+    WarningType(triggerNotification = taskCategoryIssue.severity == TaskCategoryIssue.Severity.WARNING)
 }
 
-
 private fun BuildAttributionReportUiData.isBuildAnalyzerSpecialBuild(): Boolean =
-  confCachingData is ConfigurationCacheCompatibilityTestFlow ||
-  jetifierData.checkJetifierBuild
+  confCachingData is ConfigurationCacheCompatibilityTestFlow || jetifierData.checkJetifierBuild
 
 private fun BuildAttributionReportUiData.warningTypes(): Set<WarningType> {
   val issueTypes = HashSet<WarningType>()
-  this.issues.filter { it.warningCount > 0 }.map { when(it.type) {
-    TaskIssueType.ALWAYS_RUN_TASKS -> WarningType.ALWAYS_RUN_TASK
-    TaskIssueType.TASK_SETUP_ISSUE -> WarningType.TASK_SETUP_ISSUE
-  }}.let { issueTypes.addAll(it) }
+  this.issues
+    .filter { it.warningCount > 0 }
+    .map {
+      when (it.type) {
+        TaskIssueType.ALWAYS_RUN_TASKS -> WarningType.ALWAYS_RUN_TASK
+        TaskIssueType.TASK_SETUP_ISSUE -> WarningType.TASK_SETUP_ISSUE
+      }
+    }
+    .let { issueTypes.addAll(it) }
   if (this.annotationProcessors.issueCount > 0) issueTypes.add(WarningType.NON_INCREMENTAL_ANNOTATION_PROCESSOR)
   if (this.confCachingData.shouldShowWarning()) issueTypes.add(WarningType.CONFIGURATION_CACHE)
   if (this.jetifierData.shouldShowWarning()) issueTypes.add(WarningType.JETIFIER_USAGE)
   if (this.windowsDefenderWarningData.shouldShowWarning) issueTypes.add(WarningType.WINDOWS_DEFENDER)
-  this.criticalPathTaskCategories?.entries?.flatMap {
-    it.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true)
-  }?.forEach { issueTypes.add(WarningType.TaskCategoryWarning(it.issue)) }
+  this.criticalPathTaskCategories
+    ?.entries
+    ?.flatMap { it.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true) }
+    ?.forEach { issueTypes.add(WarningType.TaskCategoryWarning(it.issue)) }
 
   return issueTypes
 }

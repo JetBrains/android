@@ -24,10 +24,10 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.cpu.systemtrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 // TODO reinvestigate these tests because the fake service currently returns all added threads regardless of timestamps which is wrong.
 // Hence the data series returned from getDataForRange are overcounting and do not accurately reflect the request time range.
@@ -35,9 +35,7 @@ class MergeCaptureDataSeriesTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
-  @Rule
-  @JvmField
-  var grpcChannel = FakeGrpcChannel("MergeCaptureDataSeriesTestChannel", transportService)
+  @Rule @JvmField var grpcChannel = FakeGrpcChannel("MergeCaptureDataSeriesTestChannel", transportService)
   private val profilerClient by lazy { ProfilerClient(grpcChannel.channel) }
 
   private lateinit var mergeCaptureDataSeries: MergeCaptureDataSeries<ThreadState>
@@ -51,68 +49,64 @@ class MergeCaptureDataSeriesTest {
     capture.range.set(TimeUnit.MILLISECONDS.toMicros(50).toDouble(), TimeUnit.MILLISECONDS.toMicros(150).toDouble())
     val aTraceSeries = LazyDataSeries { buildSeriesData(50, 150, 10) }
     val threadId = 1
-    val threadStateSeries = CpuThreadStateDataSeries(profilerClient.transportClient, ProfilersTestData.SESSION_DATA.streamId,
-                                                     ProfilersTestData.SESSION_DATA.pid, threadId, capture)
+    val threadStateSeries =
+      CpuThreadStateDataSeries(
+        profilerClient.transportClient,
+        ProfilersTestData.SESSION_DATA.streamId,
+        ProfilersTestData.SESSION_DATA.pid,
+        threadId,
+        capture,
+      )
     mergeCaptureDataSeries = MergeCaptureDataSeries(capture, threadStateSeries, aTraceSeries)
     buildThreadActivityData(threadId)
   }
 
   @Test
   fun testGetDataNoTrace() {
-    val stateSeries = mergeCaptureDataSeries.getDataForRange(
-      Range(
-        TimeUnit.MILLISECONDS.toMicros(201).toDouble(),
-        TimeUnit.MILLISECONDS.toMicros(400).toDouble()
+    val stateSeries =
+      mergeCaptureDataSeries.getDataForRange(
+        Range(TimeUnit.MILLISECONDS.toMicros(201).toDouble(), TimeUnit.MILLISECONDS.toMicros(400).toDouble())
       )
-    )
     // 1 because only the last one from ThreadStateDataSeries.
     assertThat(stateSeries).hasSize(1)
   }
 
   @Test
   fun testGetDataTrace() {
-    val stateSeries = mergeCaptureDataSeries.getDataForRange(
-      Range(
-        TimeUnit.MILLISECONDS.toMicros(1).toDouble(),
-        TimeUnit.MILLISECONDS.toMicros(400).toDouble()
+    val stateSeries =
+      mergeCaptureDataSeries.getDataForRange(
+        Range(TimeUnit.MILLISECONDS.toMicros(1).toDouble(), TimeUnit.MILLISECONDS.toMicros(400).toDouble())
       )
-    )
     // 23 because 13 from ThreadStateDataSeries + 10 from MergeStateDataSeries.
     assertThat(stateSeries).hasSize(23)
   }
 
   @Test
   fun testGetDataTraceStartOverlap() {
-    val stateSeries = mergeCaptureDataSeries.getDataForRange(
-      Range(
-        TimeUnit.MILLISECONDS.toMicros(50).toDouble(),
-        TimeUnit.MILLISECONDS.toMicros(200).toDouble()
+    val stateSeries =
+      mergeCaptureDataSeries.getDataForRange(
+        Range(TimeUnit.MILLISECONDS.toMicros(50).toDouble(), TimeUnit.MILLISECONDS.toMicros(200).toDouble())
       )
-    )
     // 19 because 9 from ThreadStateDataSeries + 10 from MergeStateDataSeries.
     assertThat(stateSeries).hasSize(19)
   }
 
   @Test
   fun testGetDataTraceEndOverlap() {
-    val stateSeries = mergeCaptureDataSeries.getDataForRange(
-      Range(
-        TimeUnit.MILLISECONDS.toMicros(0).toDouble(),
-        TimeUnit.MILLISECONDS.toMicros(150).toDouble()
+    val stateSeries =
+      mergeCaptureDataSeries.getDataForRange(
+        Range(TimeUnit.MILLISECONDS.toMicros(0).toDouble(), TimeUnit.MILLISECONDS.toMicros(150).toDouble())
       )
-    )
     // 16 because 6 from ThreadStateDataSeries + 10 from MergeStateDataSeries.
     assertThat(stateSeries).hasSize(16)
   }
 
   @Test
   fun testGetDataTraceDataOnly() {
-    val stateSeries = mergeCaptureDataSeries.getDataForRange(
-      Range(
-        TimeUnit.MILLISECONDS.toMicros(100).toDouble(),
-        TimeUnit.MILLISECONDS.toMicros(150).toDouble()
+    val stateSeries =
+      mergeCaptureDataSeries.getDataForRange(
+        Range(TimeUnit.MILLISECONDS.toMicros(100).toDouble(), TimeUnit.MILLISECONDS.toMicros(150).toDouble())
       )
-    )
     // Only get some of the trace data.
     // 6 because 1 from ThreadStateDataSeries + 5 from MergeStateDataSeries
     assertThat(stateSeries).hasSize(6)
@@ -121,15 +115,19 @@ class MergeCaptureDataSeriesTest {
   @Test
   fun testGetDataNoTraceGetsSampledData() {
     val aTraceSeries = LazyDataSeries { buildSeriesData(50, 150, 0) }
-    val threadStateSeries = CpuThreadStateDataSeries(profilerClient.transportClient, ProfilersTestData.SESSION_DATA.streamId,
-                                                     ProfilersTestData.SESSION_DATA.pid, 1, capture)
-    mergeCaptureDataSeries = MergeCaptureDataSeries(capture, threadStateSeries, aTraceSeries)
-    val stateSeries = mergeCaptureDataSeries.getDataForRange(
-      Range(
-        TimeUnit.MILLISECONDS.toMicros(100).toDouble(),
-        TimeUnit.MILLISECONDS.toMicros(150).toDouble()
+    val threadStateSeries =
+      CpuThreadStateDataSeries(
+        profilerClient.transportClient,
+        ProfilersTestData.SESSION_DATA.streamId,
+        ProfilersTestData.SESSION_DATA.pid,
+        1,
+        capture,
       )
-    )
+    mergeCaptureDataSeries = MergeCaptureDataSeries(capture, threadStateSeries, aTraceSeries)
+    val stateSeries =
+      mergeCaptureDataSeries.getDataForRange(
+        Range(TimeUnit.MILLISECONDS.toMicros(100).toDouble(), TimeUnit.MILLISECONDS.toMicros(150).toDouble())
+      )
     assertThat(stateSeries).hasSize(8)
   }
 
@@ -157,7 +155,7 @@ class MergeCaptureDataSeriesTest {
           .setGroupId(threadId.toLong())
           .setIsEnded(false)
           .setCpuThread(Cpu.CpuThreadData.newBuilder().setTid(threadId).setName("Thread").setState(Cpu.CpuThreadData.State.RUNNING))
-          .build()
+          .build(),
       )
     }
   }

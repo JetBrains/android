@@ -17,10 +17,10 @@ package com.android.tools.profilers.cpu.art
 
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.intellij.openapi.util.io.FileUtil
-import org.junit.Test
 import java.io.FileOutputStream
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.Test
 
 class ArtTraceParserTest {
   @Test
@@ -28,7 +28,7 @@ class ArtTraceParserTest {
     val traceBytes = CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace")
     val trace = FileUtil.createTempFile("cpu_trace", ".trace")
     FileOutputStream(trace).use { out -> out.write(traceBytes.toByteArray()) }
-    val result = ArtTraceParser.verifyFileHasArtHeader(trace);
+    val result = ArtTraceParser.verifyFileHasArtHeader(trace)
     assertFalse { result }
   }
 
@@ -37,7 +37,7 @@ class ArtTraceParserTest {
     val traceBytes = CpuProfilerTestUtils.traceFileToByteString("atrace.ctrace")
     val trace = FileUtil.createTempFile("cpu_trace", ".trace")
     FileOutputStream(trace).use { out -> out.write(traceBytes.toByteArray()) }
-    val result = ArtTraceParser.verifyFileHasArtHeader(trace);
+    val result = ArtTraceParser.verifyFileHasArtHeader(trace)
     assertFalse { result }
   }
 
@@ -46,7 +46,7 @@ class ArtTraceParserTest {
     val traceBytes = CpuProfilerTestUtils.traceFileToByteString("perfetto.trace")
     val trace = FileUtil.createTempFile("cpu_trace", ".trace")
     FileOutputStream(trace).use { out -> out.write(traceBytes.toByteArray()) }
-    val result = ArtTraceParser.verifyFileHasArtHeader(trace);
+    val result = ArtTraceParser.verifyFileHasArtHeader(trace)
     assertFalse { result }
   }
 
@@ -55,7 +55,7 @@ class ArtTraceParserTest {
     val traceBytes = CpuProfilerTestUtils.traceFileToByteString("art_non_streaming.trace")
     val trace = FileUtil.createTempFile("cpu_trace", ".trace")
     FileOutputStream(trace).use { out -> out.write(traceBytes.toByteArray()) }
-    val result = ArtTraceParser.verifyFileHasArtHeader(trace);
+    val result = ArtTraceParser.verifyFileHasArtHeader(trace)
     assertTrue { result }
   }
 
@@ -64,7 +64,7 @@ class ArtTraceParserTest {
     val traceBytes = CpuProfilerTestUtils.traceFileToByteString("art_streaming.trace")
     val trace = FileUtil.createTempFile("cpu_trace", ".trace")
     FileOutputStream(trace).use { out -> out.write(traceBytes.toByteArray()) }
-    val result = ArtTraceParser.verifyFileHasArtHeader(trace);
+    val result = ArtTraceParser.verifyFileHasArtHeader(trace)
     assertTrue { result }
   }
 
@@ -73,7 +73,7 @@ class ArtTraceParserTest {
     val traceBytes = CpuProfilerTestUtils.traceFileToByteString("empty_trace.trace")
     val trace = FileUtil.createTempFile("cpu_trace", ".trace")
     FileOutputStream(trace).use { out -> out.write(traceBytes.toByteArray()) }
-    val result = ArtTraceParser.verifyFileHasArtHeader(trace);
+    val result = ArtTraceParser.verifyFileHasArtHeader(trace)
     assertFalse { result }
   }
 }

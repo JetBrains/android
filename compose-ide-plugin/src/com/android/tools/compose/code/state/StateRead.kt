@@ -43,28 +43,18 @@ import org.jetbrains.kotlin.psi.KtPropertyAccessor
 private val STATE_TYPES = setOf("", "Int", "Long", "Float", "Double")
 private val STATE_CLASSES_BY_ACCESSOR =
   STATE_TYPES.associate {
-    "${it}Value".replaceFirstChar(Char::lowercase) to
-      ClassId.topLevel(FqName("androidx.compose.runtime.${it}State"))
+    "${it}Value".replaceFirstChar(Char::lowercase) to ClassId.topLevel(FqName("androidx.compose.runtime.${it}State"))
   }
-private val GENERIC_STATE_CLASS_ID =
-  checkNotNull(STATE_CLASSES_BY_ACCESSOR["value"]) { "No class ID for generic State class!" }
+private val GENERIC_STATE_CLASS_ID = checkNotNull(STATE_CLASSES_BY_ACCESSOR["value"]) { "No class ID for generic State class!" }
 
-internal data class StateRead(
-  val stateVar: KtExpression,
-  val scope: KtExpression,
-  val scopeName: String,
-) {
+internal data class StateRead(val stateVar: KtExpression, val scope: KtExpression, val scopeName: String) {
   companion object {
     fun create(stateVar: KtExpression, scope: KtExpression): StateRead? {
       val scopeName =
         when (scope) {
-          is KtLambdaExpression ->
-            ComposeBundle.message("state.read.recompose.target.enclosing.lambda")
-          is KtPropertyAccessor ->
-            if (scope.isGetter) "${scope.property.name}.get()" else return null
-          is KtNamedFunction ->
-            scope.name
-            ?: ComposeBundle.message("state.read.recompose.target.enclosing.anonymous.function")
+          is KtLambdaExpression -> ComposeBundle.message("state.read.recompose.target.enclosing.lambda")
+          is KtPropertyAccessor -> if (scope.isGetter) "${scope.property.name}.get()" else return null
+          is KtNamedFunction -> scope.name ?: ComposeBundle.message("state.read.recompose.target.enclosing.anonymous.function")
           else -> scope.name ?: return null
         }
       val bodyScope = (scope as? KtDeclarationWithBody)?.bodyExpression ?: scope
@@ -110,30 +100,25 @@ private fun KtNameReferenceExpression.getExplicitStateReadElement(): KtExpressio
 }
 
 /**
- * Returns whether the expression represents an implicit call to `State#getValue`, i.e. if the
- * expression is for a delegated property where the delegate is of type `State`.
+ * Returns whether the expression represents an implicit call to `State#getValue`, i.e. if the expression is for a delegated property where
+ * the delegate is of type `State`.
  *
  * E.g. for a name reference expression `foo` if `foo` is defined as:
  *
  * `val foo by stateOf(...)`
  */
 private fun KtNameReferenceExpression.isImplicitStateRead(): Boolean =
-  (mainReference.resolve() as? KtProperty)?.delegateExpression?.isStateType(GENERIC_STATE_CLASS_ID)
-  ?: false
+  (mainReference.resolve() as? KtProperty)?.delegateExpression?.isStateType(GENERIC_STATE_CLASS_ID) ?: false
 
-
-private fun KaSession.isStateType(type: KaType, stateClassId: ClassId): Boolean =
-  type.isSubtypeOf(stateClassId)
+private fun KaSession.isStateType(type: KaType, stateClassId: ClassId): Boolean = type.isSubtypeOf(stateClassId)
 
 @OptIn(KaAllowAnalysisOnEdt::class)
-private fun KtExpression.isStateType(stateClassId: ClassId): Boolean =
-    allowAnalysisOnEdt {
-      analyze(this) { expressionType?.let { isStateType(it, stateClassId) } ?: false }
-
+private fun KtExpression.isStateType(stateClassId: ClassId): Boolean = allowAnalysisOnEdt {
+  analyze(this) { expressionType?.let { isStateType(it, stateClassId) } ?: false }
 }
 
 private fun KtNameReferenceExpression.isAssignee(): Boolean {
   return parentOfType<KtBinaryExpression>()
-           ?.takeIf { it.operationToken.toString() == "EQ" }
-           ?.let { it.left == this || it.left?.descendants()?.contains(this) == true } ?: false
+    ?.takeIf { it.operationToken.toString() == "EQ" }
+    ?.let { it.left == this || it.left?.descendants()?.contains(this) == true } ?: false
 }

@@ -102,8 +102,7 @@ class AbstractPaginatedTableModelTest {
   }
 }
 
-class PaginatedListModel(pageSize: Int, val data: MutableList<Int>) :
-  AbstractPaginatedTableModel(pageSize) {
+class PaginatedListModel(pageSize: Int, val data: MutableList<Int>) : AbstractPaginatedTableModel(pageSize) {
   override fun getDataSize(): Int {
     return data.size
   }

@@ -22,18 +22,20 @@ import com.android.gmdcodecompletion.ConfigurationParameterName.PERFORMANCE_METR
 import com.android.gmdcodecompletion.ConfigurationParameterName.RECORD_VIDEO
 import com.intellij.codeInsight.lookup.LookupElement
 
-/**
- * Generates lookup suggestion list for fields under FTL testOptions
- */
+/** Generates lookup suggestion list for fields under FTL testOptions */
 object FtlTestOptionsLookupElementProvider : BaseLookupElementProvider() {
 
-  override fun generateSimpleValueSuggestionList(propertyName: ConfigurationParameterName,
-                                                 deviceProperties: CurrentDeviceProperties): Collection<LookupElement> {
+  override fun generateSimpleValueSuggestionList(
+    propertyName: ConfigurationParameterName,
+    deviceProperties: CurrentDeviceProperties,
+  ): Collection<LookupElement> {
     return when (propertyName) {
       // default value is "all"
       GRANTED_PERMISSIONS -> generateSimpleEnumSuggestion(listOf("all", "none"))
       // default value is false for all the following fields
-      FAIL_FAST, RECORD_VIDEO, PERFORMANCE_METRICS -> generateSimpleBooleanSuggestion(defaultValue = false)
+      FAIL_FAST,
+      RECORD_VIDEO,
+      PERFORMANCE_METRICS -> generateSimpleBooleanSuggestion(defaultValue = false)
       // We cannot give suggestions for other values
       else -> emptyList()
     }

@@ -31,8 +31,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Work in ms to keep things compatible with scrollbar's integer api. This should cover a long
- * enough time period for us in terms of profiling.
+ * Work in ms to keep things compatible with scrollbar's integer api. This should cover a long enough time period for us in terms of
+ * profiling.
  */
 private val MS_TO_US = TimeUnit.MILLISECONDS.toMicros(1)
 
@@ -42,11 +42,9 @@ private const val STREAMING_POSITION_THRESHOLD_PX = 10f
 /**
  * A custom toolbar that synchronizes with the data+view ranges from the [Timeline].
  *
- * If timeline is a StreamingTimeline, this control sets it into streaming mode if users drags the
- * thumb all the way to the right.
+ * If timeline is a StreamingTimeline, this control sets it into streaming mode if users drags the thumb all the way to the right.
  */
-class TimelineScrollbar(val timeline: Timeline, zoomPanComponent: JComponent) :
-  JBScrollBar(HORIZONTAL) {
+class TimelineScrollbar(val timeline: Timeline, zoomPanComponent: JComponent) : JBScrollBar(HORIZONTAL) {
 
   private val aspectObserver = AspectObserver()
   private var updating = false
@@ -127,13 +125,7 @@ class TimelineScrollbar(val timeline: Timeline, zoomPanComponent: JComponent) :
     // which is why this code snippet
     // is here instead of animate/postAnimate - we wouldn't get the most current size in those
     // places.
-    if (
-      checkStream &&
-        timeline is StreamingTimeline &&
-        !timeline.isStreaming &&
-        isCloseToMax() &&
-        timeline.canStream()
-    ) {
+    if (checkStream && timeline is StreamingTimeline && !timeline.isStreaming && isCloseToMax() && timeline.canStream()) {
       timeline.setStreaming(true)
     }
     checkStream = false

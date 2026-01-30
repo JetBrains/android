@@ -51,21 +51,18 @@ import org.jetbrains.jewel.ui.component.Divider
 @Composable
 fun RecordingListRow(selectedRecording: SessionItem?, recording: SessionItem) {
   Row(
-    modifier = Modifier
-      .fillMaxWidth()
-      .height(TABLE_ROW_HEIGHT_DP)
-      .background(
-        if (recording == selectedRecording)
-          TABLE_ROW_SELECTION_BACKGROUND_COLOR
-        else
-          Color.Transparent
-      )
-      .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
-      .testTag("RecordingListRow")
+    modifier =
+      Modifier.fillMaxWidth()
+        .height(TABLE_ROW_HEIGHT_DP)
+        .background(if (recording == selectedRecording) TABLE_ROW_SELECTION_BACKGROUND_COLOR else Color.Transparent)
+        .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
+        .testTag("RecordingListRow")
   ) {
     LeftAlignedColumnText(recording.name, rowScope = this)
-    RightAlignedColumnText(text = TimeFormatter.getLocalizedDateTime(recording.sessionMetaData.startTimestampEpochMs),
-                           colWidth = RECORDING_TIME_COL_WIDTH_DP)
+    RightAlignedColumnText(
+      text = TimeFormatter.getLocalizedDateTime(recording.sessionMetaData.startTimestampEpochMs),
+      colWidth = RECORDING_TIME_COL_WIDTH_DP,
+    )
     RightAlignedColumnText(text = recording.getTaskType().description, colWidth = RECORDING_TASKS_COL_WIDTH_DP)
   }
 }
@@ -73,11 +70,11 @@ fun RecordingListRow(selectedRecording: SessionItem?, recording: SessionItem) {
 @Composable
 fun RecordingListHeader() {
   Row(
-    modifier = Modifier
-      .fillMaxWidth()
-      .height(TABLE_ROW_HEIGHT_DP)
-      .background(TABLE_HEADER_BACKGROUND_COLOR)
-      .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
+    modifier =
+      Modifier.fillMaxWidth()
+        .height(TABLE_ROW_HEIGHT_DP)
+        .background(TABLE_HEADER_BACKGROUND_COLOR)
+        .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
   ) {
     LeftAlignedColumnText(text = "Recording name", rowScope = this)
     Divider(thickness = 1.dp, orientation = Orientation.Vertical, modifier = Modifier.fillMaxHeight())
@@ -92,7 +89,7 @@ fun RecordingTable(recordingList: List<SessionItem>, selectedRecording: SessionI
   val listState = rememberSelectableLazyListState()
 
   Box {
-    SelectableLazyColumn (
+    SelectableLazyColumn(
       state = listState,
       selectionMode = SelectionMode.Single,
       onSelectedIndexesChange = {
@@ -101,15 +98,13 @@ fun RecordingTable(recordingList: List<SessionItem>, selectedRecording: SessionI
           val newSelectedDeviceProcess = recordingList[it.first() - 1]
           onRecordingSelection(newSelectedDeviceProcess)
         }
-      }
+      },
     ) {
       stickyHeader(key = Integer.MAX_VALUE) {
         RecordingListHeader()
         Divider(color = TABLE_SEPARATOR_COLOR, modifier = Modifier.fillMaxWidth(), thickness = 1.dp, orientation = Orientation.Horizontal)
       }
-      items(items = recordingList) { recording ->
-        RecordingListRow(selectedRecording, recording)
-      }
+      items(items = recordingList) { recording -> RecordingListRow(selectedRecording, recording) }
     }
 
     VerticalScrollbar(

@@ -33,10 +33,7 @@ private val COMPOSABLE_CALL_DESCRIPTOR =
   )
 
 private val STATE_READ_DESCRIPTOR =
-  AttributesDescriptor(
-    ComposeBundle.message("state.read.text.attributes.description"),
-    COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY,
-  )
+  AttributesDescriptor(ComposeBundle.message("state.read.text.attributes.description"), COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
 
 private val STATE_READ_SCOPE_DESCRIPTOR =
   AttributesDescriptor(

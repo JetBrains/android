@@ -22,41 +22,49 @@ import org.jetbrains.android.AndroidTestCase
 class AndroidXmlCompletionContributorTest : AndroidTestCase() {
   fun testNamespaceCodeCompletion() {
     myFixture.configureFromExistingVirtualFile(
-      myFixture.addFileToProject(
-        "res/values/values.xml",
-        """
+      myFixture
+        .addFileToProject(
+          "res/values/values.xml",
+          """
           <resources xmln$caret>
           </resources>
-          """.trimIndent()
-      ).virtualFile
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     )
 
     myFixture.completeBasic()
 
-    Truth.assertThat(myFixture.lookupElementStrings).containsExactly(
-      "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
-      "xmlns:app=\"http://schemas.android.com/apk/res-auto\"",
-      "xmlns:tools=\"http://schemas.android.com/tools\"",
-    )
+    Truth.assertThat(myFixture.lookupElementStrings)
+      .containsExactly(
+        "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
+        "xmlns:app=\"http://schemas.android.com/apk/res-auto\"",
+        "xmlns:tools=\"http://schemas.android.com/tools\"",
+      )
   }
 
   fun testNamespaceCodeCompletionXMLNStyped() {
     myFixture.configureFromExistingVirtualFile(
-      myFixture.addFileToProject(
-        "res/values/values.xml",
-        """
+      myFixture
+        .addFileToProject(
+          "res/values/values.xml",
+          """
           <resources xmlns:$caret>
           </resources>
-          """.trimIndent()
-      ).virtualFile
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     )
 
     myFixture.completeBasic()
 
-    Truth.assertThat(myFixture.lookupElementStrings).containsExactly(
-      "android=\"http://schemas.android.com/apk/res/android\"",
-      "app=\"http://schemas.android.com/apk/res-auto\"",
-      "tools=\"http://schemas.android.com/tools\"",
-    )
+    Truth.assertThat(myFixture.lookupElementStrings)
+      .containsExactly(
+        "android=\"http://schemas.android.com/apk/res/android\"",
+        "app=\"http://schemas.android.com/apk/res-auto\"",
+        "tools=\"http://schemas.android.com/tools\"",
+      )
   }
 }

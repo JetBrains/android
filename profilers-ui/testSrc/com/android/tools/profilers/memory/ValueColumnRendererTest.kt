@@ -30,31 +30,42 @@ import com.intellij.icons.AllIcons.Hierarchy.Subtypes
 import com.intellij.ui.IconManager
 import com.intellij.ui.PlatformIcons
 import com.intellij.util.PlatformIcons.INTERFACE_ICON
+import javax.swing.Icon
 import icons.StudioIcons.Profiler.Overlays.ARRAY_STACK
 import icons.StudioIcons.Profiler.Overlays.FIELD_STACK
 import icons.StudioIcons.Profiler.Overlays.INTERFACE_STACK
 import org.junit.Test
-import javax.swing.Icon
 
 class ValueColumnRendererTest {
 
   @Test
   fun `value object has the right icon`() {
-    fun makeInst(type: ValueType, callStackDepth: Int, isRoot: Boolean = false) = object : InstanceObject {
-      override fun getName() = "inst"
-      override fun getClassEntry() = throw NotImplementedError()
-      override fun getValueType() = type
-      override fun getHeapId() = throw NotImplementedError()
-      override fun getCallStackDepth() = callStackDepth
-      override fun getIsRoot() = isRoot
-    }
-    fun makeField(type: ValueType, callStackDepth: Int?) = object : FieldObject {
-      override fun getName() = "field"
-      override fun getAsInstance() = callStackDepth?.let { makeInst(type, it) }
-      override fun getValueType() = type
-      override fun getValue() = null
-      override fun getFieldName() = "field"
-    }
+    fun makeInst(type: ValueType, callStackDepth: Int, isRoot: Boolean = false) =
+      object : InstanceObject {
+        override fun getName() = "inst"
+
+        override fun getClassEntry() = throw NotImplementedError()
+
+        override fun getValueType() = type
+
+        override fun getHeapId() = throw NotImplementedError()
+
+        override fun getCallStackDepth() = callStackDepth
+
+        override fun getIsRoot() = isRoot
+      }
+    fun makeField(type: ValueType, callStackDepth: Int?) =
+      object : FieldObject {
+        override fun getName() = "field"
+
+        override fun getAsInstance() = callStackDepth?.let { makeInst(type, it) }
+
+        override fun getValueType() = type
+
+        override fun getValue() = null
+
+        override fun getFieldName() = "field"
+      }
     fun makeRef(refInst: InstanceObject) = ReferenceObject(listOf("ref1", "ref2"), refInst)
     fun check(obj: ValueObject, icon: Icon) = assertThat(obj.getValueObjectIcon()).isEqualTo(icon)
 
@@ -73,9 +84,13 @@ class ValueColumnRendererTest {
     check(makeInst(ValueType.STRING, 0), INTERFACE_ICON)
     check(makeInst(ValueType.INT, 1), INTERFACE_STACK)
 
-    check(object : ValueObject {
-      override fun getName() = "obj"
-      override fun getValueType() = ValueType.OBJECT
-    }, INTERFACE_ICON)
+    check(
+      object : ValueObject {
+        override fun getName() = "obj"
+
+        override fun getValueType() = ValueType.OBJECT
+      },
+      INTERFACE_ICON,
+    )
   }
 }

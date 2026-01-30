@@ -21,13 +21,11 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.model.TooltipModel
 
-class SurfaceflingerTooltip(val timeline: Timeline, private val surfaceflingerEvents: DataSeries<SurfaceflingerEvent>)
-  : TooltipModel, AspectModel<SurfaceflingerTooltip.Aspect>() {
+class SurfaceflingerTooltip(val timeline: Timeline, private val surfaceflingerEvents: DataSeries<SurfaceflingerEvent>) :
+  TooltipModel, AspectModel<SurfaceflingerTooltip.Aspect>() {
   enum class Aspect {
-    /**
-     * The hovering surfacefligner event changed.
-     */
-    EVENT_CHANGED,
+    /** The hovering surfacefligner event changed. */
+    EVENT_CHANGED
   }
 
   var activeSurfaceflingerEvent: SurfaceflingerEvent? = null

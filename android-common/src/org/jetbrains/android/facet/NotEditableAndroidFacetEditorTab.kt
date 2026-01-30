@@ -3,8 +3,8 @@ package org.jetbrains.android.facet
 
 import com.intellij.facet.ui.FacetEditorTab
 import com.intellij.ui.dsl.builder.panel
-import org.jetbrains.annotations.Nls
 import javax.swing.JComponent
+import org.jetbrains.annotations.Nls
 
 /**
  * This class is to show single line of text to a user, saying that the project is imported, therefore facet editing is not allowed.
@@ -13,12 +13,9 @@ import javax.swing.JComponent
 class NotEditableAndroidFacetEditorTab : FacetEditorTab() {
   override fun isModified() = false
 
-  @Nls
-  override fun getDisplayName() = "Android SDK Settings"
+  @Nls override fun getDisplayName() = "Android SDK Settings"
 
   override fun createComponent(): JComponent = panel {
-    row {
-      comment("This facet cannot be edited because it was created automatically. Only manually created Android facets can be edited.")
-    }
+    row { comment("This facet cannot be edited because it was created automatically. Only manually created Android facets can be edited.") }
   }
 }

@@ -26,9 +26,8 @@ import org.jetbrains.jewel.ui.component.DefaultButton
 import org.jetbrains.jewel.ui.component.Text
 
 /**
- * This composable is used by the SampleComposeComponentTest to show how we can test the content and
- * behavior of compose components. For theming and swing compatibility, we hardcode the values for
- * simplicity.
+ * This composable is used by the SampleComposeComponentTest to show how we can test the content and behavior of compose components. For
+ * theming and swing compatibility, we hardcode the values for simplicity.
  */
 @Composable
 fun SampleComposeComponent() {

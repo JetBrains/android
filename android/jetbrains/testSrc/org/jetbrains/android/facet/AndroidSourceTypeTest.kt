@@ -23,22 +23,14 @@ internal class AndroidSourceTypeTest {
   @Test
   fun compareTo() {
 
-    val expectedOrder: List<AndroidSourceType> =
-      BUILT_IN_TYPES + listOf(
-        AndroidSourceType.Custom("a"),
-        AndroidSourceType.Custom("z"),
-      )
+    val expectedOrder: List<AndroidSourceType> = BUILT_IN_TYPES + listOf(AndroidSourceType.Custom("a"), AndroidSourceType.Custom("z"))
 
     assertThat(expectedOrder.reversed().sorted()).containsExactlyElementsIn(expectedOrder).inOrder()
   }
 
   @Test
   fun equalsAndHashcode() {
-    val examples: List<AndroidSourceType> =
-      BUILT_IN_TYPES + listOf(
-        AndroidSourceType.Custom("a"),
-        AndroidSourceType.Custom("z"),
-      )
+    val examples: List<AndroidSourceType> = BUILT_IN_TYPES + listOf(AndroidSourceType.Custom("a"), AndroidSourceType.Custom("z"))
     for (i in examples.indices) {
       assertThat(examples[i]).isEqualTo(examples[i])
       for (j in 0 until i) {

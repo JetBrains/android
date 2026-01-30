@@ -18,7 +18,6 @@ package com.android.tools.profilers.performance
 import com.android.tools.datastore.database.MemoryStatsTable
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.MemoryProfiler
-
 import java.sql.Connection
 import java.util.ArrayList
 
@@ -40,34 +39,38 @@ class MemoryGenerator(connection: Connection) : DataGenerator(connection) {
 
   private fun generateGcStatsSamples(timestamp: Long, properties: GeneratorProperties) {
     val samples = ArrayList<MemoryProfiler.MemoryData.GcStatsSample>()
-      samples.add(MemoryProfiler.MemoryData.GcStatsSample.newBuilder().setStartTime(timestamp).setEndTime(timestamp - 1).build())
+    samples.add(MemoryProfiler.MemoryData.GcStatsSample.newBuilder().setStartTime(timestamp).setEndTime(timestamp - 1).build())
     table.insertGcStats(properties.session, samples)
   }
 
   private fun generateMemorySamples(timestamp: Long, properties: GeneratorProperties) {
     val samples = ArrayList<MemoryProfiler.MemoryData.MemorySample>()
-    samples.add(MemoryProfiler.MemoryData.MemorySample.newBuilder()
-                  .setMemoryUsage(Memory.MemoryUsageData.newBuilder()
-                    .setCodeMem(random.nextInt())
-                    .setGraphicsMem(random.nextInt())
-                    .setJavaMem(random.nextInt())
-                    .setNativeMem(random.nextInt())
-                    .setOthersMem(random.nextInt())
-                    .setStackMem(random.nextInt())
-                    .setTotalMem(random.nextInt()))
-                  .setTimestamp(timestamp)
-                  .build())
+    samples.add(
+      MemoryProfiler.MemoryData.MemorySample.newBuilder()
+        .setMemoryUsage(
+          Memory.MemoryUsageData.newBuilder()
+            .setCodeMem(random.nextInt())
+            .setGraphicsMem(random.nextInt())
+            .setJavaMem(random.nextInt())
+            .setNativeMem(random.nextInt())
+            .setOthersMem(random.nextInt())
+            .setStackMem(random.nextInt())
+            .setTotalMem(random.nextInt())
+        )
+        .setTimestamp(timestamp)
+        .build()
+    )
     table.insertMemory(properties.session, samples)
   }
 
   private fun generateAllocStatsSamples(timestamp: Long, properties: GeneratorProperties) {
     val stats = ArrayList<MemoryProfiler.MemoryData.AllocStatsSample>()
-    stats.add(MemoryProfiler.MemoryData.AllocStatsSample.newBuilder()
-                .setAllocStats(Memory.MemoryAllocStatsData.newBuilder()
-                  .setJavaAllocationCount(random.nextInt())
-                  .setJavaFreeCount(random.nextInt()))
-                .setTimestamp(timestamp)
-                .build())
+    stats.add(
+      MemoryProfiler.MemoryData.AllocStatsSample.newBuilder()
+        .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(random.nextInt()).setJavaFreeCount(random.nextInt()))
+        .setTimestamp(timestamp)
+        .build()
+    )
     table.insertAllocStats(properties.session, stats)
   }
 }

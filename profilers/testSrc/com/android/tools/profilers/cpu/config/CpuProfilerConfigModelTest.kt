@@ -39,8 +39,7 @@ class CpuProfilerConfigModelTest {
   private var myProfilerStage: CpuProfilerStage? = null
   private var model: CpuProfilerConfigModel? = null
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("CpuProfilerConfigModelTest", FakeTransportService(myTimer))
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("CpuProfilerConfigModelTest", FakeTransportService(myTimer))
 
   @Before
   fun setup() {
@@ -198,15 +197,13 @@ class CpuProfilerConfigModelTest {
   fun aspectFiredWhenSettingProfilingConfig() {
     val observer = AspectObserver()
     var aspectCalled = false
-    myProfilerStage!!.aspect.addDependency(observer).onChange(
-      CpuProfilerAspect.PROFILING_CONFIGURATION, { aspectCalled = true })
+    myProfilerStage!!.aspect.addDependency(observer).onChange(CpuProfilerAspect.PROFILING_CONFIGURATION, { aspectCalled = true })
     model!!.profilingConfiguration = ArtSampledConfiguration("cfg")
     assertThat(aspectCalled).isTrue()
   }
 
-  private fun isDefault(configuration: ProfilingConfiguration) = myServices
-    .getDefaultCpuProfilerConfigs(0)
-    .any { configuration.name == it.name }
+  private fun isDefault(configuration: ProfilingConfiguration) =
+    myServices.getDefaultCpuProfilerConfigs(0).any { configuration.name == it.name }
 
   private fun setDevice(featureLevel: Int) {
     val device = Device.newBuilder().setFeatureLevel(featureLevel).setSerial("TestSerial").setState(Device.State.ONLINE).build()

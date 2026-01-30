@@ -105,7 +105,5 @@ class HoverColumnTreeVisualTest : VisualTest() {
     return tree
   }
 
-  private class Node
-  internal constructor(internal var myName: String, internal var mySize: String) :
-    DefaultMutableTreeNode(myName)
+  private class Node internal constructor(internal var myName: String, internal var mySize: String) : DefaultMutableTreeNode(myName)
 }

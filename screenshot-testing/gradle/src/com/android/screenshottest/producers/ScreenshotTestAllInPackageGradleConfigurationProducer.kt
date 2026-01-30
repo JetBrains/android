@@ -29,11 +29,10 @@ import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import org.jetbrains.plugins.gradle.util.TasksToRun
 
 /**
- * A configuration producer for creating Gradle run configurations for screenshot tests
- * within a given package in screenshot test source set. This class extends {@link AllInPackageGradleConfigurationProducer}
- * to provide specialized configuration for screenshot testing.
+ * A configuration producer for creating Gradle run configurations for screenshot tests within a given package in screenshot test source
+ * set. This class extends {@link AllInPackageGradleConfigurationProducer} to provide specialized configuration for screenshot testing.
  */
-class ScreenshotTestAllInPackageGradleConfigurationProducer: AllInPackageGradleConfigurationProducer() {
+class ScreenshotTestAllInPackageGradleConfigurationProducer : AllInPackageGradleConfigurationProducer() {
   override fun suggestConfigurationName(context: ConfigurationContext, element: PsiPackage, chosenElements: List<PsiPackage>): String {
     return "Screenshot Tests in ${element.qualifiedName}"
   }
@@ -50,12 +49,14 @@ class ScreenshotTestAllInPackageGradleConfigurationProducer: AllInPackageGradleC
     if (!isScreenshotTestSourceSet(location, androidFacet)) return false
 
     val configurationTaskNames = configuration.settings.taskNames
-    return  configurationTaskNames == taskNamesWithFilter(context, psiPackage)
+    return configurationTaskNames == taskNamesWithFilter(context, psiPackage)
   }
 
-  override fun getAllTestsTaskToRun(context: ConfigurationContext,
-                                    element: PsiPackage,
-                                    chosenElements: List<PsiPackage>): List<TestTasksToRun> {
+  override fun getAllTestsTaskToRun(
+    context: ConfigurationContext,
+    element: PsiPackage,
+    chosenElements: List<PsiPackage>,
+  ): List<TestTasksToRun> {
     val tasksToRun = mutableListOf<TestTasksToRun>()
     val testFilter = "--tests \"${element.qualifiedName}.*\""
     val tasks = getScreenshotTestTaskNames(context) ?: return tasksToRun
@@ -63,9 +64,11 @@ class ScreenshotTestAllInPackageGradleConfigurationProducer: AllInPackageGradleC
     return tasksToRun
   }
 
-  override fun doSetupConfigurationFromContext(configuration: GradleRunConfiguration,
-                                               context: ConfigurationContext,
-                                               sourceElement: Ref<PsiElement>): Boolean {
+  override fun doSetupConfigurationFromContext(
+    configuration: GradleRunConfiguration,
+    context: ConfigurationContext,
+    sourceElement: Ref<PsiElement>,
+  ): Boolean {
     if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()) {
       return false
     }
@@ -79,7 +82,7 @@ class ScreenshotTestAllInPackageGradleConfigurationProducer: AllInPackageGradleC
 
   private fun configure(configuration: GradleRunConfiguration, sourceElementRef: Ref<PsiElement>, context: ConfigurationContext): Boolean {
     val location = context.location ?: return false
-    val psiPackage = AbstractJavaTestConfigurationProducer.checkPackage(location.psiElement)?: return false
+    val psiPackage = AbstractJavaTestConfigurationProducer.checkPackage(location.psiElement) ?: return false
 
     val myModule = AndroidUtils.getAndroidModule(context) ?: return false
     val facet = AndroidFacet.getInstance(myModule) ?: return false

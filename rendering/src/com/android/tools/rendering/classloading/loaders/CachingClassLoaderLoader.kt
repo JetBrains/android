@@ -15,10 +15,7 @@
  */
 package com.android.tools.rendering.classloading.loaders
 
-/**
- * [DelegatingClassLoader.Loader] that caches the loaded classes and provides API to interact with
- * that cache.
- */
+/** [DelegatingClassLoader.Loader] that caches the loaded classes and provides API to interact with that cache. */
 interface CachingClassLoaderLoader : DelegatingClassLoader.Loader {
   /** Returns whether the cached classes are up-to-date. */
   fun isUpToDate(): Boolean = true

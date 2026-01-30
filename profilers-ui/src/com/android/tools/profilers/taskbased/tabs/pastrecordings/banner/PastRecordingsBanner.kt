@@ -44,23 +44,17 @@ import org.jetbrains.jewel.ui.component.Link
 fun PastRecordingsBanner(onBannerClose: () -> Unit, onBannerDoNotAskAgainClick: () -> Unit) {
   Column {
     PastRecordingsBannerBorderLine()
-    Row(modifier = Modifier.background(TABLE_ROW_SELECTION_BACKGROUND_COLOR).padding(RECORDING_BANNER_PADDING_DP),
-        verticalAlignment = Alignment.CenterVertically) {
-      Icon(
-        key = StudioIconsCompose.Common.Info,
-        contentDescription = "Info",
-      )
+    Row(
+      modifier = Modifier.background(TABLE_ROW_SELECTION_BACKGROUND_COLOR).padding(RECORDING_BANNER_PADDING_DP),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Icon(key = StudioIconsCompose.Common.Info, contentDescription = "Info")
       Spacer(modifier = Modifier.width(8.dp))
       EllipsisText(text = RECORDING_BANNER_MESSAGE)
       Spacer(modifier = Modifier.weight(1f))
       Link(DONT_SHOW_AGAIN_TITLE, onClick = { onBannerDoNotAskAgainClick() }, overflow = TextOverflow.Ellipsis)
       Spacer(modifier = Modifier.width(8.dp))
-      IconButton(onClick = { onBannerClose() }) {
-        Icon(
-          key = StudioIconsCompose.Common.Close,
-          contentDescription = "Close",
-        )
-      }
+      IconButton(onClick = { onBannerClose() }) { Icon(key = StudioIconsCompose.Common.Close, contentDescription = "Close") }
     }
     PastRecordingsBannerBorderLine()
   }

@@ -37,21 +37,20 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.impl.ContentImpl
+import java.util.UUID
+import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.UUID
-import javax.swing.JPanel
 
 @RunsInEdt
 class OpenBuildAnalyzerActionTest {
 
   private val projectRule = AndroidProjectRule.onDisk()
   private val openBuildAnalyzerAction = OpenBuildAnalyzerAction()
-  private lateinit var event : AnActionEvent
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  private lateinit var event: AnActionEvent
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   @Before
   fun setup() {
@@ -60,8 +59,7 @@ class OpenBuildAnalyzerActionTest {
 
   @Test
   fun testActionIsRegistered() {
-    val action = ActionManager.getInstance()
-      .getAction("Android.OpenBuildAnalyzerAction")
+    val action = ActionManager.getInstance().getAction("Android.OpenBuildAnalyzerAction")
     assertThat(action).isNotNull()
   }
 
@@ -94,9 +92,9 @@ class OpenBuildAnalyzerActionTest {
     val windowManager = ToolWindowHeadlessManagerImpl(projectRule.project)
     projectRule.replaceProjectService(ToolWindowManager::class.java, windowManager)
     projectRule.replaceProjectService(BuildContentManager::class.java, BuildContentManagerImpl(projectRule.project))
-    projectRule.project.getService(BuildContentManager::class.java).addContent(
-      ContentImpl(JPanel(), BuildContentManagerImpl.BUILD_TAB_TITLE_SUPPLIER.get(), true)
-    )
+    projectRule.project
+      .getService(BuildContentManager::class.java)
+      .addContent(ContentImpl(JPanel(), BuildContentManagerImpl.BUILD_TAB_TITLE_SUPPLIER.get(), true))
     val buildSessionID = UUID.randomUUID().toString()
     storeDefaultData(buildSessionID)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
@@ -108,15 +106,14 @@ class OpenBuildAnalyzerActionTest {
     assertThat(contentManager.findContent("Build Analyzer")).isNotNull()
   }
 
-  private fun storeDefaultData(buildSessionID : String) {
+  private fun storeDefaultData(buildSessionID: String) {
     BuildAnalyzerStorageManager.getInstance(projectRule.project).let { storage ->
       storage.storeNewBuildResults(
         BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer(), storage),
         buildSessionID,
         BuildRequestHolder(
-          GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug")
-            .build()
-        )
+          GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+        ),
       )
     }
   }

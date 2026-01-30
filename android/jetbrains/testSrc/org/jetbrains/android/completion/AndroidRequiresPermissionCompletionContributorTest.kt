@@ -41,12 +41,8 @@ class AndroidRequiresPermissionCompletionContributorTest {
 
   @Before
   fun setUp() {
-    fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
-    fixture.copyFileToProject(
-      "$TEST_DATA_DIRECTORY/RequiresPermission.java",
-      "src/androidx/annotation/RequiresPermission.java",
-    )
+    fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
+    fixture.copyFileToProject("$TEST_DATA_DIRECTORY/RequiresPermission.java", "src/androidx/annotation/RequiresPermission.java")
   }
 
   @Test
@@ -73,8 +69,7 @@ class AndroidRequiresPermissionCompletionContributorTest {
 
     // Validate that completion contains various permissions entries.
     fixture.completeBasic()
-    assertThat(fixture.lookupElementStrings)
-      .containsAllOf("ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "READ_EXTERNAL_STORAGE")
+    assertThat(fixture.lookupElementStrings).containsAllOf("ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "READ_EXTERNAL_STORAGE")
 
     // Now filter the list down to a single entry, and verify its insertion.
     application.invokeAndWait {
@@ -82,18 +77,10 @@ class AndroidRequiresPermissionCompletionContributorTest {
       // This causes the test to fail under K2 due to running analysis inside a write
       // action, unless we exempt it here.
       // (In production, the completion contributor runs on a background thread.)
-      allowAnalysisFromWriteAction {
-        allowAnalysisOnEdt {
-          fixture.type("ACCESS_FINE")
-        }
-      }
+      allowAnalysisFromWriteAction { allowAnalysisOnEdt { fixture.type("ACCESS_FINE") } }
     }
     val lookupElements = fixture.completeBasic()
-    assertWithMessage(
-      "Expect lookupElements to be null, signifying there is a single lookup entry."
-    )
-      .that(lookupElements)
-      .isNull()
+    assertWithMessage("Expect lookupElements to be null, signifying there is a single lookup entry.").that(lookupElements).isNull()
 
     fixture.checkResult(
       // language=kotlin
@@ -135,17 +122,12 @@ class AndroidRequiresPermissionCompletionContributorTest {
 
     // Validate that completion contains various permissions entries.
     fixture.completeBasic()
-    assertThat(fixture.lookupElementStrings)
-      .containsAllOf("ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "READ_EXTERNAL_STORAGE")
+    assertThat(fixture.lookupElementStrings).containsAllOf("ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "READ_EXTERNAL_STORAGE")
 
     // Now filter the list down to a single entry, and verify its insertion.
     application.invokeAndWait { fixture.type("ACCESS_FINE") }
     val lookupElements = fixture.completeBasic()
-    assertWithMessage(
-        "Expect lookupElements to be null, signifying there is a single lookup entry."
-      )
-      .that(lookupElements)
-      .isNull()
+    assertWithMessage("Expect lookupElements to be null, signifying there is a single lookup entry.").that(lookupElements).isNull()
 
     fixture.checkResult(
       // language=JAVA

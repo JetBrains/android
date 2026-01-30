@@ -96,9 +96,7 @@ object CommonControlPortfolio {
     val menuPanel = JPanel(VerticalFlowLayout())
     val label = JLabel()
     val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT))
-    toolBarPanel.add(
-      makeDropDownMenu("MenuWithIconArrow", AllIcons.General.Add, true, 100, 2, label)
-    )
+    toolBarPanel.add(makeDropDownMenu("MenuWithIconArrow", AllIcons.General.Add, true, 100, 2, label))
     toolBarPanel.add(makeDropDownMenu("MenuNoIcon", null, false, 100, 2, label))
     toolBarPanel.add(makeDropDownMenu("", AllIcons.ToolbarDecorator.Export, true, 2, 2, label))
     toolBarPanel.add(makeDropDownMenu("", AllIcons.General.Filter, false, 2, 2, label))
@@ -110,14 +108,13 @@ object CommonControlPortfolio {
     grid.layout = GridLayout(2, 2, 5, 5)
     grid.border = JBUI.Borders.empty(20, 20, 20, 20)
 
-    listOf(SwingConstants.TOP, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.BOTTOM)
-      .forEach {
-        val tab = CommonTabbedPane()
-        tab.border = BorderFactory.createLineBorder(StandardColors.TAB_BORDER_COLOR, 1)
-        tab.tabPlacement = it
-        listOf("One", "Two", "Three").forEach { tab.add(JLabel("Label $it"), it) }
-        grid.add(tab)
-      }
+    listOf(SwingConstants.TOP, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.BOTTOM).forEach {
+      val tab = CommonTabbedPane()
+      tab.border = BorderFactory.createLineBorder(StandardColors.TAB_BORDER_COLOR, 1)
+      tab.tabPlacement = it
+      listOf("One", "Two", "Three").forEach { tab.add(JLabel("Label $it"), it) }
+      grid.add(tab)
+    }
     topPanel.add(grid, "Tabs")
 
     contentPane.layout = BorderLayout()
@@ -169,8 +166,7 @@ object CommonControlPortfolio {
   }
 
   private fun makeComboBox(initialValue: String, enabled: Boolean, editable: Boolean): JComponent {
-    val model =
-      TestCommonComboBoxModel(initialValue, listOf("one", "two", "three", "four", "five", "six"))
+    val model = TestCommonComboBoxModel(initialValue, listOf("one", "two", "three", "four", "five", "six"))
     model.enabled = enabled
     model.editable = editable
     model.placeHolderValue = "@+id/name"
@@ -181,14 +177,7 @@ object CommonControlPortfolio {
     return combo
   }
 
-  private fun makeDropDownMenu(
-    text: String,
-    icon: Icon?,
-    showArrow: Boolean,
-    width: Int,
-    depth: Int,
-    label: JLabel,
-  ): JComponent {
+  private fun makeDropDownMenu(text: String, icon: Icon?, showArrow: Boolean, width: Int, depth: Int, label: JLabel): JComponent {
     val model = CommonAction(text, icon, null)
     model.showExpandArrow = showArrow
 
@@ -211,14 +200,7 @@ object CommonControlPortfolio {
     return CommonDropDownButton(model)
   }
 
-  private fun populateCommonActionRecursive(
-    parent: CommonAction,
-    text: String,
-    icon: Icon?,
-    width: Int,
-    depth: Int,
-    label: JLabel,
-  ) {
+  private fun populateCommonActionRecursive(parent: CommonAction, text: String, icon: Icon?, width: Int, depth: Int, label: JLabel) {
     for (i in 0 until width) {
       if (i % 2 == 0 || depth - 1 == 0) {
         val action = CommonAction(text, icon)
@@ -296,7 +278,6 @@ class TestCommonTextFieldModel(initialValue: String) : DefaultCommonTextFieldMod
   override val editingSupport = TestEditingSupport(this)
 }
 
-class TestCommonComboBoxModel(initialValue: String, elements: List<String>) :
-  DefaultCommonComboBoxModel<String>(initialValue, elements) {
+class TestCommonComboBoxModel(initialValue: String, elements: List<String>) : DefaultCommonComboBoxModel<String>(initialValue, elements) {
   override val editingSupport = TestEditingSupport(this)
 }

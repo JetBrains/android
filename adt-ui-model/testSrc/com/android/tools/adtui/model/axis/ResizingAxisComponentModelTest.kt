@@ -31,10 +31,7 @@ class ResizingAxisComponentModelTest {
   fun setUp() {
     range = Range(6.0, 10.0)
     globalRange = Range(5.0, 20.0)
-    axisModel =
-      ResizingAxisComponentModel.Builder(range, TimeAxisFormatter.DEFAULT)
-        .setGlobalRange(globalRange)
-        .build()
+    axisModel = ResizingAxisComponentModel.Builder(range, TimeAxisFormatter.DEFAULT).setGlobalRange(globalRange).build()
   }
 
   @Test
@@ -42,9 +39,7 @@ class ResizingAxisComponentModelTest {
     val observer = AspectObserver()
 
     var aspectFired = false
-    axisModel.addDependency(observer).onChange(AxisComponentModel.Aspect.AXIS) {
-      aspectFired = true
-    }
+    axisModel.addDependency(observer).onChange(AxisComponentModel.Aspect.AXIS) { aspectFired = true }
 
     assertThat(aspectFired).isFalse()
     globalRange.set(2.0, 3.0)
@@ -56,9 +51,7 @@ class ResizingAxisComponentModelTest {
     val observer = AspectObserver()
 
     var aspectFired = false
-    axisModel.addDependency(observer).onChange(AxisComponentModel.Aspect.AXIS) {
-      aspectFired = true
-    }
+    axisModel.addDependency(observer).onChange(AxisComponentModel.Aspect.AXIS) { aspectFired = true }
 
     assertThat(aspectFired).isFalse()
     globalRange.set(5.0, 5.0)
@@ -70,9 +63,7 @@ class ResizingAxisComponentModelTest {
     val observer = AspectObserver()
 
     var aspectFired = false
-    axisModel.addDependency(observer).onChange(AxisComponentModel.Aspect.AXIS) {
-      aspectFired = true
-    }
+    axisModel.addDependency(observer).onChange(AxisComponentModel.Aspect.AXIS) { aspectFired = true }
 
     assertThat(aspectFired).isFalse()
     range.set(8.0, 8.0)

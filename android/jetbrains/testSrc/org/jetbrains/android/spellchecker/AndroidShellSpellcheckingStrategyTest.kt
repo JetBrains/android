@@ -17,7 +17,6 @@ package org.jetbrains.android.spellchecker
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.grazie.spellcheck.GrazieSpellCheckingInspection
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.spellchecker.SpellCheckerSeveritiesProvider
 import org.jetbrains.android.AndroidTestCase
 

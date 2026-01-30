@@ -32,10 +32,10 @@ import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import javax.swing.JList
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JList
 
 class CustomEventProfilerStageViewTest {
 
@@ -45,14 +45,11 @@ class CustomEventProfilerStageViewTest {
   private lateinit var stage: CustomEventProfilerStage
   private lateinit var view: StudioProfilersView
 
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("CustomEventProfilerStageViewTest", transportService)
+  @get:Rule val grpcChannel = FakeGrpcChannel("CustomEventProfilerStageViewTest", transportService)
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Before
   fun setUp() {
@@ -62,9 +59,8 @@ class CustomEventProfilerStageViewTest {
     stage = CustomEventProfilerStage(profilers)
     profilers.stage = stage
 
-    //Initialize the view after the stage, otherwise it will create views for monitoring stage
+    // Initialize the view after the stage, otherwise it will create views for monitoring stage
     view = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
-
   }
 
   @Test
@@ -81,23 +77,20 @@ class CustomEventProfilerStageViewTest {
 
   @Test
   fun testExpectedUIComponents() {
-    //Test that the stage view has the following expected components: JList of all the tracks, the timeline, and the scrollbar
+    // Test that the stage view has the following expected components: JList of all the tracks, the timeline, and the scrollbar
     val customEventProfilerStageView = view.stageView as CustomEventProfilerStageView
     val treeWalker = TreeWalker(customEventProfilerStageView.component)
 
-    //track lists
+    // track lists
     val trackList = treeWalker.descendants().filterIsInstance(JList::class.java)
     assertThat(trackList.size).isEqualTo(2)
 
-    //timeline
+    // timeline
     val timeline = treeWalker.descendants().filterIsInstance(AxisComponent::class.java)
     assertThat(timeline.size).isEqualTo(1)
 
-    //scrollbar
+    // scrollbar
     val scrollbar = treeWalker.descendants().filterIsInstance(TimelineScrollbar::class.java)
     assertThat(scrollbar.size).isEqualTo(1)
   }
-
 }
-
-

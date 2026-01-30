@@ -20,6 +20,5 @@ package org.jetbrains.android.facet
 import com.android.tools.idea.projectsystem.getManifestFiles
 import com.intellij.openapi.vfs.VirtualFile
 
-/** Returns the manifest files in the given module  */
+/** Returns the manifest files in the given module */
 fun getManifestFiles(facet: AndroidFacet): List<VirtualFile> = facet.getManifestFiles()
-

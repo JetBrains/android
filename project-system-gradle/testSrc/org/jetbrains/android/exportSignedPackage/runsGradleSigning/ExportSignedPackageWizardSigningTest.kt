@@ -25,6 +25,8 @@ import com.google.common.truth.Truth
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
 import com.intellij.util.Consumer
+import java.io.File
+import java.util.concurrent.ExecutionException
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard
@@ -35,28 +37,29 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.io.File
-import java.util.concurrent.ExecutionException
 
 @RunWith(Parameterized::class)
-class ExportSignedPackageWizardSigningTest(private val targetType: TargetType,
-                                           validStorePassword: Boolean,
-                                           validKeyAlias: Boolean,
-                                           validKeyPassword: Boolean,
-                                           private val buildResultHandler: Consumer<ListenableFuture<AssembleInvocationResult>>) {
+class ExportSignedPackageWizardSigningTest(
+  private val targetType: TargetType,
+  validStorePassword: Boolean,
+  validKeyAlias: Boolean,
+  validKeyPassword: Boolean,
+  private val buildResultHandler: Consumer<ListenableFuture<AssembleInvocationResult>>,
+) {
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "{0} ValidStorePass {1}, ValidKeyAlias {2}, ValidKeyPass {3}")
-    fun data() = listOf(
-      arrayOf(ExportSignedPackageWizard.BUNDLE, true, true, true, successHandler),
-      arrayOf(ExportSignedPackageWizard.APK, true, true, true, successHandler),
-      arrayOf(ExportSignedPackageWizard.BUNDLE, false, true, true, badStorePassHandler),
-      arrayOf(ExportSignedPackageWizard.APK, false, true, true, badStorePassHandler),
-      arrayOf(ExportSignedPackageWizard.BUNDLE, true, false, true, badKeyAliasHandler),
-      arrayOf(ExportSignedPackageWizard.APK, true, false, true, badKeyAliasHandler),
-      arrayOf(ExportSignedPackageWizard.BUNDLE, true, true, false, badKeyPassHandler),
-      arrayOf(ExportSignedPackageWizard.APK, true, true, false, badKeyPassHandler),
-    )
+    fun data() =
+      listOf(
+        arrayOf(ExportSignedPackageWizard.BUNDLE, true, true, true, successHandler),
+        arrayOf(ExportSignedPackageWizard.APK, true, true, true, successHandler),
+        arrayOf(ExportSignedPackageWizard.BUNDLE, false, true, true, badStorePassHandler),
+        arrayOf(ExportSignedPackageWizard.APK, false, true, true, badStorePassHandler),
+        arrayOf(ExportSignedPackageWizard.BUNDLE, true, false, true, badKeyAliasHandler),
+        arrayOf(ExportSignedPackageWizard.APK, true, false, true, badKeyAliasHandler),
+        arrayOf(ExportSignedPackageWizard.BUNDLE, true, true, false, badKeyPassHandler),
+        arrayOf(ExportSignedPackageWizard.APK, true, true, false, badKeyPassHandler),
+      )
 
     private val successHandler = Consumer { future: ListenableFuture<AssembleInvocationResult> ->
       try {
@@ -64,11 +67,9 @@ class ExportSignedPackageWizardSigningTest(private val targetType: TargetType,
         if (!result.isBuildSuccessful) {
           TestCase.fail(getInvocationErrorsCause(result))
         }
-      }
-      catch (e: InterruptedException) {
+      } catch (e: InterruptedException) {
         throw RuntimeException(e)
-      }
-      catch (e: ExecutionException) {
+      } catch (e: ExecutionException) {
         throw RuntimeException(e)
       }
     }
@@ -81,11 +82,9 @@ class ExportSignedPackageWizardSigningTest(private val targetType: TargetType,
         }
         val buildErrorCause: String = getInvocationErrorsCause(result)
         Truth.assertThat(buildErrorCause).contains("Keystore was tampered with, or password was incorrect")
-      }
-      catch (e: InterruptedException) {
+      } catch (e: InterruptedException) {
         throw RuntimeException(e)
-      }
-      catch (e: ExecutionException) {
+      } catch (e: ExecutionException) {
         throw RuntimeException(e)
       }
     }
@@ -98,11 +97,9 @@ class ExportSignedPackageWizardSigningTest(private val targetType: TargetType,
         }
         val buildErrorCause: String = getInvocationErrorsCause(result)
         Truth.assertThat(buildErrorCause).contains("No key with alias 'badKeyAlias' found in keystore")
-      }
-      catch (e: InterruptedException) {
+      } catch (e: InterruptedException) {
         throw RuntimeException(e)
-      }
-      catch (e: ExecutionException) {
+      } catch (e: ExecutionException) {
         throw RuntimeException(e)
       }
     }
@@ -115,11 +112,9 @@ class ExportSignedPackageWizardSigningTest(private val targetType: TargetType,
         }
         val buildErrorCause: String = getInvocationErrorsCause(result)
         Truth.assertThat(buildErrorCause).contains("Failed to read key androiddebugkey from store")
-      }
-      catch (e: InterruptedException) {
+      } catch (e: InterruptedException) {
         throw RuntimeException(e)
-      }
-      catch (e: ExecutionException) {
+      } catch (e: ExecutionException) {
         throw RuntimeException(e)
       }
     }
@@ -147,12 +142,9 @@ class ExportSignedPackageWizardSigningTest(private val targetType: TargetType,
   private val keyAlias = if (validKeyAlias) "androiddebugkey" else "badKeyAlias"
   private val keyPassword = (if (validKeyPassword) "android" else "badKeyPass").toCharArray()
 
-  @get:Rule
-  var myRule = AndroidGradleProjectRule()
+  @get:Rule var myRule = AndroidGradleProjectRule()
 
-  /**
-   * Perform a sign and use the result handler to confirm expected behaviour.
-   */
+  /** Perform a sign and use the result handler to confirm expected behaviour. */
   @Test
   fun testSign() {
     myRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
@@ -167,7 +159,15 @@ class ExportSignedPackageWizardSigningTest(private val targetType: TargetType,
     val signingInfo = GradleSigningInfo(keyStorePath, storePassword, keyAlias, keyPassword)
     val apkPath = androidModel!!.rootDirPath.path
     val modules = listOf(facet.module.getMainModule())
-    ExportSignedPackageWizard.doBuildAndSignGradleProject(project, facet, variants, modules, signingInfo, apkPath, targetType,
-                                                          buildResultHandler)
+    ExportSignedPackageWizard.doBuildAndSignGradleProject(
+      project,
+      facet,
+      variants,
+      modules,
+      signingInfo,
+      apkPath,
+      targetType,
+      buildResultHandler,
+    )
   }
 }

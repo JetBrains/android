@@ -21,12 +21,9 @@ import com.intellij.util.xmlb.XmlSerializer
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [BuildDescriptorStorageService]
- */
+/** Tests for [BuildDescriptorStorageService] */
 class BuildDescriptorStorageServiceTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private val firstDescriptor = BuildDescriptorImpl("First descriptor", 2134, 123524)
   private val secondDescriptor = BuildDescriptorImpl("Second descriptor", 213544635, 4234)
@@ -50,8 +47,9 @@ class BuildDescriptorStorageServiceTest {
   }
 
   private fun addToStorage(descriptor: BuildDescriptor) {
-    BuildDescriptorStorageService.getInstance(projectRule.project).state.descriptors.add(BuildDescriptorImpl(descriptor.buildSessionID,
-                                                                                                             descriptor.buildFinishedTimestamp,
-                                                                                                             descriptor.totalBuildTimeMs))
+    BuildDescriptorStorageService.getInstance(projectRule.project)
+      .state
+      .descriptors
+      .add(BuildDescriptorImpl(descriptor.buildSessionID, descriptor.buildFinishedTimestamp, descriptor.totalBuildTimeMs))
   }
 }

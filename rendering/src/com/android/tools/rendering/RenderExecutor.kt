@@ -39,35 +39,26 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import org.jetbrains.annotations.TestOnly
 
-/**
- * Max number of tasks that can be waiting to execute, without considering cleaning tasks (i.e.
- * tagged with [RenderingTopic.CLEAN]).
- */
-private val DEFAULT_MAX_QUEUED_TASKS_SOFT =
-  Integer.getInteger("layoutlib.thread.max.queued.soft", 50)
+/** Max number of tasks that can be waiting to execute, without considering cleaning tasks (i.e. tagged with [RenderingTopic.CLEAN]). */
+private val DEFAULT_MAX_QUEUED_TASKS_SOFT = Integer.getInteger("layoutlib.thread.max.queued.soft", 50)
 
 /** Max number of tasks that can be waiting to execute, including cleaning tasks. */
-private val DEFAULT_MAX_QUEUED_TASKS_HARD =
-  Integer.getInteger("layoutlib.thread.max.queued.hard", 300)
+private val DEFAULT_MAX_QUEUED_TASKS_HARD = Integer.getInteger("layoutlib.thread.max.queued.hard", 300)
 
 /**
- * If true, it collects profile data and outputs to idea.log when the rendering takes longer than
- * the threshold value defined in [ThreadProfileSettings].
+ * If true, it collects profile data and outputs to idea.log when the rendering takes longer than the threshold value defined in
+ * [ThreadProfileSettings].
  */
-private val PROFILE_SLOW_RENDERING_THREAD =
-  System.getProperty("layoutlib.thread.profile.slow-rendering.enable", "true").toBoolean()
+private val PROFILE_SLOW_RENDERING_THREAD = System.getProperty("layoutlib.thread.profile.slow-rendering.enable", "true").toBoolean()
 
 /**
- * Intended to be used for executing render tasks of layoutlib [RenderSession]. Currently, all calls
- * to the layoutlib should be done from the same thread. This executor guarantees that unit of work
- * passed to [runAction] or [runAsyncAction] will be executed sequentially from the same thread.
+ * Intended to be used for executing render tasks of layoutlib [RenderSession]. Currently, all calls to the layoutlib should be done from
+ * the same thread. This executor guarantees that unit of work passed to [runAction] or [runAsyncAction] will be executed sequentially from
+ * the same thread.
  *
- * @param maxQueueingTasksSoftLimit max number of tasks that can be queueing waiting for a task to
- *   complete, ignoring cleaning tasks.
- * @param maxQueueingTasksHardLimit max number of tasks that can be queueing waiting for a task to
- *   complete, including cleaning tasks.
- * @param renderingExecutorService a provider of the [ExecutorService] using the given
- *   [ThreadFactory].
+ * @param maxQueueingTasksSoftLimit max number of tasks that can be queueing waiting for a task to complete, ignoring cleaning tasks.
+ * @param maxQueueingTasksHardLimit max number of tasks that can be queueing waiting for a task to complete, including cleaning tasks.
+ * @param renderingExecutorService a provider of the [ExecutorService] using the given [ThreadFactory].
  * @param scheduledExecutorService a [ScheduledExecutorService] to keep track of the task timeout.
  */
 class RenderExecutor
@@ -80,11 +71,9 @@ private constructor(
   private val pendingActionsQueueLock: Lock = ReentrantLock()
   private val runningRenderLock: Lock = ReentrantLock()
 
+  @GuardedBy("pendingActionsQueueLock") private val allPendingActionsQueue: Queue<PriorityCompletableFuture<*>> = PriorityQueue()
   @GuardedBy("pendingActionsQueueLock")
-  private val allPendingActionsQueue: Queue<PriorityCompletableFuture<*>> = PriorityQueue()
-  @GuardedBy("pendingActionsQueueLock")
-  private val pendingActionsQueueByTopic:
-    MutableMap<RenderingTopic, Queue<PriorityCompletableFuture<*>>> =
+  private val pendingActionsQueueByTopic: MutableMap<RenderingTopic, Queue<PriorityCompletableFuture<*>>> =
     EnumMap(RenderingTopic::class.java)
   @GuardedBy("runningRenderLock") private var runningRender: PriorityCompletableFuture<*>? = null
   private val accumulatedTimeoutExceptions = AtomicInteger(0)
@@ -123,11 +112,8 @@ private constructor(
 
   private class EvictedException(message: String?) : CancellationException(message)
 
-  private fun scheduleTimeoutAction(
-    timeout: Long,
-    unit: TimeUnit,
-    action: () -> Unit,
-  ): ScheduledFuture<*> = scheduledExecutorService.schedule(action, timeout, unit)
+  private fun scheduleTimeoutAction(timeout: Long, unit: TimeUnit, action: () -> Unit): ScheduledFuture<*> =
+    scheduledExecutorService.schedule(action, timeout, unit)
 
   override val executedRenderActionCount
     get() = executedRenderActions.toLong()
@@ -173,9 +159,7 @@ private constructor(
       // We have reached the maximum (soft or hard), evict overflow.
       // Clean actions are only evicted if hard limit is reached
       while (tasksQueueSoftLimitExceeded() || tasksQueueHardLimitExceeded()) {
-        val evictedException =
-          if (tasksQueueHardLimitExceeded()) createHardLimitExceededException()
-          else createSoftLimitExceededException()
+        val evictedException = if (tasksQueueHardLimitExceeded()) createHardLimitExceededException() else createSoftLimitExceededException()
         allPendingActionsQueue.remove().let {
           pendingActionsQueueByTopic[it.renderingTopic]?.remove(it)
           it.completeExceptionally(evictedException)
@@ -204,9 +188,7 @@ private constructor(
                 interrupt()
               }
               future.completeExceptionally(
-                createRenderTimeoutException(
-                  "The render action was too slow to execute (${actionTimeoutUnit.toMillis(actionTimeout)}ms)"
-                )
+                createRenderTimeoutException("The render action was too slow to execute (${actionTimeoutUnit.toMillis(actionTimeout)}ms)")
               )
             }
           future.whenComplete { _, _ -> actionTimeoutFuture.cancel(false) }
@@ -226,17 +208,13 @@ private constructor(
     return future.whenComplete { _, _ -> queueTimeoutFuture?.cancel(true) }
   }
 
-  override fun cancelActionsByTopic(
-    topicsToCancel: List<RenderingTopic>,
-    mayInterruptIfRunning: Boolean,
-  ): Int {
+  override fun cancelActionsByTopic(topicsToCancel: List<RenderingTopic>, mayInterruptIfRunning: Boolean): Int {
     var numberOfCancelledActions = 0
     pendingActionsQueueLock
       .withLock {
         topicsToCancel.flatMap { topic ->
-          pendingActionsQueueByTopic.remove(topic)?.also { topicQueue ->
-            allPendingActionsQueue.removeAll(topicQueue.toSet())
-          } ?: emptyList()
+          pendingActionsQueueByTopic.remove(topic)?.also { topicQueue -> allPendingActionsQueue.removeAll(topicQueue.toSet()) }
+            ?: emptyList()
         }
       }
       .let { actionsToCancel ->
@@ -260,8 +238,7 @@ private constructor(
       try {
         renderingExecutorService.awaitTermination(timeoutSeconds, TimeUnit.SECONDS)
       } catch (ignored: InterruptedException) {
-        Logger.getInstance(RenderExecutor::class.java)
-          .warn("The RenderExecutor does not shutdown after $timeoutSeconds seconds")
+        Logger.getInstance(RenderExecutor::class.java).warn("The RenderExecutor does not shutdown after $timeoutSeconds seconds")
       }
     }
   }
@@ -308,27 +285,18 @@ private constructor(
     }
 
     @TestOnly
-    fun createForTests(
-      executorService: SingleThreadExecutorService,
-      scheduledExecutorService: ScheduledExecutorService,
-    ) =
-      RenderExecutor(
-        DEFAULT_MAX_QUEUED_TASKS_SOFT,
-        DEFAULT_MAX_QUEUED_TASKS_HARD,
-        executorService,
-        scheduledExecutorService,
-      )
+    fun createForTests(executorService: SingleThreadExecutorService, scheduledExecutorService: ScheduledExecutorService) =
+      RenderExecutor(DEFAULT_MAX_QUEUED_TASKS_SOFT, DEFAULT_MAX_QUEUED_TASKS_HARD, executorService, scheduledExecutorService)
   }
 
   /**
-   * [Runnable] with a priority, which is [Comparable]. Ordering for those runnables puts first the
-   * ones with highest priority. In case of equal priority, this puts first the one created first.
+   * [Runnable] with a priority, which is [Comparable]. Ordering for those runnables puts first the ones with highest priority. In case of
+   * equal priority, this puts first the one created first.
    *
-   * This is to be used in the priority queue of the [RenderExecutor], so that the executor will
-   * execute first the runnable with the highest priority.
+   * This is to be used in the priority queue of the [RenderExecutor], so that the executor will execute first the runnable with the highest
+   * priority.
    */
-  private class PriorityRunnable(val renderingTopic: RenderingTopic, val runnable: Runnable) :
-    Runnable, Comparable<PriorityRunnable> {
+  private class PriorityRunnable(val renderingTopic: RenderingTopic, val runnable: Runnable) : Runnable, Comparable<PriorityRunnable> {
 
     private val creationTime = System.currentTimeMillis()
 
@@ -347,15 +315,14 @@ private constructor(
   }
 
   /**
-   * [CompletableFuture] with a priority, which is [Comparable]. Ordering for those futures puts
-   * first the ones with the lowest priority. In case of equal priority, this puts first the one
-   * created first.
+   * [CompletableFuture] with a priority, which is [Comparable]. Ordering for those futures puts first the ones with the lowest priority. In
+   * case of equal priority, this puts first the one created first.
    *
-   * This is to be used in the pending action priority queue of the [RenderExecutor], so that, if
-   * the queue reaches capacity, the lowest priority actions are removed first.
+   * This is to be used in the pending action priority queue of the [RenderExecutor], so that, if the queue reaches capacity, the lowest
+   * priority actions are removed first.
    *
-   * The [renderingTopic] associates a completable with the tool or context in which the render is
-   * happening, and it is used for grouping and cancelling purposes.
+   * The [renderingTopic] associates a completable with the tool or context in which the render is happening, and it is used for grouping
+   * and cancelling purposes.
    */
   private open class PriorityCompletableFuture<T : Any?>(val renderingTopic: RenderingTopic) :
     Comparable<PriorityCompletableFuture<Any?>>, CompletableFuture<T>() {
@@ -373,22 +340,16 @@ private constructor(
     }
   }
 
-  /**
-   * True when the number of pending actions that are not tagged with [RenderingTopic.CLEAN] is
-   * bigger than [maxQueueingTasksSoftLimit].
-   */
+  /** True when the number of pending actions that are not tagged with [RenderingTopic.CLEAN] is bigger than [maxQueueingTasksSoftLimit]. */
   private fun tasksQueueSoftLimitExceeded(): Boolean =
     pendingActionsQueueLock.withLock {
       maxQueueingTasksSoftLimit > 0 &&
-        allPendingActionsQueue.size -
-          (pendingActionsQueueByTopic[RenderingTopic.CLEAN]?.size ?: 0) > maxQueueingTasksSoftLimit
+        allPendingActionsQueue.size - (pendingActionsQueueByTopic[RenderingTopic.CLEAN]?.size ?: 0) > maxQueueingTasksSoftLimit
     }
 
   /** True when the total number of pending actions is bigger than [maxQueueingTasksHardLimit]. */
   private fun tasksQueueHardLimitExceeded(): Boolean =
-    pendingActionsQueueLock.withLock {
-      maxQueueingTasksHardLimit > 0 && allPendingActionsQueue.size > maxQueueingTasksHardLimit
-    }
+    pendingActionsQueueLock.withLock { maxQueueingTasksHardLimit > 0 && allPendingActionsQueue.size > maxQueueingTasksHardLimit }
 
   private fun createSoftLimitExceededException() =
     EvictedException("Max number ($maxQueueingTasksSoftLimit) of non-clean render actions reached")
@@ -399,8 +360,6 @@ private constructor(
         "At least ${maxQueueingTasksHardLimit - maxQueueingTasksSoftLimit} cleaning actions are " +
           "waiting, potential starvation in the render thread and potential memory leak"
       )
-    return EvictedException(
-      "Max number ($maxQueueingTasksHardLimit) of all types render actions reached"
-    )
+    return EvictedException("Max number ($maxQueueingTasksHardLimit) of all types render actions reached")
   }
 }

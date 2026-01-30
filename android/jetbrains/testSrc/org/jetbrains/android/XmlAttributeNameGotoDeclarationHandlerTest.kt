@@ -27,7 +27,7 @@ class XmlAttributeNameGotoDeclarationHandlerTest : AndroidTestCase() {
   fun testAppNamespaceXmlAttribute() {
     myFixture.addFileToProject(
       "res/values/attrs.xml",
-      //language=XML
+      // language=XML
       """<?xml version="1.0" encoding="utf-8"?>
       <resources>
           <declare-styleable name="MyView">
@@ -38,11 +38,13 @@ class XmlAttributeNameGotoDeclarationHandlerTest : AndroidTestCase() {
               <attr name="android:maxHeight" />
           </declare-styleable>
       </resources>
-      """)
-    val psiFile = myFixture.addFileToProject(
-      "res/layout/example.xml",
-      //language=XML
-      """<?xml version="1.0" encoding="utf-8"?>
+      """,
+    )
+    val psiFile =
+      myFixture.addFileToProject(
+        "res/layout/example.xml",
+        // language=XML
+        """<?xml version="1.0" encoding="utf-8"?>
       <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                     xmlns:app="http://schemas.android.com/apk/res-auto"
                     android:orientation="vertical"
@@ -52,47 +54,52 @@ class XmlAttributeNameGotoDeclarationHandlerTest : AndroidTestCase() {
           <MyView android:layout_width="match_parent" android:layout_height="match_parent"
                                                   app:answer="yes"/>
       </LinearLayout>
-      """)
+      """,
+      )
 
     myFixture.openFileInEditor(psiFile.virtualFile)
     myFixture.moveCaret("app:a|nswer=\"yes\"")
 
     val elements = GotoDeclarationAction.findAllTargetElements(myFixture.project, myFixture.editor, myFixture.caretOffset)
-    val listOfDescriptions = elements.map {
-      DeclarationDescription.createDeclarationDescription(it.navigationElement)
-    }
-    assertThat(listOfDescriptions).containsExactly(
-      DeclarationDescription("values/attrs.xml",
-                              //language=XML
-                             """<attr name="answer">
+    val listOfDescriptions = elements.map { DeclarationDescription.createDeclarationDescription(it.navigationElement) }
+    assertThat(listOfDescriptions)
+      .containsExactly(
+        DeclarationDescription(
+          "values/attrs.xml",
+          // language=XML
+          """<attr name="answer">
                   <enum name="yes" value="0" />
                   <enum name="no" value="1" />
-              </attr>"""))
+              </attr>""",
+        )
+      )
   }
 
   fun testFrameworkNamespaceXmlAttribute() {
-    val psiFile = myFixture.addFileToProject(
-      "res/layout/example.xml",
-      //language=XML
-      """<?xml version="1.0" encoding="utf-8"?>
+    val psiFile =
+      myFixture.addFileToProject(
+        "res/layout/example.xml",
+        // language=XML
+        """<?xml version="1.0" encoding="utf-8"?>
       <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                     android:orientation="vertical"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
       </LinearLayout>
-      """)
+      """,
+      )
 
     myFixture.openFileInEditor(psiFile.virtualFile)
     myFixture.moveCaret("android:layout|_width=\"match_parent\"")
     val elements = GotoDeclarationAction.findAllTargetElements(myFixture.project, myFixture.editor, myFixture.caretOffset)
-    val listOfDescriptions = elements.map {
-      DeclarationDescription.createDeclarationDescription(it.navigationElement)
-    }
-    assertThat(listOfDescriptions).containsExactly(
-      DeclarationDescription("values/attrs.xml",
-                             //language=XML
-                             """<attr name="layout_width" format="dimension">
+    val listOfDescriptions = elements.map { DeclarationDescription.createDeclarationDescription(it.navigationElement) }
+    assertThat(listOfDescriptions)
+      .containsExactly(
+        DeclarationDescription(
+          "values/attrs.xml",
+          // language=XML
+          """<attr name="layout_width" format="dimension">
             <!-- The view should be as big as its parent (minus padding).
                  This constant is deprecated starting from API Level 8 and
                  is replaced by {@code match_parent}. -->
@@ -102,7 +109,9 @@ class XmlAttributeNameGotoDeclarationHandlerTest : AndroidTestCase() {
             <enum name="match_parent" value="-1" />
             <!-- The view should be only big enough to enclose its content (plus padding). -->
             <enum name="wrap_content" value="-2" />
-        </attr>"""))
+        </attr>""",
+        )
+      )
   }
 
   data class DeclarationDescription(val directoryName: String, val surroundingTagText: String) {
@@ -110,7 +119,8 @@ class XmlAttributeNameGotoDeclarationHandlerTest : AndroidTestCase() {
       fun createDeclarationDescription(element: PsiElement): DeclarationDescription {
         return DeclarationDescription(
           element.containingFile.parent!!.name + "/" + element.containingFile.name,
-          element.parentOfType<XmlTag>()?.text ?: "")
+          element.parentOfType<XmlTag>()?.text ?: "",
+        )
       }
     }
   }

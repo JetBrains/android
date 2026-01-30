@@ -24,26 +24,24 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 
-interface ResourceFolderManagerToken<P : AndroidProjectSystem>: Token {
+interface ResourceFolderManagerToken<P : AndroidProjectSystem> : Token {
   /**
-   * Return the list of resource folders for this [Module] and its associated [SourceProviders] given the
-   * specific [AndroidProjectSystem], or `null` if the default behavior in [defaultFoldersFromSourceProviders]
-   * is correct for this situation.
+   * Return the list of resource folders for this [Module] and its associated [SourceProviders] given the specific [AndroidProjectSystem],
+   * or `null` if the default behavior in [defaultFoldersFromSourceProviders] is correct for this situation.
    */
   fun computeFoldersFromSourceProviders(projectSystem: P, sourceProviders: SourceProviders, module: Module): List<VirtualFile>?
 
   companion object {
-    val EP_NAME = ExtensionPointName<ResourceFolderManagerToken<AndroidProjectSystem>>(
-      "org.jetbrains.android.facet.resourceFolderManagerToken")
+    val EP_NAME =
+      ExtensionPointName<ResourceFolderManagerToken<AndroidProjectSystem>>("org.jetbrains.android.facet.resourceFolderManagerToken")
 
-    private fun defaultFoldersFromSourceProviders(sourceProviders: SourceProviders) = sourceProviders.run {
-      (currentSourceProviders.flatMap { it.resDirectories } + generatedSources.resDirectories).toList()
-    }
+    private fun defaultFoldersFromSourceProviders(sourceProviders: SourceProviders) =
+      sourceProviders.run { (currentSourceProviders.flatMap { it.resDirectories } + generatedSources.resDirectories).toList() }
 
     fun computeFoldersFromSourceProviders(sourceProviders: SourceProviders, module: Module): List<VirtualFile> {
       val projectSystem = module.project.getProjectSystem()
       return projectSystem.getTokenOrNull(EP_NAME)?.computeFoldersFromSourceProviders(projectSystem, sourceProviders, module)
-             ?: defaultFoldersFromSourceProviders(sourceProviders)
+        ?: defaultFoldersFromSourceProviders(sourceProviders)
     }
   }
 }

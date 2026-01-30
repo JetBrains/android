@@ -16,7 +16,6 @@
 package com.android.tools.profilers.performance
 
 import com.android.tools.datastore.database.ProfilerTable
-
 import java.sql.Connection
 
 class ProfilerGenerator(connection: Connection) : DataGenerator(connection) {

@@ -201,12 +201,7 @@ private class ComponentTreeTest {
     val menuItem = JMenuItem("Help")
     menuItem.addActionListener {
       val item = getSelectedItem() ?: "unknown"
-      JOptionPane.showMessageDialog(
-        frame,
-        "Help activated: $item from $context",
-        "Tree Action",
-        JOptionPane.INFORMATION_MESSAGE,
-      )
+      JOptionPane.showMessageDialog(frame, "Help activated: $item from $context", "Tree Action", JOptionPane.INFORMATION_MESSAGE)
     }
     return menuItem
   }
@@ -223,8 +218,7 @@ private class ComponentTreeTest {
     val textView2 = Item(TEXT_VIEW, "@+id/textView2", "Hello Again", textIcon, layout2)
     val layout3 = Item(LINEAR_LAYOUT, null, null, layoutIcon, layout2)
     val button2 = Item(BUTTON, "@+id/button1", "OK", buttonIcon, layout2)
-    val textView3 =
-      Item(TEXT_VIEW, "@+id/textView3", "Hello London calling we are here", textIcon, layout3)
+    val textView3 = Item(TEXT_VIEW, "@+id/textView3", "Hello London calling we are here", textIcon, layout3)
     val layout4 = Item(LINEAR_LAYOUT, null, null, layoutIcon, layout3)
     val button3 = Item(BUTTON, "@+id/button3", "PressMe", buttonIcon, layout3)
     textView1.badge1 = StudioIcons.Common.ERROR_INLINE
@@ -275,12 +269,7 @@ private class ComponentTreeTest {
 
     override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {
       if (getIcon(item) != null) {
-        JOptionPane.showMessageDialog(
-          frame,
-          "Badge: $name for $item",
-          "Tree Action",
-          JOptionPane.INFORMATION_MESSAGE,
-        )
+        JOptionPane.showMessageDialog(frame, "Badge: $name for $item", "Tree Action", JOptionPane.INFORMATION_MESSAGE)
       }
     }
 

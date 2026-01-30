@@ -18,12 +18,12 @@ package com.android.tools.profilers.cpu.systemtrace
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil
-import org.junit.Test
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import java.util.zip.InflaterInputStream
+import org.junit.Test
 
 class AtraceExporterTest {
 
@@ -56,14 +56,14 @@ class AtraceExporterTest {
   // When the exception is handled properly and we get an AssertionError from the log.
   @Test(expected = AssertionError::class)
   fun testLoadingInvalidFileThrowsException() {
-    //Create temp invalid file
+    // Create temp invalid file
     val tempFile = createTempTraceFile()
     val exportedFile = FileUtil.createTempFile("atrace", ".trace")
     exportedFile.deleteOnExit()
     AtraceExporter.export(tempFile, FileOutputStream(exportedFile))
   }
 
-  fun exportImportFile(file:File) {
+  fun exportImportFile(file: File) {
     val exportedFile = FileUtil.createTempFile("atrace", ".trace")
     AtraceExporter.export(file, FileOutputStream(exportedFile))
     val producer = AtraceProducer()
@@ -75,7 +75,7 @@ class AtraceExporterTest {
     exportedFile.delete()
   }
 
-  fun createTempTraceFile() : File {
+  fun createTempTraceFile(): File {
     val tempFile = File("temp.trace")
     tempFile.deleteOnExit()
     val streamWriter = OutputStreamWriter(FileOutputStream(tempFile))
@@ -86,5 +86,4 @@ class AtraceExporterTest {
     streamWriter.close()
     return tempFile
   }
-
 }

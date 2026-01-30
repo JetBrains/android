@@ -20,11 +20,12 @@ import java.sql.ResultSet
 import java.sql.SQLException
 
 /**
- * This version of prepared statement throws an exception anytime execute is called.
- * This is used to validate all queries to the database handle errors properly.
+ * This version of prepared statement throws an exception anytime execute is called. This is used to validate all queries to the database
+ * handle errors properly.
  */
 class DatabaseTestPreparedStatement(stmt: PreparedStatement) : PreparedStatement by stmt {
   private val exceptionToThrow = SQLException("Test PreparedStatement throws exception on execute.")
+
   override fun execute(): Boolean {
     throw exceptionToThrow
   }

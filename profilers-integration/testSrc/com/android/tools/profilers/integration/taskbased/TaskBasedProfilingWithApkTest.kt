@@ -27,19 +27,19 @@ class TaskBasedProfilingWithApkTest : ProfilersTestBase() {
    * Validate Profile with APK.
    *
    * Test Steps:
-   *  1. Import minApp apk
-   *  2. Run profiler action and wait for the tool window to be activated.
-   *  3. Select device -> process -> task-> starting point.
-   *  4. Start the task
-   *  5. Stop the task
+   * 1. Import minApp apk
+   * 2. Run profiler action and wait for the tool window to be activated.
+   * 3. Select device -> process -> task-> starting point.
+   * 4. Start the task
+   * 5. Stop the task
    *
    * Test Verifications:
-   *  1. Verify if the profiler tool window is opened.
-   *  2. Verify if Transport proxy is created for the device.
-   *  3. Verify task start succeeded.
-   *  4. Verify task stop succeeded.
-   *  5. Verify if the capture is parsed successfully.
-   *  6. Verify UI components after capture is parsed.
+   * 1. Verify if the profiler tool window is opened.
+   * 2. Verify if Transport proxy is created for the device.
+   * 3. Verify task start succeeded.
+   * 4. Verify task stop succeeded.
+   * 5. Verify if the capture is parsed successfully.
+   * 6. Verify UI components after capture is parsed.
    */
   @Test
   fun test() {
@@ -82,7 +82,7 @@ class TaskBasedProfilingWithApkTest : ProfilersTestBase() {
         verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+contains\\s+system\\s+trace\\s+data\$", 600)
         // Verify if UI panel is displayed.
         studio.waitForComponentByClass("CpuAnalysisSummaryTab", "FullTraceSummaryDetailsView")
-      }
+      },
     )
   }
 }

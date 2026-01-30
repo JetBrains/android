@@ -31,34 +31,26 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 
 /**
- * Base interface that can be used for checking whether a given [KtAnnotationEntry] or
- * [KtImportDirective] is associated with a corresponding Preview tool annotation.
+ * Base interface that can be used for checking whether a given [KtAnnotationEntry] or [KtImportDirective] is associated with a
+ * corresponding Preview tool annotation.
  */
 interface PreviewAnnotationChecker {
   fun isPreview(importDirective: KtImportDirective): Boolean
 
   fun isPreview(annotation: KtAnnotationEntry): Boolean
 
-  @RequiresReadLock
-  fun isPreviewOrMultiPreview(annotation: KtAnnotationEntry): Boolean
+  @RequiresReadLock fun isPreviewOrMultiPreview(annotation: KtAnnotationEntry): Boolean
 }
 
-/**
- * Base class for inspection that depend on methods and annotation classes annotated with
- * `@Preview`, or with a MultiPreview.
- */
-abstract class BasePreviewAnnotationInspection(
-  private val groupDisplayName: String,
-  previewAnnotationChecker: PreviewAnnotationChecker,
-) : AbstractKotlinInspection(), PreviewAnnotationChecker by previewAnnotationChecker {
+/** Base class for inspection that depend on methods and annotation classes annotated with `@Preview`, or with a MultiPreview. */
+abstract class BasePreviewAnnotationInspection(private val groupDisplayName: String, previewAnnotationChecker: PreviewAnnotationChecker) :
+  AbstractKotlinInspection(), PreviewAnnotationChecker by previewAnnotationChecker {
   /**
-   * Will be true if the inspected file imports the `@Preview` annotation. This is used as a
-   * shortcut to avoid analyzing all kotlin files
+   * Will be true if the inspected file imports the `@Preview` annotation. This is used as a shortcut to avoid analyzing all kotlin files
    */
   var isPreviewFile: Boolean = false
   /**
-   * Will be true if the inspected file imports the `@Composable` annotation. This is used as a
-   * shortcut to avoid analyzing all kotlin files
+   * Will be true if the inspected file imports the `@Composable` annotation. This is used as a shortcut to avoid analyzing all kotlin files
    */
   var isComposableFile: Boolean = false
 
@@ -69,49 +61,32 @@ abstract class BasePreviewAnnotationInspection(
    * @param function The function that was annotated with `@Preview` or with a MultiPreview
    * @param previewAnnotation The `@Preview` or MultiPreview annotation
    */
-  abstract fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  )
+  abstract fun visitPreviewAnnotation(holder: ProblemsHolder, function: KtNamedFunction, previewAnnotation: KtAnnotationEntry)
 
   /**
-   * Called for every `@Preview` and MultiPreview annotation, that is annotating an annotation
-   * class.
+   * Called for every `@Preview` and MultiPreview annotation, that is annotating an annotation class.
    *
    * @param holder A [ProblemsHolder] user to report problems
-   * @param annotationClass The annotation class that was annotated with `@Preview` or with a
-   *   MultiPreview
+   * @param annotationClass The annotation class that was annotated with `@Preview` or with a MultiPreview
    * @param previewAnnotation The `@Preview` or MultiPreview annotation
    */
-  abstract fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  )
+  abstract fun visitPreviewAnnotation(holder: ProblemsHolder, annotationClass: KtClass, previewAnnotation: KtAnnotationEntry)
 
-  final override fun buildVisitor(
-    holder: ProblemsHolder,
-    isOnTheFly: Boolean,
-    session: LocalInspectionToolSession,
-  ): PsiElementVisitor =
+  final override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor =
     if (session.file.androidFacet != null || ApplicationManager.getApplication().isUnitTestMode) {
       object : KtVisitorVoid() {
         override fun visitImportDirective(importDirective: KtImportDirective) {
           super.visitImportDirective(importDirective)
 
           isPreviewFile = isPreviewFile || isPreview(importDirective)
-          isComposableFile =
-            isComposableFile ||
-              COMPOSABLE_ANNOTATION_FQ_NAME == importDirective.importedFqName?.asString()
+          isComposableFile = isComposableFile || COMPOSABLE_ANNOTATION_FQ_NAME == importDirective.importedFqName?.asString()
         }
 
         override fun visitAnnotationEntry(annotationEntry: KtAnnotationEntry) {
           super.visitAnnotationEntry(annotationEntry)
 
           isPreviewFile = isPreviewFile || isPreview(annotationEntry)
-          isComposableFile =
-            isComposableFile || annotationEntry.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME)
+          isComposableFile = isComposableFile || annotationEntry.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME)
         }
 
         override fun visitNamedFunction(function: KtNamedFunction) {

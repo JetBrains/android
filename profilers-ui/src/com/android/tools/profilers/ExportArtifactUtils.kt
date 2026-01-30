@@ -20,25 +20,25 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 import java.util.function.Consumer
 
-/**
- * This class contains utility methods to aid in exporting a {@link SessionArtifact} to a file.
- */
+/** This class contains utility methods to aid in exporting a {@link SessionArtifact} to a file. */
 object ExportArtifactUtils {
 
-  /**
-   * Opens an export file dialog and prompts user to export/save artifact as a file to disk.
-   */
+  /** Opens an export file dialog and prompts user to export/save artifact as a file to disk. */
   @JvmStatic
-  fun exportArtifact(exportableName: String,
-                     exportExtension: String,
-                     exportAction: Consumer<OutputStream>,
-                     ideProfilerComponents: IdeProfilerComponents,
-                     ideServices: IdeProfilerServices) {
-    ideProfilerComponents.createExportDialog().open(
-      { "Export As" },
-      { exportableName },
-      { exportExtension },
-      { file: File -> ideServices.saveFile(file, { outputStream: FileOutputStream -> exportAction.accept(outputStream) }, null) }
-    )
+  fun exportArtifact(
+    exportableName: String,
+    exportExtension: String,
+    exportAction: Consumer<OutputStream>,
+    ideProfilerComponents: IdeProfilerComponents,
+    ideServices: IdeProfilerServices,
+  ) {
+    ideProfilerComponents
+      .createExportDialog()
+      .open(
+        { "Export As" },
+        { exportableName },
+        { exportExtension },
+        { file: File -> ideServices.saveFile(file, { outputStream: FileOutputStream -> exportAction.accept(outputStream) }, null) },
+      )
   }
 }

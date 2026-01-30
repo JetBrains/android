@@ -20,9 +20,9 @@ import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profilers.cpu.systemtrace.VsyncTooltip
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
+import org.junit.Test
 
 class VsyncTooltipViewTest {
   @Test

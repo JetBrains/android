@@ -23,17 +23,15 @@ import java.util.Date
 
 /** This class stores data that is persisted by FtlDeviceCatalogService across idea applications */
 data class FtlDeviceCatalogState(
-  @OptionTag(tag = "expireDate")
-  override val expireDate: Date = Date(0),
+  @OptionTag(tag = "expireDate") override val expireDate: Date = Date(0),
   // Use custom converter for more complicated persistent component state
-  @OptionTag(tag = "ftlDeviceCatalogState",
-             converter = FtlDeviceCatalogConverter::class)
-  override val myDeviceCatalog: FtlDeviceCatalog = FtlDeviceCatalog()
+  @OptionTag(tag = "ftlDeviceCatalogState", converter = FtlDeviceCatalogConverter::class)
+  override val myDeviceCatalog: FtlDeviceCatalog = FtlDeviceCatalog(),
 ) : GmdDeviceCatalogState(expireDate, myDeviceCatalog) {
 
   internal class FtlDeviceCatalogConverter : Converter<FtlDeviceCatalog>() {
     override fun toString(value: FtlDeviceCatalog): String = GmdDeviceCatalog.toJson(value)
+
     override fun fromString(value: String): FtlDeviceCatalog = GmdDeviceCatalog.fromJson(value)
   }
 }
-

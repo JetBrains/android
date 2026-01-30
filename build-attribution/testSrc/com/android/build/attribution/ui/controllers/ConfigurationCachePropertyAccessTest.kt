@@ -28,6 +28,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.jetbrains.android.refactoring.getProjectProperties
 import org.junit.Assert
 import org.junit.Before
@@ -36,15 +37,13 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.io.File
 
 @RunsInEdt
 class ConfigurationCachePropertyAccessTest {
 
   private val projectRule = AndroidProjectRule.onDisk()
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   private lateinit var gradlePropertiesFile: VirtualFile
   private lateinit var buildRequestHolder: BuildRequestHolder
@@ -55,9 +54,8 @@ class ConfigurationCachePropertyAccessTest {
       gradlePropertiesFile = projectRule.fixture.tempDirFixture.createFile("gradle.properties")
       Assert.assertTrue(gradlePropertiesFile.isWritable)
     }
-    buildRequestHolder = BuildRequestHolder(
-      GradleBuildInvoker.Request.builder(projectRule.project, File(projectRule.fixture.tempDirPath), "assemble").build()
-    )
+    buildRequestHolder =
+      BuildRequestHolder(GradleBuildInvoker.Request.builder(projectRule.project, File(projectRule.fixture.tempDirPath), "assemble").build())
   }
 
   @Test
@@ -100,10 +98,16 @@ class ConfigurationCachePropertyAccessTest {
 
   @Test
   fun testPropertyStateTakePrecedenceWhenBothSet() {
-    runWriteAction { VfsUtil.saveText(gradlePropertiesFile, """
-      |org.gradle.unsafe.configuration-cache=false
-      |org.gradle.configuration-cache=true
-    """.trimMargin()) }
+    runWriteAction {
+      VfsUtil.saveText(
+        gradlePropertiesFile,
+        """
+        |org.gradle.unsafe.configuration-cache=false
+        |org.gradle.configuration-cache=true
+        """
+          .trimMargin(),
+      )
+    }
 
     val info = StudioProvidedInfo.fromProject(projectRule.project, buildRequestHolder, BuildInvocationType.REGULAR_BUILD)
     Truth.assertThat(info.configurationCachingGradlePropertyState).isEqualTo("true")
@@ -111,34 +115,28 @@ class ConfigurationCachePropertyAccessTest {
 }
 
 /**
- * Please note, in real life this action of adding a configuration cache property should not be suggested when this property
- * is already explicitly present in the properties (both true or false). Because of this we add tests for simple cases when
- * property is already present, but there is no real need to test all the possible combinations of old and new property listed in the file.
+ * Please note, in real life this action of adding a configuration cache property should not be suggested when this property is already
+ * explicitly present in the properties (both true or false). Because of this we add tests for simple cases when property is already
+ * present, but there is no real need to test all the possible combinations of old and new property listed in the file.
  */
 @RunWith(Parameterized::class)
 @RunsInEdt
 class ConfigurationCacheTurningOnTest(private val useStableFeatureProperty: Boolean) {
 
   companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "useStableFeatureProperty \"{0}\"")
-    fun data() = arrayOf(false, true)
+    @JvmStatic @Parameterized.Parameters(name = "useStableFeatureProperty \"{0}\"") fun data() = arrayOf(false, true)
   }
 
   val propertyName = if (useStableFeatureProperty) "org.gradle.configuration-cache" else "org.gradle.unsafe.configuration-cache"
   private val projectRule = AndroidProjectRule.onDisk()
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   private lateinit var gradlePropertiesFile: VirtualFile
 
   private val buildRequestData: GradleBuildInvoker.Request.RequestData
-    get() = GradleBuildInvoker.Request.RequestData(
-      BuildMode.DEFAULT_BUILD_MODE,
-      gradlePropertiesFile.parent.toIoFile(),
-      listOf(":assembleDebug")
-    )
+    get() =
+      GradleBuildInvoker.Request.RequestData(BuildMode.DEFAULT_BUILD_MODE, gradlePropertiesFile.parent.toIoFile(), listOf(":assembleDebug"))
 
   @Before
   fun setUp() {

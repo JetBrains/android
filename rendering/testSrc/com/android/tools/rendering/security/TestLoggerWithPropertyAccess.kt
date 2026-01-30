@@ -19,8 +19,8 @@ import com.intellij.openapi.diagnostic.DelegatingLogger
 import com.intellij.openapi.diagnostic.Logger
 
 /**
- * A [Logger] that is used for testing sandboxing. This will simulate a property access during error
- * logging that does not happen in the unit test logging but does happen in production.
+ * A [Logger] that is used for testing sandboxing. This will simulate a property access during error logging that does not happen in the
+ * unit test logging but does happen in production.
  */
 class TestLoggerWithPropertyAccess(delegate: Logger) : DelegatingLogger<Logger>(delegate) {
   override fun error(message: String?, t: Throwable?, vararg details: String?) {

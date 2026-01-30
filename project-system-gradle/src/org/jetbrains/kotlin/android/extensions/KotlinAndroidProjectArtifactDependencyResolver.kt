@@ -35,9 +35,8 @@ import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
  * A class that is used to resolve dependencies from android sourceSets in a kotlin multiplatform projects to android projects, as the
  * kotlin IDE plugin doesn't know how to resolve these.
  */
-internal class KotlinAndroidProjectArtifactDependencyResolver(
-  private val sourceSetResolver: KotlinMppAndroidSourceSetResolver
-): KotlinProjectArtifactDependencyResolver {
+internal class KotlinAndroidProjectArtifactDependencyResolver(private val sourceSetResolver: KotlinMppAndroidSourceSetResolver) :
+  KotlinProjectArtifactDependencyResolver {
   private val logger = Logger.getInstance(this::class.java)
 
   private fun ProjectInfo.isAndroidComponent(): Boolean =
@@ -48,13 +47,14 @@ internal class KotlinAndroidProjectArtifactDependencyResolver(
     if (componentInfo.buildType.isNullOrEmpty().not() || componentInfo.productFlavorsMap.isNotEmpty()) return false
     val platformType = componentInfo.attributesMap["org.jetbrains.kotlin.platform.type"]
     return (platformType == "jvm" || platformType == "androidJvm") &&
-           componentInfo.attributesMap[TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE.name] == TargetJvmEnvironment.ANDROID
+      componentInfo.attributesMap[TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE.name] == TargetJvmEnvironment.ANDROID
   }
 
-
-  override fun resolve(context: KotlinMppGradleProjectResolver.Context,
-                       sourceSetNode: DataNode<GradleSourceSetData>,
-                       dependency: IdeaKotlinProjectArtifactDependency): Set<IdeaKotlinSourceDependency> {
+  override fun resolve(
+    context: KotlinMppGradleProjectResolver.Context,
+    sourceSetNode: DataNode<GradleSourceSetData>,
+    dependency: IdeaKotlinProjectArtifactDependency,
+  ): Set<IdeaKotlinSourceDependency> {
     val dependencyInfo = dependency.extras[androidDependencyKey] ?: return emptySet()
 
     if (!dependencyInfo.hasLibrary() || !dependencyInfo.library.hasProjectInfo()) {
@@ -65,30 +65,34 @@ internal class KotlinAndroidProjectArtifactDependencyResolver(
     // expand it to include the transitive sourceSets and return them.
     if (dependencyInfo.library.projectInfo.isKmpAndroidComponent()) {
       return sourceSetResolver.getMainSourceSetForProject(dependencyInfo.library.projectInfo.projectPath)?.let { mainSourceSet ->
-        resolveDependencyOnKmpAndroid(
-          context.projectDataNode, dependency, mainSourceSet
-        )
-      } ?: run {
-        logger.error("Unable to find the main android sourceSet for the kotlin multiplatform module " +
-                     "${dependencyInfo.library.projectInfo.projectPath}.")
-        emptySet()
+        resolveDependencyOnKmpAndroid(context.projectDataNode, dependency, mainSourceSet)
       }
+        ?: run {
+          logger.error(
+            "Unable to find the main android sourceSet for the kotlin multiplatform module " +
+              "${dependencyInfo.library.projectInfo.projectPath}."
+          )
+          emptySet()
+        }
     }
 
     // This is a dependency on an android project but not a kotlin multiplatform one, check if it's a dependency on testFixtures or main.
-    val androidSourceSets = when {
-      dependencyInfo.library.projectInfo.isAndroidComponent() ->
-        if (dependencyInfo.library.projectInfo.componentInfo.isTestFixtures) {
-          setOf(IdeModuleWellKnownSourceSet.TEST_FIXTURES.sourceSetName)
-        } else {
-          setOf(IdeModuleWellKnownSourceSet.MAIN.sourceSetName)
+    val androidSourceSets =
+      when {
+        dependencyInfo.library.projectInfo.isAndroidComponent() ->
+          if (dependencyInfo.library.projectInfo.componentInfo.isTestFixtures) {
+            setOf(IdeModuleWellKnownSourceSet.TEST_FIXTURES.sourceSetName)
+          } else {
+            setOf(IdeModuleWellKnownSourceSet.MAIN.sourceSetName)
+          }
+        else -> {
+          logger.error(
+            "Expected a dependency on an android module, but instead found unknown module " +
+              "${dependencyInfo.library.projectInfo.projectPath}."
+          )
+          emptySet()
         }
-      else -> {
-        logger.error("Expected a dependency on an android module, but instead found unknown module " +
-                     "${dependencyInfo.library.projectInfo.projectPath}.")
-        emptySet()
       }
-    }
 
     return dependency.resolved(androidSourceSets)
   }
@@ -96,16 +100,16 @@ internal class KotlinAndroidProjectArtifactDependencyResolver(
   private fun resolveDependencyOnKmpAndroid(
     projectNode: DataNode<ProjectData>,
     dependency: IdeaKotlinProjectArtifactDependency,
-    mainSourceSet: String
+    mainSourceSet: String,
   ): Set<IdeaKotlinSourceDependency> {
     val sourceSetMap = projectNode.getUserData(GradleProjectResolver.RESOLVED_SOURCE_SETS).orEmpty()
-    val sourceSetDataNode = sourceSetMap[
-      KotlinProjectModuleId(dependency.coordinates).plus(mainSourceSet).toString()
-    ]?.first ?: return emptySet()
+    val sourceSetDataNode =
+      sourceSetMap[KotlinProjectModuleId(dependency.coordinates).plus(mainSourceSet).toString()]?.first ?: return emptySet()
 
-    val sourceSets = sourceSetDataNode.kotlinSourceSetData?.sourceSetInfo?.dependsOn.orEmpty().mapNotNull { dependsOnId ->
-      sourceSetMap[dependsOnId]?.second?.name
-    } + mainSourceSet
+    val sourceSets =
+      sourceSetDataNode.kotlinSourceSetData?.sourceSetInfo?.dependsOn.orEmpty().mapNotNull { dependsOnId ->
+        sourceSetMap[dependsOnId]?.second?.name
+      } + mainSourceSet
 
     return dependency.resolved(sourceSets)
   }

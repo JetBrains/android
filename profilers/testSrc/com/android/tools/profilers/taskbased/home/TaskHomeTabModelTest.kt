@@ -41,23 +41,21 @@ import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.Callsta
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.HeapDumpTaskHandler
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
+import kotlin.time.Duration.Companion.seconds
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.time.Duration.Companion.seconds
 
 class TaskHomeTabModelTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("TaskHomeTabModelTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskHomeTabModelTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -71,8 +69,7 @@ class TaskHomeTabModelTest {
     myObserver = SessionsAspectObserver()
     myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
-    myManager.addDependency(myObserver)
-      .onChange(SessionAspect.SELECTED_SESSION) { myObserver.selectedSessionChanged() }
+    myManager.addDependency(myObserver).onChange(SessionAspect.SELECTED_SESSION) { myObserver.selectedSessionChanged() }
     taskHomeTabModel = TaskHomeTabModel(myProfilers)
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myProfilers.sessionsManager)
     taskHandlers.forEach { (type, handler) -> myProfilers.addTaskHandler(type, handler) }
@@ -129,8 +126,8 @@ class TaskHomeTabModelTest {
     // Create device that can support callstack sampling (api level > O)
     val selectedDevice = createProfilerDeviceSelection(AndroidVersion.VersionCodes.O, true)
     // Create an alive process
-    val selectedProcess = Common.Process.newBuilder().setState(Common.Process.State.ALIVE).setExposureLevel(
-      Common.Process.ExposureLevel.PROFILEABLE).build()
+    val selectedProcess =
+      Common.Process.newBuilder().setState(Common.Process.State.ALIVE).setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE).build()
     // Set a valid task type and add its corresponding task handler so the task handler can be used to check if the selected device and
     // process are supported
     val selectedTaskType = ProfilerTaskType.CALLSTACK_SAMPLE
@@ -176,8 +173,8 @@ class TaskHomeTabModelTest {
     // Create and set device that can support heap dump
     val selectedDevice = createProfilerDeviceSelection(AndroidVersion.VersionCodes.O, true)
     // Create an alive process
-    val selectedProcess = Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE).setState(
-      Common.Process.State.ALIVE).build()
+    val selectedProcess =
+      Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE).setState(Common.Process.State.ALIVE).build()
     // Set a valid task type and add its corresponding task handler so the task handler can be used to check if the selected device and
     // process are supported
     val selectedTaskType = ProfilerTaskType.HEAP_DUMP
@@ -192,8 +189,8 @@ class TaskHomeTabModelTest {
     // Create and set device that cannot support callstack sampling (api level < O)
     val selectedDevice = createProfilerDeviceSelection(AndroidVersion.VersionCodes.N, true)
     // Ensure an alive process is selected
-    val selectedProcess = Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE).setState(
-      Common.Process.State.ALIVE).build()
+    val selectedProcess =
+      Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE).setState(Common.Process.State.ALIVE).build()
     // Select a valid task type and add its corresponding task handler so the task handler can be used to check if the selected device and
     // process are supported
     val selectedTaskType = ProfilerTaskType.CALLSTACK_SAMPLE
@@ -297,9 +294,14 @@ class TaskHomeTabModelTest {
 
     // Select the task and populate the respective task handler
     taskHomeTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.CALLSTACK_SAMPLE)
-    assertTrue(canTaskStartFromNow(ProfilerTaskType.CALLSTACK_SAMPLE,
-                                   ProfilerDeviceSelection("FakeDevice", selectedDevice.featureLevel, true, false, selectedDevice),
-                                   selectedProcess, myProfilers.taskHandlers))
+    assertTrue(
+      canTaskStartFromNow(
+        ProfilerTaskType.CALLSTACK_SAMPLE,
+        ProfilerDeviceSelection("FakeDevice", selectedDevice.featureLevel, true, false, selectedDevice),
+        selectedProcess,
+        myProfilers.taskHandlers,
+      )
+    )
 
     // Populate current task handler to simulate valid state (due to lack of interface with tool window code, the current task handler can
     // not be set when the task is started.
@@ -314,19 +316,22 @@ class TaskHomeTabModelTest {
 
     // Attempt start of new task (should attempt to stop previous, Callstack Sample task)
     taskHomeTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.NATIVE_ALLOCATIONS)
-    assertTrue(canTaskStartFromNow(ProfilerTaskType.NATIVE_ALLOCATIONS,
-                                   ProfilerDeviceSelection("FakeDevice", selectedDevice.featureLevel, true, false, selectedDevice),
-                                   selectedProcess, myProfilers.taskHandlers))
+    assertTrue(
+      canTaskStartFromNow(
+        ProfilerTaskType.NATIVE_ALLOCATIONS,
+        ProfilerDeviceSelection("FakeDevice", selectedDevice.featureLevel, true, false, selectedDevice),
+        selectedProcess,
+        myProfilers.taskHandlers,
+      )
+    )
 
     // Because it is difficult to simulate the launch of an actual task recording (as it requires launching a new tab), attempting a new
     // task cant actually stop the previous task recording. However, to verify that the previous task recording was attempted to be stopped,
     // the following assertion error can be expected on start of a new task.
-    val e = assertThrows(AssertionError::class.java) {
-      taskHomeTabModel.onEnterTaskButtonClick()
-    }
+    val e = assertThrows(AssertionError::class.java) { taskHomeTabModel.onEnterTaskButtonClick() }
     // Make sure that it attempted to stop the current/ongoing task (Callstack Sample)
-    assertThat(e.message).isEqualTo(
-      "There was an error with the Callstack Sample task. Error message: Cannot stop the task as the InterimStage was null.")
+    assertThat(e.message)
+      .isEqualTo("There was an error with the Callstack Sample task. Error message: Cannot stop the task as the InterimStage was null.")
   }
 
   @Test

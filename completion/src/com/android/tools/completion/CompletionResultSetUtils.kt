@@ -26,23 +26,33 @@ import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 
 /**
- * Utility function to simplify adding [com.intellij.codeInsight.lookup.LookupElement]s with [InsertionFormat] support.
+ * Utility function to simplify adding [com.intellij.codeInsight.lookup.LookupElement]s with
+ * [InsertionFormat] support.
  *
  * Note that the added lookup element is case-sensitive.
  *
- * @param lookupString The base text to autocomplete, also used to match the user input with a completion result.
- * @param tailText Grayed out text shown after the LookupElement name, not part of the actual completion.
- * @param format InsertionFormat to handle the rest of the completion. See different implementations of [InsertionFormat] for more.
+ * @param lookupString The base text to autocomplete, also used to match the user input with a
+ *   completion result.
+ * @param tailText Grayed out text shown after the LookupElement name, not part of the actual
+ *   completion.
+ * @param format InsertionFormat to handle the rest of the completion. See different implementations
+ *   of [InsertionFormat] for more.
  */
-fun CompletionResultSet.addLookupElement(lookupString: String, tailText: String? = null, format: InsertionFormat? = null) {
-  // Populate the lookupObject param to allow multiple LookupElements with the same lookupString, differentiated by the tailText.
+fun CompletionResultSet.addLookupElement(
+  lookupString: String,
+  tailText: String? = null,
+  format: InsertionFormat? = null,
+) {
+  // Populate the lookupObject param to allow multiple LookupElements with the same lookupString,
+  // differentiated by the tailText.
   var lookupBuilder = LookupElementBuilder.create(tailText ?: lookupString, lookupString)
   if (format != null) {
-    val insertionHandler = when (format) {
-      is LiteralWithCaretFormat -> FormatWithCaretInsertHandler(format)
-      is LiteralNewLineFormat -> FormatWithNewLineInsertHandler(format)
-      is LiveTemplateFormat -> FormatWithLiveTemplateInsertHandler(format)
-    }
+    val insertionHandler =
+      when (format) {
+        is LiteralWithCaretFormat -> FormatWithCaretInsertHandler(format)
+        is LiteralNewLineFormat -> FormatWithNewLineInsertHandler(format)
+        is LiveTemplateFormat -> FormatWithLiveTemplateInsertHandler(format)
+      }
     lookupBuilder = lookupBuilder.withInsertHandler(insertionHandler)
   }
   lookupBuilder = lookupBuilder.withCaseSensitivity(true)

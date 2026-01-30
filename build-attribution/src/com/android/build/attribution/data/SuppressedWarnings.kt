@@ -15,6 +15,4 @@
  */
 package com.android.build.attribution.data
 
-data class SuppressedWarnings(
-  var noGCSettingWarning: Boolean = false
-)
+data class SuppressedWarnings(var noGCSettingWarning: Boolean = false)

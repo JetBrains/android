@@ -22,12 +22,10 @@ import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profilers.cpu.LazyDataSeries
 import java.util.function.Supplier
 
-/**
- * Track model for CPU frequency counter in CPU capture stage.
- */
+/** Track model for CPU frequency counter in CPU capture stage. */
 class CpuFrequencyTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Range) : LineChartModel() {
-  val cpuFrequencySeries = RangedContinuousSeries("CPU Frequency", viewRange, Range(0.0, MAX_FREQ_KHZ),
-                                                  LazyDataSeries(Supplier { dataSeries }))
+  val cpuFrequencySeries =
+    RangedContinuousSeries("CPU Frequency", viewRange, Range(0.0, MAX_FREQ_KHZ), LazyDataSeries(Supplier { dataSeries }))
 
   init {
     add(cpuFrequencySeries)

@@ -46,10 +46,7 @@ open class CommonTextField<out M : CommonTextFieldModel>(val editorModel: M) : J
   private var documentChangeFromSetText = false
   private var lastModelValue = ""
 
-  /**
-   * If false ignore all calls to scrollRectToVisible. Do this to disable scrolling in table
-   * renderer that use this component.
-   */
+  /** If false ignore all calls to scrollRectToVisible. Do this to disable scrolling in table renderer that use this component. */
   var enableScrollInView = true
 
   val lookup: Lookup<M>?
@@ -63,42 +60,12 @@ open class CommonTextField<out M : CommonTextFieldModel>(val editorModel: M) : J
       registerActionKey({ tab() }, KeyStrokes.TAB, "tab")
       registerActionKey({ backTab() }, KeyStrokes.BACKTAB, "backTab")
       registerActionKey({ showLookupCompletions(text) }, KeyStrokes.CTRL_SPACE, "showCompletions")
-      registerActionKey(
-        { myLookup.selectNext() },
-        KeyStrokes.DOWN,
-        "selectNext",
-        { myLookup.enabled },
-      )
-      registerActionKey(
-        { myLookup.selectPrevious() },
-        KeyStrokes.UP,
-        "selectPrevious",
-        { myLookup.enabled },
-      )
-      registerActionKey(
-        { myLookup.selectNextPage() },
-        KeyStrokes.PAGE_DOWN,
-        "selectNextPage",
-        { myLookup.enabled },
-      )
-      registerActionKey(
-        { myLookup.selectPreviousPage() },
-        KeyStrokes.PAGE_UP,
-        "selectPreviousPage",
-        { myLookup.enabled },
-      )
-      registerActionKey(
-        { myLookup.selectFirst() },
-        KeyStrokes.CMD_HOME,
-        "selectFirst",
-        { myLookup.enabled },
-      )
-      registerActionKey(
-        { myLookup.selectLast() },
-        KeyStrokes.CMD_END,
-        "selectLast",
-        { myLookup.enabled },
-      )
+      registerActionKey({ myLookup.selectNext() }, KeyStrokes.DOWN, "selectNext", { myLookup.enabled })
+      registerActionKey({ myLookup.selectPrevious() }, KeyStrokes.UP, "selectPrevious", { myLookup.enabled })
+      registerActionKey({ myLookup.selectNextPage() }, KeyStrokes.PAGE_DOWN, "selectNextPage", { myLookup.enabled })
+      registerActionKey({ myLookup.selectPreviousPage() }, KeyStrokes.PAGE_UP, "selectPreviousPage", { myLookup.enabled })
+      registerActionKey({ myLookup.selectFirst() }, KeyStrokes.CMD_HOME, "selectFirst", { myLookup.enabled })
+      registerActionKey({ myLookup.selectLast() }, KeyStrokes.CMD_END, "selectLast", { myLookup.enabled })
       focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
       super.addFocusListener(
         object : FocusAdapter() {
@@ -109,10 +76,7 @@ open class CommonTextField<out M : CommonTextFieldModel>(val editorModel: M) : J
       )
       _lookup = myLookup
     }
-    putClientProperty(
-      TextComponentEmptyText.STATUS_VISIBLE_FUNCTION,
-      Predicate<JTextComponent> { text.isEmpty() },
-    )
+    putClientProperty(TextComponentEmptyText.STATUS_VISIBLE_FUNCTION, Predicate<JTextComponent> { text.isEmpty() })
     isFocusable = true
     setFromModel()
 
@@ -198,14 +162,8 @@ open class CommonTextField<out M : CommonTextFieldModel>(val editorModel: M) : J
     val selectionVisible = caret.isSelectionVisible
     caret.isSelectionVisible = true
 
-    g2.setRenderingHint(
-      RenderingHints.KEY_TEXT_ANTIALIASING,
-      RenderingHints.VALUE_TEXT_ANTIALIAS_OFF,
-    )
-    g2.setRenderingHint(
-      RenderingHints.KEY_FRACTIONALMETRICS,
-      RenderingHints.VALUE_FRACTIONALMETRICS_OFF,
-    )
+    g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF)
+    g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF)
 
     super.paintComponent(g2)
 

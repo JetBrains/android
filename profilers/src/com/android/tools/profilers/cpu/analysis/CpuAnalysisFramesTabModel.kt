@@ -19,9 +19,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CpuCapture
 import java.util.concurrent.TimeUnit
 
-/**
- * Tab model for the Frames tab in the Analysis Panel.
- */
+/** Tab model for the Frames tab in the Analysis Panel. */
 class CpuAnalysisFramesTabModel(val captureRange: Range) : CpuAnalysisTabModel<CpuCapture>(Type.FRAMES) {
   /**
    * Frame table data by layer. This is lazily initialized because at the time of construction, the [CpuCapture] data is not yet available.
@@ -30,45 +28,50 @@ class CpuAnalysisFramesTabModel(val captureRange: Range) : CpuAnalysisTabModel<C
     val layers = dataSeries.flatMap { it.systemTraceData?.androidFrameLayers ?: listOf() }
     // Transform frame event proto (grouped by phase) into table model (grouped by frame number).
     layers.map { layer ->
-      val frameNumberToRow = mutableMapOf<Int, FrameEventRow>().also {
-        layer.phaseList.forEach { phase ->
-          phase.frameEventList.forEach { frameEvent ->
-            val frameEventRow = it.getOrPut(frameEvent.frameNumber) {
-              // Initialize start and end timestamps with capture range for the incomplete edge frames.
-              FrameEventRow(frameEvent.frameNumber, startTimeUs = captureRange.min.toLong(), endTimeUs = captureRange.max.toLong())
-            }
-            val timestampUs = TimeUnit.NANOSECONDS.toMicros(frameEvent.timestampNanoseconds)
-            val durationUs = TimeUnit.NANOSECONDS.toMicros(frameEvent.durationNanoseconds)
-            when (phase.phaseName) {
-              "App" -> {
-                frameEventRow.startTimeUs = timestampUs
-                frameEventRow.appDurationUs = durationUs
+      val frameNumberToRow =
+        mutableMapOf<Int, FrameEventRow>().also {
+          layer.phaseList.forEach { phase ->
+            phase.frameEventList.forEach { frameEvent ->
+              val frameEventRow =
+                it.getOrPut(frameEvent.frameNumber) {
+                  // Initialize start and end timestamps with capture range for the incomplete edge frames.
+                  FrameEventRow(frameEvent.frameNumber, startTimeUs = captureRange.min.toLong(), endTimeUs = captureRange.max.toLong())
+                }
+              val timestampUs = TimeUnit.NANOSECONDS.toMicros(frameEvent.timestampNanoseconds)
+              val durationUs = TimeUnit.NANOSECONDS.toMicros(frameEvent.durationNanoseconds)
+              when (phase.phaseName) {
+                "App" -> {
+                  frameEventRow.startTimeUs = timestampUs
+                  frameEventRow.appDurationUs = durationUs
+                }
+                "GPU" -> frameEventRow.gpuDurationUs = durationUs
+                "Composition" -> frameEventRow.compositionDurationUs = durationUs
+                "Display" -> frameEventRow.endTimeUs = timestampUs
               }
-              "GPU" -> frameEventRow.gpuDurationUs = durationUs
-              "Composition" -> frameEventRow.compositionDurationUs = durationUs
-              "Display" -> frameEventRow.endTimeUs = timestampUs
             }
           }
         }
-      }
-      frameNumberToRow.values.toMutableList()
-        .asTableModel(getColumn = FrameEventTableColumn::getValueFrom,
-                      getClass = FrameEventTableColumn::type,
-                      getName = FrameEventTableColumn::displayName,
-                      name = layer.layerName.let { it.substring(it.lastIndexOf('/') + 1) })
+      frameNumberToRow.values
+        .toMutableList()
+        .asTableModel(
+          getColumn = FrameEventTableColumn::getValueFrom,
+          getClass = FrameEventTableColumn::type,
+          getName = FrameEventTableColumn::displayName,
+          name = layer.layerName.let { it.substring(it.lastIndexOf('/') + 1) },
+        )
     }
   }
 }
 
-/**
- * Data class to represent a single row in the frame events table.
- */
-data class FrameEventRow(val frameNumber: Int,
-                         var startTimeUs: Long,
-                         var endTimeUs: Long,
-                         var appDurationUs: Long = 0L,
-                         var gpuDurationUs: Long = 0L,
-                         var compositionDurationUs: Long = 0L) {
+/** Data class to represent a single row in the frame events table. */
+data class FrameEventRow(
+  val frameNumber: Int,
+  var startTimeUs: Long,
+  var endTimeUs: Long,
+  var appDurationUs: Long = 0L,
+  var gpuDurationUs: Long = 0L,
+  var compositionDurationUs: Long = 0L,
+) {
   val totalDurationUs: Long
     get() = endTimeUs - startTimeUs
 }
@@ -83,5 +86,5 @@ enum class FrameEventTableColumn(val displayName: String, val type: Class<*>, va
   TOTAL_TIME("Frame Duration", java.lang.Long::class.java, FrameEventRow::totalDurationUs),
   APP("Application", java.lang.Long::class.java, FrameEventRow::appDurationUs),
   GPU("Wait for GPU", java.lang.Long::class.java, FrameEventRow::gpuDurationUs),
-  COMPOSITION("Composition", java.lang.Long::class.java, FrameEventRow::compositionDurationUs);
+  COMPOSITION("Composition", java.lang.Long::class.java, FrameEventRow::compositionDurationUs),
 }

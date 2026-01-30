@@ -30,10 +30,7 @@ interface SelectedComponentModel {
   /** Returns the description of a component */
   val description: String
 
-  /**
-   * Register a [ValueChangedListener] to be notified whenever the component attributes above have
-   * changed.
-   */
+  /** Register a [ValueChangedListener] to be notified whenever the component attributes above have changed. */
   fun addValueChangedListener(listener: ValueChangedListener) {}
 
   /** Remove a [ValueChangedListener] registered by [addValueChangedListener]. */

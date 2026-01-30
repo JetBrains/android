@@ -61,10 +61,11 @@ class RecordingOptionsModelTest(configs: Array<RecordingOption>) {
   }
 
   @Test
-  fun `selecting builtin option updates current selection`() = model.builtInOptions.forEach {
-    model.selectBuiltInOption(it)
-    assertThat(model.selectedOption).isEqualTo(it)
-  }
+  fun `selecting builtin option updates current selection`() =
+    model.builtInOptions.forEach {
+      model.selectBuiltInOption(it)
+      assertThat(model.selectedOption).isEqualTo(it)
+    }
 
   @Test
   fun `selection within custom configs does not update current option until explicitly done so`() {
@@ -80,11 +81,11 @@ class RecordingOptionsModelTest(configs: Array<RecordingOption>) {
   fun `starting and stopping recording performs the actions`() {
     var state = ""
     var recording = false
-    val config = RecordingOption("My config", "My config desc", {state = "Recording"}, {state = "Attempted to stop"})
+    val config = RecordingOption("My config", "My config desc", { state = "Recording" }, { state = "Attempted to stop" })
     model.customConfigurationModel.addElement(config)
     model.customConfigurationModel.selectedItem = config
     model.selectCurrentCustomConfiguration()
-    model.addDependency(observer).onChange(RecordingOptionsModel.Aspect.RECORDING_CHANGED) {recording = model.isRecording }
+    model.addDependency(observer).onChange(RecordingOptionsModel.Aspect.RECORDING_CHANGED) { recording = model.isRecording }
 
     assertThat(state).isEqualTo("")
     model.start()
@@ -117,7 +118,7 @@ class RecordingOptionsModelTest(configs: Array<RecordingOption>) {
   fun `changing config list triggers observers`() {
     assumeTrue(model.customConfigurationModel.size == 0)
     var calls = 0
-    model.addDependency(observer).onChange(RecordingOptionsModel.Aspect.CONFIGURATIONS_EMPTINESS_CHANGED) {calls++}
+    model.addDependency(observer).onChange(RecordingOptionsModel.Aspect.CONFIGURATIONS_EMPTINESS_CHANGED) { calls++ }
 
     assertThat(calls).isEqualTo(0)
     model.customConfigurationModel.addElement(CustomConfigs[0])
@@ -159,8 +160,7 @@ class RecordingOptionsModelTest(configs: Array<RecordingOption>) {
     model.selectOptionBy { recordingOption -> recordingOption.title == "Config 2" }
     if (model.customConfigurationModel.size > 0) {
       assertThat(model.selectedOption).isEqualTo(CustomConfigs[1])
-    }
-    else {
+    } else {
       // First built-in option is selected if no match.
       assertThat(model.selectedOption).isEqualTo(BuiltIns[0])
     }
@@ -193,16 +193,16 @@ class RecordingOptionsModelTest(configs: Array<RecordingOption>) {
   }
 
   companion object {
-    val BuiltIns = arrayOf(
-      RecordingOption("Built in 1", "Description 1", {}),
-      RecordingOption("Built in 2", "Description 2", {}),
-      RecordingOption("Built in 3", "Description 3", {}, {})
-    )
-    val CustomConfigs = arrayOf(
-      RecordingOption("Config 1", "Description 1'", {}, {}),
-      RecordingOption("Config 2", "Description 2'", {})
-    )
-    @Parameterized.Parameters @JvmStatic
-    fun configs(): List<Array<Array<RecordingOption>>> = listOf(arrayOf(), CustomConfigs).map {arrayOf(it)}
+    val BuiltIns =
+      arrayOf(
+        RecordingOption("Built in 1", "Description 1", {}),
+        RecordingOption("Built in 2", "Description 2", {}),
+        RecordingOption("Built in 3", "Description 3", {}, {}),
+      )
+    val CustomConfigs = arrayOf(RecordingOption("Config 1", "Description 1'", {}, {}), RecordingOption("Config 2", "Description 2'", {}))
+
+    @Parameterized.Parameters
+    @JvmStatic
+    fun configs(): List<Array<Array<RecordingOption>>> = listOf(arrayOf(), CustomConfigs).map { arrayOf(it) }
   }
 }

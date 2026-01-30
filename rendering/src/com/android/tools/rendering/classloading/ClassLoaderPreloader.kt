@@ -20,10 +20,9 @@ import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
 
 /**
- * When executing the user code some code paths may take significantly longer time when executed the
- * first time. This happens because the [ClassLoader] has to load the classes used in those paths
- * first. If that happens e.g. in interactive preview this produces visual glitches and might even
- * affect the logic. In order to prevent this from happening, we load the classes in advance.
+ * When executing the user code some code paths may take significantly longer time when executed the first time. This happens because the
+ * [ClassLoader] has to load the classes used in those paths first. If that happens e.g. in interactive preview this produces visual
+ * glitches and might even affect the logic. In order to prevent this from happening, we load the classes in advance.
  */
 @JvmOverloads
 fun preload(

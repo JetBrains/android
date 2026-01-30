@@ -43,9 +43,7 @@ class FlagPropertyEditorModelTest {
   fun testEmptyInitialItemsBelowSeparator() {
     val autoLink = createAutoLink()
     val model = createModel(autoLink)
-    assertThat(model.initialItemsBelowSeparator)
-      .containsExactly("none", "phone", "map", "perm", "all")
-      .inOrder()
+    assertThat(model.initialItemsBelowSeparator).containsExactly("none", "phone", "map", "perm", "all").inOrder()
   }
 
   @Test
@@ -315,13 +313,7 @@ class FlagPropertyEditorModelTest {
   }
 
   private fun createGravity(initialValue: String? = null): FlagsPropertyItem<FlagPropertyItem> {
-    return FakeFlagsPropertyItem(
-      ANDROID_URI,
-      ATTR_GRAVITY,
-      listOf("left", "center", "right"),
-      listOf(1, 2, 4),
-      initialValue,
-    )
+    return FakeFlagsPropertyItem(ANDROID_URI, ATTR_GRAVITY, listOf("left", "center", "right"), listOf(1, 2, 4), initialValue)
   }
 
   private fun createModel(property: FlagsPropertyItem<*>): FlagPropertyEditorModel {

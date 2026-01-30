@@ -19,11 +19,9 @@ import com.intellij.openapi.application.PathManager
 import java.nio.file.Path
 import java.nio.file.Paths
 
-private fun normalizeDirectoryPath(originalPath: Path): String =
-  originalPath.normalize().toString() + originalPath.fileSystem.separator
+private fun normalizeDirectoryPath(originalPath: Path): String = originalPath.normalize().toString() + originalPath.fileSystem.separator
 
-private fun normalizeDirectoryPath(stringPath: String): String =
-  normalizeDirectoryPath(Paths.get(stringPath))
+private fun normalizeDirectoryPath(stringPath: String): String = normalizeDirectoryPath(Paths.get(stringPath))
 
 object RenderSecurityManagerDefaults {
   @JvmStatic

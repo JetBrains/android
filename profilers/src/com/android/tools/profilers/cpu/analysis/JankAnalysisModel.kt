@@ -20,18 +20,18 @@ import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.RenderSequence
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 
-data class JankAnalysisModel(val event: AndroidFrameTimelineEvent,
-                             val capture: SystemTraceCpuCapture,
-                             private val runModelUpdate: (Runnable) -> Unit): CpuAnalyzable<JankAnalysisModel> {
+data class JankAnalysisModel(
+  val event: AndroidFrameTimelineEvent,
+  val capture: SystemTraceCpuCapture,
+  private val runModelUpdate: (Runnable) -> Unit,
+) : CpuAnalyzable<JankAnalysisModel> {
 
   override fun getAnalysisModel() =
     CpuAnalysisModel<JankAnalysisModel>("Frame ${event.surfaceFrameToken}").also { model ->
       val eventRange = Range(event.expectedStartUs.toDouble(), event.actualEndUs.toDouble())
       val nodes = capture.captureNodes.filter { eventRange.intersectsWith(it.startGlobal.toDouble(), it.endGlobal.toDouble()) }
       fun chart(type: CpuAnalysisTabModel.Type) =
-        CpuAnalysisChartModel<JankAnalysisModel>(type, eventRange, capture, { nodes }, runModelUpdate).also {
-          it.dataSeries.add(this)
-        }
+        CpuAnalysisChartModel<JankAnalysisModel>(type, eventRange, capture, { nodes }, runModelUpdate).also { it.dataSeries.add(this) }
 
       model.addTabModel(Summary(event, capture).also { it.dataSeries.add(this) })
       model.addTabModel(chart(CpuAnalysisTabModel.Type.TOP_DOWN))
@@ -39,13 +39,16 @@ data class JankAnalysisModel(val event: AndroidFrameTimelineEvent,
       model.addTabModel(chart(CpuAnalysisTabModel.Type.BOTTOM_UP))
     }
 
-  class Summary(val event: AndroidFrameTimelineEvent, val capture: SystemTraceCpuCapture, val sequence: RenderSequence)
-        : CpuAnalysisSummaryTabModel<JankAnalysisModel>(capture.range) {
-    constructor(event: AndroidFrameTimelineEvent, capture: SystemTraceCpuCapture):
-      this(event, capture, capture.frameRenderSequence(event))
+  class Summary(val event: AndroidFrameTimelineEvent, val capture: SystemTraceCpuCapture, val sequence: RenderSequence) :
+    CpuAnalysisSummaryTabModel<JankAnalysisModel>(capture.range) {
+    constructor(event: AndroidFrameTimelineEvent, capture: SystemTraceCpuCapture) : this(event, capture, capture.frameRenderSequence(event))
+
     val eventRange = Range(event.expectedStartUs.toDouble(), event.actualEndUs.toDouble())
+
     override fun getLabel() = "Janky Frame"
+
     override fun getSelectionRange() = eventRange
+
     fun getThreadState(threadId: Int) = capture.getThreadStatesForThread(threadId)
   }
 }

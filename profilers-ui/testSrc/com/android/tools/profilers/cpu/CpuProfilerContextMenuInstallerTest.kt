@@ -27,10 +27,10 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.google.common.truth.Truth.assertThat
+import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JPanel
 
 class CpuProfilerContextMenuInstallerTest {
 
@@ -39,9 +39,7 @@ class CpuProfilerContextMenuInstallerTest {
   private val transportService = FakeTransportService(timer)
   private val ideComponents = FakeIdeProfilerComponents()
 
-  @JvmField
-  @Rule
-  val myGrpcChannel = FakeGrpcChannel(javaClass.simpleName, transportService, FakeEventService())
+  @JvmField @Rule val myGrpcChannel = FakeGrpcChannel(javaClass.simpleName, transportService, FakeEventService())
 
   private lateinit var stage: CpuProfilerStage
 
@@ -66,12 +64,9 @@ class CpuProfilerContextMenuInstallerTest {
 
     CpuProfilerContextMenuInstaller.install(stage, ideComponents, JPanel(), JPanel())
 
-    assertThat(ideComponents.allContextMenuItems.map { it.text }).containsExactly(
-      "Record CPU trace",
-      ContextMenuItem.SEPARATOR.text,
-      "Export trace...",
-      ContextMenuItem.SEPARATOR.text
-    ).inOrder()
+    assertThat(ideComponents.allContextMenuItems.map { it.text })
+      .containsExactly("Record CPU trace", ContextMenuItem.SEPARATOR.text, "Export trace...", ContextMenuItem.SEPARATOR.text)
+      .inOrder()
   }
 
   @Test

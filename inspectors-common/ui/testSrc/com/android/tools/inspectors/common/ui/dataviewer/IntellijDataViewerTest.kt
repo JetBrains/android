@@ -37,13 +37,8 @@ class IntellijDataViewerTest : HeavyPlatformTestCase() {
 
   fun testCanCreatePrettyEditorViewer() {
     val jsonText = """{product: "Studio", version: 3.14}"""
-    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(
-      project,
-      jsonText.toByteArray(),
-      JsonFileType.INSTANCE,
-      true,
-      testRootDisposable
-    )
+    val viewer =
+      IntellijDataViewer.createPrettyViewerIfPossible(project, jsonText.toByteArray(), JsonFileType.INSTANCE, true, testRootDisposable)
 
     assertThat(viewer.style).isEqualTo(DataViewer.Style.PRETTY)
     assertThat(viewer.component.preferredSize.height).isGreaterThan(0)
@@ -52,35 +47,33 @@ class IntellijDataViewerTest : HeavyPlatformTestCase() {
 
   fun testFormatting() {
     val jsonText = """{product: "Studio", version: 3.14}"""
-    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(
-      project,
-      jsonText.toByteArray(),
-      JsonFileType.INSTANCE,
-      true,
-      testRootDisposable
-    )
+    val viewer =
+      IntellijDataViewer.createPrettyViewerIfPossible(project, jsonText.toByteArray(), JsonFileType.INSTANCE, true, testRootDisposable)
 
     val editorComponent = viewer.component.findDescendant<EditorComponentImpl>() ?: kotlin.test.fail("EditorComponentImpl not found")
-    assertThat(editorComponent.editor.document.text).isEqualTo(
-      """
+    assertThat(editorComponent.editor.document.text)
+      .isEqualTo(
+        """
         {
           product: "Studio",
           version: 3.14
         }
-    """.trimIndent()
-    )
+        """
+          .trimIndent()
+      )
   }
 
   fun testNoFormattingForTooLargeResponse() {
     val jsonText = """{product: "Studio", version: 3.14}"""
-    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(
-      project,
-      jsonText.toByteArray(),
-      JsonFileType.INSTANCE,
-      true,
-      testRootDisposable,
-      jsonText.length - 1,
-    )
+    val viewer =
+      IntellijDataViewer.createPrettyViewerIfPossible(
+        project,
+        jsonText.toByteArray(),
+        JsonFileType.INSTANCE,
+        true,
+        testRootDisposable,
+        jsonText.length - 1,
+      )
 
     val editorComponent = viewer.component.findDescendant<EditorComponentImpl>() ?: kotlin.test.fail("EditorComponentImpl not found")
     val banner = viewer.component.findDescendant<EditorNotificationPanel>() ?: kotlin.test.fail("Banner not found")
@@ -92,14 +85,15 @@ class IntellijDataViewerTest : HeavyPlatformTestCase() {
 
   fun testNoFormattingForTooLargeResponseAndReformat() {
     val jsonText = """{product: "Studio", version: 3.14}"""
-    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(
-      project,
-      jsonText.toByteArray(),
-      JsonFileType.INSTANCE,
-      true,
-      testRootDisposable,
-      jsonText.length - 1
-    )
+    val viewer =
+      IntellijDataViewer.createPrettyViewerIfPossible(
+        project,
+        jsonText.toByteArray(),
+        JsonFileType.INSTANCE,
+        true,
+        testRootDisposable,
+        jsonText.length - 1,
+      )
     val editorComponent = viewer.component.findDescendant<EditorComponentImpl>() ?: kotlin.test.fail("EditorComponentImpl not found")
     val banner = viewer.component.findDescendant<EditorNotificationPanel>() ?: kotlin.test.fail("Banner not found")
     val action = banner.findDescendant<HyperlinkLabel>() ?: kotlin.test.fail("Banner action not found")
@@ -107,50 +101,55 @@ class IntellijDataViewerTest : HeavyPlatformTestCase() {
 
     action.doClick()
 
-    assertThat(editorComponent.editor.document.text).isEqualTo(
-      """
+    assertThat(editorComponent.editor.document.text)
+      .isEqualTo(
+        """
         {
           product: "Studio",
           version: 3.14
         }
-      """.trimIndent()
-    )
+        """
+          .trimIndent()
+      )
   }
 
   fun testNoFormattingForFormatableLargeResponse() {
     val jsonText = """{product: "Studio", version: 3.14}"""
-    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(
-      project,
-      jsonText.toByteArray(),
-      JsonFileType.INSTANCE,
-      true,
-      testRootDisposable,
-      jsonText.length + 1
-    )
+    val viewer =
+      IntellijDataViewer.createPrettyViewerIfPossible(
+        project,
+        jsonText.toByteArray(),
+        JsonFileType.INSTANCE,
+        true,
+        testRootDisposable,
+        jsonText.length + 1,
+      )
 
     val editorComponent = viewer.component.findDescendant<EditorComponentImpl>() ?: kotlin.test.fail("EditorComponentImpl not found")
     val banner = viewer.component.findDescendant<EditorNotificationPanel>()
-    assertThat(editorComponent.editor.document.text).isEqualTo(
-      """
+    assertThat(editorComponent.editor.document.text)
+      .isEqualTo(
+        """
         {
           product: "Studio",
           version: 3.14
         }
-      """.trimIndent()
-    )
+        """
+          .trimIndent()
+      )
     assertThat(banner).isNull()
   }
 
-
   fun testPlainTextCreatesPlainEditorViewerInsteadOfPrettyEditorViewer() {
     val sampleText = "ASDF ".repeat(100)
-    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(
-      project,
-      sampleText.toByteArray(),
-      PlainTextFileType.INSTANCE,
-      false,
-      testRootDisposable
-    )
+    val viewer =
+      IntellijDataViewer.createPrettyViewerIfPossible(
+        project,
+        sampleText.toByteArray(),
+        PlainTextFileType.INSTANCE,
+        false,
+        testRootDisposable,
+      )
 
     assertThat(viewer.style).isEqualTo(DataViewer.Style.RAW)
     assertThat(viewer.component.preferredSize.height).isGreaterThan(0)
@@ -166,13 +165,14 @@ class IntellijDataViewerTest : HeavyPlatformTestCase() {
 
   fun testHandlesTextWithWindowsNewlines() {
     val textWithWindowsNewlines = "Content\r\nWith\r\nWindows\r\nNewlines"
-    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(
-      project,
-      textWithWindowsNewlines.toByteArray(),
-      PlainTextFileType.INSTANCE,
-      false,
-      testRootDisposable
-    )
+    val viewer =
+      IntellijDataViewer.createPrettyViewerIfPossible(
+        project,
+        textWithWindowsNewlines.toByteArray(),
+        PlainTextFileType.INSTANCE,
+        false,
+        testRootDisposable,
+      )
 
     // At one point, windows newlines would have caused an exception, returning an invalid viewer
     assertThat(viewer.style).isNotEqualTo(DataViewer.Style.INVALID)

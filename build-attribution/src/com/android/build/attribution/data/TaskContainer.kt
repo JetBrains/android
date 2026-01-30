@@ -20,21 +20,18 @@ import com.android.buildanalyzer.common.TaskCategory
 import com.android.tools.idea.flags.StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS
 import org.gradle.tooling.events.task.TaskFinishEvent
 
-/**
- * A cache object to unify [TaskData] objects and share them between different analyzers.
- */
+/** A cache object to unify [TaskData] objects and share them between different analyzers. */
 class TaskContainer {
   private val taskCache = HashMap<String, TaskData>()
-  val allTasks: Map<String, TaskData> get() = taskCache
+  val allTasks: Map<String, TaskData>
+    get() = taskCache
 
   fun getTask(taskPath: String): TaskData? {
     return taskCache[taskPath]
   }
 
   fun getTask(event: TaskFinishEvent, pluginContainer: PluginContainer): TaskData {
-    return taskCache.getOrPut(event.descriptor.taskPath) {
-      TaskData.createTaskData(event, pluginContainer)
-    }
+    return taskCache.getOrPut(event.descriptor.taskPath) { TaskData.createTaskData(event, pluginContainer) }
   }
 
   fun updateTasksData(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
@@ -46,7 +43,7 @@ class TaskContainer {
         val taskCategoryInfo = taskInfo?.taskCategoryInfo
         task.setTaskCategories(
           primaryTaskCategory = taskCategoryInfo?.primaryTaskCategory ?: TaskCategory.UNCATEGORIZED,
-          secondaryTaskCategories = taskCategoryInfo?.secondaryTaskCategories ?: emptyList()
+          secondaryTaskCategories = taskCategoryInfo?.secondaryTaskCategories ?: emptyList(),
         )
       }
     }

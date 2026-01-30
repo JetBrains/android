@@ -19,33 +19,29 @@ import androidx.compose.runtime.Composable
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import icons.StudioIcons
 import icons.StudioIconsCompose
-import org.jetbrains.jewel.ui.icon.IntelliJIconKey
 import javax.swing.Icon
+import org.jetbrains.jewel.ui.icon.IntelliJIconKey
 
 object TaskIconUtils {
-  /**
-   * Return the corresponding large task icon painter for a task type. To be used in the task selection grid.
-   */
+  /** Return the corresponding large task icon painter for a task type. To be used in the task selection grid. */
   @Composable
   fun getLargeTaskIconKey(taskType: ProfilerTaskType): IntelliJIconKey {
-    val iconKey = when (taskType) {
-      ProfilerTaskType.UNSPECIFIED -> throw IllegalStateException("No task icon is available for the UNSPECIFIED task type.")
-      ProfilerTaskType.CALLSTACK_SAMPLE -> StudioIconsCompose.Profiler.Taskslarge.CallstackSampleLarge
-      ProfilerTaskType.SYSTEM_TRACE -> StudioIconsCompose.Profiler.Taskslarge.SystemTraceLarge
-      ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> StudioIconsCompose.Profiler.Taskslarge.JavaKotlinMethodTraceLarge
-      ProfilerTaskType.HEAP_DUMP -> StudioIconsCompose.Profiler.Taskslarge.HeapDumpLarge
-      ProfilerTaskType.NATIVE_ALLOCATIONS -> StudioIconsCompose.Profiler.Taskslarge.NativeAllocationsLarge
-      ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> StudioIconsCompose.Profiler.Taskslarge.JavaKotlinAllocationsLarge
-      ProfilerTaskType.LIVE_VIEW -> StudioIconsCompose.Profiler.Taskslarge.LiveViewLarge
-      ProfilerTaskType.LEAKCANARY -> StudioIconsCompose.Profiler.Taskslarge.FindMemoryLeaksLarge
-
-    }
+    val iconKey =
+      when (taskType) {
+        ProfilerTaskType.UNSPECIFIED -> throw IllegalStateException("No task icon is available for the UNSPECIFIED task type.")
+        ProfilerTaskType.CALLSTACK_SAMPLE -> StudioIconsCompose.Profiler.Taskslarge.CallstackSampleLarge
+        ProfilerTaskType.SYSTEM_TRACE -> StudioIconsCompose.Profiler.Taskslarge.SystemTraceLarge
+        ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> StudioIconsCompose.Profiler.Taskslarge.JavaKotlinMethodTraceLarge
+        ProfilerTaskType.HEAP_DUMP -> StudioIconsCompose.Profiler.Taskslarge.HeapDumpLarge
+        ProfilerTaskType.NATIVE_ALLOCATIONS -> StudioIconsCompose.Profiler.Taskslarge.NativeAllocationsLarge
+        ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> StudioIconsCompose.Profiler.Taskslarge.JavaKotlinAllocationsLarge
+        ProfilerTaskType.LIVE_VIEW -> StudioIconsCompose.Profiler.Taskslarge.LiveViewLarge
+        ProfilerTaskType.LEAKCANARY -> StudioIconsCompose.Profiler.Taskslarge.FindMemoryLeaksLarge
+      }
     return iconKey
   }
 
-  /**
-   * Utility to fetch the corresponding task icon for a task type. To be used for the task tab icon.
-   */
+  /** Utility to fetch the corresponding task icon for a task type. To be used for the task tab icon. */
   fun getTaskIcon(taskType: ProfilerTaskType): Icon {
     return when (taskType) {
       ProfilerTaskType.UNSPECIFIED -> throw IllegalStateException("No task icon is available for the UNSPECIFIED task type.")

@@ -20,26 +20,14 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicBoolean
 
-/**
- * This is a wrapper around a class preloading [CompletableFuture] that allows for the proper
- * disposal of the resources used.
- */
-open class Preloader<T : ModuleClassLoader>(
-  moduleClassLoader: T,
-  executor: Executor,
-  classesToPreload: Collection<String> = emptyList(),
-) {
+/** This is a wrapper around a class preloading [CompletableFuture] that allows for the proper disposal of the resources used. */
+open class Preloader<T : ModuleClassLoader>(moduleClassLoader: T, executor: Executor, classesToPreload: Collection<String> = emptyList()) {
   private val classLoader = SoftReference(moduleClassLoader)
   private var isActive = AtomicBoolean(true)
 
   init {
     if (classesToPreload.isNotEmpty()) {
-      preload(
-        moduleClassLoader,
-        { isActive.get() && !(classLoader.get()?.isDisposed ?: true) },
-        classesToPreload,
-        executor,
-      )
+      preload(moduleClassLoader, { isActive.get() && !(classLoader.get()?.isDisposed ?: true) }, classesToPreload, executor)
     }
   }
 
@@ -61,23 +49,17 @@ open class Preloader<T : ModuleClassLoader>(
   }
 
   /**
-   * Checks if this [Preloader] loads classes for [cl] [ModuleClassLoader]. This allows for safe
-   * check without the need for share the actual [classLoader] and prevent its use.
+   * Checks if this [Preloader] loads classes for [cl] [ModuleClassLoader]. This allows for safe check without the need for share the actual
+   * [classLoader] and prevent its use.
    */
   fun isLoadingFor(cl: ModuleClassLoader) = classLoader.get() == cl
 
-  fun isForCompatible(
-    parent: ClassLoader?,
-    projectTransformations: ClassTransform,
-    nonProjectTransformations: ClassTransform,
-  ) =
-    classLoader.get()?.isCompatible(parent, projectTransformations, nonProjectTransformations)
-      ?: false
+  fun isForCompatible(parent: ClassLoader?, projectTransformations: ClassTransform, nonProjectTransformations: ClassTransform) =
+    classLoader.get()?.isCompatible(parent, projectTransformations, nonProjectTransformations) ?: false
 
   /**
-   * Returns the number of currently loaded classes for the underlying [ModuleClassLoader]. Intended
-   * to be used for debugging and diagnostics.
+   * Returns the number of currently loaded classes for the underlying [ModuleClassLoader]. Intended to be used for debugging and
+   * diagnostics.
    */
-  fun getLoadedCount(): Int =
-    classLoader.get()?.let { it.nonProjectLoadedClasses.size + it.projectLoadedClasses.size } ?: 0
+  fun getLoadedCount(): Int = classLoader.get()?.let { it.nonProjectLoadedClasses.size + it.projectLoadedClasses.size } ?: 0
 }

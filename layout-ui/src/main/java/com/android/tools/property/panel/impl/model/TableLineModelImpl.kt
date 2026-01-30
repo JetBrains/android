@@ -74,8 +74,6 @@ class TableLineModelImpl(override val tableModel: PTableModel, override val isSe
   }
 
   private fun fireEditRequest(request: TableEditingRequest, item: PTableItem? = null) {
-    listeners.toTypedArray().filterIsInstance<TableRowEditListener>().forEach {
-      it.editRequest(request, item)
-    }
+    listeners.toTypedArray().filterIsInstance<TableRowEditListener>().forEach { it.editRequest(request, item) }
   }
 }

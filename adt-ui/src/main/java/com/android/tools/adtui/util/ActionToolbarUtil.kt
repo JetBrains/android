@@ -29,9 +29,7 @@ import javax.swing.JPanel
 /** Use the extension methods below instead of this object. */
 object ActionToolbarUtil {
   /** See [ActionToolbar.findActionButton]. */
-  @JvmStatic
-  fun findActionButton(toolbar: ActionToolbar, action: AnAction): ActionButton? =
-    toolbar.findActionButton(action)
+  @JvmStatic fun findActionButton(toolbar: ActionToolbar, action: AnAction): ActionButton? = toolbar.findActionButton(action)
 
   /** See [ActionToolbar.makeNavigable]. */
   @JvmStatic
@@ -47,8 +45,8 @@ fun ActionToolbar.findActionButton(action: AnAction): ActionButton? =
 /**
  * Makes it possible to navigate the actions buttons from the keyboard.
  *
- * The action buttons are not focusable when `ScreenReader.isActive()` is false, This method makes
- * the buttons of the toolbar focusable unconditionally.
+ * The action buttons are not focusable when `ScreenReader.isActive()` is false, This method makes the buttons of the toolbar focusable
+ * unconditionally.
  */
 fun ActionToolbar.makeNavigable() {
   if (!ScreenReader.isActive()) {

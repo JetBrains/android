@@ -35,16 +35,11 @@ import org.mockito.Mockito.verify
 
 @RunsInEdt
 class UpdateScreenshotTestResultsListenerTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
-  /**
-   * Verifies that the listener correctly extracts all fields from the AndroidTestCase
-   * when all relevant artifacts are present.
-   */
+  /** Verifies that the listener correctly extracts all fields from the AndroidTestCase when all relevant artifacts are present. */
   @Test
   fun testOnTestCaseFinished_extractsDataCorrectly() {
     val dialog = mock(UpdateReferenceImagesDialog::class.java)
@@ -53,23 +48,25 @@ class UpdateScreenshotTestResultsListenerTest {
     val mockDevice = mock(AndroidDevice::class.java)
     val mockSuite = mock(AndroidTestSuite::class.java)
 
-    val artifacts = mutableMapOf(
+    val artifacts =
+      mutableMapOf(
         "PreviewScreenshot.methodName" to "testMethod",
         "PreviewScreenshot.previewName" to "preview1",
         "PreviewScreenshot.refImagePath" to "/path/to/ref.png",
         "PreviewScreenshot.newImagePath" to "/path/to/new.png",
         "PreviewScreenshot.diffImagePath" to "/path/to/diff.png",
-        "PreviewScreenshot.diffPercent" to "0.05"
-    )
+        "PreviewScreenshot.diffPercent" to "0.05",
+      )
 
-    val testCase = AndroidTestCase(
+    val testCase =
+      AndroidTestCase(
         id = "test1",
         methodName = "ignoredMethodName",
         className = "com.example.TestClass",
         packageName = "com.example",
         result = AndroidTestCaseResult.PASSED,
-        additionalTestArtifacts = artifacts
-    )
+        additionalTestArtifacts = artifacts,
+      )
 
     listener.onTestCaseFinished(mockDevice, mockSuite, testCase)
 
@@ -91,9 +88,7 @@ class UpdateScreenshotTestResultsListenerTest {
     assertEquals("0.05", details.diffPercent)
   }
 
-  /**
-   * Verifies that the listener correctly cleans the preview name from raw artifacts.
-   */
+  /** Verifies that the listener correctly cleans the preview name from raw artifacts. */
   @Test
   fun testOnTestCaseFinished_cleansPreviewName() {
     val dialog = mock(UpdateReferenceImagesDialog::class.java)
@@ -101,20 +96,22 @@ class UpdateScreenshotTestResultsListenerTest {
     val mockDevice = mock(AndroidDevice::class.java)
     val mockSuite = mock(AndroidTestSuite::class.java)
 
-    val artifacts = mutableMapOf(
+    val artifacts =
+      mutableMapOf(
         "PreviewScreenshot.methodName" to "testMethod",
         "PreviewScreenshot.previewName" to "[{provider=com.example.MyProvider}]",
-        "PreviewScreenshot.refImagePath" to "/path/to/ref.png"
-    )
+        "PreviewScreenshot.refImagePath" to "/path/to/ref.png",
+      )
 
-    val testCase = AndroidTestCase(
+    val testCase =
+      AndroidTestCase(
         id = "test1",
         methodName = "ignored",
         className = "com.example.TestClass",
         packageName = "com.example",
         result = AndroidTestCaseResult.PASSED,
-        additionalTestArtifacts = artifacts
-    )
+        additionalTestArtifacts = artifacts,
+      )
 
     listener.onTestCaseFinished(mockDevice, mockSuite, testCase)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -129,8 +126,8 @@ class UpdateScreenshotTestResultsListenerTest {
   }
 
   /**
-   * Verifies that the listener handles cases where the artifacts map is empty,
-   * providing safe default values instead of crashing or returning nulls where strings are expected.
+   * Verifies that the listener handles cases where the artifacts map is empty, providing safe default values instead of crashing or
+   * returning nulls where strings are expected.
    */
   @Test
   fun testOnTestCaseFinished_handlesMissingArtifacts() {
@@ -140,14 +137,15 @@ class UpdateScreenshotTestResultsListenerTest {
     val mockDevice = mock(AndroidDevice::class.java)
     val mockSuite = mock(AndroidTestSuite::class.java)
 
-    val testCase = AndroidTestCase(
+    val testCase =
+      AndroidTestCase(
         id = "test1",
         methodName = "ignoredMethodName",
         className = "com.example.TestClass",
         packageName = "com.example",
         result = AndroidTestCaseResult.FAILED,
-        additionalTestArtifacts = mutableMapOf()
-    )
+        additionalTestArtifacts = mutableMapOf(),
+      )
 
     listener.onTestCaseFinished(mockDevice, mockSuite, testCase)
 
@@ -165,8 +163,8 @@ class UpdateScreenshotTestResultsListenerTest {
   }
 
   /**
-   * Verifies that the listener correctly extracts available data even when some artifacts are missing.
-   * This ensures robustness against partial data.
+   * Verifies that the listener correctly extracts available data even when some artifacts are missing. This ensures robustness against
+   * partial data.
    */
   @Test
   fun testOnTestCaseFinished_partialArtifacts() {
@@ -176,19 +174,17 @@ class UpdateScreenshotTestResultsListenerTest {
     val mockSuite = mock(AndroidTestSuite::class.java)
 
     // Only method name and one image path are present
-    val artifacts = mutableMapOf(
-        "PreviewScreenshot.methodName" to "partialMethod",
-        "PreviewScreenshot.refImagePath" to "/path/to/ref.png"
-    )
+    val artifacts = mutableMapOf("PreviewScreenshot.methodName" to "partialMethod", "PreviewScreenshot.refImagePath" to "/path/to/ref.png")
 
-    val testCase = AndroidTestCase(
+    val testCase =
+      AndroidTestCase(
         id = "test_partial",
         methodName = "ignored",
         className = "com.example.PartialClass",
         packageName = "com.example",
         result = AndroidTestCaseResult.PASSED,
-        additionalTestArtifacts = artifacts
-    )
+        additionalTestArtifacts = artifacts,
+      )
 
     listener.onTestCaseFinished(mockDevice, mockSuite, testCase)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -204,9 +200,7 @@ class UpdateScreenshotTestResultsListenerTest {
     assertEquals("com.example.PartialClass.partialMethod. ", details.testId)
   }
 
-  /**
-   * Verifies that the test result status (PASSED, FAILED, etc.) is correctly propagated to the PreviewDetails.
-   */
+  /** Verifies that the test result status (PASSED, FAILED, etc.) is correctly propagated to the PreviewDetails. */
   @Test
   fun testOnTestCaseFinished_propagatesTestResult() {
     val dialog = mock(UpdateReferenceImagesDialog::class.java)
@@ -214,14 +208,15 @@ class UpdateScreenshotTestResultsListenerTest {
     val mockDevice = mock(AndroidDevice::class.java)
     val mockSuite = mock(AndroidTestSuite::class.java)
 
-    val testCase = AndroidTestCase(
+    val testCase =
+      AndroidTestCase(
         id = "test_result_check",
         methodName = "ignored",
         className = "com.example.ResultClass",
         packageName = "com.example",
         result = AndroidTestCaseResult.SKIPPED,
-        additionalTestArtifacts = mutableMapOf()
-    )
+        additionalTestArtifacts = mutableMapOf(),
+      )
 
     listener.onTestCaseFinished(mockDevice, mockSuite, testCase)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -233,9 +228,7 @@ class UpdateScreenshotTestResultsListenerTest {
     assertEquals(AndroidTestCaseResult.SKIPPED, details.testResult)
   }
 
-  /**
-   * Verifies that onTestSuiteFinished is correctly delegated to the dialog.
-   */
+  /** Verifies that onTestSuiteFinished is correctly delegated to the dialog. */
   @Test
   fun testOnTestSuiteFinished() {
     val dialog = mock(UpdateReferenceImagesDialog::class.java)
@@ -251,12 +244,11 @@ class UpdateScreenshotTestResultsListenerTest {
   }
 
   /**
-   * Helper function to capture non-nullable arguments with Mockito in Kotlin.
-   * Returns a dummy instance to satisfy Kotlin's null-safety during the stubbing phase,
-   * while Mockito captures the actual value.
+   * Helper function to capture non-nullable arguments with Mockito in Kotlin. Returns a dummy instance to satisfy Kotlin's null-safety
+   * during the stubbing phase, while Mockito captures the actual value.
    */
   private fun capturePreviewDetails(captor: ArgumentCaptor<PreviewDetails>): PreviewDetails {
     captor.capture()
-    return PreviewDetails(testId="", className="", methodName="", previewName="")
+    return PreviewDetails(testId = "", className = "", methodName = "", previewName = "")
   }
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("DisposableUtils")
+
 package org.jetbrains.android.util
 
 import com.intellij.openapi.Disposable
@@ -35,8 +36,7 @@ open class MultiParentDisposable(vararg parents: Disposable) : Disposable {
     }
   }
 
-  override fun dispose() {
-  }
+  override fun dispose() {}
 
   private fun triggerDisposal() {
     if (!disposing.getAndSet(true)) {
@@ -67,9 +67,8 @@ open class MultiParentDisposable(vararg parents: Disposable) : Disposable {
 }
 
 /**
- * Executes [runnable] exactly once when the first of [disposables] is disposed. To avoid a memory
- * leak, it is important to provide all disposables that on disposal should either trigger
- * [runnable] or allow it to be garbage collected.
+ * Executes [runnable] exactly once when the first of [disposables] is disposed. To avoid a memory leak, it is important to provide all
+ * disposables that on disposal should either trigger [runnable] or allow it to be garbage collected.
  */
 fun runOnDisposalOfAnyOf(vararg disposables: Disposable, runnable: Runnable) {
   object : MultiParentDisposable(*disposables) {

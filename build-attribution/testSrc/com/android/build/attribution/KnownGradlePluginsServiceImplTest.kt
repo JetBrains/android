@@ -22,20 +22,18 @@ import com.intellij.openapi.util.Pair
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.util.download.FileDownloader
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl
+import java.io.File
+import java.io.IOException
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
-import java.io.File
-import java.io.IOException
 
 class KnownGradlePluginsServiceImplTest {
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   @Test
   fun testLocalGradlePluginsServiceParsesFileCorrectly() {
@@ -49,23 +47,25 @@ class KnownGradlePluginsServiceImplTest {
 
   @Test
   fun testGetsDownloadedFile() {
-    val fileContent = """
-{
-  "pluginsInfo": [
-    {
-      "pluginClassPrefixes": [
-        "my.plugin.pluginA",
-        "my.plugin.pluginB"
-      ],
-      "name": "MyPlugin",
-      "pluginDescription": "Fake test plugin description.<br/>",
-      "pluginContactInstructions": "<a href='linkToPluginRepo'>Plugin repository</a>",
-      "pluginArtifact": "org.my:gradle-plugin",
-      "configurationCachingCompatibleFrom": "1.0.0"
-    }
-  ]
-}
-    """.trimIndent()
+    val fileContent =
+      """
+      {
+        "pluginsInfo": [
+          {
+            "pluginClassPrefixes": [
+              "my.plugin.pluginA",
+              "my.plugin.pluginB"
+            ],
+            "name": "MyPlugin",
+            "pluginDescription": "Fake test plugin description.<br/>",
+            "pluginContactInstructions": "<a href='linkToPluginRepo'>Plugin repository</a>",
+            "pluginArtifact": "org.my:gradle-plugin",
+            "configurationCachingCompatibleFrom": "1.0.0"
+          }
+        ]
+      }
+      """
+        .trimIndent()
     val outputDir = temporaryFolder.newFolder()
     val fileName = "plugins_data.json"
     val distributionFile = FileUtils.join(outputDir, fileName)
@@ -78,8 +78,7 @@ class KnownGradlePluginsServiceImplTest {
     val downloadableFileDescription = DownloadableFileDescriptionImpl(distributionUrl.toString(), fileName, "json")
 
     val downloader = Mockito.mock(FileDownloader::class.java)
-    whenever(downloader.download(Mockito.any(File::class.java)))
-      .thenReturn(listOf(Pair(distributionFile, downloadableFileDescription)))
+    whenever(downloader.download(Mockito.any(File::class.java))).thenReturn(listOf(Pair(distributionFile, downloadableFileDescription)))
 
     val service = KnownGradlePluginsServiceImpl(downloader, localCache)
     service.refreshSynchronously()
@@ -91,8 +90,7 @@ class KnownGradlePluginsServiceImplTest {
     val outputDir = temporaryFolder.newFolder()
     val localCache = FileUtils.join(outputDir, "cache")
     val downloader = Mockito.mock(FileDownloader::class.java)
-    whenever(downloader.download(Mockito.any(File::class.java)))
-      .thenThrow(IOException())
+    whenever(downloader.download(Mockito.any(File::class.java))).thenThrow(IOException())
 
     val service = KnownGradlePluginsServiceImpl(downloader, localCache)
     service.refreshSynchronously()

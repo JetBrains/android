@@ -15,13 +15,13 @@
  */
 package com.android.tools.rendering
 
-import com.intellij.DynamicBundle
-import org.jetbrains.annotations.NonNls
-import org.jetbrains.annotations.PropertyKey
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
 import java.text.MessageFormat
 import java.util.ResourceBundle
+import com.intellij.DynamicBundle
+import org.jetbrains.annotations.NonNls
+import org.jetbrains.annotations.PropertyKey
 
 /** Messages bundle. */
 object RenderingBundle {
@@ -42,11 +42,7 @@ object RenderingBundle {
     return readFromBundleAndFormat(bundle!!, key, *params)
   }
 
-  private fun readFromBundleAndFormat(
-    bundle: ResourceBundle,
-    key: String,
-    vararg params: Any,
-  ): String {
+  private fun readFromBundleAndFormat(bundle: ResourceBundle, key: String, vararg params: Any): String {
     val rawValue = bundle.getString(key)
     val locale = bundle.locale
     val format = MessageFormat(rawValue, locale)

@@ -60,9 +60,8 @@ fun waitForCondition(timeout: Long, timeUnit: TimeUnit, condition: () -> Boolean
 }
 
 /**
- * Keeps dispatching invocation events for the given duration. The duration must not exceed 500
- * milliseconds to avoid a substantial test slowdown. Use this function only as the last resort when
- * there is no suitable condition to use with [waitForCondition].
+ * Keeps dispatching invocation events for the given duration. The duration must not exceed 500 milliseconds to avoid a substantial test
+ * slowdown. Use this function only as the last resort when there is no suitable condition to use with [waitForCondition].
  */
 @JvmSynthetic
 fun dispatchInvocationEventsFor(duration: Duration) {
@@ -79,8 +78,8 @@ fun dispatchInvocationEventsFor(duration: Duration) {
 }
 
 /**
- * Helper function that will loop until a [condition] is met or a [timeout] is exceeded. In each
- * iteration, the function will delay for a given time and then a given callback will be executed.
+ * Helper function that will loop until a [condition] is met or a [timeout] is exceeded. In each iteration, the function will delay for a
+ * given time and then a given callback will be executed.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 suspend inline fun delayUntilCondition(
@@ -100,9 +99,8 @@ suspend inline fun delayUntilCondition(
 }
 
 /**
- * Retries the given block until it no longer throws an AssertionError, or the timeout occurs. If
- * timeout occurs, throws an AssertionError, using the last AssertionError as the cause. If this is
- * run from the EDT, pumps the EDT in between checks.
+ * Retries the given block until it no longer throws an AssertionError, or the timeout occurs. If timeout occurs, throws an AssertionError,
+ * using the last AssertionError as the cause. If this is run from the EDT, pumps the EDT in between checks.
  */
 fun <R> retryUntilPassing(timeout: Duration, block: () -> R): R {
   var lastError: AssertionError?
@@ -121,6 +119,5 @@ fun <R> retryUntilPassing(timeout: Duration, block: () -> R): R {
     }
     Thread.sleep(20)
   } while (System.nanoTime() - startNanos < timeoutNanos)
-  lastError?.let { throw AssertionError("Expected state not reached before timeout", lastError) }
-    ?: throw TimeoutException()
+  lastError?.let { throw AssertionError("Expected state not reached before timeout", lastError) } ?: throw TimeoutException()
 }

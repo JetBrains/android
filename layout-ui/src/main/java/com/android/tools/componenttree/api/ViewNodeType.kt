@@ -42,8 +42,7 @@ abstract class ViewNodeType<T> : NodeType<T> {
 
   override fun createRenderer(): TreeCellRenderer = ViewTreeCellRenderer(this)
 
-  override fun toSearchString(node: T): String =
-    ViewTreeCellRenderer.computeSearchString(this, node)
+  override fun toSearchString(node: T): String = ViewTreeCellRenderer.computeSearchString(this, node)
 
   /** If true the renderer will display a faint representation of the node */
   abstract fun isDeEmphasized(node: T): Boolean

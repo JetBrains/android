@@ -25,39 +25,34 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
+import java.awt.Container
+import javax.swing.JList
+import javax.swing.JPanel
+import javax.swing.JScrollPane
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Component
-import java.awt.Container
-import javax.swing.JList
-import javax.swing.JPanel
-import javax.swing.JScrollPane
 
 class PreviewDetailsPanelTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun testSwitchToSinglePreview() = runInEdtAndWait {
     val panel = PreviewDetailsPanel()
-    val details = PreviewDetails(
-      testId = "test1",
-      className = "Class",
-      methodName = "method",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.PASSED
-    )
+    val details =
+      PreviewDetails(
+        testId = "test1",
+        className = "Class",
+        methodName = "method",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.PASSED,
+      )
     val toolbar = ComposePanel()
 
-    panel.displayPreviews(
-      listOf(details),
-      ScreenshotViewType.NEW,
-      toolbar
-    )
+    panel.displayPreviews(listOf(details), ScreenshotViewType.NEW, toolbar)
 
     val visibleComponents = panel.components.filter { it.isVisible }
     assertEquals(1, visibleComponents.size)
@@ -71,28 +66,26 @@ class PreviewDetailsPanelTest {
   @Test
   fun testSwitchToMultiplePreviews() = runInEdtAndWait {
     val panel = PreviewDetailsPanel()
-    val details1 = PreviewDetails(
-      testId = "test1",
-      className = "Class",
-      methodName = "method",
-      previewName = "preview1",
-      testResult = AndroidTestCaseResult.PASSED
-    )
-    val details2 = PreviewDetails(
-      testId = "test2",
-      className = "Class",
-      methodName = "method",
-      previewName = "preview2",
-      testResult = AndroidTestCaseResult.PASSED
-    )
+    val details1 =
+      PreviewDetails(
+        testId = "test1",
+        className = "Class",
+        methodName = "method",
+        previewName = "preview1",
+        testResult = AndroidTestCaseResult.PASSED,
+      )
+    val details2 =
+      PreviewDetails(
+        testId = "test2",
+        className = "Class",
+        methodName = "method",
+        previewName = "preview2",
+        testResult = AndroidTestCaseResult.PASSED,
+      )
 
     val toolbar = ComposePanel()
 
-    panel.displayPreviews(
-      listOf(details1, details2),
-      ScreenshotViewType.NEW,
-      toolbar
-    )
+    panel.displayPreviews(listOf(details1, details2), ScreenshotViewType.NEW, toolbar)
 
     val visibleComponents = panel.components.filter { it.isVisible }
     assertEquals(1, visibleComponents.size)
@@ -106,19 +99,16 @@ class PreviewDetailsPanelTest {
   @Test
   fun testMultiplePreviewsWithSingleItemAndNoToolbar() = runInEdtAndWait {
     val panel = PreviewDetailsPanel()
-    val details = PreviewDetails(
-      testId = "test1",
-      className = "Class",
-      methodName = "method",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.PASSED
-    )
+    val details =
+      PreviewDetails(
+        testId = "test1",
+        className = "Class",
+        methodName = "method",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.PASSED,
+      )
 
-    panel.displayPreviews(
-      listOf(details),
-      ScreenshotViewType.NEW,
-      null
-    )
+    panel.displayPreviews(listOf(details), ScreenshotViewType.NEW, null)
 
     val visibleComponents = panel.components.filter { it.isVisible }
     assertEquals(1, visibleComponents.size)
@@ -132,15 +122,16 @@ class PreviewDetailsPanelTest {
   @Test
   fun testJBListVirtualization() = runInEdtAndWait {
     val panel = PreviewDetailsPanel()
-    val detailsList = (1..10).map { i ->
-      PreviewDetails(
-        testId = "test$i",
-        className = "Class",
-        methodName = "method",
-        previewName = "preview$i",
-        testResult = AndroidTestCaseResult.PASSED
-      )
-    }
+    val detailsList =
+      (1..10).map { i ->
+        PreviewDetails(
+          testId = "test$i",
+          className = "Class",
+          methodName = "method",
+          previewName = "preview$i",
+          testResult = AndroidTestCaseResult.PASSED,
+        )
+      }
 
     panel.displayPreviews(detailsList, ScreenshotViewType.NEW, null)
 
@@ -157,22 +148,23 @@ class PreviewDetailsPanelTest {
   @Test
   fun testPlaceholdersForNullPaths() = runInEdtAndWait {
     val panel = PreviewDetailsPanel()
-    val details = PreviewDetails(
-      testId = "test1",
-      className = "Class",
-      methodName = "method",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.PASSED,
-      srcImagePath = null,
-      diffImagePath = null,
-      destImagePath = null
-    )
+    val details =
+      PreviewDetails(
+        testId = "test1",
+        className = "Class",
+        methodName = "method",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.PASSED,
+        srcImagePath = null,
+        diffImagePath = null,
+        destImagePath = null,
+      )
     val toolbar = ComposePanel()
 
     panel.displayPreviews(
       listOf(details),
       ScreenshotViewType.ALL, // Use ALL to check all 3 panels
-      toolbar
+      toolbar,
     )
 
     // Find the ImageWithToolbarPanels
@@ -192,23 +184,20 @@ class PreviewDetailsPanelTest {
   @Test
   fun testPlaceholdersForFailedTest() = runInEdtAndWait {
     val panel = PreviewDetailsPanel()
-    val details = PreviewDetails(
-      testId = "test1",
-      className = "Class",
-      methodName = "method",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.FAILED,
-      srcImagePath = null,
-      diffImagePath = null, // Missing diff image for failed test
-      destImagePath = null
-    )
+    val details =
+      PreviewDetails(
+        testId = "test1",
+        className = "Class",
+        methodName = "method",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.FAILED,
+        srcImagePath = null,
+        diffImagePath = null, // Missing diff image for failed test
+        destImagePath = null,
+      )
     val toolbar = ComposePanel()
 
-    panel.displayPreviews(
-      listOf(details),
-      ScreenshotViewType.ALL,
-      toolbar
-    )
+    panel.displayPreviews(listOf(details), ScreenshotViewType.ALL, toolbar)
 
     val diffPanel = findImagePanel(panel, ScreenshotViewType.DIFF)
     assertNotNull("Diff Image Panel should exist", diffPanel)
@@ -219,20 +208,17 @@ class PreviewDetailsPanelTest {
   @Test
   fun testToolbarActionsCreated() = runInEdtAndWait {
     val panel = PreviewDetailsPanel()
-    val details = PreviewDetails(
-      testId = "test1",
-      className = "Class",
-      methodName = "method",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.PASSED
-    )
+    val details =
+      PreviewDetails(
+        testId = "test1",
+        className = "Class",
+        methodName = "method",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.PASSED,
+      )
     val toolbar = ComposePanel()
 
-    panel.displayPreviews(
-      listOf(details),
-      ScreenshotViewType.ALL,
-      toolbar
-    )
+    panel.displayPreviews(listOf(details), ScreenshotViewType.ALL, toolbar)
 
     val actionToolbar = findActionToolbar(panel)
     assertNotNull("ActionToolbar should be created", actionToolbar)
@@ -249,33 +235,32 @@ class PreviewDetailsPanelTest {
   @Test
   fun testDuplicateMethodNamesInDifferentClasses() = runInEdtAndWait {
     val panel = PreviewDetailsPanel()
-    val details1 = PreviewDetails(
-      testId = "test1",
-      className = "com.example.ClassA",
-      methodName = "commonMethod",
-      previewName = "preview1",
-      testResult = AndroidTestCaseResult.PASSED
-    )
-    val details2 = PreviewDetails(
-      testId = "test2",
-      className = "com.example.ClassB",
-      methodName = "commonMethod",
-      previewName = "preview1",
-      testResult = AndroidTestCaseResult.PASSED
-    )
-    val details3 = PreviewDetails(
-      testId = "test3",
-      className = "com.example.ClassC",
-      methodName = "uniqueMethod",
-      previewName = "preview1",
-      testResult = AndroidTestCaseResult.PASSED
-    )
+    val details1 =
+      PreviewDetails(
+        testId = "test1",
+        className = "com.example.ClassA",
+        methodName = "commonMethod",
+        previewName = "preview1",
+        testResult = AndroidTestCaseResult.PASSED,
+      )
+    val details2 =
+      PreviewDetails(
+        testId = "test2",
+        className = "com.example.ClassB",
+        methodName = "commonMethod",
+        previewName = "preview1",
+        testResult = AndroidTestCaseResult.PASSED,
+      )
+    val details3 =
+      PreviewDetails(
+        testId = "test3",
+        className = "com.example.ClassC",
+        methodName = "uniqueMethod",
+        previewName = "preview1",
+        testResult = AndroidTestCaseResult.PASSED,
+      )
 
-    panel.displayPreviews(
-      listOf(details1, details2, details3),
-      ScreenshotViewType.NEW,
-      null
-    )
+    panel.displayPreviews(listOf(details1, details2, details3), ScreenshotViewType.NEW, null)
 
     val visibleComponents = panel.components.filter { it.isVisible }
     assertEquals(1, visibleComponents.size)
@@ -293,21 +278,18 @@ class PreviewDetailsPanelTest {
   @Test
   fun testScreenshotAttributesView_withNullDestImagePath() = runInEdtAndWait {
     val panel = PreviewDetailsPanel()
-    val details = PreviewDetails(
-      testId = "test1",
-      className = "Class",
-      methodName = "method",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.PASSED,
-      destImagePath = null
-    )
+    val details =
+      PreviewDetails(
+        testId = "test1",
+        className = "Class",
+        methodName = "method",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.PASSED,
+        destImagePath = null,
+      )
     val toolbar = ComposePanel()
 
-    panel.displayPreviews(
-      listOf(details),
-      ScreenshotViewType.NEW,
-      toolbar
-    )
+    panel.displayPreviews(listOf(details), ScreenshotViewType.NEW, toolbar)
 
     assertTrue(panel.screenshotAttributesView.state.refLocation == "N/A")
   }
@@ -315,21 +297,18 @@ class PreviewDetailsPanelTest {
   @Test
   fun testScreenshotAttributesView_withNonExistentDestImagePath() = runInEdtAndWait {
     val panel = PreviewDetailsPanel()
-    val details = PreviewDetails(
-      testId = "test1",
-      className = "Class",
-      methodName = "method",
-      previewName = "preview",
-      testResult = AndroidTestCaseResult.PASSED,
-      destImagePath = "non_existent_ref.png"
-    )
+    val details =
+      PreviewDetails(
+        testId = "test1",
+        className = "Class",
+        methodName = "method",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.PASSED,
+        destImagePath = "non_existent_ref.png",
+      )
     val toolbar = ComposePanel()
 
-    panel.displayPreviews(
-      listOf(details),
-      ScreenshotViewType.NEW,
-      toolbar
-    )
+    panel.displayPreviews(listOf(details), ScreenshotViewType.NEW, toolbar)
 
     assertTrue(panel.screenshotAttributesView.state.refLocation == "N/A")
   }
@@ -353,9 +332,7 @@ class PreviewDetailsPanelTest {
 
     val contentPanel = view as? Container ?: return emptyList()
 
-    return contentPanel.components
-      .filterIsInstance<JBLabel>()
-      .map { it.text }
+    return contentPanel.components.filterIsInstance<JBLabel>().map { it.text }
   }
 
   private fun findImagePanel(container: Container, type: ScreenshotViewType): ImageWithToolbarPanel? {

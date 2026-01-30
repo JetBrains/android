@@ -45,40 +45,25 @@ import org.jetbrains.jewel.ui.component.styling.SpeedSearchStyle
 @Composable
 fun StudioTestTheme(darkMode: Boolean = false, content: @Composable () -> Unit) {
   val defaultTextStyle = JewelTheme.createDefaultTextStyle(fontFamily = FontFamily.InterForTests)
-  val editorTextStyle =
-    JewelTheme.createEditorTextStyle(fontFamily = FontFamily.JetBrainsMonoForTests)
+  val editorTextStyle = JewelTheme.createEditorTextStyle(fontFamily = FontFamily.JetBrainsMonoForTests)
 
   val themeDefinition =
     if (darkMode) {
-      JewelTheme.darkThemeDefinition(
-        defaultTextStyle = defaultTextStyle,
-        editorTextStyle = editorTextStyle,
-      )
+      JewelTheme.darkThemeDefinition(defaultTextStyle = defaultTextStyle, editorTextStyle = editorTextStyle)
     } else {
-      JewelTheme.lightThemeDefinition(
-        defaultTextStyle = defaultTextStyle,
-        editorTextStyle = editorTextStyle,
-      )
+      JewelTheme.lightThemeDefinition(defaultTextStyle = defaultTextStyle, editorTextStyle = editorTextStyle)
     }
 
   val componentStyling = createComponentStyling(darkMode)
 
   IntUiTheme(themeDefinition, componentStyling, true) {
     val provider = remember(darkMode) { TestMarkdownFactory(darkMode) }
-    val markdownStyling =
-      remember(darkMode, provider) {
-        provider.createDefaultStyling(defaultTextStyle, editorTextStyle)
-      }
+    val markdownStyling = remember(darkMode, provider) { provider.createDefaultStyling(defaultTextStyle, editorTextStyle) }
     val markdownProcessor = remember { MarkdownProcessor(getDefaultMarkdownProcessors()) }
     val blockRenderer =
-      remember(markdownStyling) {
-        MarkdownBlockRenderer.create(markdownStyling, getDefaultRenderExtensions(markdownStyling))
-      }
+      remember(markdownStyling) { MarkdownBlockRenderer.create(markdownStyling, getDefaultRenderExtensions(markdownStyling)) }
 
-    CompositionLocalProvider(
-      LocalMarkdownFactory provides provider,
-      LocalIsInUiTest provides true,
-    ) {
+    CompositionLocalProvider(LocalMarkdownFactory provides provider, LocalIsInUiTest provides true) {
       ProvideMarkdownStyling(
         isDark = JewelTheme.isDark,
         markdownStyling = markdownStyling,

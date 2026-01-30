@@ -28,18 +28,21 @@ class ResourceFolderManagerGradleToken : GradleToken, ResourceFolderManagerToken
   override fun computeFoldersFromSourceProviders(
     projectSystem: GradleProjectSystem,
     sourceProviders: SourceProviders,
-    module: Module
-  ): List<VirtualFile>? = when {
-    module.isAndroidTestModule() -> sourceProviders.run {
-      val sources = currentDeviceTestSourceProviders[CommonTestType.ANDROID_TEST]?.flatMap { it.resDirectories } ?: listOf()
-      val generated = generatedDeviceTestSources[CommonTestType.ANDROID_TEST]?.resDirectories ?: listOf()
-      (sources + generated).toList()
+    module: Module,
+  ): List<VirtualFile>? =
+    when {
+      module.isAndroidTestModule() ->
+        sourceProviders.run {
+          val sources = currentDeviceTestSourceProviders[CommonTestType.ANDROID_TEST]?.flatMap { it.resDirectories } ?: listOf()
+          val generated = generatedDeviceTestSources[CommonTestType.ANDROID_TEST]?.resDirectories ?: listOf()
+          (sources + generated).toList()
+        }
+      module.isScreenshotTestModule() ->
+        sourceProviders.run {
+          val sources = currentHostTestSourceProviders[CommonTestType.SCREENSHOT_TEST]?.flatMap { it.resDirectories } ?: listOf()
+          val generated = generatedHostTestSources[CommonTestType.SCREENSHOT_TEST]?.resDirectories ?: listOf()
+          (sources + generated).toList()
+        }
+      else -> null
     }
-    module.isScreenshotTestModule() -> sourceProviders.run {
-      val sources = currentHostTestSourceProviders[CommonTestType.SCREENSHOT_TEST]?.flatMap { it.resDirectories } ?: listOf()
-      val generated = generatedHostTestSources[CommonTestType.SCREENSHOT_TEST]?.resDirectories ?: listOf()
-      (sources + generated).toList()
-    }
-    else -> null
-  }
 }

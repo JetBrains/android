@@ -32,18 +32,17 @@ import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESP
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_UNATTACHABLE_RESPONSE
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.TimeUnit
+import kotlin.test.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
-import kotlin.test.assertEquals
 
 class EventMonitorTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("EventMonitorTest", transportService)
+  @get:Rule val grpcChannel = FakeGrpcChannel("EventMonitorTest", transportService)
 
   private lateinit var monitor: EventMonitor
   private lateinit var profilers: StudioProfilers
@@ -62,10 +61,15 @@ class EventMonitorTest {
 
     assertThat(monitor.isEnabled).isFalse() // Monitor is not enabled on start.
 
-    val session = Common.Session.newBuilder()
-      .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(Long.MAX_VALUE).build()
-    val sessionOMetadata = Common.SessionMetaData.newBuilder()
-      .setSessionId(2).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(true).setStartTimestampEpochMs(1).build()
+    val session =
+      Common.Session.newBuilder().setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(Long.MAX_VALUE).build()
+    val sessionOMetadata =
+      Common.SessionMetaData.newBuilder()
+        .setSessionId(2)
+        .setType(Common.SessionMetaData.SessionType.FULL)
+        .setJvmtiEnabled(true)
+        .setStartTimestampEpochMs(1)
+        .build()
     transportService.addSession(session, sessionOMetadata)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
@@ -78,11 +82,10 @@ class EventMonitorTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     // Make sure the agent is attached and set the session afterwards. Monitor should be enabled.
-    transportService.addEventToStream(session.streamId, Event.newBuilder()
-      .setKind(Event.Kind.AGENT)
-      .setPid(session.pid)
-      .setAgentData(DEFAULT_AGENT_ATTACHED_RESPONSE)
-      .build())
+    transportService.addEventToStream(
+      session.streamId,
+      Event.newBuilder().setKind(Event.Kind.AGENT).setPid(session.pid).setAgentData(DEFAULT_AGENT_ATTACHED_RESPONSE).build(),
+    )
     profilers.sessionsManager.setSession(session)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
@@ -97,10 +100,19 @@ class EventMonitorTest {
 
     // Create a finished session (end timestamp is not Long.MAX_VALUE).
     // For finished sessions, the monitor is enabled if the session metadata has `jvmtiEnabled` set to true.
-    val session = Common.Session.newBuilder()
-      .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build()
-    val sessionOMetadata = Common.SessionMetaData.newBuilder()
-      .setSessionId(2).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(true).setStartTimestampEpochMs(1).build()
+    val session =
+      Common.Session.newBuilder()
+        .setSessionId(2)
+        .setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS)
+        .setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2)
+        .build()
+    val sessionOMetadata =
+      Common.SessionMetaData.newBuilder()
+        .setSessionId(2)
+        .setType(Common.SessionMetaData.SessionType.FULL)
+        .setJvmtiEnabled(true)
+        .setStartTimestampEpochMs(1)
+        .build()
     transportService.addSession(session, sessionOMetadata)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
@@ -115,28 +127,32 @@ class EventMonitorTest {
 
     assertThat(monitor.isEnabled).isFalse()
 
-    val session = Common.Session.newBuilder()
-      .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(Long.MAX_VALUE).build()
-    val sessionOMetadata = Common.SessionMetaData.newBuilder()
-      .setSessionId(2).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(true).setStartTimestampEpochMs(1).build()
+    val session =
+      Common.Session.newBuilder().setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(Long.MAX_VALUE).build()
+    val sessionOMetadata =
+      Common.SessionMetaData.newBuilder()
+        .setSessionId(2)
+        .setType(Common.SessionMetaData.SessionType.FULL)
+        .setJvmtiEnabled(true)
+        .setStartTimestampEpochMs(1)
+        .build()
     transportService.addSession(session, sessionOMetadata)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     // Set the session without attaching the agent. The monitor should still be disabled.
     profilers.sessionsManager.setSession(session)
     assertThat(monitor.isEnabled).isFalse()
-    assertEquals(Common.AgentData.Status.UNSPECIFIED, monitor.profilers.agentData.status);
+    assertEquals(Common.AgentData.Status.UNSPECIFIED, monitor.profilers.agentData.status)
 
     // Set the session to something else, to make sure we won't return early when setting the session again.
     profilers.sessionsManager.setSession(Common.Session.getDefaultInstance())
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     // Make sure the agent is not attachable and set the session afterward. Monitor should be not enabled still.
-    transportService.addEventToStream(session.streamId, Event.newBuilder()
-      .setKind(Event.Kind.AGENT)
-      .setPid(session.pid)
-      .setAgentData(DEFAULT_AGENT_UNATTACHABLE_RESPONSE)
-      .build())
+    transportService.addEventToStream(
+      session.streamId,
+      Event.newBuilder().setKind(Event.Kind.AGENT).setPid(session.pid).setAgentData(DEFAULT_AGENT_UNATTACHABLE_RESPONSE).build(),
+    )
     profilers.sessionsManager.setSession(session)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
@@ -148,11 +164,10 @@ class EventMonitorTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     // Make sure the agent is attached and set the session afterward. Monitor should be enabled.
-    transportService.addEventToStream(session.streamId, Event.newBuilder()
-      .setKind(Event.Kind.AGENT)
-      .setPid(session.pid)
-      .setAgentData(DEFAULT_AGENT_ATTACHED_RESPONSE)
-      .build())
+    transportService.addEventToStream(
+      session.streamId,
+      Event.newBuilder().setKind(Event.Kind.AGENT).setPid(session.pid).setAgentData(DEFAULT_AGENT_ATTACHED_RESPONSE).build(),
+    )
     profilers.sessionsManager.setSession(session)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
@@ -196,35 +211,36 @@ class EventMonitorTest {
   @Test
   fun simpleEvents() {
     // Populate the service with some events
-    val rotation = Event.newBuilder()
-      .setKind(Event.Kind.INTERACTION)
-      .setGroupId(1)
-      .setInteraction(Interaction.InteractionData.newBuilder().setType(Interaction.InteractionData.Type.ROTATION))
-      .build()
+    val rotation =
+      Event.newBuilder()
+        .setKind(Event.Kind.INTERACTION)
+        .setGroupId(1)
+        .setInteraction(Interaction.InteractionData.newBuilder().setType(Interaction.InteractionData.Type.ROTATION))
+        .build()
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, rotation)
 
-    val touch = Event.newBuilder()
-      .setKind(Event.Kind.INTERACTION)
-      .setGroupId(2)
-      .setInteraction(Interaction.InteractionData.newBuilder().setType(Interaction.InteractionData.Type.TOUCH))
-      .build()
+    val touch =
+      Event.newBuilder()
+        .setKind(Event.Kind.INTERACTION)
+        .setGroupId(2)
+        .setInteraction(Interaction.InteractionData.newBuilder().setType(Interaction.InteractionData.Type.TOUCH))
+        .build()
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, touch)
 
-    val key = Event.newBuilder()
-      .setKind(Event.Kind.INTERACTION)
-      .setGroupId(3)
-      .setInteraction(
-        Interaction.InteractionData.newBuilder()
-          .setType(Interaction.InteractionData.Type.KEY)
-          .setEventData("Some Text"))
-      .build()
+    val key =
+      Event.newBuilder()
+        .setKind(Event.Kind.INTERACTION)
+        .setGroupId(3)
+        .setInteraction(Interaction.InteractionData.newBuilder().setType(Interaction.InteractionData.Type.KEY).setEventData("Some Text"))
+        .build()
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, key)
 
-    val unspecified = Event.newBuilder()
-      .setKind(Event.Kind.INTERACTION)
-      .setGroupId(4)
-      .setInteraction(Interaction.InteractionData.newBuilder().setType(Interaction.InteractionData.Type.UNSPECIFIED))
-      .build()
+    val unspecified =
+      Event.newBuilder()
+        .setKind(Event.Kind.INTERACTION)
+        .setGroupId(4)
+        .setInteraction(Interaction.InteractionData.newBuilder().setType(Interaction.InteractionData.Type.UNSPECIFIED))
+        .build()
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, unspecified)
 
     val series = monitor.userEvents.rangedSeries.series
@@ -244,24 +260,21 @@ class EventMonitorTest {
   @Test
   fun activityEvents() {
     // Populate the service with some events
-    val activity1 = Event.newBuilder()
-      .setKind(Event.Kind.VIEW)
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.SECONDS.toNanos(1))
-      .setView(Interaction.ViewData.newBuilder()
-                 .setName("activity 1")
-                 .setState(Interaction.ViewData.State.ADDED))
-      .build()
+    val activity1 =
+      Event.newBuilder()
+        .setKind(Event.Kind.VIEW)
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.SECONDS.toNanos(1))
+        .setView(Interaction.ViewData.newBuilder().setName("activity 1").setState(Interaction.ViewData.State.ADDED))
+        .build()
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, activity1)
-    val fragment = Event.newBuilder()
-      .setKind(Event.Kind.VIEW)
-      .setGroupId(2)
-      .setTimestamp(TimeUnit.SECONDS.toNanos(2))
-      .setView(Interaction.ViewData.newBuilder()
-                 .setName("fragment 1")
-                 .setState(Interaction.ViewData.State.ADDED)
-                 .setParentActivityId(1))
-      .build()
+    val fragment =
+      Event.newBuilder()
+        .setKind(Event.Kind.VIEW)
+        .setGroupId(2)
+        .setTimestamp(TimeUnit.SECONDS.toNanos(2))
+        .setView(Interaction.ViewData.newBuilder().setName("fragment 1").setState(Interaction.ViewData.State.ADDED).setParentActivityId(1))
+        .build()
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, fragment)
 
     val series = monitor.lifecycleEvents.activitySeries.series
@@ -274,24 +287,21 @@ class EventMonitorTest {
   @Test
   fun fragmentEvents() {
     // Populate the service with some events
-    val activity1 = Event.newBuilder()
-      .setKind(Event.Kind.VIEW)
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.SECONDS.toNanos(1))
-      .setView(Interaction.ViewData.newBuilder()
-                 .setName("activity 1")
-                 .setState(Interaction.ViewData.State.ADDED))
-      .build()
+    val activity1 =
+      Event.newBuilder()
+        .setKind(Event.Kind.VIEW)
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.SECONDS.toNanos(1))
+        .setView(Interaction.ViewData.newBuilder().setName("activity 1").setState(Interaction.ViewData.State.ADDED))
+        .build()
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, activity1)
-    val fragment = Event.newBuilder()
-      .setKind(Event.Kind.VIEW)
-      .setGroupId(2)
-      .setTimestamp(TimeUnit.SECONDS.toNanos(2))
-      .setView(Interaction.ViewData.newBuilder()
-                 .setName("fragment 1")
-                 .setState(Interaction.ViewData.State.ADDED)
-                 .setParentActivityId(1))
-      .build()
+    val fragment =
+      Event.newBuilder()
+        .setKind(Event.Kind.VIEW)
+        .setGroupId(2)
+        .setTimestamp(TimeUnit.SECONDS.toNanos(2))
+        .setView(Interaction.ViewData.newBuilder().setName("fragment 1").setState(Interaction.ViewData.State.ADDED).setParentActivityId(1))
+        .build()
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, fragment)
 
     val series = monitor.lifecycleEvents.fragmentSeries.series

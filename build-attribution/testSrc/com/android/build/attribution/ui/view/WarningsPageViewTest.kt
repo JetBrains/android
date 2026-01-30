@@ -40,33 +40,33 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.tree.TreePathUtil
+import java.awt.Dimension
+import javax.swing.JEditorPane
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import java.awt.Dimension
-import javax.swing.JEditorPane
 
 class WarningsPageViewTest {
-  @get:Rule
-  val applicationRule: ApplicationRule = ApplicationRule()
+  @get:Rule val applicationRule: ApplicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule: DisposableRule = DisposableRule()
+  @get:Rule val disposableRule: DisposableRule = DisposableRule()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
-  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000, taskCategory = TaskCategory.JAVA).apply {
-    issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-  }
-  val task2 = mockTask(":app", "resources", "resources.plugin", 1000, taskCategory = TaskCategory.ANDROID_RESOURCES).apply {
-    issues = listOf(TaskIssueUiDataContainer.AlwaysRunUpToDateOverride(this))
-  }
-  val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000, taskCategory = TaskCategory.JAVA).apply {
-    issues = listOf(TaskIssueUiDataContainer.TaskSetupIssue(this, task1, ""))
-    task1.issues = task1.issues + listOf(TaskIssueUiDataContainer.TaskSetupIssue(task1, this, ""))
-  }
+  val task1 =
+    mockTask(":app", "compile", "compiler.plugin", 2000, taskCategory = TaskCategory.JAVA).apply {
+      issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
+    }
+  val task2 =
+    mockTask(":app", "resources", "resources.plugin", 1000, taskCategory = TaskCategory.ANDROID_RESOURCES).apply {
+      issues = listOf(TaskIssueUiDataContainer.AlwaysRunUpToDateOverride(this))
+    }
+  val task3 =
+    mockTask(":lib", "compile", "compiler.plugin", 1000, taskCategory = TaskCategory.JAVA).apply {
+      issues = listOf(TaskIssueUiDataContainer.TaskSetupIssue(this, task1, ""))
+      task1.issues = task1.issues + listOf(TaskIssueUiDataContainer.TaskSetupIssue(task1, this, ""))
+    }
 
   private val data = MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryWarning = true)
 
@@ -78,9 +78,7 @@ class WarningsPageViewTest {
 
   @Before
   fun setUp() {
-    view = WarningsPageView(model, mockHandlers, disposableRule.disposable).apply {
-      component.size = Dimension(600, 200)
-    }
+    view = WarningsPageView(model, mockHandlers, disposableRule.disposable).apply { component.size = Dimension(600, 200) }
   }
 
   @Test
@@ -128,9 +126,9 @@ class WarningsPageViewTest {
   @Test
   @RunsInEdt
   fun testTaskCategoryDetailsPageHasLinkHandlerRegistered() {
-    val page = WarningsViewDetailPagesFactory(
-      model, mockHandlers, disposableRule.disposable
-    ).createDetailsPage(model.getNodeDescriptorById(WarningsPageId.taskCategory(TaskCategory.ANDROID_RESOURCES))!!)
+    val page =
+      WarningsViewDetailPagesFactory(model, mockHandlers, disposableRule.disposable)
+        .createDetailsPage(model.getNodeDescriptorById(WarningsPageId.taskCategory(TaskCategory.ANDROID_RESOURCES))!!)
 
     TreeWalker(page).descendants().filterIsInstance<JEditorPane>().let { content ->
       assertThat(content).hasSize(1)
@@ -138,10 +136,8 @@ class WarningsPageViewTest {
       val htmlLinksHandler = content.first().hyperlinkListeners.find { it is HtmlLinksHandler } as? HtmlLinksHandler
       assertThat(htmlLinksHandler).isNotNull()
 
-      assertThat(htmlLinksHandler!!.registeredLinkActions.keys).containsExactly(
-        "AndroidMigrateToNonTransitiveRClassesAction",
-        "NON_TRANSITIVE_R_CLASS"
-      )
+      assertThat(htmlLinksHandler!!.registeredLinkActions.keys)
+        .containsExactly("AndroidMigrateToNonTransitiveRClassesAction", "NON_TRANSITIVE_R_CLASS")
     }
   }
 
@@ -162,17 +158,17 @@ class WarningsPageViewTest {
   @Test
   @RunsInEdt
   fun testEmptyState() {
-    val data = MockUiData(tasksList = emptyList()).apply {
-      annotationProcessors = object : AnnotationProcessorsReport {
-        override val nonIncrementalProcessors = emptyList<AnnotationProcessorUiData>()
+    val data =
+      MockUiData(tasksList = emptyList()).apply {
+        annotationProcessors =
+          object : AnnotationProcessorsReport {
+            override val nonIncrementalProcessors = emptyList<AnnotationProcessorUiData>()
+          }
+        confCachingData = ConfigurationCachingTurnedOn
+        jetifierData = JetifierUsageAnalyzerResult(JetifierNotUsed)
       }
-      confCachingData = ConfigurationCachingTurnedOn
-      jetifierData = JetifierUsageAnalyzerResult(JetifierNotUsed)
-    }
     val model = WarningsDataPageModelImpl(data)
-    view = WarningsPageView(model, mockHandlers, disposableRule.disposable).apply {
-      component.size = Dimension(600, 200)
-    }
+    view = WarningsPageView(model, mockHandlers, disposableRule.disposable).apply { component.size = Dimension(600, 200) }
 
     val fakeUi = FakeUi(view.component)
     fakeUi.layoutAndDispatchEvents()
@@ -182,11 +178,15 @@ class WarningsPageViewTest {
     val emptyStatusText = (view.component as JBPanelWithEmptyText).emptyText
     val emptyStatusLines = emptyStatusText.wrappedFragmentsIterable.map { it as SimpleColoredComponent }
 
-    assertThat(emptyStatusLines.joinToString(separator = "\n") { it.getCharSequence(true) }).isEqualTo("""
-      This build has no warnings. To learn more about its performance, check out these views:
-      Tasks impacting build duration
-      Plugins with tasks impacting build duration
-    """.trimIndent())
+    assertThat(emptyStatusLines.joinToString(separator = "\n") { it.getCharSequence(true) })
+      .isEqualTo(
+        """
+        This build has no warnings. To learn more about its performance, check out these views:
+        Tasks impacting build duration
+        Plugins with tasks impacting build duration
+        """
+          .trimIndent()
+      )
     // Try click on row centers. Only second and third rows should react being links.
     fakeUi.clickRelativeTo(view.component, 300, emptyStatusText.rowCenterY(0))
     Mockito.verifyNoInteractions(mockHandlers)

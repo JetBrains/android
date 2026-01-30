@@ -16,11 +16,10 @@
 package com.android.screenshottest.action
 
 import com.android.screenshottest.ui.PreviewDetails
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
-import com.android.screenshottest.ui.UpdateReferenceImagesDialog
-import com.android.screenshottest.util.UpdateReferenceImagesDialogManager
 import com.android.screenshottest.util.UPDATE_ACTION_DESCRIPTION
 import com.android.screenshottest.util.UPDATE_ACTION_TEXT
+import com.android.screenshottest.util.UpdateReferenceImagesDialogManager
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -32,9 +31,7 @@ import com.intellij.openapi.diagnostic.Logger
 import javax.swing.JButton
 import javax.swing.JComponent
 
-class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT,
-                                                          UPDATE_ACTION_DESCRIPTION,
-                                                          null), CustomComponentAction {
+class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT, UPDATE_ACTION_DESCRIPTION, null), CustomComponentAction {
 
   private val LOG = Logger.getInstance(this.javaClass)
   var testResults: AndroidTestResults? = null
@@ -57,12 +54,13 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT,
     LOG.debug("Processing ${allTestCases.size} test cases")
 
     for (testCase in allTestCases) {
-        val artifacts = testCase.additionalTestArtifacts
-        val methodName = artifacts["PreviewScreenshot.methodName"]
-        val previewName = artifacts["PreviewScreenshot.previewName"]
-        if (methodName != null && previewName != null) {
-          val testId = "${testCase.className}.$methodName.$previewName"
-          val previewDetails = PreviewDetails(
+      val artifacts = testCase.additionalTestArtifacts
+      val methodName = artifacts["PreviewScreenshot.methodName"]
+      val previewName = artifacts["PreviewScreenshot.previewName"]
+      if (methodName != null && previewName != null) {
+        val testId = "${testCase.className}.$methodName.$previewName"
+        val previewDetails =
+          PreviewDetails(
             testId = testId,
             className = testCase.className,
             methodName = methodName,
@@ -71,10 +69,13 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT,
             destImagePath = artifacts["PreviewScreenshot.refImagePath"],
             srcImagePath = artifacts["PreviewScreenshot.newImagePath"],
             diffImagePath = artifacts["PreviewScreenshot.diffImagePath"],
-            diffPercent = artifacts["PreviewScreenshot.diffPercent"]
+            diffPercent = artifacts["PreviewScreenshot.diffPercent"],
           )
-          LOG.debug("PreviewDetails: $previewDetails")
-          dialog.updateDialogWithTestResult(previewDetails, testCase.result == com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult.FAILED)
+        LOG.debug("PreviewDetails: $previewDetails")
+        dialog.updateDialogWithTestResult(
+          previewDetails,
+          testCase.result == com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult.FAILED,
+        )
       }
     }
 
@@ -88,14 +89,15 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT,
       toolTipText = presentation.description
       addActionListener {
         val dataContext = DataManager.getInstance().getDataContext(this)
-        val event = AnActionEvent.createEvent(
-          this@UpdateReferenceImagesFromTestPanelAction,
-          dataContext,
-          presentation,
-          place,
-          ActionUiKind.TOOLBAR,
-          null
-        )
+        val event =
+          AnActionEvent.createEvent(
+            this@UpdateReferenceImagesFromTestPanelAction,
+            dataContext,
+            presentation,
+            place,
+            ActionUiKind.TOOLBAR,
+            null,
+          )
         actionPerformed(event)
       }
     }

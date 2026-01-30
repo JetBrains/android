@@ -60,10 +60,7 @@ internal sealed class RowComponent<T> : JBPanel<RowComponent<T>>(), TableCompone
     }
 
   /** Updates the display of the row based on the current selection status. */
-  override fun updateTablePresentation(
-    manager: TablePresentationManager,
-    presentation: TablePresentation,
-  ) {
+  override fun updateTablePresentation(manager: TablePresentationManager, presentation: TablePresentation) {
     rowSelected = presentation.rowSelected
     manager.defaultApplyPresentation(this, presentation)
   }
@@ -118,10 +115,9 @@ internal class CategoryRowComponent<T>(val path: CategoryList<T>) : RowComponent
 }
 
 /**
- * The UI component of a row in the table representing a value (rather than a category). Contains
- * child components for each column. The value may be mutable; however, changes to the value will
- * only be reflected when the [value] field is updated. Thus, immutable values will generally be
- * less error-prone.
+ * The UI component of a row in the table representing a value (rather than a category). Contains child components for each column. The
+ * value may be mutable; however, changes to the value will only be reflected when the [value] field is updated. Thus, immutable values will
+ * generally be less error-prone.
  */
 internal class ValueRowComponent<T>(
   val dataProvider: ValueRowDataProvider<T>,
@@ -133,8 +129,7 @@ internal class ValueRowComponent<T>(
   private val mouseDelegate = DelegateMouseEventHandler.delegateTo(this)
 
   /** The components of this row, in model order. */
-  val componentList: List<ColumnComponent<T, *, *>> =
-    columns.map { ColumnComponent(it, initialValue, mouseDelegate) }
+  val componentList: List<ColumnComponent<T, *, *>> = columns.map { ColumnComponent(it, initialValue, mouseDelegate) }
 
   init {
     layout = ValueRowLayout(header)
@@ -190,17 +185,13 @@ internal class ValueRowComponent<T>(
 
   override val rowKey = RowKey.ValueRowKey<T>(primaryKey)
 
-  /**
-   * A wrapper around the component created by a [Column] so that it can be updated in a typesafe
-   * manner.
-   */
+  /** A wrapper around the component created by a [Column] so that it can be updated in a typesafe manner. */
   internal class ColumnComponent<T, C, U : JComponent>(
     val column: Column<T, C, U>,
     initialValue: T,
     mouseDelegate: DelegateMouseEventHandler,
   ) {
-    val component =
-      column.createUi(initialValue).also { column.installMouseDelegate(it, mouseDelegate) }
+    val component = column.createUi(initialValue).also { column.installMouseDelegate(it, mouseDelegate) }
 
     fun updateValue(rowValue: T) {
       column.updateValue(rowValue, component, column.attribute.value(rowValue))
@@ -218,8 +209,7 @@ object NullValueRowDataProvider : ValueRowDataProvider<Any?> {
   override fun invoke(p1: DataSink, p2: Any?) {}
 }
 
-class DefaultValueRowDataProvider<T : Any>(private val dataKey: DataKey<T>) :
-  ValueRowDataProvider<T> {
+class DefaultValueRowDataProvider<T : Any>(private val dataKey: DataKey<T>) : ValueRowDataProvider<T> {
   override fun invoke(sink: DataSink, value: T) {
     sink[dataKey] = value
   }
@@ -255,17 +245,13 @@ private class ValueRowLayout(val header: JTableHeader) : LayoutManager {
   @Synchronized
   override fun preferredLayoutSize(parent: Container): Dimension {
     computeSizeRequirements(parent.asRow())
-    return Dimension(header.preferredSize.width, totalHeightRequirements!!.preferred).also {
-      it.addInsets(parent)
-    }
+    return Dimension(header.preferredSize.width, totalHeightRequirements!!.preferred).also { it.addInsets(parent) }
   }
 
   @Synchronized
   override fun minimumLayoutSize(parent: Container): Dimension {
     computeSizeRequirements(parent.asRow())
-    return Dimension(header.preferredSize.width, totalHeightRequirements!!.minimum).also {
-      it.addInsets(parent)
-    }
+    return Dimension(header.preferredSize.width, totalHeightRequirements!!.minimum).also { it.addInsets(parent) }
   }
 
   override fun layoutContainer(parent: Container) {
@@ -300,6 +286,5 @@ private class ValueRowLayout(val header: JTableHeader) : LayoutManager {
   }
 
   private fun Container?.asRow() =
-    this as? ValueRowComponent<*>
-      ?: throw IllegalStateException("ValueRowLayout is only applicable to ValueRow")
+    this as? ValueRowComponent<*> ?: throw IllegalStateException("ValueRowLayout is only applicable to ValueRow")
 }

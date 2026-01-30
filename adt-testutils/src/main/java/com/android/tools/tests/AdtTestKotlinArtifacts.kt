@@ -19,16 +19,14 @@ import java.io.File
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout
 
 /**
- * This class is a highly simplified version of the IJ `TestKotlinArtifacts` object, that can only
- * find artifacts bundled with the Kotlin plugin standalone compiler distribution. Android Studio
- * uses a prebuilt version of IntelliJ to build against, and cannot access the network to download
- * Maven artifacts in presubmit tests, so we're limited to only the JARs that ship with the plugin.
+ * This class is a highly simplified version of the IJ `TestKotlinArtifacts` object, that can only find artifacts bundled with the Kotlin
+ * plugin standalone compiler distribution. Android Studio uses a prebuilt version of IntelliJ to build against, and cannot access the
+ * network to download Maven artifacts in presubmit tests, so we're limited to only the JARs that ship with the plugin.
  */
 object AdtTestKotlinArtifacts {
   private fun getJar(artifactId: String): File = findKotlincArtifact(artifactId)
 
-  private fun getSourcesJar(artifactId: String): File =
-    findKotlincArtifact(artifactId, suffix = "-sources.jar")
+  private fun getSourcesJar(artifactId: String): File = findKotlincArtifact(artifactId, suffix = "-sources.jar")
 
   private fun findKotlincArtifact(artifactId: String, suffix: String = ".jar"): File {
     val fileName = artifactId + suffix

@@ -22,8 +22,7 @@ class NavigationSchemaNoLibraryTest : AndroidTestCase() {
     try {
       NavigationSchema.createIfNecessary(myModule)
       fail("Expected ClassNotFoundException")
-    }
-    catch (expected: ClassNotFoundException) {
+    } catch (expected: ClassNotFoundException) {
       // success
     }
   }

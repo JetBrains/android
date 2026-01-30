@@ -27,9 +27,7 @@ import com.intellij.xdebugger.settings.XDebuggerSettings
 import java.util.function.Supplier
 
 @State(name = "ComposeDebuggerSettings", storages = [Storage("compose.debug.xml")])
-class ComposeDebuggerSettings :
-  XDebuggerSettings<ComposeDebuggerSettings>("compose_debugger"),
-  Supplier<ComposeDebuggerSettings> {
+class ComposeDebuggerSettings : XDebuggerSettings<ComposeDebuggerSettings>("compose_debugger"), Supplier<ComposeDebuggerSettings> {
   var filterComposeRuntimeClasses: Boolean = true
 
   companion object {

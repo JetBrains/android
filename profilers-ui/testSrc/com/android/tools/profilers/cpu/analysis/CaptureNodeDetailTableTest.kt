@@ -21,10 +21,10 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import javax.swing.JButton
 import javax.swing.RowSorter
 import javax.swing.SortOrder
+import org.junit.Test
 
 class CaptureNodeDetailTableTest {
   @Test
@@ -116,44 +116,50 @@ class CaptureNodeDetailTableTest {
   }
 
   companion object {
-    val NODE = CaptureNode(SingleNameModel("Foo")).apply {
-      startGlobal = 10
-      endGlobal = 20
-      startThread = 11
-      endThread = 19
-
-      addChild(CaptureNode(SingleNameModel("Bar")).apply {
-        startGlobal = 10
-        endGlobal = 13
-        startThread = 11
-        endThread = 14
-      })
-      addChild(CaptureNode(SingleNameModel("bar")).apply {
-        startGlobal = 14
-        endGlobal = 19
-        startThread = 15
-        endThread = 17
-      })
-    }
-    val NODES_TO_SORT = listOf(
+    val NODE =
       CaptureNode(SingleNameModel("Foo")).apply {
         startGlobal = 10
-        endGlobal = 14
+        endGlobal = 20
         startThread = 11
-        endThread = 13
-      },
-      CaptureNode(SingleNameModel("Bar")).apply {
-        startGlobal = 2
-        endGlobal = 5
-        startThread = 2
-        endThread = 5
-      },
-      CaptureNode(SingleNameModel("Foobar")).apply {
-        startGlobal = 300
-        endGlobal = 302
-        startThread = 301
-        endThread = 302
+        endThread = 19
+
+        addChild(
+          CaptureNode(SingleNameModel("Bar")).apply {
+            startGlobal = 10
+            endGlobal = 13
+            startThread = 11
+            endThread = 14
+          }
+        )
+        addChild(
+          CaptureNode(SingleNameModel("bar")).apply {
+            startGlobal = 14
+            endGlobal = 19
+            startThread = 15
+            endThread = 17
+          }
+        )
       }
-    )
+    val NODES_TO_SORT =
+      listOf(
+        CaptureNode(SingleNameModel("Foo")).apply {
+          startGlobal = 10
+          endGlobal = 14
+          startThread = 11
+          endThread = 13
+        },
+        CaptureNode(SingleNameModel("Bar")).apply {
+          startGlobal = 2
+          endGlobal = 5
+          startThread = 2
+          endThread = 5
+        },
+        CaptureNode(SingleNameModel("Foobar")).apply {
+          startGlobal = 300
+          endGlobal = 302
+          startThread = 301
+          endThread = 302
+        },
+      )
   }
 }

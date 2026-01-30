@@ -30,14 +30,9 @@ import com.google.common.annotations.VisibleForTesting
 import java.io.OutputStream
 import java.util.concurrent.TimeUnit
 
-/**
- * A model corresponding to a [Common.Session].
- */
-class SessionItem(
-  override val profilers: StudioProfilers,
-  initialSession: Common.Session,
-  override val sessionMetaData: SessionMetaData
-) : AspectModel<SessionItem.Aspect>(), SessionArtifact<Common.Session> {
+/** A model corresponding to a [Common.Session]. */
+class SessionItem(override val profilers: StudioProfilers, initialSession: Common.Session, override val sessionMetaData: SessionMetaData) :
+  AspectModel<SessionItem.Aspect>(), SessionArtifact<Common.Session> {
   enum class Aspect {
     MODEL
   }
@@ -47,9 +42,7 @@ class SessionItem(
   private var durationNs: Long = 0
   private var waitingForAgent = false
 
-  /**
-   * The list of artifacts (e.g. cpu capture, hprof, etc) that belongs to this session.
-   */
+  /** The list of artifacts (e.g. cpu capture, hprof, etc) that belongs to this session. */
   private val childArtifacts = mutableListOf<SessionArtifact<*>>()
 
   override val name = parseName(sessionMetaData)
@@ -73,7 +66,8 @@ class SessionItem(
   override val isOngoing
     get() = SessionsManager.isSessionAlive(activeSession)
 
-  override val canExport get() = true
+  override val canExport
+    get() = true
 
   override fun export(outputStream: OutputStream) {
     assert(childArtifacts.size == 1)
@@ -95,8 +89,10 @@ class SessionItem(
     profilers.sessionsManager.setSession(activeSession)
     if (sessionMetaData.type == SessionMetaData.SessionType.FULL && !profilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
       val targetStageClass = StudioMonitorStage(profilers)
-      if (profilers.stageClass != targetStageClass::class.java
-          || profilers.sessionsManager.selectedSession != profilers.sessionsManager.profilingSession) {
+      if (
+        profilers.stageClass != targetStageClass::class.java ||
+          profilers.sessionsManager.selectedSession != profilers.sessionsManager.profilingSession
+      ) {
         profilers.stage = targetStageClass
       }
     }
@@ -112,12 +108,13 @@ class SessionItem(
 
   private fun agentStatusChanged() {
     val oldValue = waitingForAgent
-    waitingForAgent = if (SessionsManager.isSessionAlive(activeSession) && activeSession == profilers.sessionsManager.selectedSession) {
-      val agentData = profilers.agentData
-      agentData.status == AgentData.Status.UNSPECIFIED
-    } else {
-      false
-    }
+    waitingForAgent =
+      if (SessionsManager.isSessionAlive(activeSession) && activeSession == profilers.sessionsManager.selectedSession) {
+        val agentData = profilers.agentData
+        agentData.status == AgentData.Status.UNSPECIFIED
+      } else {
+        false
+      }
     if (oldValue != waitingForAgent) {
       changed(Aspect.MODEL)
     }
@@ -158,7 +155,6 @@ class SessionItem(
 
   fun containsExactlyOneArtifact() = childArtifacts.size == 1
 
-
   /**
    * Returns the task or viewer that can be launched for a given recording.
    *
@@ -167,9 +163,8 @@ class SessionItem(
    */
   fun getTaskType(): ProfilerTaskType {
     // Attempt to find the supported task type.
-    val supportedTaskTypes = profilers.taskHandlers.filter { (taskType, taskHandler) ->
-      TaskSupportUtils.isTaskSupportedByRecording(taskHandler, this)
-    }.keys
+    val supportedTaskTypes =
+      profilers.taskHandlers.filter { (taskType, taskHandler) -> TaskSupportUtils.isTaskSupportedByRecording(taskHandler, this) }.keys
 
     // Assumes each SessionItem/recording only has one associated task type.
     if (supportedTaskTypes.size != 1) {
@@ -180,7 +175,10 @@ class SessionItem(
     // wants to initiate. This verification is crucial for identifying failed tasks. For instance, a startup task failing to gather an
     // artifact shares the same structure as a live view task (both lack a child artifact). Hence, cross-checking with the intended task
     // prevents misrepresentation of a live view recording.
-    if (!SessionsManager.isSessionImported(this.session) && TaskTypeMappingUtils.convertTaskType(sessionMetaData.taskType) != supportedTaskType) {
+    if (
+      !SessionsManager.isSessionImported(this.session) &&
+        TaskTypeMappingUtils.convertTaskType(sessionMetaData.taskType) != supportedTaskType
+    ) {
       return ProfilerTaskType.UNSPECIFIED
     }
 
@@ -190,8 +188,7 @@ class SessionItem(
   companion object {
     private const val SESSION_INITIALIZING = "Starting..."
 
-    @VisibleForTesting
-    const val SESSION_LOADING = "Loading..."
+    @VisibleForTesting const val SESSION_LOADING = "Loading..."
 
     private fun parseName(metaData: SessionMetaData): String {
       val nameRegex = "(?<package>.+) \\((?<device>.+)\\)".toRegex()

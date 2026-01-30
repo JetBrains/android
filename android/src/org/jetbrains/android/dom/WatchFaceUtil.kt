@@ -20,12 +20,8 @@ import com.android.resources.ResourceFolderType
 import com.intellij.psi.xml.XmlFile
 
 /**
- * Checks if the given [file] is a Declarative Watch Face file. A DWF file is located in the
- * `res/raw` folder and has a `WatchFace` root tag.
+ * Checks if the given [file] is a Declarative Watch Face file. A DWF file is located in the `res/raw` folder and has a `WatchFace` root
+ * tag.
  */
 fun isDeclarativeWatchFaceFile(file: XmlFile) =
-  FileDescriptionUtils.isResourceOfTypeWithRootTag(
-    file,
-    ResourceFolderType.RAW,
-    setOf(SdkConstants.TAG_WATCH_FACE),
-  )
+  FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.RAW, setOf(SdkConstants.TAG_WATCH_FACE))

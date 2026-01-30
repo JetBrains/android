@@ -27,11 +27,9 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /**
- * The test rule that combines [FakeAdbServerRule] and [InitAndroidDebugBridgeRule] to allow
- * `AdbLibApplicationService` to be used in tests.
+ * The test rule that combines [FakeAdbServerRule] and [InitAndroidDebugBridgeRule] to allow `AdbLibApplicationService` to be used in tests.
  */
-class FakeAdbServerAdbLibRule(configure: (FakeAdbServer.Builder.() -> Unit)? = null) :
-  FakeAdbServerRule(configure) {
+class FakeAdbServerAdbLibRule(configure: (FakeAdbServer.Builder.() -> Unit)? = null) : FakeAdbServerRule(configure) {
 
   override fun before() {
     super.before()
@@ -41,11 +39,7 @@ class FakeAdbServerAdbLibRule(configure: (FakeAdbServer.Builder.() -> Unit)? = n
   }
 
   override fun apply(base: Statement, description: Description): Statement {
-    return super.apply(
-      InitAndroidDebugBridgeRule(alsoCreateBridge = true) { adbServer.port }
-        .apply(base, description),
-      description,
-    )
+    return super.apply(InitAndroidDebugBridgeRule(alsoCreateBridge = true) { adbServer.port }.apply(base, description), description)
   }
 
   override fun connectDevice(
@@ -59,16 +53,7 @@ class FakeAdbServerAdbLibRule(configure: (FakeAdbServer.Builder.() -> Unit)? = n
     negotiatedSpeedMbps: Long,
   ): DeviceState {
     val deviceState =
-      super.connectDevice(
-        deviceId,
-        manufacturer,
-        deviceModel,
-        release,
-        sdk,
-        hostConnectionType,
-        maxSpeedMbps,
-        negotiatedSpeedMbps,
-      )
+      super.connectDevice(deviceId, manufacturer, deviceModel, release, sdk, hostConnectionType, maxSpeedMbps, negotiatedSpeedMbps)
 
     runBlockingWithTimeout { deviceState.waitForOnlineDevice() }
     return deviceState

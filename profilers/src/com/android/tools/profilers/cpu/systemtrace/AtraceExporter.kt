@@ -27,6 +27,7 @@ import java.util.zip.DeflaterOutputStream
 object AtraceExporter {
   /**
    * This method reads data from an [AtraceProducer] and writes it out compressed to a [File].
+   *
    * @param file Input file to read data from.
    * @param output The file stream to write systrace compatible data to.
    * @throws IOException if the trace file failed to decompress or fails to write.
@@ -49,7 +50,7 @@ object AtraceExporter {
       output.write(AtraceProducer.HEADER.toByteArray())
 
       // We use DeflaterOutputStream because the data in the trace is compressed, we need it decompressed.
-      DeflaterOutputStream(output).use {deflaterStream ->
+      DeflaterOutputStream(output).use { deflaterStream ->
         // The first line is added by the AtraceProducer, for the atrace-parser. Systrace will throw an error  if this line is detected in
         // the file parsing, so we throw away the line.
         buffer.next()

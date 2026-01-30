@@ -29,9 +29,8 @@ import com.intellij.openapi.application.ApplicationManager
 /**
  * Implementation of [EnumValue]
  *
- * This class and its derived classes provides implementations of [EnumValue]. The aim is to keep
- * the size of the object small. The value should always be the raw string value of the attribute,
- * but the display value may be something else.
+ * This class and its derived classes provides implementations of [EnumValue]. The aim is to keep the size of the object small. The value
+ * should always be the raw string value of the attribute, but the display value may be something else.
  */
 sealed class EnumValueImpl : EnumValue {
   override fun withIndentation(): EnumValue {
@@ -50,8 +49,7 @@ data class IndentedItemEnumValue(override val value: String) : EnumValueImpl() {
   override fun toString() = value
 }
 
-data class ItemWithDisplayEnumValue(override val value: String, override val display: String) :
-  EnumValueImpl() {
+data class ItemWithDisplayEnumValue(override val value: String, override val display: String) : EnumValueImpl() {
   override fun toString() = value
 }
 
@@ -59,21 +57,15 @@ data class EmptyDisplayEnumValue(override val display: String) : EnumValueImpl()
   override fun toString() = ""
 }
 
-data class IndentedItemWithDisplayEnumValue(
-  override val value: String,
-  override val display: String,
-) : EnumValueImpl() {
+data class IndentedItemWithDisplayEnumValue(override val value: String, override val display: String) : EnumValueImpl() {
   override val indented
     get() = true
 
   override fun toString() = value
 }
 
-internal data class GenericEnumValue(
-  override val value: String?,
-  override val display: String,
-  override val indented: Boolean,
-) : EnumValueImpl() {
+internal data class GenericEnumValue(override val value: String?, override val display: String, override val indented: Boolean) :
+  EnumValueImpl() {
   override fun toString() = value ?: ""
 }
 
@@ -105,13 +97,7 @@ sealed class BaseActionEnumValue(override val action: AnAction) : ActionEnumValu
         }
       }
       val event =
-        AnActionEvent.createEvent(
-          propertyContext,
-          action.templatePresentation.clone(),
-          ActionPlaces.POPUP,
-          ActionUiKind.POPUP,
-          null,
-        )
+        AnActionEvent.createEvent(propertyContext, action.templatePresentation.clone(), ActionPlaces.POPUP, ActionUiKind.POPUP, null)
       action.actionPerformed(event)
     }
     return false
@@ -124,5 +110,4 @@ sealed class BaseActionEnumValue(override val action: AnAction) : ActionEnumValu
 
 class AnActionEnumValue(action: AnAction) : BaseActionEnumValue(action)
 
-internal class GenericActionEnumValue(action: AnAction, override val indented: Boolean) :
-  BaseActionEnumValue(action)
+internal class GenericActionEnumValue(action: AnAction, override val indented: Boolean) : BaseActionEnumValue(action)

@@ -26,8 +26,7 @@ import javax.swing.JPanel
 class VsyncTooltipView(parent: JComponent, val tooltip: VsyncTooltip) : TooltipView(tooltip.timeline) {
   private val content = JPanel(TabularLayout("*").setVGap(12))
 
-  @VisibleForTesting
-  val valueLabel: JLabel = createTooltipLabel()
+  @VisibleForTesting val valueLabel: JLabel = createTooltipLabel()
 
   override fun createTooltip(): JComponent {
     return content

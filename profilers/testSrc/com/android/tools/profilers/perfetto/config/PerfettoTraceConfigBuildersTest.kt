@@ -37,19 +37,39 @@ class PerfettoTraceConfigBuildersTest {
     Truth.assertThat(actualDataSources[0].config.targetBuffer).isEqualTo(0)
     Truth.assertThat(actualDataSources[0].config.ftraceConfig.drainPeriodMs).isEqualTo(170)
     Truth.assertThat(actualDataSources[0].config.ftraceConfig.compactSched.enabled).isTrue()
-    Truth.assertThat(actualDataSources[0].config.ftraceConfig.ftraceEventsList).containsExactly("thermal/thermal_temperature",
-                                                                                                "perf_trace_counters/perf_trace_user",
-                                                                                                "fence/signaled",
-                                                                                                "fence/fence_wait_start",
-                                                                                                "power/cpu_frequency",
-                                                                                                "power/cpu_idle",
-                                                                                                "task/task_rename",
-                                                                                                "task/task_newtask"
-    )
-    Truth.assertThat(actualDataSources[0].config.ftraceConfig.atraceCategoriesList).containsExactly(
-      "gfx", "input", "view", "wm", "am", "sm", "camera", "hal", "res", "pm", "ss", "power", "database", "dalvik", "audio",
-      "binder_driver", "binder_lock", "sched", "freq"
-    )
+    Truth.assertThat(actualDataSources[0].config.ftraceConfig.ftraceEventsList)
+      .containsExactly(
+        "thermal/thermal_temperature",
+        "perf_trace_counters/perf_trace_user",
+        "fence/signaled",
+        "fence/fence_wait_start",
+        "power/cpu_frequency",
+        "power/cpu_idle",
+        "task/task_rename",
+        "task/task_newtask",
+      )
+    Truth.assertThat(actualDataSources[0].config.ftraceConfig.atraceCategoriesList)
+      .containsExactly(
+        "gfx",
+        "input",
+        "view",
+        "wm",
+        "am",
+        "sm",
+        "camera",
+        "hal",
+        "res",
+        "pm",
+        "ss",
+        "power",
+        "database",
+        "dalvik",
+        "audio",
+        "binder_driver",
+        "binder_lock",
+        "sched",
+        "freq",
+      )
     Truth.assertThat(actualDataSources[0].config.perfEventConfig.allCpus).isTrue()
     Truth.assertThat(actualDataSources[0].config.ftraceConfig.atraceAppsCount).isEqualTo(1)
 
@@ -63,8 +83,8 @@ class PerfettoTraceConfigBuildersTest {
     Truth.assertThat(actualDataSources[2].config.name).isEqualTo("linux.process_stats")
     Truth.assertThat(actualDataSources[2].config.targetBuffer).isEqualTo(0)
     Truth.assertThat(actualDataSources[2].config.processStatsConfig.procStatsPollMs).isEqualTo(1000)
-    Truth.assertThat(actualDataSources[2].config.processStatsConfig.quirksList).containsExactly(
-      PerfettoConfig.ProcessStatsConfig.Quirks.DISABLE_ON_DEMAND)
+    Truth.assertThat(actualDataSources[2].config.processStatsConfig.quirksList)
+      .containsExactly(PerfettoConfig.ProcessStatsConfig.Quirks.DISABLE_ON_DEMAND)
 
     // Verify second data source (CPU Info) is built correctly.
     Truth.assertThat(actualDataSources[3].config.name).isEqualTo("linux.system_info")
@@ -82,11 +102,12 @@ class PerfettoTraceConfigBuildersTest {
     Truth.assertThat(actualDataSources[7].config.name).isEqualTo("android.power")
     Truth.assertThat(actualDataSources[7].config.targetBuffer).isEqualTo(2)
     Truth.assertThat(actualDataSources[7].config.androidPowerConfig.collectPowerRails).isTrue()
-    Truth.assertThat(actualDataSources[7].config.androidPowerConfig.batteryCountersList).containsExactly(
-      PerfettoConfig.AndroidPowerConfig.BatteryCounters.BATTERY_COUNTER_CAPACITY_PERCENT,
-      PerfettoConfig.AndroidPowerConfig.BatteryCounters.BATTERY_COUNTER_CHARGE,
-      PerfettoConfig.AndroidPowerConfig.BatteryCounters.BATTERY_COUNTER_CURRENT
-    )
+    Truth.assertThat(actualDataSources[7].config.androidPowerConfig.batteryCountersList)
+      .containsExactly(
+        PerfettoConfig.AndroidPowerConfig.BatteryCounters.BATTERY_COUNTER_CAPACITY_PERCENT,
+        PerfettoConfig.AndroidPowerConfig.BatteryCounters.BATTERY_COUNTER_CHARGE,
+        PerfettoConfig.AndroidPowerConfig.BatteryCounters.BATTERY_COUNTER_CURRENT,
+      )
   }
 
   @Test

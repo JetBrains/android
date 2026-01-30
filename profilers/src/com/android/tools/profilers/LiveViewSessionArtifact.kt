@@ -20,13 +20,11 @@ import java.io.OutputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-/**
- * An artifact for a Live View session, which is exportable.
- */
+/** An artifact for a Live View session, which is exportable. */
 class LiveViewSessionArtifact(
   override val profilers: StudioProfilers,
   override val session: Common.Session,
-  override val sessionMetaData: Common.SessionMetaData
+  override val sessionMetaData: Common.SessionMetaData,
 ) : SessionArtifact<Common.Session>, ExportableArtifact {
 
   private val logger = Logger.getInstance(LiveViewSessionArtifact::class.java)
@@ -53,21 +51,16 @@ class LiveViewSessionArtifact(
 
   override fun export(outputStream: OutputStream) {
     assert(canExport)
-    val request = Transport.BytesRequest.newBuilder()
-      .setStreamId(session.streamId)
-      .setId(session.startTimestamp.toString())
-      .build()
+    val request = Transport.BytesRequest.newBuilder().setStreamId(session.streamId).setId(session.startTimestamp.toString()).build()
     val response = profilers.client.transportClient.getFile(request)
 
     if (response.filePath.isNotEmpty()) {
       try {
         File(response.filePath).inputStream().use { it.copyTo(outputStream) }
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         logger.warn("Failed to export Live View file", e)
       }
-    }
-    else {
+    } else {
       logger.warn("Failed to export Live View file, file path is empty.")
     }
   }
@@ -83,18 +76,25 @@ class LiveViewSessionArtifact(
 
   companion object {
     @JvmStatic
-    fun getSessionArtifacts(profilers: StudioProfilers,
-                            session: Common.Session,
-                            sessionMetaData: Common.SessionMetaData): List<SessionArtifact<*>> {
+    fun getSessionArtifacts(
+      profilers: StudioProfilers,
+      session: Common.Session,
+      sessionMetaData: Common.SessionMetaData,
+    ): List<SessionArtifact<*>> {
       if (sessionMetaData.type == Common.SessionMetaData.SessionType.FULL) {
-        val hasLiveViewEvent = profilers.client.transportClient.getEventGroups(
-          Transport.GetEventGroupsRequest.newBuilder()
-            .setStreamId(session.streamId)
-            .setPid(session.pid)
-            .setKind(Common.Event.Kind.LIVE_VIEW_STATUS)
-            .setFromTimestamp(session.startTimestamp)
-            .setToTimestamp(if (session.endTimestamp == Long.MAX_VALUE) Long.MAX_VALUE else session.endTimestamp)
-            .build()).groupsList.any { it.groupId == session.sessionId }
+        val hasLiveViewEvent =
+          profilers.client.transportClient
+            .getEventGroups(
+              Transport.GetEventGroupsRequest.newBuilder()
+                .setStreamId(session.streamId)
+                .setPid(session.pid)
+                .setKind(Common.Event.Kind.LIVE_VIEW_STATUS)
+                .setFromTimestamp(session.startTimestamp)
+                .setToTimestamp(if (session.endTimestamp == Long.MAX_VALUE) Long.MAX_VALUE else session.endTimestamp)
+                .build()
+            )
+            .groupsList
+            .any { it.groupId == session.sessionId }
         if (hasLiveViewEvent) {
           return listOf(LiveViewSessionArtifact(profilers, session, sessionMetaData))
         }

@@ -56,29 +56,18 @@ interface HorizontalSpinnerCellRenderer<T> {
   fun getCellRendererComponent(list: HorizontalSpinner<T>, value: T, index: Int): Component
 }
 
-/**
- * Default cell renderer that displays a JLabel with the content returned by the value
- * [Object#toString]
- */
+/** Default cell renderer that displays a JLabel with the content returned by the value [Object#toString] */
 class DefaultRenderer<T> : HorizontalSpinnerCellRenderer<T> {
   private val label = JLabel("", SwingConstants.CENTER).apply { border = JBUI.Borders.empty(2, 5) }
 
-  override fun getCellRendererComponent(
-    list: HorizontalSpinner<T>,
-    value: T,
-    index: Int,
-  ): Component = label.apply { text = value.toString() }
+  override fun getCellRendererComponent(list: HorizontalSpinner<T>, value: T, index: Int): Component =
+    label.apply { text = value.toString() }
 }
 
-/**
- * Component that displays one element at a time from a given list. Two buttons are displayed on the
- * sides
- */
-class HorizontalSpinner<T> private constructor(_model: ListModel<T>) :
-  AdtPrimaryPanel(BorderLayout(0, 0)) {
+/** Component that displays one element at a time from a given list. Two buttons are displayed on the sides */
+class HorizontalSpinner<T> private constructor(_model: ListModel<T>) : AdtPrimaryPanel(BorderLayout(0, 0)) {
   companion object {
-    @JvmStatic
-    fun <T> forModel(model: ListModel<T>): HorizontalSpinner<T> = HorizontalSpinner(model)
+    @JvmStatic fun <T> forModel(model: ListModel<T>): HorizontalSpinner<T> = HorizontalSpinner(model)
 
     @JvmStatic
     fun forStrings(strings: Array<String>): HorizontalSpinner<String> {
@@ -130,10 +119,12 @@ class HorizontalSpinner<T> private constructor(_model: ListModel<T>) :
   init {
     border = DEFAULT_BORDER
 
-    setupArrowUI(leftButton, AdtUiUtils.DEFAULT_RIGHT_BORDER, AllIcons.General.ArrowLeft)
-      .addActionListener { innerSetSelectedIndex(_selectedIndex - 1) }
-    setupArrowUI(rightButton, AdtUiUtils.DEFAULT_LEFT_BORDER, AllIcons.General.ArrowRight)
-      .addActionListener { innerSetSelectedIndex(_selectedIndex + 1) }
+    setupArrowUI(leftButton, AdtUiUtils.DEFAULT_RIGHT_BORDER, AllIcons.General.ArrowLeft).addActionListener {
+      innerSetSelectedIndex(_selectedIndex - 1)
+    }
+    setupArrowUI(rightButton, AdtUiUtils.DEFAULT_LEFT_BORDER, AllIcons.General.ArrowRight).addActionListener {
+      innerSetSelectedIndex(_selectedIndex + 1)
+    }
 
     add(leftButton, BorderLayout.LINE_START)
     add(rightButton, BorderLayout.LINE_END)
@@ -153,12 +144,7 @@ class HorizontalSpinner<T> private constructor(_model: ListModel<T>) :
     }
 
     if (!empty) {
-      cell =
-        cellRenderer.getCellRendererComponent(
-          this,
-          model.getElementAt(selectedIndex),
-          selectedIndex,
-        )
+      cell = cellRenderer.getCellRendererComponent(this, model.getElementAt(selectedIndex), selectedIndex)
       add(cell, BorderLayout.CENTER)
     }
     revalidate()
@@ -182,8 +168,8 @@ class HorizontalSpinner<T> private constructor(_model: ListModel<T>) :
   }
 
   /**
-   * Sets the current selected index truncating the value between -1 and the max list size. -1 is
-   * used when the list if empty and no element is selected.
+   * Sets the current selected index truncating the value between -1 and the max list size. -1 is used when the list if empty and no element
+   * is selected.
    */
   private fun innerSetSelectedIndex(requestedIndex: Int, forceUpdate: Boolean = false) {
     val newIndex =
@@ -208,9 +194,7 @@ class HorizontalSpinner<T> private constructor(_model: ListModel<T>) :
   /** Returns true if the given index is the currently selected index */
   fun isSelectedIndex(index: Int) = selectedIndex == index
 
-  fun addListSelectionListener(listener: ListSelectionListener) =
-    listenerList.add(ListSelectionListener::class.java, listener)
+  fun addListSelectionListener(listener: ListSelectionListener) = listenerList.add(ListSelectionListener::class.java, listener)
 
-  fun removeListSelectionListener(listener: ListSelectionListener) =
-    listenerList.remove(ListSelectionListener::class.java, listener)
+  fun removeListSelectionListener(listener: ListSelectionListener) = listenerList.remove(ListSelectionListener::class.java, listener)
 }

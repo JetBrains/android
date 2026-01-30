@@ -37,7 +37,6 @@ import com.android.tools.profilers.memory.AllocationStage
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.JavaKotlinAllocationsTaskArgs
@@ -45,24 +44,21 @@ import com.android.tools.profilers.tasks.args.singleartifact.memory.LegacyJavaKo
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createDevice
 import com.google.common.truth.Truth.assertThat
-import org.junit.Assert.assertThrows
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import org.junit.Assert.assertThrows
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 class JavaKotlinAllocationsTaskHandlerTest {
   private val myTimer = FakeTimer()
-  private val ideProfilerServices = FakeIdeProfilerServices().apply {
-    enableTaskBasedUx(true)
-  }
-  private val myTransportService = FakeTransportService(myTimer, false,  ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
+  private val ideProfilerServices = FakeIdeProfilerServices().apply { enableTaskBasedUx(true) }
+  private val myTransportService = FakeTransportService(myTimer, false, ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("JavaKotlinAllocationsTaskHandlerTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("JavaKotlinAllocationsTaskHandlerTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -70,11 +66,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
 
   @Before
   fun setup() {
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     myJavaKotlinAllocationsTaskHandler = JavaKotlinAllocationsTaskHandler(myManager)
     myProfilers.addTaskHandler(ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS, myJavaKotlinAllocationsTaskHandler)
@@ -97,8 +89,8 @@ class JavaKotlinAllocationsTaskHandlerTest {
 
   @Test
   fun testSetupStageCalledOnEnterAndSetsStageCorrectlyWithLegacyAllocationsSessionArtifact() {
-    val legacyAllocationsSessionArtifact = createLegacyAllocationsSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L,
-                                                                                  100L)
+    val legacyAllocationsSessionArtifact =
+      createLegacyAllocationsSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
     val legacyAllocationsTaskArgs = LegacyJavaKotlinAllocationsTaskArgs(artifact = legacyAllocationsSessionArtifact)
     // Verify that the stage is not set in the StudioProfilers stage management before the call to setupStage.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
@@ -116,23 +108,32 @@ class JavaKotlinAllocationsTaskHandlerTest {
 
   @Test
   fun testSupportsArtifactWithLegacyAllocationsSessionArtifact() {
-    val legacyAllocationsSessionArtifact = createLegacyAllocationsSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L,
-                                                                                  100L)
+    val legacyAllocationsSessionArtifact =
+      createLegacyAllocationsSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
     assertThat(myJavaKotlinAllocationsTaskHandler.supportsArtifact(legacyAllocationsSessionArtifact)).isTrue()
   }
 
   @Test
   fun testSupportsArtifactWithNonAllocationsArtifact() {
-    val heapProfdSessionArtifact = HeapProfdSessionArtifact(myProfilers, Common.Session.getDefaultInstance(),
-                                                            Common.SessionMetaData.getDefaultInstance(),
-                                                            Trace.TraceInfo.getDefaultInstance())
+    val heapProfdSessionArtifact =
+      HeapProfdSessionArtifact(
+        myProfilers,
+        Common.Session.getDefaultInstance(),
+        Common.SessionMetaData.getDefaultInstance(),
+        Trace.TraceInfo.getDefaultInstance(),
+      )
     assertThat(myJavaKotlinAllocationsTaskHandler.supportsArtifact(heapProfdSessionArtifact)).isFalse()
   }
 
   @Test
   fun testStartTaskInvokedOnEnterWithAliveSession() {
-    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer,
-                                      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
+    TaskHandlerTestUtils.startSession(
+      ExposureLevel.DEBUGGABLE,
+      myProfilers,
+      myTransportService,
+      myTimer,
+      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
+    )
     val allocationsSessionArtifact = createAllocationSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
     val allocationsTaskArgs = JavaKotlinAllocationsTaskArgs(artifact = allocationsSessionArtifact)
     myJavaKotlinAllocationsTaskHandler.enter(allocationsTaskArgs)
@@ -142,8 +143,13 @@ class JavaKotlinAllocationsTaskHandlerTest {
 
   @Test
   fun testStartTaskWithSetStage() {
-    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer,
-                                      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
+    TaskHandlerTestUtils.startSession(
+      ExposureLevel.DEBUGGABLE,
+      myProfilers,
+      myTransportService,
+      myTimer,
+      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
+    )
     // To start the task and thus the capture, the stage must be set up before. This will be taken care of via the setupStage() method call,
     // on enter of the task handler, but this test is testing the explicit invocation of startTask.
     myJavaKotlinAllocationsTaskHandler.setupStage()
@@ -155,29 +161,43 @@ class JavaKotlinAllocationsTaskHandlerTest {
   fun testStartTaskWithUnsetStage() {
     // To start the task and thus the capture, the stage must be set up before. Here we will test the case where startTask is invoked
     // without the stage being set precondition being met.
-    val exception = assertFailsWith<Throwable> {
-      myJavaKotlinAllocationsTaskHandler.startTask(JavaKotlinAllocationsTaskArgs(false, null))
-    }
+    val exception = assertFailsWith<Throwable> { myJavaKotlinAllocationsTaskHandler.startTask(JavaKotlinAllocationsTaskArgs(false, null)) }
     assertThat(myJavaKotlinAllocationsTaskHandler.stage).isNull()
-    assertThat(exception.message).isEqualTo(
-      "There was an error with the Java/Kotlin Allocations task. Error message: Cannot start the task as the InterimStage was null.")
+    assertThat(exception.message)
+      .isEqualTo(
+        "There was an error with the Java/Kotlin Allocations task. Error message: Cannot start the task as the InterimStage was null."
+      )
   }
 
   @Test
   fun testNonLegacyStopTaskSuccessfullyTerminatesTasksSession() {
     ideProfilerServices.enableTaskBasedUx(true)
-    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, AndroidVersion.VersionCodes.O, myProfilers, myTransportService, myTimer,
-                                      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
+    TaskHandlerTestUtils.startSession(
+      ExposureLevel.DEBUGGABLE,
+      AndroidVersion.VersionCodes.O,
+      myProfilers,
+      myTransportService,
+      myTimer,
+      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
+    )
     // Set the start allocation tracking status to be successful.
     (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING) as MemoryAllocTracking).apply {
       trackStatus = TrackStatus.newBuilder().setStatus(TrackStatus.Status.SUCCESS).build()
     }
     // In order to proceed with the allocation tracking, a MEMORY_ALLOC_TRACKING event is expected with underlying data populated.
     // This data is faked (as well as the hard coded range) to simulate the data that would normally be fetched in a production scenario.
-    myTransportService.addEventToStream(1234, Common.Event.newBuilder().setPid(1).setKind(
-      Common.Event.Kind.MEMORY_ALLOC_TRACKING).setMemoryAllocTracking(
-      Memory.MemoryAllocTrackingData.newBuilder().setInfo(
-        Memory.AllocationsInfo.newBuilder().setStartTime(0).setEndTime(1).setLegacy(false).build()).build()).build())
+    myTransportService.addEventToStream(
+      1234,
+      Common.Event.newBuilder()
+        .setPid(1)
+        .setKind(Common.Event.Kind.MEMORY_ALLOC_TRACKING)
+        .setMemoryAllocTracking(
+          Memory.MemoryAllocTrackingData.newBuilder()
+            .setInfo(Memory.AllocationsInfo.newBuilder().setStartTime(0).setEndTime(1).setLegacy(false).build())
+            .build()
+        )
+        .build(),
+    )
     myProfilers.timeline.dataRange.set(0.0, 1.0)
 
     myJavaKotlinAllocationsTaskHandler.setupStage()
@@ -199,18 +219,32 @@ class JavaKotlinAllocationsTaskHandlerTest {
   @Test
   fun testLegacyStopTaskSuccessfullyTerminatesTasksSession() {
     ideProfilerServices.enableTaskBasedUx(true)
-    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, AndroidVersion.VersionCodes.N, myProfilers, myTransportService, myTimer,
-                                      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
+    TaskHandlerTestUtils.startSession(
+      ExposureLevel.DEBUGGABLE,
+      AndroidVersion.VersionCodes.N,
+      myProfilers,
+      myTransportService,
+      myTimer,
+      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
+    )
     // Set the start allocation tracking status to be successful.
     (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING) as MemoryAllocTracking).apply {
       trackStatus = TrackStatus.newBuilder().setStatus(TrackStatus.Status.SUCCESS).build()
     }
     // In order to proceed with the allocation tracking, a MEMORY_ALLOC_TRACKING event is expected with underlying data populated.
     // This data is faked (as well as the hard coded range) to simulate the data that would normally be fetched in a production scenario.
-    myTransportService.addEventToStream(1234, Common.Event.newBuilder().setPid(1).setKind(
-      Common.Event.Kind.MEMORY_ALLOC_TRACKING).setMemoryAllocTracking(
-      Memory.MemoryAllocTrackingData.newBuilder().setInfo(
-        Memory.AllocationsInfo.newBuilder().setStartTime(0).setEndTime(1).setLegacy(true).build()).build()).build())
+    myTransportService.addEventToStream(
+      1234,
+      Common.Event.newBuilder()
+        .setPid(1)
+        .setKind(Common.Event.Kind.MEMORY_ALLOC_TRACKING)
+        .setMemoryAllocTracking(
+          Memory.MemoryAllocTrackingData.newBuilder()
+            .setInfo(Memory.AllocationsInfo.newBuilder().setStartTime(0).setEndTime(1).setLegacy(true).build())
+            .build()
+        )
+        .build(),
+    )
     myProfilers.timeline.dataRange.set(0.0, 1.0)
 
     myJavaKotlinAllocationsTaskHandler.setupStage()
@@ -251,8 +285,8 @@ class JavaKotlinAllocationsTaskHandlerTest {
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
     // Create a fake LegacyAllocationsSessionArtifact.
-    val legacyAllocationsSessionArtifact = createLegacyAllocationsSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L,
-                                                                                  100L)
+    val legacyAllocationsSessionArtifact =
+      createLegacyAllocationsSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
     val legacyAllocationsTaskArgs = LegacyJavaKotlinAllocationsTaskArgs(artifact = legacyAllocationsSessionArtifact)
     // The session is not alive (dead) so loadTask and thus loadCapture should be called.
     val argsSuccessfullyUsed = myJavaKotlinAllocationsTaskHandler.enter(legacyAllocationsTaskArgs)
@@ -281,8 +315,8 @@ class JavaKotlinAllocationsTaskHandlerTest {
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
-    val legacyAllocationsSessionArtifact = createLegacyAllocationsSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L,
-                                                                                  100L)
+    val legacyAllocationsSessionArtifact =
+      createLegacyAllocationsSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
     val legacyAllocationsTaskArgs = LegacyJavaKotlinAllocationsTaskArgs(artifact = legacyAllocationsSessionArtifact)
     val argsSuccessfullyUsed = myJavaKotlinAllocationsTaskHandler.loadTask(legacyAllocationsTaskArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
@@ -296,13 +330,13 @@ class JavaKotlinAllocationsTaskHandlerTest {
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
-    val exception = assertFailsWith<Throwable> {
-      myJavaKotlinAllocationsTaskHandler.loadTask(JavaKotlinAllocationsTaskArgs(false, null))
-    }
+    val exception = assertFailsWith<Throwable> { myJavaKotlinAllocationsTaskHandler.loadTask(JavaKotlinAllocationsTaskArgs(false, null)) }
 
-    assertThat(exception.message).isEqualTo(
-      "There was an error with the Java/Kotlin Allocations task. Error message: The task arguments (AllocationsTaskArgs) supplied do " +
-      "not contains a valid artifact to load.")
+    assertThat(exception.message)
+      .isEqualTo(
+        "There was an error with the Java/Kotlin Allocations task. Error message: The task arguments (AllocationsTaskArgs) supplied do " +
+          "not contains a valid artifact to load."
+      )
 
     // Verify that the artifact doSelect behavior was not called by checking if the stage was not set to MainMemoryProfilerStage.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
@@ -311,10 +345,11 @@ class JavaKotlinAllocationsTaskHandlerTest {
   @Test
   fun testCreateArgsSuccessfully() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1, listOf(
-        createAllocationSessionArtifact(myProfilers, selectedSession, 1, 100))),
-    )
+    val sessionIdToSessionItems =
+      mapOf(
+        1L to
+          createSessionItem(myProfilers, selectedSession, 1, listOf(createAllocationSessionArtifact(myProfilers, selectedSession, 1, 100)))
+      )
 
     val allocationsTaskArgs = myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(allocationsTaskArgs).isNotNull()
@@ -328,10 +363,16 @@ class JavaKotlinAllocationsTaskHandlerTest {
   @Test
   fun testCreateArgsSuccessfullyWithLegacyArtifact() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1, listOf(
-        createLegacyAllocationsSessionArtifact(myProfilers, selectedSession, 1, 100))),
-    )
+    val sessionIdToSessionItems =
+      mapOf(
+        1L to
+          createSessionItem(
+            myProfilers,
+            selectedSession,
+            1,
+            listOf(createLegacyAllocationsSessionArtifact(myProfilers, selectedSession, 1, 100)),
+          )
+      )
 
     val legacyAllocationsTaskArgs = myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(legacyAllocationsTaskArgs).isNotNull()
@@ -347,10 +388,11 @@ class JavaKotlinAllocationsTaskHandlerTest {
     // By setting a session id that does not match any of the session items, the task artifact will not be found in the call to createArgs
     // will fail to be constructed.
     val selectedSession = Common.Session.newBuilder().setSessionId(0).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1, listOf(
-        createAllocationSessionArtifact(myProfilers, selectedSession, 1, 100))),
-    )
+    val sessionIdToSessionItems =
+      mapOf(
+        1L to
+          createSessionItem(myProfilers, selectedSession, 1, listOf(createAllocationSessionArtifact(myProfilers, selectedSession, 1, 100)))
+      )
 
     assertThrows(IllegalStateException::class.java) {
       myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
@@ -360,25 +402,37 @@ class JavaKotlinAllocationsTaskHandlerTest {
   @Test
   fun testCreateStartTaskArgsNonLegacy() {
     // The non-legacy Java/Kotlin allocations task is used when the device feature level >= O.
-    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, AndroidVersion.VersionCodes.O, myProfilers, myTransportService, myTimer,
-                                      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
+    TaskHandlerTestUtils.startSession(
+      ExposureLevel.DEBUGGABLE,
+      AndroidVersion.VersionCodes.O,
+      myProfilers,
+      myTransportService,
+      myTimer,
+      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
+    )
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     val sessionsManager = myProfilers.sessionsManager
-    val legacyArgs = myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionsManager.sessionIdToSessionItems,
-                                                                   sessionsManager.selectedSession)
-    assertThat(legacyArgs).isInstanceOf(JavaKotlinAllocationsTaskArgs::class.java);
+    val legacyArgs =
+      myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionsManager.sessionIdToSessionItems, sessionsManager.selectedSession)
+    assertThat(legacyArgs).isInstanceOf(JavaKotlinAllocationsTaskArgs::class.java)
   }
 
   @Test
   fun testCreateStartTaskArgsLegacy() {
     // The legacy Java/Kotlin allocations task is used when the device feature level < O.
-    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, AndroidVersion.VersionCodes.N, myProfilers, myTransportService, myTimer,
-                                      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
+    TaskHandlerTestUtils.startSession(
+      ExposureLevel.DEBUGGABLE,
+      AndroidVersion.VersionCodes.N,
+      myProfilers,
+      myTransportService,
+      myTimer,
+      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
+    )
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     val sessionsManager = myProfilers.sessionsManager
-    val legacyArgs = myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionsManager.sessionIdToSessionItems,
-                                                                   sessionsManager.selectedSession)
-    assertThat(legacyArgs).isInstanceOf(LegacyJavaKotlinAllocationsTaskArgs::class.java);
+    val legacyArgs =
+      myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionsManager.sessionIdToSessionItems, sessionsManager.selectedSession)
+    assertThat(legacyArgs).isInstanceOf(LegacyJavaKotlinAllocationsTaskArgs::class.java)
   }
 
   @Test
@@ -390,7 +444,8 @@ class JavaKotlinAllocationsTaskHandlerTest {
     assertNotNull(myJavaKotlinAllocationsTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess))
     assertEquals(
       myJavaKotlinAllocationsTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess)!!.startTaskSelectionErrorCode,
-      StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
+      StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS,
+    )
 
     val debuggableProcess = TaskHandlerTestUtils.createProcess(isProfileable = false)
     assertNull(myJavaKotlinAllocationsTaskHandler.checkSupportForDeviceAndProcess(device, debuggableProcess))

@@ -27,15 +27,11 @@ import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
 
 /** [VisualLintAnalyzer] for issues with texts in different locales. */
-class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
-  VisualLintAnalyzer() {
+class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.LOCALE_TEXT
 
-  override fun findIssues(
-    renderResult: RenderResult,
-    configuration: Configuration,
-  ): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
 
     if (isBaseConfig(configuration)) {
@@ -56,15 +52,11 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
     return issues
   }
 
-  /**
-   * Builds map of base config issues. Map contains component as hash, and boolean on the types of
-   * issues as value
-   */
+  /** Builds map of base config issues. Map contains component as hash, and boolean on the types of issues as value */
   private fun buildMap(view: ViewInfo, baseConfigIssues: VisualLintBaseConfigIssues) {
     getKey(view)?.let { key ->
-      baseConfigIssues.componentState
-        .getOrPut(key) { VisualLintBaseConfigIssues.BaseConfigComponentState() }
-        .hasI18NEllipsis = isEllipsized(view)
+      baseConfigIssues.componentState.getOrPut(key) { VisualLintBaseConfigIssues.BaseConfigComponentState() }.hasI18NEllipsis =
+        isEllipsized(view)
       baseConfigIssues.componentState[key]!!.hasI18NTextTooBig = isTextTooBig(view)
     }
   }

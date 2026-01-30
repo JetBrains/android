@@ -17,10 +17,7 @@ package com.android.tools.profilers.cpu.systemtrace
 
 import java.util.Locale
 
-/**
- * Sorts process in such a way that processes more likely to be selected from the user
- * ends up in the beginning of the list.
- */
+/** Sorts process in such a way that processes more likely to be selected from the user ends up in the beginning of the list. */
 class ProcessListSorter(nameHint: String) {
   private val nameHintLower = nameHint.lowercase(Locale.getDefault())
 
@@ -47,7 +44,8 @@ class ProcessListSorter(nameHint: String) {
         // Then by name.
         .thenBy { process: ProcessModel -> process.getSafeProcessName() }
         // Last tiebreaker is the id.
-        .thenBy { process: ProcessModel -> process.id })
+        .thenBy { process: ProcessModel -> process.id }
+    )
   }
 
   private fun ProcessModel.getLowerName(): String {

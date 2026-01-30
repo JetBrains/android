@@ -54,18 +54,18 @@ class ComposeLineMarkerProviderDescriptorTest {
         "src/com/example/Test.kt",
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      fun MyButton() {}
+        @Composable
+        fun MyButton() {}
 
-      @Composable
-      fun HomeScreen() {
-        MyButton() // invocation
-      }
-      """
+        @Composable
+        fun HomeScreen() {
+          MyButton() // invocation
+        }
+        """
           .trimIndent(),
       )
 
@@ -75,9 +75,7 @@ class ComposeLineMarkerProviderDescriptorTest {
       identifier = myFixture.moveCaret("MyBut|ton() // invocation") as LeafPsiElement
     }
 
-    val lineMarkerInfo = runReadAction {
-      ComposeLineMarkerProviderDescriptor().getLineMarkerInfo(identifier!!)
-    }
+    val lineMarkerInfo = runReadAction { ComposeLineMarkerProviderDescriptor().getLineMarkerInfo(identifier!!) }
     assertThat(lineMarkerInfo).isNotNull()
   }
 
@@ -88,18 +86,18 @@ class ComposeLineMarkerProviderDescriptorTest {
         "src/com/example/Test.kt",
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      fun MyButton() {}
+        @Composable
+        fun MyButton() {}
 
-      @Composable
-      fun HomeScreen() {
-        MyButton() // invocation
-      }
-      """
+        @Composable
+        fun HomeScreen() {
+          MyButton() // invocation
+        }
+        """
           .trimIndent(),
       )
 
@@ -109,9 +107,7 @@ class ComposeLineMarkerProviderDescriptorTest {
       functionElement = myFixture.moveCaret("MyBut|ton() // invocation").parentOfType()!!
     }
 
-    val lineMarkerInfo = runReadAction {
-      ComposeLineMarkerProviderDescriptor().getLineMarkerInfo(functionElement!!)
-    }
+    val lineMarkerInfo = runReadAction { ComposeLineMarkerProviderDescriptor().getLineMarkerInfo(functionElement!!) }
     assertThat(lineMarkerInfo).isNull()
   }
 
@@ -122,14 +118,14 @@ class ComposeLineMarkerProviderDescriptorTest {
         "src/com/example/Test.kt",
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      fun MyButton() {}
+        fun MyButton() {}
 
-      fun HomeScreen() {
-        MyButton() // invocation
-      }
-      """
+        fun HomeScreen() {
+          MyButton() // invocation
+        }
+        """
           .trimIndent(),
       )
 
@@ -139,9 +135,7 @@ class ComposeLineMarkerProviderDescriptorTest {
       identifier = myFixture.moveCaret("MyBut|ton() // invocation") as LeafPsiElement
     }
 
-    val lineMarkerInfo = runReadAction {
-      ComposeLineMarkerProviderDescriptor().getLineMarkerInfo(identifier!!)
-    }
+    val lineMarkerInfo = runReadAction { ComposeLineMarkerProviderDescriptor().getLineMarkerInfo(identifier!!) }
     assertThat(lineMarkerInfo).isNull()
   }
 }

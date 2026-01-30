@@ -37,8 +37,7 @@ import org.junit.Test
 
 @RunsInEdt
 class SyncAnalyzerManagerTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
@@ -53,11 +52,11 @@ class SyncAnalyzerManagerTest {
   }
 
   /**
-   * With current initial implementation there is not much we can test about this service.
-   * What we can test is that both after successful and failed syncs:
-   *  - Metrics where sent with GradleSyncStats;
-   *  - Data was cleared from the cache.
-   * We don't care about the content of the gathered stats here, this is covered in detail in DownloadsAnalyzer tests.
+   * With current initial implementation there is not much we can test about this service. What we can test is that both after successful
+   * and failed syncs:
+   * - Metrics where sent with GradleSyncStats;
+   * - Data was cleared from the cache. We don't care about the content of the gathered stats here, this is covered in detail in
+   *   DownloadsAnalyzer tests.
    */
   @Test
   fun testDataClearedAfterSyncs() {
@@ -65,41 +64,45 @@ class SyncAnalyzerManagerTest {
 
     preparedProject.open { project ->
       // Empty after sync 1.
-      Truth.assertThat(project.getService (SyncAnalyzerDataManager::class.java).idToData).isEmpty()
+      Truth.assertThat(project.getService(SyncAnalyzerDataManager::class.java).idToData).isEmpty()
 
       project.requestSyncAndWait()
 
       // Empty after sync 2.
-      Truth.assertThat(project.getService (SyncAnalyzerDataManager::class.java).idToData).isEmpty()
+      Truth.assertThat(project.getService(SyncAnalyzerDataManager::class.java).idToData).isEmpty()
 
       val buildFile = VfsUtil.findFileByIoFile(preparedProject.root.resolve("app/build.gradle"), true)!!
-      runWriteAction {
-        buildFile.setBinaryContent("*bad*".toByteArray())
-      }
+      runWriteAction { buildFile.setBinaryContent("*bad*".toByteArray()) }
       AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
         // Do not check status.
       }
 
       // Empty after sync 3.
-      Truth.assertThat(project.getService (SyncAnalyzerDataManager::class.java).idToData).isEmpty()
+      Truth.assertThat(project.getService(SyncAnalyzerDataManager::class.java).idToData).isEmpty()
 
-      val syncEvents = tracker.usages
-        .filter { it.studioEvent.category == AndroidStudioEvent.EventCategory.GRADLE_SYNC }
+      val syncEvents = tracker.usages.filter { it.studioEvent.category == AndroidStudioEvent.EventCategory.GRADLE_SYNC }
       // Print events for the reference
       syncEvents.forEach { println("==${it.studioEvent.kind}\n" + it.studioEvent.gradleSyncStats.toString()) }
 
-      val syncSetupStartedEvents = tracker.usages
-        .filter {
-          it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED ||
-          it.studioEvent.kind  == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE
-        }
-        .map { "${it.studioEvent.kind} downloadsDataEmpty=${it.studioEvent.gradleSyncStats.downloadsData?.repositoriesList?.isEmpty() ?: "null"}" }
-        .joinToString(separator = "\n")
-      Truth.assertThat(syncSetupStartedEvents).isEqualTo("""
-        GRADLE_SYNC_ENDED downloadsDataEmpty=true
-        GRADLE_SYNC_ENDED downloadsDataEmpty=true
-        GRADLE_SYNC_FAILURE downloadsDataEmpty=true
-      """.trimIndent())
+      val syncSetupStartedEvents =
+        tracker.usages
+          .filter {
+            it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED ||
+              it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE
+          }
+          .map {
+            "${it.studioEvent.kind} downloadsDataEmpty=${it.studioEvent.gradleSyncStats.downloadsData?.repositoriesList?.isEmpty() ?: "null"}"
+          }
+          .joinToString(separator = "\n")
+      Truth.assertThat(syncSetupStartedEvents)
+        .isEqualTo(
+          """
+          GRADLE_SYNC_ENDED downloadsDataEmpty=true
+          GRADLE_SYNC_ENDED downloadsDataEmpty=true
+          GRADLE_SYNC_FAILURE downloadsDataEmpty=true
+          """
+            .trimIndent()
+        )
     }
   }
 }

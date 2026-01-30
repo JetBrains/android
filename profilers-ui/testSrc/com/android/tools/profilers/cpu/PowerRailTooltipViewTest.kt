@@ -21,17 +21,22 @@ import com.android.tools.adtui.model.SeriesData
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTooltip
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
+import org.junit.Test
 
 class PowerRailTooltipViewTest {
   @Test
   fun textUpdatesOnRangeChangedWithDeltaAsPrimary() {
     val timeline = DefaultTimeline()
-    val tooltip = PowerRailTooltip(timeline, "power.rail.foo", RangedSeries(timeline.dataRange, LazyDataSeries { POWER_RAIL_DELTA_VALUES }),
-                                   RangedSeries(timeline.dataRange, LazyDataSeries { POWER_RAIL_CUMULATIVE_VALUES }),
-                                   PowerProfilerDisplayMode.DELTA)
+    val tooltip =
+      PowerRailTooltip(
+        timeline,
+        "power.rail.foo",
+        RangedSeries(timeline.dataRange, LazyDataSeries { POWER_RAIL_DELTA_VALUES }),
+        RangedSeries(timeline.dataRange, LazyDataSeries { POWER_RAIL_CUMULATIVE_VALUES }),
+        PowerProfilerDisplayMode.DELTA,
+      )
     val tooltipView = PowerRailTooltipView(JPanel(), tooltip)
 
     timeline.dataRange.set(0.0, TimeUnit.MILLISECONDS.toMicros(3).toDouble())
@@ -40,8 +45,7 @@ class PowerRailTooltipViewTest {
     /**
      * Expected formatting:
      *
-     * power.rail.foo - Delta (µWs)                         0
-     * power.rail.foo - Cumulative (µWs)                    0
+     * power.rail.foo - Delta (µWs) 0 power.rail.foo - Cumulative (µWs) 0
      */
     assertThat(tooltipView.valueLabel.text).contains("power.rail.foo - Delta (µWs)")
     assertThat(tooltipView.valueLabel.text).contains("power.rail.foo - Cumulative (µWs)")
@@ -55,8 +59,7 @@ class PowerRailTooltipViewTest {
     /**
      * Expected formatting:
      *
-     * power.rail.foo - Delta (µWs)                       100
-     * power.rail.foo - Cumulative (µWs)                  100
+     * power.rail.foo - Delta (µWs) 100 power.rail.foo - Cumulative (µWs) 100
      */
     assertThat(tooltipView.valueLabel.text).contains("power.rail.foo - Delta (µWs)")
     assertThat(tooltipView.valueLabel.text).contains("power.rail.foo - Cumulative (µWs)")
@@ -70,8 +73,7 @@ class PowerRailTooltipViewTest {
     /**
      * Expected formatting:
      *
-     * power.rail.foo - Delta (µWs)                       100
-     * power.rail.foo - Cumulative (µWs)                  200
+     * power.rail.foo - Delta (µWs) 100 power.rail.foo - Cumulative (µWs) 200
      */
     assertThat(tooltipView.valueLabel.text).contains("power.rail.foo - Delta (µWs)")
     assertThat(tooltipView.valueLabel.text).contains("power.rail.foo - Cumulative (µWs)")
@@ -84,10 +86,14 @@ class PowerRailTooltipViewTest {
   @Test
   fun textUpdatesOnRangeChangedWithCumulativeAsPrimary() {
     val timeline = DefaultTimeline()
-    val tooltip = PowerRailTooltip(timeline, "power.rail.foo",
-                                   RangedSeries(timeline.dataRange, LazyDataSeries { POWER_RAIL_CUMULATIVE_VALUES }),
-                                   RangedSeries(timeline.dataRange, LazyDataSeries { POWER_RAIL_DELTA_VALUES }),
-                                   PowerProfilerDisplayMode.CUMULATIVE)
+    val tooltip =
+      PowerRailTooltip(
+        timeline,
+        "power.rail.foo",
+        RangedSeries(timeline.dataRange, LazyDataSeries { POWER_RAIL_CUMULATIVE_VALUES }),
+        RangedSeries(timeline.dataRange, LazyDataSeries { POWER_RAIL_DELTA_VALUES }),
+        PowerProfilerDisplayMode.CUMULATIVE,
+      )
     val tooltipView = PowerRailTooltipView(JPanel(), tooltip)
 
     timeline.dataRange.set(0.0, TimeUnit.MILLISECONDS.toMicros(3).toDouble())
@@ -96,8 +102,7 @@ class PowerRailTooltipViewTest {
     /**
      * Expected formatting:
      *
-     * power.rail.foo - Cumulative (µWs)                    0
-     * power.rail.foo - Delta (µWs)                         0
+     * power.rail.foo - Cumulative (µWs) 0 power.rail.foo - Delta (µWs) 0
      */
     assertThat(tooltipView.valueLabel.text).contains("power.rail.foo - Cumulative (µWs)")
     assertThat(tooltipView.valueLabel.text).contains("power.rail.foo - Delta (µWs)")
@@ -111,8 +116,7 @@ class PowerRailTooltipViewTest {
     /**
      * Expected formatting:
      *
-     * power.rail.foo - Cumulative (µWs)                  100
-     * power.rail.foo - Delta (µWs)                       100
+     * power.rail.foo - Cumulative (µWs) 100 power.rail.foo - Delta (µWs) 100
      */
     assertThat(tooltipView.valueLabel.text).contains("power.rail.foo - Cumulative (µWs)")
     assertThat(tooltipView.valueLabel.text).contains("power.rail.foo - Delta (µWs)")
@@ -126,8 +130,7 @@ class PowerRailTooltipViewTest {
     /**
      * Expected formatting:
      *
-     * power.rail.foo - Cumulative (µWs)                  200
-     * power.rail.foo - Delta (µWs)                       100
+     * power.rail.foo - Cumulative (µWs) 200 power.rail.foo - Delta (µWs) 100
      */
     assertThat(tooltipView.valueLabel.text).contains("power.rail.foo - Cumulative (µWs)")
     assertThat(tooltipView.valueLabel.text).contains("power.rail.foo - Delta (µWs)")
@@ -138,14 +141,10 @@ class PowerRailTooltipViewTest {
   }
 
   private companion object {
-    val POWER_RAIL_CUMULATIVE_VALUES = listOf(
-      SeriesData(0, 0L),
-      SeriesData(TimeUnit.MILLISECONDS.toMicros(1), 100L),
-      SeriesData(TimeUnit.MILLISECONDS.toMicros(2), 200L))
+    val POWER_RAIL_CUMULATIVE_VALUES =
+      listOf(SeriesData(0, 0L), SeriesData(TimeUnit.MILLISECONDS.toMicros(1), 100L), SeriesData(TimeUnit.MILLISECONDS.toMicros(2), 200L))
 
-    private val POWER_RAIL_DELTA_VALUES = listOf(
-      SeriesData(0, 0L),
-      SeriesData(TimeUnit.MILLISECONDS.toMicros(1), 100L),
-      SeriesData(TimeUnit.MILLISECONDS.toMicros(2), 100L))
+    private val POWER_RAIL_DELTA_VALUES =
+      listOf(SeriesData(0, 0L), SeriesData(TimeUnit.MILLISECONDS.toMicros(1), 100L), SeriesData(TimeUnit.MILLISECONDS.toMicros(2), 100L))
   }
 }

@@ -42,10 +42,7 @@ import org.jetbrains.android.facet.TagFromClassDescriptor
 import org.jetbrains.android.facet.findClassValidInXMLByName
 
 class AndroidXmlReferenceProvider : PsiReferenceProvider() {
-  override fun getReferencesByElement(
-    element: PsiElement,
-    context: ProcessingContext,
-  ): Array<PsiReference> {
+  override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
     if (element !is XmlTag) {
       return emptyArray()
     }
@@ -66,10 +63,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
     return result.toTypedArray()
   }
 
-  private fun getClassFilter(
-    baseClassQName: String,
-    facet: AndroidFacet,
-  ): ((String, PsiClass) -> Boolean)? {
+  private fun getClassFilter(baseClassQName: String, facet: AndroidFacet): ((String, PsiClass) -> Boolean)? {
     if (baseClassQName == CLASS_DRAWABLE) {
       val packageName = facet.queryPackageNameFromManifestIndex() ?: return { _, _ -> false }
       return { _, psiClass -> psiClass.qualifiedName?.startsWith(packageName) == true }
@@ -89,14 +83,12 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
     private val project = tag.project
     private val packagePrefix = myNameElement.text.substring(0, myRangeInNameElement.startOffset)
     private val isParentContainer by lazy {
-      val parentTagFromClassDescriptor =
-        ((tag.parent as? XmlTag)?.descriptor as? TagFromClassDescriptor) ?: return@lazy true
+      val parentTagFromClassDescriptor = ((tag.parent as? XmlTag)?.descriptor as? TagFromClassDescriptor) ?: return@lazy true
       parentTagFromClassDescriptor.isContainer
     }
 
     override fun resolve(): PsiElement? {
-      return ResolveCache.getInstance(project)
-        .resolveWithCaching(this, { _, _ -> resolveInner() }, false, false)
+      return ResolveCache.getInstance(project).resolveWithCaching(this, { _, _ -> resolveInner() }, false, false)
     }
 
     private fun resolveInner(): PsiElement? {
@@ -107,9 +99,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
         ?: facade.findPackage(value) as? PsiElement
         // Special case for migration, because InheritanceUtil.isInheritorOrSelf works incorrectly
         // with MigrationClassImpl
-        ?: facade
-          .findClass(value, facet.module.getModuleSystem().getResolveScope(ScopeType.MAIN))
-          .takeIf { it is MigrationClassImpl }
+        ?: facade.findClass(value, facet.module.getModuleSystem().getResolveScope(ScopeType.MAIN)).takeIf { it is MigrationClassImpl }
     }
 
     override fun getVariants(): Array<Any> {
@@ -138,9 +128,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
           }
         }
         .filter { (name, psiClass) -> classFilter(name, psiClass) }
-        .map { (name, psiClass) ->
-          createClassAsTagXmlElement(name.removePrefix(packagePrefix), psiClass)
-        }
+        .map { (name, psiClass) -> createClassAsTagXmlElement(name.removePrefix(packagePrefix), psiClass) }
         .toTypedArray()
     }
 
@@ -151,19 +139,12 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
     }
 
     override fun handleElementRename(newElementName: String): PsiElement? {
-      return ElementManipulators.handleContentChange(
-        myNameElement.psi,
-        myRangeInNameElement,
-        newElementName,
-      )
+      return ElementManipulators.handleContentChange(myNameElement.psi, myRangeInNameElement, newElementName)
     }
 
     override fun getRangeInElement(): TextRange {
       val parentOffset = myNameElement.startOffsetInParent
-      return TextRange(
-        parentOffset + myRangeInNameElement.startOffset,
-        parentOffset + myRangeInNameElement.endOffset,
-      )
+      return TextRange(parentOffset + myRangeInNameElement.startOffset, parentOffset + myRangeInNameElement.endOffset)
     }
   }
 
@@ -185,17 +166,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
         if (name.isNotEmpty()) {
           offset += name.length
           val range = TextRange(offset - name.length, offset)
-          result.add(
-            MyClassOrPackageReference(
-              tag,
-              nameElement,
-              range,
-              facet,
-              baseClassQName,
-              classFilter,
-              startTag,
-            )
-          )
+          result.add(MyClassOrPackageReference(tag, nameElement, range, facet, baseClassQName, classFilter, startTag))
         }
         offset++
       }
@@ -219,9 +190,8 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
 /**
  * Creates a [LookupElement] for layout tags, to improve editing UX.
  *
- * Makes possible to do completions like "TvV" to "android.media.tv.TvView". Adds
- * [XmlTagInnerClassInsertHandler] for inner classes. Adds low priority for deprecated classes and
- * high priority for framework classes compared to androidx and support library alternative.
+ * Makes possible to do completions like "TvV" to "android.media.tv.TvView". Adds [XmlTagInnerClassInsertHandler] for inner classes. Adds
+ * low priority for deprecated classes and high priority for framework classes compared to androidx and support library alternative.
  */
 fun createClassAsTagXmlElement(name: String, clazz: PsiClass): LookupElement {
 
@@ -237,14 +207,11 @@ fun createClassAsTagXmlElement(name: String, clazz: PsiClass): LookupElement {
     when {
       clazz.isDeprecated -> -1
       clazz.name == name -> 2
-      qualifiedName.startsWith(SdkConstants.ANDROID_SUPPORT_PKG_PREFIX) ||
-        qualifiedName.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX) -> 1
+      qualifiedName.startsWith(SdkConstants.ANDROID_SUPPORT_PKG_PREFIX) || qualifiedName.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX) -> 1
       else -> 0
     }
 
-  AndroidDomElementDescriptorProvider.getIconForViewTag(shortClassName)?.let {
-    lookupElement = lookupElement.withIcon(it)
-  }
+  AndroidDomElementDescriptorProvider.getIconForViewTag(shortClassName)?.let { lookupElement = lookupElement.withIcon(it) }
 
   if (clazz.containingClass != null) {
     lookupElement = lookupElement.withInsertHandler(XmlTagInnerClassInsertHandler.INSTANCE)

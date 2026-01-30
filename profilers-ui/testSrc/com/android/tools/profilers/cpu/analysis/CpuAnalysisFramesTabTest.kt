@@ -23,23 +23,18 @@ import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.ComboBox
+import javax.swing.JTable
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
-import javax.swing.JTable
 
 class CpuAnalysisFramesTabTest {
   @Test
   fun tableIsPopulatedByLayer() {
-    val traceData: CpuSystemTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
-      whenever(androidFrameLayers).thenReturn(LAYERS)
-    }
-    val cpuCapture: CpuCapture = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(systemTraceData).thenReturn(traceData)
-    }
-    val framesTabModel = CpuAnalysisFramesTabModel(Range()).apply {
-      dataSeries.add(cpuCapture)
-    }
+    val traceData: CpuSystemTraceData =
+      Mockito.mock(CpuSystemTraceData::class.java).apply { whenever(androidFrameLayers).thenReturn(LAYERS) }
+    val cpuCapture: CpuCapture = Mockito.mock(CpuCapture::class.java).apply { whenever(systemTraceData).thenReturn(traceData) }
+    val framesTabModel = CpuAnalysisFramesTabModel(Range()).apply { dataSeries.add(cpuCapture) }
     val framesTab = CpuAnalysisFramesTab(Mockito.mock(StudioProfilersView::class.java), framesTabModel)
     val treeWalker = TreeWalker(framesTab)
 
@@ -55,19 +50,15 @@ class CpuAnalysisFramesTabTest {
 
   @Test
   fun selectingTableRowUpdatedViewRange() {
-    val traceData: CpuSystemTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
-      whenever(androidFrameLayers).thenReturn(LAYERS.subList(0, 1))
-    }
-    val cpuCapture: CpuCapture = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(systemTraceData).thenReturn(traceData)
-    }
-    val framesTabModel = CpuAnalysisFramesTabModel(Range()).apply {
-      dataSeries.add(cpuCapture)
-    }
+    val traceData: CpuSystemTraceData =
+      Mockito.mock(CpuSystemTraceData::class.java).apply { whenever(androidFrameLayers).thenReturn(LAYERS.subList(0, 1)) }
+    val cpuCapture: CpuCapture = Mockito.mock(CpuCapture::class.java).apply { whenever(systemTraceData).thenReturn(traceData) }
+    val framesTabModel = CpuAnalysisFramesTabModel(Range()).apply { dataSeries.add(cpuCapture) }
     val viewRange = Range()
-    val studioProfilersView: StudioProfilersView = Mockito.mock(StudioProfilersView::class.java, Mockito.RETURNS_DEEP_STUBS).apply {
-      whenever(studioProfilers.stage.timeline.viewRange).thenReturn(viewRange)
-    }
+    val studioProfilersView: StudioProfilersView =
+      Mockito.mock(StudioProfilersView::class.java, Mockito.RETURNS_DEEP_STUBS).apply {
+        whenever(studioProfilers.stage.timeline.viewRange).thenReturn(viewRange)
+      }
     val framesTab = CpuAnalysisFramesTab(studioProfilersView, framesTabModel)
     val treeWalker = TreeWalker(framesTab)
     val table = treeWalker.descendants().filterIsInstance<JTable>().first()
@@ -84,41 +75,52 @@ class CpuAnalysisFramesTabTest {
         .setDepth(depth)
         .build()
 
-    val LAYERS = listOf(
-      TraceProcessor.AndroidFrameEventsResult.Layer.newBuilder()
-        .setLayerName("com.example.MainActivity#0")
-        .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
-                    .setPhaseName("Display")
-                    .addFrameEvent(makeFrame(1, 10000, 17000, 0))
-                    .addFrameEvent(makeFrame(2, 27000, 13000, 0)))
-        .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
-                    .setPhaseName("App")
-                    .addFrameEvent(makeFrame(1, 0, 5000, 0))
-                    .addFrameEvent(makeFrame(2, 10000, 10000, 0)))
-        .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
-                    .setPhaseName("GPU")
-                    .addFrameEvent(makeFrame(1, 5000, 1000, 0))
-                    .addFrameEvent(makeFrame(2, 20000, 2000, 0)))
-        .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
-                    .setPhaseName("Composition")
-                    .addFrameEvent(makeFrame(1, 7000, 3000, 0))
-                    .addFrameEvent(makeFrame(2, 25000, 2000, 0)))
-        .build(),
-      TraceProcessor.AndroidFrameEventsResult.Layer.newBuilder()
-        .setLayerName("com.example.NewActivity#0")
-        .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
-                    .setPhaseName("Display")
-                    .addFrameEvent(makeFrame(3, 40000, 10000, 0)))
-        .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
-                    .setPhaseName("App")
-                    .addFrameEvent(makeFrame(3, 20000, 4000, 0)))
-        .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
-                    .setPhaseName("GPU")
-                    .addFrameEvent(makeFrame(3, 25000, 1500, 0)))
-        .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
-                    .setPhaseName("Composition")
-                    .addFrameEvent(makeFrame(3, 27000, 2000, 0)))
-        .build()
-    )
+    val LAYERS =
+      listOf(
+        TraceProcessor.AndroidFrameEventsResult.Layer.newBuilder()
+          .setLayerName("com.example.MainActivity#0")
+          .addPhase(
+            TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
+              .setPhaseName("Display")
+              .addFrameEvent(makeFrame(1, 10000, 17000, 0))
+              .addFrameEvent(makeFrame(2, 27000, 13000, 0))
+          )
+          .addPhase(
+            TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
+              .setPhaseName("App")
+              .addFrameEvent(makeFrame(1, 0, 5000, 0))
+              .addFrameEvent(makeFrame(2, 10000, 10000, 0))
+          )
+          .addPhase(
+            TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
+              .setPhaseName("GPU")
+              .addFrameEvent(makeFrame(1, 5000, 1000, 0))
+              .addFrameEvent(makeFrame(2, 20000, 2000, 0))
+          )
+          .addPhase(
+            TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
+              .setPhaseName("Composition")
+              .addFrameEvent(makeFrame(1, 7000, 3000, 0))
+              .addFrameEvent(makeFrame(2, 25000, 2000, 0))
+          )
+          .build(),
+        TraceProcessor.AndroidFrameEventsResult.Layer.newBuilder()
+          .setLayerName("com.example.NewActivity#0")
+          .addPhase(
+            TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder().setPhaseName("Display").addFrameEvent(makeFrame(3, 40000, 10000, 0))
+          )
+          .addPhase(
+            TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder().setPhaseName("App").addFrameEvent(makeFrame(3, 20000, 4000, 0))
+          )
+          .addPhase(
+            TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder().setPhaseName("GPU").addFrameEvent(makeFrame(3, 25000, 1500, 0))
+          )
+          .addPhase(
+            TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
+              .setPhaseName("Composition")
+              .addFrameEvent(makeFrame(3, 27000, 2000, 0))
+          )
+          .build(),
+      )
   }
 }

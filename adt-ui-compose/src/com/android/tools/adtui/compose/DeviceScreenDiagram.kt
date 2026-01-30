@@ -47,40 +47,22 @@ import org.jetbrains.jewel.foundation.theme.LocalTextStyle
  * @param round if the screen is circular; if true, height must be equal to width
  */
 @Composable
-fun DeviceScreenDiagram(
-  width: Int,
-  height: Int,
-  modifier: Modifier = Modifier,
-  diagonalLength: String = "",
-  round: Boolean = false,
-) {
+fun DeviceScreenDiagram(width: Int, height: Int, modifier: Modifier = Modifier, diagonalLength: String = "", round: Boolean = false) {
   check(!round || height == width) { "Round screens have equal width and height" }
 
   val textMeasurer = rememberTextMeasurer()
   val textStyle = LocalTextStyle.current
   val widthHeightTextStyle = textStyle.copy(fontSize = textStyle.fontSize * 0.9)
   val contentColor = LocalContentColor.current
-  val widthTextMeasurement =
-    remember(width, textStyle) {
-      textMeasurer.measure("$width px", maxLines = 1, style = widthHeightTextStyle)
-    }
-  val heightTextMeasurement =
-    remember(height, textStyle) {
-      textMeasurer.measure("$height px", maxLines = 1, style = widthHeightTextStyle)
-    }
+  val widthTextMeasurement = remember(width, textStyle) { textMeasurer.measure("$width px", maxLines = 1, style = widthHeightTextStyle) }
+  val heightTextMeasurement = remember(height, textStyle) { textMeasurer.measure("$height px", maxLines = 1, style = widthHeightTextStyle) }
   val diagonalTextMeasurement =
     remember(diagonalLength, textStyle) {
-      textMeasurer.measure(
-        diagonalLength,
-        style = textStyle.copy(fontSize = textStyle.fontSize * 1.2),
-        maxLines = 1,
-      )
+      textMeasurer.measure(diagonalLength, style = textStyle.copy(fontSize = textStyle.fontSize * 1.2), maxLines = 1)
     }
   val aspectRatio = width.toFloat() / height
-  val screenColor =
-    rememberColor(IntUiPaletteDefaults.Dark.Gray2, IntUiPaletteDefaults.Light.Gray14)
-  val diagonalColor =
-    rememberColor(IntUiPaletteDefaults.Dark.Gray3, IntUiPaletteDefaults.Light.Gray12)
+  val screenColor = rememberColor(IntUiPaletteDefaults.Dark.Gray2, IntUiPaletteDefaults.Light.Gray14)
+  val diagonalColor = rememberColor(IntUiPaletteDefaults.Dark.Gray3, IntUiPaletteDefaults.Light.Gray12)
 
   Canvas(
     modifier
@@ -94,59 +76,34 @@ fun DeviceScreenDiagram(
     var horizontalInset = 0f
     var verticalDiagramInset = 0f
     var horizontalDiagramInset = 0f
-    val innerWidth =
-      (size.width - heightTextMeasurement.size.height.toFloat() - 4.dp.toPx()).coerceAtLeast(0f)
-    val innerHeight =
-      (size.height - widthTextMeasurement.size.height.toFloat() - 4.dp.toPx()).coerceAtLeast(0f)
+    val innerWidth = (size.width - heightTextMeasurement.size.height.toFloat() - 4.dp.toPx()).coerceAtLeast(0f)
+    val innerHeight = (size.height - widthTextMeasurement.size.height.toFloat() - 4.dp.toPx()).coerceAtLeast(0f)
     if (innerHeight * aspectRatio > innerWidth) {
       verticalDiagramInset = ((innerHeight - (innerWidth / aspectRatio)) / 2) - 4.dp.toPx()
-      verticalInset =
-        verticalDiagramInset.coerceAtMost(
-          (size.height - heightTextMeasurement.size.width.toFloat()) / 2
-        )
+      verticalInset = verticalDiagramInset.coerceAtMost((size.height - heightTextMeasurement.size.width.toFloat()) / 2)
     } else {
       horizontalDiagramInset = ((innerWidth - (innerHeight * aspectRatio)) / 2) - 4.dp.toPx()
-      horizontalInset =
-        horizontalDiagramInset.coerceAtMost(
-          (size.width - widthTextMeasurement.size.width.toFloat()) / 2
-        )
+      horizontalInset = horizontalDiagramInset.coerceAtMost((size.width - widthTextMeasurement.size.width.toFloat()) / 2)
     }
     inset(horizontal = horizontalInset, vertical = verticalInset) {
       inset(left = heightTextMeasurement.size.height.toFloat(), top = 0f, bottom = 0f, right = 0f) {
-        drawText(
-          widthTextMeasurement,
-          topLeft = Offset((size.width - widthTextMeasurement.size.width) / 2, 0f),
-          color = contentColor,
-        )
+        drawText(widthTextMeasurement, topLeft = Offset((size.width - widthTextMeasurement.size.width) / 2, 0f), color = contentColor)
       }
       inset(top = widthTextMeasurement.size.height.toFloat(), left = 0f, bottom = 0f, right = 0f) {
         rotate(-90f, pivot = Offset.Zero) {
-          drawText(
-            heightTextMeasurement,
-            topLeft = Offset(-(size.height + heightTextMeasurement.size.width) / 2, 0f),
-            color = contentColor,
-          )
+          drawText(heightTextMeasurement, topLeft = Offset(-(size.height + heightTextMeasurement.size.width) / 2, 0f), color = contentColor)
         }
       }
     }
     inset(horizontal = horizontalDiagramInset, vertical = verticalDiagramInset) {
-      inset(
-        left = heightTextMeasurement.size.height.toFloat(),
-        top = widthTextMeasurement.size.height.toFloat(),
-        right = 0f,
-        bottom = 0f,
-      ) {
+      inset(left = heightTextMeasurement.size.height.toFloat(), top = widthTextMeasurement.size.height.toFloat(), right = 0f, bottom = 0f) {
         inset(4.dp.toPx()) {
           if (round) {
             drawCircle(screenColor)
             drawCircle(contentColor, style = Stroke(width = 1.dp.toPx()))
           } else {
             drawRoundRect(screenColor, cornerRadius = CornerRadius(12.dp.toPx()))
-            drawRoundRect(
-              contentColor,
-              cornerRadius = CornerRadius(12.dp.toPx()),
-              style = Stroke(width = 1.dp.toPx()),
-            )
+            drawRoundRect(contentColor, cornerRadius = CornerRadius(12.dp.toPx()), style = Stroke(width = 1.dp.toPx()))
           }
           if (diagonalLength.isNotEmpty()) {
             val radius = if (round) (size.width / 2) else 12.dp.toPx()

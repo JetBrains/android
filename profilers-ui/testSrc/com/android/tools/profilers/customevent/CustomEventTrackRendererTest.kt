@@ -37,8 +37,7 @@ class CustomEventTrackRendererTest {
   private val services = FakeIdeProfilerServices()
   private val transportService = FakeTransportService(timer, true)
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("CustomEventTrackTestChannel", transportService)
+  @get:Rule var grpcChannel = FakeGrpcChannel("CustomEventTrackTestChannel", transportService)
 
   private lateinit var profilers: StudioProfilers
 
@@ -51,9 +50,13 @@ class CustomEventTrackRendererTest {
   fun testRendererComponents() {
     // Tests that the line chart and axis component are rendered in the track.
     val lineChartModel = UserCounterModel(profilers, "foo")
-    val customEventTrackModel = TrackModel.newBuilder(CustomEventTrackModel(lineChartModel, Range(0.0, 0.0)),
-                                                      ProfilerTrackRendererType.CUSTOM_EVENTS,
-                                                      "Custom Events").build()
+    val customEventTrackModel =
+      TrackModel.newBuilder(
+          CustomEventTrackModel(lineChartModel, Range(0.0, 0.0)),
+          ProfilerTrackRendererType.CUSTOM_EVENTS,
+          "Custom Events",
+        )
+        .build()
 
     val renderer = CustomEventTrackRenderer()
     val component = renderer.render(customEventTrackModel)

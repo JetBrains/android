@@ -32,11 +32,7 @@ import javax.swing.SwingUtilities
 typealias ComponentBounds = com.intellij.openapi.util.Pair<Component, Rectangle>
 
 /** Implementation of [InspectorPanel]. */
-class InspectorPanelImpl(
-  val model: InspectorPanelModel,
-  nameColumnFraction: ColumnFraction,
-  parentDisposable: Disposable,
-) :
+class InspectorPanelImpl(val model: InspectorPanelModel, nameColumnFraction: ColumnFraction, parentDisposable: Disposable) :
   AdtSecondaryPanel(InspectorLayoutManager(nameColumnFraction)), Disposable, ValueChangedListener {
 
   init {
@@ -76,12 +72,7 @@ class InspectorPanelImpl(
       return null
     }
     val component = getComponentAt(point.x, point.y) as? CollapsibleLabelPanel ?: return null
-    PropertyTooltip.setToolTip(
-      this,
-      component.model.editorModel?.property,
-      forValue = false,
-      text = "",
-    )
+    PropertyTooltip.setToolTip(this, component.model.editorModel?.property, forValue = false, text = "")
     return null
   }
 }

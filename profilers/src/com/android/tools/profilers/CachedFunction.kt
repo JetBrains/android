@@ -15,16 +15,15 @@
  */
 package com.android.tools.profilers
 
-/**
- * This class implements cached functions that can be invalidated to recompute the next time they're called
- */
-class CachedFunction<K,V>(private val cache: MutableMap<K,V>, private val compute: (K) -> V): (K) -> V {
-  constructor(compute: (K) -> V): this(HashMap(), compute)
+/** This class implements cached functions that can be invalidated to recompute the next time they're called */
+class CachedFunction<K, V>(private val cache: MutableMap<K, V>, private val compute: (K) -> V) : (K) -> V {
+  constructor(compute: (K) -> V) : this(HashMap(), compute)
 
-  override operator fun invoke(key: K): V = when (val cached = cache[key]) {
-    null -> compute(key).also { cache[key] = it }
-    else -> cached
-  }
+  override operator fun invoke(key: K): V =
+    when (val cached = cache[key]) {
+      null -> compute(key).also { cache[key] = it }
+      else -> cached
+    }
 
   fun invalidate() {
     cache.clear()
@@ -35,6 +34,6 @@ class CachedFunction<K,V>(private val cache: MutableMap<K,V>, private val comput
   }
 }
 
-class CappedLRUMap<K, V>(val maxSize: Int): LinkedHashMap<K, V>(maxSize, .8f, true) {
+class CappedLRUMap<K, V>(val maxSize: Int) : LinkedHashMap<K, V>(maxSize, .8f, true) {
   override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, V>?) = size > maxSize
 }

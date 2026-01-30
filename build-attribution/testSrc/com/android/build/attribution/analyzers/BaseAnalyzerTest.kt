@@ -26,14 +26,15 @@ class BaseAnalyzerTest {
   fun testResultCached() {
     var calculateCallsCount = 0
 
-    val analyzer =  object : BaseAnalyzer<Result>() {
-      override fun calculateResult(): Result {
-        calculateCallsCount++
-        return Result()
-      }
+    val analyzer =
+      object : BaseAnalyzer<Result>() {
+        override fun calculateResult(): Result {
+          calculateCallsCount++
+          return Result()
+        }
 
-      override fun cleanupTempState() = Unit
-    }
+        override fun cleanupTempState() = Unit
+      }
 
     analyzer.onBuildStart()
     val result1 = analyzer.result
@@ -48,13 +49,14 @@ class BaseAnalyzerTest {
   fun testCleanupCalledAfterResultCalculated() {
     var cleanUpCallsCount = 0
 
-    val analyzer =  object : BaseAnalyzer<Result>() {
-      override fun calculateResult(): Result = Result()
+    val analyzer =
+      object : BaseAnalyzer<Result>() {
+        override fun calculateResult(): Result = Result()
 
-      override fun cleanupTempState() {
-        cleanUpCallsCount++
+        override fun cleanupTempState() {
+          cleanUpCallsCount++
+        }
       }
-    }
 
     analyzer.onBuildStart()
     analyzer.result
@@ -67,13 +69,14 @@ class BaseAnalyzerTest {
   fun testCleanupCalledAfterBuildFailed() {
     var cleanUpCallsCount = 0
 
-    val analyzer =  object : BaseAnalyzer<Result>() {
-      override fun calculateResult(): Result = Result()
+    val analyzer =
+      object : BaseAnalyzer<Result>() {
+        override fun calculateResult(): Result = Result()
 
-      override fun cleanupTempState() {
-        cleanUpCallsCount++
+        override fun cleanupTempState() {
+          cleanUpCallsCount++
+        }
       }
-    }
 
     analyzer.onBuildStart()
     analyzer.onBuildFailure()
@@ -85,7 +88,8 @@ class BaseAnalyzerTest {
   @Test(expected = BaseAnalyzer.ResultComputationLoopException::class)
   fun testComputationLoopDetected() {
     class AnalyzerWithDependency : BaseAnalyzer<Result>() {
-      var dependency : BaseAnalyzer<Result>? = null
+      var dependency: BaseAnalyzer<Result>? = null
+
       override fun calculateResult(): Result {
         return dependency?.result ?: Result()
       }

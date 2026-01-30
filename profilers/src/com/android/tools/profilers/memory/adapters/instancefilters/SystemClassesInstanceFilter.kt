@@ -18,16 +18,15 @@ package com.android.tools.profilers.memory.adapters.instancefilters
 import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.memory.adapters.InstanceObject
 
-/**
- * A filter to locate all instances of classes that do not belong to the currently opened project (e.g. framework or library classes).
- */
-class SystemClassesInstanceFilter(ideProfilerServices: IdeProfilerServices) : CaptureObjectInstanceFilter(
-  displayName = "System classes",
-  summaryDescription = "Show instances of classes from outside the current project.",
-  detailedDescription = null,
-  documentationLink = null,
-  instanceTest = makeSystemClassTest(ideProfilerServices)
-)
+/** A filter to locate all instances of classes that do not belong to the currently opened project (e.g. framework or library classes). */
+class SystemClassesInstanceFilter(ideProfilerServices: IdeProfilerServices) :
+  CaptureObjectInstanceFilter(
+    displayName = "System classes",
+    summaryDescription = "Show instances of classes from outside the current project.",
+    detailedDescription = null,
+    documentationLink = null,
+    instanceTest = makeSystemClassTest(ideProfilerServices),
+  )
 
 private fun makeSystemClassTest(ideProfilerServices: IdeProfilerServices): (InstanceObject) -> Boolean {
   // Lazily initialize the set of project classes only once.

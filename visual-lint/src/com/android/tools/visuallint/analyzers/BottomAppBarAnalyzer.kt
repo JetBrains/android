@@ -22,24 +22,17 @@ import com.android.tools.visuallint.VisualLintAnalyzer
 import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
 
-private const val BOTTOM_APP_BAR_CLASS_NAME =
-  "com.google.android.material.bottomappbar.BottomAppBar"
-private const val NAVIGATION_RAIL_URL =
-  "https://d.android.com/r/studio-ui/designer/material/navigation-rail"
-private const val NAVIGATION_DRAWER_URL =
-  "https://d.android.com/r/studio-ui/designer/material/navigation-drawer"
-private const val TOP_APP_BAR_URL =
-  "https://d.android.com/r/studio-ui/designer/material/top-app-bar"
+private const val BOTTOM_APP_BAR_CLASS_NAME = "com.google.android.material.bottomappbar.BottomAppBar"
+private const val NAVIGATION_RAIL_URL = "https://d.android.com/r/studio-ui/designer/material/navigation-rail"
+private const val NAVIGATION_DRAWER_URL = "https://d.android.com/r/studio-ui/designer/material/navigation-drawer"
+private const val TOP_APP_BAR_URL = "https://d.android.com/r/studio-ui/designer/material/top-app-bar"
 
 /** [VisualLintAnalyzer] for issues where a BottomAppBar is used on non-compact screens. */
 object BottomAppBarAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BOTTOM_APP_BAR
 
-  override fun findIssues(
-    renderResult: RenderResult,
-    configuration: Configuration,
-  ): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val orientation = configuration.deviceState?.orientation ?: return issues
     val dimension = configuration.device?.getScreenSize(orientation) ?: return issues

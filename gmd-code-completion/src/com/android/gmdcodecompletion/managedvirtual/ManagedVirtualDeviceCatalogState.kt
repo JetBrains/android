@@ -23,16 +23,15 @@ import java.util.Date
 
 /** This class stores data that is persisted by ManagedVirtualDeviceCatalogService across idea applications */
 data class ManagedVirtualDeviceCatalogState(
-  @OptionTag(tag = "expireDate")
-  override val expireDate: Date = Date(0),
+  @OptionTag(tag = "expireDate") override val expireDate: Date = Date(0),
   // Use custom converter for more complicated persistent component state
-  @OptionTag(tag = "managedVirtualDeviceCatalog",
-             converter = ManagedVirtualDeviceCatalogConverter::class)
-  override val myDeviceCatalog: ManagedVirtualDeviceCatalog = ManagedVirtualDeviceCatalog()) : GmdDeviceCatalogState(
-  expireDate, myDeviceCatalog) {
+  @OptionTag(tag = "managedVirtualDeviceCatalog", converter = ManagedVirtualDeviceCatalogConverter::class)
+  override val myDeviceCatalog: ManagedVirtualDeviceCatalog = ManagedVirtualDeviceCatalog(),
+) : GmdDeviceCatalogState(expireDate, myDeviceCatalog) {
 
   internal class ManagedVirtualDeviceCatalogConverter : Converter<ManagedVirtualDeviceCatalog>() {
     override fun toString(value: ManagedVirtualDeviceCatalog): String = GmdDeviceCatalog.toJson(value)
+
     override fun fromString(value: String): ManagedVirtualDeviceCatalog = GmdDeviceCatalog.fromJson(value)
   }
 }

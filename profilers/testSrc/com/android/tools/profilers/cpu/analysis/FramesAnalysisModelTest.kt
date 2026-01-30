@@ -28,13 +28,15 @@ import org.mockito.kotlin.whenever
 class FramesAnalysisModelTest {
   @Test
   fun `frames model has all-frames tab`() {
-    val systemTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
-      whenever(androidFrameLayers).thenReturn(listOf(TraceProcessor.AndroidFrameEventsResult.Layer.getDefaultInstance()))
-    }
-    val capture = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(this.range).thenReturn(Range())
-      whenever(this.systemTraceData).thenReturn(systemTraceData)
-    }
+    val systemTraceData =
+      Mockito.mock(CpuSystemTraceData::class.java).apply {
+        whenever(androidFrameLayers).thenReturn(listOf(TraceProcessor.AndroidFrameEventsResult.Layer.getDefaultInstance()))
+      }
+    val capture =
+      Mockito.mock(CpuCapture::class.java).apply {
+        whenever(this.range).thenReturn(Range())
+        whenever(this.systemTraceData).thenReturn(systemTraceData)
+      }
     val model = FramesAnalysisModel.of(capture)!!
     val analysisModels = model.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()
     assertThat(analysisModels).containsExactly(Type.FRAMES)

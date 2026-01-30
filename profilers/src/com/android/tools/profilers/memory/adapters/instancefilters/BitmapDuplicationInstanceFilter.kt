@@ -18,19 +18,17 @@ package com.android.tools.profilers.memory.adapters.instancefilters
 import com.android.tools.profilers.memory.adapters.InstanceObject
 
 /**
- * A filter that shows only Bitmap instances that have been identified as duplicates
- * based on their pixel data content.
+ * A filter that shows only Bitmap instances that have been identified as duplicates based on their pixel data content.
  *
- * @param duplicateBitmapSet The set of all InstanceObjects that have been pre-calculated
- *                           to be part of a duplication group by [BitmapDuplicationAnalyzer].
+ * @param duplicateBitmapSet The set of all InstanceObjects that have been pre-calculated to be part of a duplication group by
+ *   [BitmapDuplicationAnalyzer].
  */
-class BitmapDuplicationInstanceFilter(
-  private val duplicateBitmapSet: Set<InstanceObject>
-) : CaptureObjectInstanceFilter(
-  "Duplicate Bitmaps",
-  "Show duplicate Bitmap instances",
-  "Shows all Bitmap instances that have the same dimensions and pixel content as at least one other Bitmap instance.",
-  null,
-  // The core filter logic: an instance passes the filter if it's in the pre-computed set of duplicates.
-  { instanceObject -> duplicateBitmapSet.contains(instanceObject) }
-)
+class BitmapDuplicationInstanceFilter(private val duplicateBitmapSet: Set<InstanceObject>) :
+  CaptureObjectInstanceFilter(
+    "Duplicate Bitmaps",
+    "Show duplicate Bitmap instances",
+    "Shows all Bitmap instances that have the same dimensions and pixel content as at least one other Bitmap instance.",
+    null,
+    // The core filter logic: an instance passes the filter if it's in the pre-computed set of duplicates.
+    { instanceObject -> duplicateBitmapSet.contains(instanceObject) },
+  )

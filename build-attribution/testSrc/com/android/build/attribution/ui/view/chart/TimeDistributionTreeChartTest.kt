@@ -28,22 +28,19 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
 import com.intellij.ui.treeStructure.Tree
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Dimension
 import javax.swing.tree.DefaultTreeModel
+import org.junit.Rule
+import org.junit.Test
 
 @RunsInEdt
 class TimeDistributionTreeChartTest {
 
-  @get:Rule
-  val applicationRule: ApplicationRule = ApplicationRule()
+  @get:Rule val applicationRule: ApplicationRule = ApplicationRule()
 
-  @get:Rule
-  val expect = Expect.createAndEnableStackTrace()!!
+  @get:Rule val expect = Expect.createAndEnableStackTrace()!!
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val task1 = mockTask(":app", "compile", "compiler.plugin", 2000)
   private val task2 = mockTask(":app", "resources", "resources.plugin", 1000)
@@ -51,13 +48,9 @@ class TimeDistributionTreeChartTest {
 
   private val data = MockUiData(tasksList = listOf(task1, task2, task3))
 
-  private val model = TasksDataPageModelImpl(data).also {
-    it.selectGrouping(TasksDataPageModel.Grouping.UNGROUPED)
-  }
+  private val model = TasksDataPageModelImpl(data).also { it.selectGrouping(TasksDataPageModel.Grouping.UNGROUPED) }
 
-  private val tree = Tree(DefaultTreeModel(model.treeRoot)).apply {
-    isRootVisible = false
-  }
+  private val tree = Tree(DefaultTreeModel(model.treeRoot)).apply { isRootVisible = false }
 
   private val treeWithChart = TimeDistributionTreeChart.wrap(tree)
   private val fakeUi = FakeUi(ScrollPaneFactory.createScrollPane(treeWithChart, SideBorder.NONE))

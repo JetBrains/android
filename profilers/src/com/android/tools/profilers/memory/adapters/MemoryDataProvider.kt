@@ -41,12 +41,15 @@ import java.util.concurrent.TimeUnit
 
 private fun Long.nanosToMicros() = TimeUnit.NANOSECONDS.toMicros(this)
 
-open class MemoryDataProvider(val profilers: StudioProfilers,
-                              val timeline: StreamingTimeline) {
-  protected val logger get() = Logger.getInstance(this.javaClass)
+open class MemoryDataProvider(val profilers: StudioProfilers, val timeline: StreamingTimeline) {
+  protected val logger
+    get() = Logger.getInstance(this.javaClass)
+
   private val sessionData = profilers.session
   val gcStatsModel = makeModel(makeGcSeries())
-  val isLiveAllocationTrackingReady get() = MemoryProfiler.isUsingLiveAllocation(profilers, sessionData)
+  val isLiveAllocationTrackingReady
+    get() = MemoryProfiler.isUsingLiveAllocation(profilers, sessionData)
+
   val allocationSamplingRateDataSeries = AllocationSamplingRateDataSeries(profilers.client, sessionData)
   val allocationSamplingRateDurations = makeModel(allocationSamplingRateDataSeries)
   val detailedMemoryUsage = DetailedMemoryUsage(profilers, this.gcStatsModel, this.allocationSamplingRateDurations)
@@ -58,11 +61,11 @@ open class MemoryDataProvider(val profilers: StudioProfilers,
   fun forceGarbageCollection() {
     profilers.client.transportClient.execute(
       Transport.ExecuteRequest.newBuilder()
-        .setCommand(Commands.Command.newBuilder()
-                      .setStreamId(sessionData.streamId)
-                      .setPid(sessionData.pid)
-                      .setType(Commands.Command.CommandType.GC))
-        .build())
+        .setCommand(
+          Commands.Command.newBuilder().setStreamId(sessionData.streamId).setPid(sessionData.pid).setType(Commands.Command.CommandType.GC)
+        )
+        .build()
+    )
   }
 
   private fun <T : DurationData> makeModel(series: DataSeries<T>) = DurationDataModel(RangedSeries(timeline.viewRange, series))
@@ -73,7 +76,7 @@ open class MemoryDataProvider(val profilers: StudioProfilers,
       sessionData.streamId,
       sessionData.pid,
       Common.Event.Kind.MEMORY_GC,
-      UnifiedEventDataSeries.DEFAULT_GROUP_ID
+      UnifiedEventDataSeries.DEFAULT_GROUP_ID,
     ) { events ->
       events.map { SeriesData(it.timestamp.nanosToMicros(), GcDurationData(it.memoryGc.duration.nanosToMicros())) }
     }
@@ -86,12 +89,12 @@ open class MemoryDataProvider(val profilers: StudioProfilers,
      * Returns whether the device, provided by StudioProfilers' selected session, supports live allocation tracking with an API level of
      * Android O or higher.
      */
-    fun getIsLiveAllocationTrackingSupported(profilers: StudioProfilers) = with(
-      getDeviceForSelectedSession(profilers)) { this != null && featureLevel >= AndroidVersion.VersionCodes.O }
+    fun getIsLiveAllocationTrackingSupported(profilers: StudioProfilers) =
+      with(getDeviceForSelectedSession(profilers)) { this != null && featureLevel >= AndroidVersion.VersionCodes.O }
 
-    fun getDeviceForSelectedSession(profilers: StudioProfilers) = profilers.getStream(profilers.session.streamId).let { stream ->
-      if (stream.type === Common.Stream.Type.DEVICE) stream.device
-      else null
-    }
+    fun getDeviceForSelectedSession(profilers: StudioProfilers) =
+      profilers.getStream(profilers.session.streamId).let { stream ->
+        if (stream.type === Common.Stream.Type.DEVICE) stream.device else null
+      }
   }
 }

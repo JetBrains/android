@@ -55,31 +55,31 @@ private const val TITLE = "Extract Android Layout"
  * If [mustFindTo] is `true`, throws if it runs out of siblings before encountering [to].
  */
 private fun xmlTagSiblingsBetween(from: PsiElement, to: PsiElement?, mustFindTo: Boolean = false): Sequence<XmlTag> =
-  from.siblings().takeWhileInclusive {
-    if (mustFindTo && it.nextSibling == null) check(it === to) { "invalid range" }
-    it !== to
-  }
+  from
+    .siblings()
+    .takeWhileInclusive {
+      if (mustFindTo && it.nextSibling == null) check(it === to) { "invalid range" }
+      it !== to
+    }
     .filterIsInstance(XmlTag::class.java)
 
 /** Determines whether a [DomElement] is either a [LayoutViewElement] or an [Include]. */
 private fun DomElement?.isSuitable() = this is LayoutViewElement || this is Include
 
 /** Determines whether every [XmlTag] in a [Sequence] is [isSuitable] and any of them is a [LayoutViewElement]. */
-private fun Sequence<XmlTag>.allSuitableAndContainsViewElement(project: Project) : Boolean {
+private fun Sequence<XmlTag>.allSuitableAndContainsViewElement(project: Project): Boolean {
   val domManager = DomManager.getDomManager(project)
   val domElements = this.map(domManager::getDomElement)
   // Every DomElement must be either a LayoutViewElement or an Include. We also
   // keep track of whether we have at least one LayoutViewElement.
   var containsLayoutViewElement = false
   for (domElement in domElements) {
-    if (domElement is LayoutViewElement) containsLayoutViewElement = true
-    else if (domElement !is Include) return false
+    if (domElement is LayoutViewElement) containsLayoutViewElement = true else if (domElement !is Include) return false
   }
   return containsLayoutViewElement
 }
 
-class AndroidExtractAsIncludeAction(private val testConfig: TestConfig? = null) :
-  AndroidBaseLayoutRefactoringAction() {
+class AndroidExtractAsIncludeAction(private val testConfig: TestConfig? = null) : AndroidBaseLayoutRefactoringAction() {
   override fun doRefactorForTags(project: Project, tags: Array<XmlTag>) {
     if (tags.isEmpty()) return
     val startTag = tags.minBy { it.range.startOffset }
@@ -94,50 +94,38 @@ class AndroidExtractAsIncludeAction(private val testConfig: TestConfig? = null) 
 
     val parent = tags[0].parent
 
-    return parent is XmlTag &&
-      parent.containingFile != null &&
-      tags.drop(1).all { it.parent === parent }
+    return parent is XmlTag && parent.containingFile != null && tags.drop(1).all { it.parent === parent }
   }
 
-  override fun doRefactorForPsiRange(
-    project: Project,
-    file: PsiFile,
-    from: PsiElement,
-    to: PsiElement,
-  ) {
+  override fun doRefactorForPsiRange(project: Project, file: PsiFile, from: PsiElement, to: PsiElement) {
     val dir = file.containingDirectory ?: return
     val facet = checkNotNull(AndroidFacet.getInstance(from))
     val parentTag = checkNotNull(PsiTreeUtil.getParentOfType(from, XmlTag::class.java))
     val numTags = xmlTagSiblingsBetween(from, to, mustFindTo = true).count()
     assert(numTags > 0) { "there is no tag inside the range" }
-    val config = dir.name.takeIf(String::isNotEmpty)?.let {
-      FolderConfiguration.getConfig(
-        it
-          .split(SdkConstants.RES_QUALIFIER_SEP.toRegex())
-          .toTypedArray()
-      )
-    }
+    val config =
+      dir.name.takeIf(String::isNotEmpty)?.let {
+        FolderConfiguration.getConfig(it.split(SdkConstants.RES_QUALIFIER_SEP.toRegex()).toTypedArray())
+      }
 
     DataManager.getInstance().dataContextFromFocusAsync.onSuccess { dataContext: DataContext? ->
       CommandProcessor.getInstance()
         .executeCommand(
           project,
           {
-            val newFile = CreateResourceFileAction.createFileResource(
-              facet,
-              ResourceFolderType.LAYOUT,
-              testConfig?.layoutFileName,
-              "temp_root",
-              config,
-              true,
-              TITLE,
-              null,
-              dataContext,
-            )
-            if (newFile != null)
-              application.runWriteAction {
-                doRefactor(facet, file, newFile, from, to, parentTag, numTags > 1)
-              }
+            val newFile =
+              CreateResourceFileAction.createFileResource(
+                facet,
+                ResourceFolderType.LAYOUT,
+                testConfig?.layoutFileName,
+                "temp_root",
+                config,
+                true,
+                TITLE,
+                null,
+                dataContext,
+              )
+            if (newFile != null) application.runWriteAction { doRefactor(facet, file, newFile, from, to, parentTag, numTags > 1) }
           },
           TITLE,
           null,
@@ -216,13 +204,11 @@ ${if (wrapWithMerge) "<merge>\n$textToExtract\n</merge>" else textToExtract}"""
         }
       }
 
-      val includingLayout =
-        SdkConstants.LAYOUT_RESOURCE_PREFIX + SdkUtils.fileNameToResourceName(file.name)
+      val includingLayout = SdkConstants.LAYOUT_RESOURCE_PREFIX + SdkUtils.fileNameToResourceName(file.name)
       setIncludingLayout(newFile, includingLayout)
 
       val resourceName = SdkUtils.fileNameToResourceName(newFile.name)
-      val includeTag =
-        elementFactory.createTagFromText("<include layout=\"@layout/$resourceName\"/>")
+      val includeTag = elementFactory.createTagFromText("<include layout=\"@layout/$resourceName\"/>")
       parentTag.addAfter(includeTag, to)
       parentTag.deleteChildRange(from, to)
 

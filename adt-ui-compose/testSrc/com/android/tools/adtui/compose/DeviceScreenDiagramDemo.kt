@@ -55,10 +55,7 @@ fun main() {
         var height by remember { mutableStateOf(1200) }
 
         LaunchedEffect(Unit) {
-          snapshotFlow {
-              widthTextState.text.toString().toIntOrNull() to
-                heightTextState.text.toString().toIntOrNull()
-            }
+          snapshotFlow { widthTextState.text.toString().toIntOrNull() to heightTextState.text.toString().toIntOrNull() }
             .collect { (w, h) ->
               println("$w $h")
               if (w != null) {

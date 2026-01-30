@@ -22,13 +22,14 @@ import com.android.tools.profilers.cpu.systemtrace.DeadlineTextModel
 import java.util.function.BooleanSupplier
 import javax.swing.JPanel
 
-class DeadlineTextRenderer(private val vsyncEnabler: BooleanSupplier): TrackRenderer<DeadlineTextModel> {
-  override fun render(trackModel: TrackModel<DeadlineTextModel, *>) = JPanel().let { content ->
-    val model = trackModel.dataModel
-    VsyncPanel.of(FrameTimelineSelectionOverlayPanel.of(content,
-                                                        model.viewRange,
-                                                        model.multiSelectionModel,
-                                                        GrayOutMode.None, true, "Deadline"),
-                  model.vsyncSeries, vsyncEnabler)
-  }
+class DeadlineTextRenderer(private val vsyncEnabler: BooleanSupplier) : TrackRenderer<DeadlineTextModel> {
+  override fun render(trackModel: TrackModel<DeadlineTextModel, *>) =
+    JPanel().let { content ->
+      val model = trackModel.dataModel
+      VsyncPanel.of(
+        FrameTimelineSelectionOverlayPanel.of(content, model.viewRange, model.multiSelectionModel, GrayOutMode.None, true, "Deadline"),
+        model.vsyncSeries,
+        vsyncEnabler,
+      )
+    }
 }

@@ -29,10 +29,8 @@ class FrameState(threadType: FrameThread, systemTraceData: CpuSystemTraceData, r
   val vsyncSeries: RangedSeries<Long>
 
   companion object {
-    /**
-     * The default value such that any frame taking longer than this value will be marked as bad.
-     */
-    //TODO (b/74404740): Make this configurable.
+    /** The default value such that any frame taking longer than this value will be marked as bad. */
+    // TODO (b/74404740): Make this configurable.
     val slowFrameRateUs = TimeUnit.MILLISECONDS.toMicros(17)
   }
 

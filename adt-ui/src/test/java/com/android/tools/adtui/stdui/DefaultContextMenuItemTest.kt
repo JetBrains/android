@@ -26,8 +26,7 @@ class DefaultContextMenuItemTest {
   @Test
   fun actionRunnableIsCalledOnRun() {
     var runnableCalled = false
-    val profilerAction =
-      DefaultContextMenuItem.Builder("").setActionRunnable { runnableCalled = true }.build()
+    val profilerAction = DefaultContextMenuItem.Builder("").setActionRunnable { runnableCalled = true }.build()
 
     assertThat(runnableCalled).isFalse()
     profilerAction.run()
@@ -37,8 +36,7 @@ class DefaultContextMenuItemTest {
   @Test
   fun actionEnableStatusCanBeChangedDynamically() {
     var shouldEnableAction = false
-    val profilerAction =
-      DefaultContextMenuItem.Builder("").setEnableBooleanSupplier { shouldEnableAction }.build()
+    val profilerAction = DefaultContextMenuItem.Builder("").setEnableBooleanSupplier { shouldEnableAction }.build()
 
     assertThat(profilerAction.isEnabled).isFalse()
     shouldEnableAction = true

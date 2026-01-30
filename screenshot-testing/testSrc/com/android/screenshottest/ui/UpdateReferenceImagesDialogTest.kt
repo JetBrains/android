@@ -30,26 +30,23 @@ import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
 import java.util.Base64
 import org.junit.After
-import org.junit.Before
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.mockito.Mockito.contains
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.contains
 
 class UpdateReferenceImagesDialogTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val metricsTrackerRule = MetricsTrackerRule()
+  @get:Rule val metricsTrackerRule = MetricsTrackerRule()
 
-  @get:Rule
-  val tempFolder = TemporaryFolder()
+  @get:Rule val tempFolder = TemporaryFolder()
 
   private lateinit var dialog: UpdateReferenceImagesDialog
   private val mockLogger: Logger = mock(Logger::class.java)
@@ -60,30 +57,27 @@ class UpdateReferenceImagesDialogTest {
 
   @Before
   fun setUp() {
-    runInEdtAndWait {
-      dialog = createDialog()
-    }
+    runInEdtAndWait { dialog = createDialog() }
   }
 
   @After
   fun tearDown() {
-    runInEdtAndWait {
-      dialog.close(DialogWrapper.CANCEL_EXIT_CODE)
-    }
+    runInEdtAndWait { dialog.close(DialogWrapper.CANCEL_EXIT_CODE) }
   }
 
   @Test
   fun testTreePopulation() = runInEdtAndWait {
     val imagePath = createTempImage("preview1.png")
 
-    val details = PreviewDetails(
-      testId = "id",
-      className = "com.example.TestClass",
-      methodName = "testMethod",
-      previewName = "preview1",
-      testResult = AndroidTestCaseResult.PASSED,
-      srcImagePath = imagePath
-    )
+    val details =
+      PreviewDetails(
+        testId = "id",
+        className = "com.example.TestClass",
+        methodName = "testMethod",
+        previewName = "preview1",
+        testResult = AndroidTestCaseResult.PASSED,
+        srcImagePath = imagePath,
+      )
 
     dialog.updateDialogWithTestResult(details, isChecked = true)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -111,14 +105,15 @@ class UpdateReferenceImagesDialogTest {
     assertFalse("OK button should be disabled initially", dialog.isOKActionEnabled)
 
     val imagePath = createTempImage("preview2.png")
-    val details = PreviewDetails(
-      testId = "id",
-      className = "com.example.TestClass",
-      methodName = "testMethod",
-      previewName = "preview1",
-      testResult = AndroidTestCaseResult.PASSED,
-      srcImagePath = imagePath
-    )
+    val details =
+      PreviewDetails(
+        testId = "id",
+        className = "com.example.TestClass",
+        methodName = "testMethod",
+        previewName = "preview1",
+        testResult = AndroidTestCaseResult.PASSED,
+        srcImagePath = imagePath,
+      )
 
     dialog.updateDialogWithTestResult(details, isChecked = true)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -136,14 +131,15 @@ class UpdateReferenceImagesDialogTest {
   @Test
   fun testSelectionUpdatesOkButton() = runInEdtAndWait {
     val imagePath = createTempImage("preview3.png")
-    val details = PreviewDetails(
-      testId = "id",
-      className = "TestClass",
-      methodName = "testMethod",
-      previewName = "preview1",
-      testResult = AndroidTestCaseResult.PASSED,
-      srcImagePath = imagePath
-    )
+    val details =
+      PreviewDetails(
+        testId = "id",
+        className = "TestClass",
+        methodName = "testMethod",
+        previewName = "preview1",
+        testResult = AndroidTestCaseResult.PASSED,
+        srcImagePath = imagePath,
+      )
 
     dialog.updateDialogWithTestResult(details, isChecked = true)
     dialog.onTestSuiteFinished()
@@ -195,14 +191,15 @@ class UpdateReferenceImagesDialogTest {
     val imagePath = createTempImage("preview4.png")
 
     // Missing methodName and previewName (empty strings)
-    val details = PreviewDetails(
-      testId = "id",
-      className = "com.example.TestClass",
-      methodName = "",
-      previewName = "",
-      testResult = AndroidTestCaseResult.PASSED,
-      srcImagePath = imagePath
-    )
+    val details =
+      PreviewDetails(
+        testId = "id",
+        className = "com.example.TestClass",
+        methodName = "",
+        previewName = "",
+        testResult = AndroidTestCaseResult.PASSED,
+        srcImagePath = imagePath,
+      )
 
     dialog.updateDialogWithTestResult(details, isChecked = true)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -214,14 +211,15 @@ class UpdateReferenceImagesDialogTest {
   @Test
   fun testMissingImageLogsError() = runInEdtAndWait {
     // No image path provided (null)
-    val details = PreviewDetails(
-      testId = "testMissingImage",
-      className = "com.example.TestClass",
-      methodName = "testMethod",
-      previewName = "preview1",
-      testResult = AndroidTestCaseResult.PASSED,
-      srcImagePath = null
-    )
+    val details =
+      PreviewDetails(
+        testId = "testMissingImage",
+        className = "com.example.TestClass",
+        methodName = "testMethod",
+        previewName = "preview1",
+        testResult = AndroidTestCaseResult.PASSED,
+        srcImagePath = null,
+      )
 
     dialog.updateDialogWithTestResult(details, isChecked = true)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -232,14 +230,15 @@ class UpdateReferenceImagesDialogTest {
 
   @Test
   fun testErrorDialogShowsFunctionName() = runInEdtAndWait {
-    val details = PreviewDetails(
-      testId = "id",
-      className = "com.example.TestClass",
-      methodName = "myMethod",
-      previewName = "myPreview",
-      testResult = AndroidTestCaseResult.PASSED,
-      srcImagePath = null // This causes load failure
-    )
+    val details =
+      PreviewDetails(
+        testId = "id",
+        className = "com.example.TestClass",
+        methodName = "myMethod",
+        previewName = "myPreview",
+        testResult = AndroidTestCaseResult.PASSED,
+        srcImagePath = null, // This causes load failure
+      )
 
     dialog.updateDialogWithTestResult(details, isChecked = true)
     dialog.onTestSuiteFinished()
@@ -262,14 +261,15 @@ class UpdateReferenceImagesDialogTest {
 
   @Test
   fun testDeferredImageLoading() = runInEdtAndWait {
-    val details = PreviewDetails(
-      testId = "id",
-      className = "com.example.TestClass",
-      methodName = "testMethod",
-      previewName = "preview1",
-      testResult = AndroidTestCaseResult.PASSED,
-      srcImagePath = "some_path.png"
-    )
+    val details =
+      PreviewDetails(
+        testId = "id",
+        className = "com.example.TestClass",
+        methodName = "testMethod",
+        previewName = "preview1",
+        testResult = AndroidTestCaseResult.PASSED,
+        srcImagePath = "some_path.png",
+      )
 
     // updateDialogWithTestResult should NOT trigger image loading.
     // In the old implementation, it would create a PreviewItemPanel and call loadImage.
@@ -290,7 +290,10 @@ class UpdateReferenceImagesDialogTest {
     // Check that we have at least one event and the last one matches
     assertTrue("Should have logged at least one event", usages.isNotEmpty())
     assertEquals(AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW, usages.last().studioEvent.kind)
-    assertEquals(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_CLOSE, usages.last().studioEvent.screenshotTestComposePreviewEvent.type)
+    assertEquals(
+      ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_CLOSE,
+      usages.last().studioEvent.screenshotTestComposePreviewEvent.type,
+    )
   }
 
   private fun findTree(dialog: UpdateReferenceImagesDialog): CheckboxTree {

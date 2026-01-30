@@ -34,8 +34,7 @@ class MockMethod(
 
   override fun declaringType(): ReferenceType = declaringType
 
-  override fun allLineLocations(): List<Location> =
-    lines.map { GeneratedLocation(declaringType, name, it) }
+  override fun allLineLocations(): List<Location> = lines.map { GeneratedLocation(declaringType, name, it) }
 
   override fun argumentTypeNames(): List<String> = argumentTypeNames
 

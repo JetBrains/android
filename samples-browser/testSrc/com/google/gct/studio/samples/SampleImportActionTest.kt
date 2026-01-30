@@ -53,16 +53,11 @@ class SampleImportActionTest {
       start()
       url = "http://$LOCALHOST:${address.port}"
 
-      createContext(
-        path = "/${SamplesService.DEFAULT_SERVICE_PATH}",
-        content = SAMPLE_CONTENT,
-        rCode = HttpURLConnection.HTTP_OK
-      )
+      createContext(path = "/${SamplesService.DEFAULT_SERVICE_PATH}", content = SAMPLE_CONTENT, rCode = HttpURLConnection.HTTP_OK)
     }
 
     localService = LocalTestSamplesService(url)
-    ApplicationManager.getApplication()
-      .replaceService(SamplesService::class.java, localService, projectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(SamplesService::class.java, localService, projectRule.testRootDisposable)
 
     enableHeadlessDialogs(projectRule.testRootDisposable)
   }
@@ -77,9 +72,7 @@ class SampleImportActionTest {
     val action = SampleImportAction()
     val event = createTestEvent()
 
-    createModalDialogAndInteractWithIt({ action.actionPerformed(event) }) {
-      it.close(DialogWrapper.CANCEL_EXIT_CODE)
-    }
+    createModalDialogAndInteractWithIt({ action.actionPerformed(event) }) { it.close(DialogWrapper.CANCEL_EXIT_CODE) }
   }
 
   private fun HttpServer.createContext(path: String, content: String, rCode: Int, rLen: Long = 0) {
@@ -155,5 +148,5 @@ private val SAMPLE_CONTENT =
     }
    ]
   }
-"""
+  """
     .trimIndent()

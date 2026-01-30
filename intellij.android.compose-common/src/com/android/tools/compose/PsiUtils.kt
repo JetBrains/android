@@ -63,14 +63,9 @@ import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.allConstructors
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
-private val composableFunctionKey =
-  Key.create<CachedValue<KtAnnotationEntry?>>(
-    "com.android.tools.compose.PsiUtil.isComposableFunction"
-  )
-private val deprecatedKey =
-  Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isDeprecated")
-private val COMPOSABLE_CLASS_ID =
-  ClassId(FqName("androidx.compose.runtime"), Name.identifier("Composable"))
+private val composableFunctionKey = Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isComposableFunction")
+private val deprecatedKey = Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isDeprecated")
+private val COMPOSABLE_CLASS_ID = ClassId(FqName("androidx.compose.runtime"), Name.identifier("Composable"))
 
 @OptIn(KaAllowAnalysisOnEdt::class)
 fun PsiElement.isComposableFunction(): Boolean =
@@ -79,8 +74,7 @@ fun PsiElement.isComposableFunction(): Boolean =
   } != null
 
 /**
- * Checks of a given lambda argument is a 'Composable'.
- * For example:
+ * Checks of a given lambda argument is a 'Composable'. For example:
  * ```kotlin
  * @Composable
  * fun Foo(child: @Composable () -> Unit) {
@@ -106,17 +100,14 @@ fun KtLambdaArgument.isComposableLambdaArgument(): Boolean {
 }
 
 fun PsiElement.getComposableAnnotation(): KtAnnotationEntry? =
-  (this as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) {
-    it.isComposableAnnotation()
-  }
+  (this as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) { it.isComposableAnnotation() }
 
 fun PsiElement.isDeprecated(): Boolean =
-  (this as? KtAnnotated)?.getAnnotationWithCaching(deprecatedKey) { it.isDeprecatedAnnotation() } !=
-    null
+  (this as? KtAnnotated)?.getAnnotationWithCaching(deprecatedKey) { it.isDeprecatedAnnotation() } != null
 
 private fun KtAnnotated.getAnnotationWithCaching(
   key: Key<CachedValue<KtAnnotationEntry?>>,
-  doCheck: (KtAnnotationEntry) -> Boolean
+  doCheck: (KtAnnotationEntry) -> Boolean,
 ): KtAnnotationEntry? {
   return CachedValuesManager.getCachedValue(this, key) {
     val annotationEntry = annotationEntries.firstOrNull { doCheck(it) }
@@ -126,7 +117,7 @@ private fun KtAnnotated.getAnnotationWithCaching(
       // TODO: see if we can handle alias imports without ruining performance.
       annotationEntry,
       containingKtFile,
-      ProjectRootModificationTracker.getInstance(project)
+      ProjectRootModificationTracker.getInstance(project),
     )
   }
 }
@@ -147,8 +138,7 @@ fun isComposableAnnotation(element: PsiElement): Boolean {
 
 private const val DEPRECATED_ANNOTATION_NAME = "Deprecated"
 
-private val DEPRECATED_FQ_NAMES =
-  setOf("kotlin.$DEPRECATED_ANNOTATION_NAME", "java.lang.$DEPRECATED_ANNOTATION_NAME")
+private val DEPRECATED_FQ_NAMES = setOf("kotlin.$DEPRECATED_ANNOTATION_NAME", "java.lang.$DEPRECATED_ANNOTATION_NAME")
 
 private fun KtAnnotationEntry.isDeprecatedAnnotation() =
   // fqNameMatches is expensive, so we first verify that the short name of the annotation matches.
@@ -160,20 +150,17 @@ fun PsiElement.isInsideComposableCode(): Boolean {
 
 /** Returns the `@Composable` scope around this [KtElement]. */
 fun KtElement.composableScope(): KtExpression? =
-  composableHolderAndScope()?.let { (holder, scope) ->
-    scope.takeIf { holder.hasComposableAnnotation() }
-  }
+  composableHolderAndScope()?.let { (holder, scope) -> scope.takeIf { holder.hasComposableAnnotation() } }
 
 /**
- * Returns the [KtModifierListOwner] that should hold the `@Composable` annotation for this
- * [KtElement], irrespective of whether it actually has the annotation.
+ * Returns the [KtModifierListOwner] that should hold the `@Composable` annotation for this [KtElement], irrespective of whether it actually
+ * has the annotation.
  */
-fun KtElement.expectedComposableAnnotationHolder(): KtModifierListOwner? =
-  composableHolderAndScope()?.first
+fun KtElement.expectedComposableAnnotationHolder(): KtModifierListOwner? = composableHolderAndScope()?.first
 
 /**
- * Returns the [KtModifierListOwner] that we would expect to be holding the `@Composable` annotation
- * as well as what would be the `@Composable` scope for `this` [KtElement].
+ * Returns the [KtModifierListOwner] that we would expect to be holding the `@Composable` annotation as well as what would be the
+ * `@Composable` scope for `this` [KtElement].
  */
 private tailrec fun KtElement.composableHolderAndScope(): Pair<KtModifierListOwner, KtExpression>? {
   when (val scope = possibleComposableScope()) {
@@ -216,13 +203,9 @@ private tailrec fun KtElement.composableHolderAndScope(): Pair<KtModifierListOwn
 }
 
 private fun KtElement.possibleComposableScope(): KtExpression? =
-  parentOfTypes(
-      KtNamedFunction::class,
-      KtPropertyAccessor::class,
-      KtLambdaExpression::class,
-      KtClassInitializer::class
-    )
-    ?.takeIf { it !is KtClassInitializer }
+  parentOfTypes(KtNamedFunction::class, KtPropertyAccessor::class, KtLambdaExpression::class, KtClassInitializer::class)?.takeIf {
+    it !is KtClassInitializer
+  }
 
 private fun KtModifierListOwner.hasComposableAnnotation(): Boolean = hasAnnotation(COMPOSABLE_CLASS_ID)
 
@@ -241,17 +224,13 @@ private fun KtFunction.getParameterForArgument(argument: KtValueArgument): KtPar
   if (argumentName != null) return valueParameters.firstOrNull { it.name == argumentName }
 
   // Otherwise, it's a positional argument, so just take its current position.
-  return (argument.parent as? KtValueArgumentList)
-    ?.arguments
-    ?.indexOf(argument)
-    ?.let(valueParameters::getOrNull)
+  return (argument.parent as? KtValueArgumentList)?.arguments?.indexOf(argument)?.let(valueParameters::getOrNull)
 }
 
 /**
  * Returns whether a function is a valid Preview location, which can be either:
  * 1. Top-level functions
- * 2. Non-nested functions defined in top-level classes that have a default (no parameter)
- *    constructor
+ * 2. Non-nested functions defined in top-level classes that have a default (no parameter) constructor
  */
 fun KtNamedFunction.isValidPreviewLocation(): Boolean {
   if (isTopLevel) {
@@ -272,5 +251,4 @@ fun KtNamedFunction.isValidPreviewLocation(): Boolean {
   return false
 }
 
-private fun KtClass.hasDefaultConstructor() =
-  allConstructors.isEmpty().or(allConstructors.any { it.valueParameters.isEmpty() })
+private fun KtClass.hasDefaultConstructor() = allConstructors.isEmpty().or(allConstructors.any { it.valueParameters.isEmpty() })

@@ -34,24 +34,18 @@ interface Restriction : XmlResourceElement {
 
   @Attribute("defaultValue") fun getDefaultValue(): AndroidAttributeValue<String>
 
-  @Convert(ResourceReferenceConverter::class)
-  @AndroidResourceType("array")
-  fun getEntries(): AndroidAttributeValue<ResourceValue>
+  @Convert(ResourceReferenceConverter::class) @AndroidResourceType("array") fun getEntries(): AndroidAttributeValue<ResourceValue>
 
   @Convert(ResourceReferenceConverter::class)
   @AndroidResourceType("array")
   @Attribute("entryValues")
   fun getEntryValues(): AndroidAttributeValue<ResourceValue>
 
-  @Convert(ResourceReferenceConverter::class)
-  @AndroidResourceType("string")
-  fun getDescription(): AndroidAttributeValue<ResourceValue>
+  @Convert(ResourceReferenceConverter::class) @AndroidResourceType("string") fun getDescription(): AndroidAttributeValue<ResourceValue>
 
   fun getKey(): AndroidAttributeValue<String>
 
   @Attribute("restrictionType") fun getRestrictionType(): AndroidAttributeValue<String>
 
-  @Convert(ResourceReferenceConverter::class)
-  @AndroidResourceType("string")
-  fun getTitle(): AndroidAttributeValue<ResourceValue>
+  @Convert(ResourceReferenceConverter::class) @AndroidResourceType("string") fun getTitle(): AndroidAttributeValue<ResourceValue>
 }

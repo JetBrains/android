@@ -26,20 +26,22 @@ import com.android.tools.profilers.cpu.systemtrace.RssMemoryTrackModel
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * Track renderer for System Trace RSS memory counters.
- */
+/** Track renderer for System Trace RSS memory counters. */
 class RssMemoryTrackRenderer : TrackRenderer<RssMemoryTrackModel> {
   override fun render(trackModel: TrackModel<RssMemoryTrackModel, *>): JComponent {
-    val lineChart = LineChart(trackModel.dataModel).apply {
-      configure(trackModel.dataModel.memoryCounterSeries,
-                LineConfig(DataVisualizationColors.paletteManager.getBackgroundColor(trackModel.title.hashCode())).setFilled(true))
-      setFillEndGap(true)
-    }
-    val leftAxis = AxisComponent(trackModel.dataModel.axisComponentModel, AxisComponent.AxisOrientation.RIGHT, true).apply {
-      setShowAxisLine(false)
-      setHideTickAtMin(true)
-    }
+    val lineChart =
+      LineChart(trackModel.dataModel).apply {
+        configure(
+          trackModel.dataModel.memoryCounterSeries,
+          LineConfig(DataVisualizationColors.paletteManager.getBackgroundColor(trackModel.title.hashCode())).setFilled(true),
+        )
+        setFillEndGap(true)
+      }
+    val leftAxis =
+      AxisComponent(trackModel.dataModel.axisComponentModel, AxisComponent.AxisOrientation.RIGHT, true).apply {
+        setShowAxisLine(false)
+        setHideTickAtMin(true)
+      }
     return JPanel(TabularLayout("*", "*")).apply {
       add(leftAxis, TabularLayout.Constraint(0, 0))
       add(lineChart, TabularLayout.Constraint(0, 0))

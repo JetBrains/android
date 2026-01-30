@@ -127,38 +127,32 @@ fun DeviceConfig.createDeviceInstance(): Device {
             // dimension as defined by the user reflects exactly in the Device (both the value and
             // the unit), since this change in density
             // may introduce an error when calculating the Screen dimensions
-            val resolvedDensity =
-              Densities.getCommonScreenDensity(false, deviceConfig.dpi.toDouble(), 0)
+            val resolvedDensity = Densities.getCommonScreenDensity(false, deviceConfig.dpi.toDouble(), 0)
             deviceConfig.dpi = resolvedDensity.dpiValue
             deviceConfig.dimUnit = DimUnit.px // Transforms dimension to Pixels
             xDimension = deviceConfig.width.roundToInt()
             yDimension = deviceConfig.height.roundToInt()
             pixelDensity = resolvedDensity
-            diagonalLength =
-              sqrt((1.0 * xDimension * xDimension) + (1.0 * yDimension * yDimension)) /
-                pixelDensity.dpiValue
+            diagonalLength = sqrt((1.0 * xDimension * xDimension) + (1.0 * yDimension * yDimension)) / pixelDensity.dpiValue
             screenRound = if (deviceConfig.isRound) ScreenRound.ROUND else ScreenRound.NOTROUND
             chin = if (deviceConfig.isRound) deviceConfig.chinSize.roundToInt() else 0
             size = ScreenSize.getScreenSize(diagonalLength)
             ratio = ScreenRatio.create(xDimension, yDimension)
           }
-        buttonType =
-          ButtonType.SOFT // needed for displaying nav bar when showing device decorations
+        buttonType = ButtonType.SOFT // needed for displaying nav bar when showing device decorations
       }
   }
   return customDevice
 }
 
 /** Returns the [Device] used when there's no device specified by the user. */
-fun ConfigurationSettings.getDefaultPreviewDevice(): Device? =
-  devices.find { device -> device.id == DEFAULT_DEVICE_ID } ?: defaultDevice
+fun ConfigurationSettings.getDefaultPreviewDevice(): Device? = devices.find { device -> device.id == DEFAULT_DEVICE_ID } ?: defaultDevice
 
 /**
- * Based on [deviceDefinition], returns a [Device] from the collection that matches the name or id,
- * if it's a custom spec, returns a created custom [Device].
- *
- * Note that if it's a custom spec, the dimensions will be converted to pixels to instantiate the
+ * Based on [deviceDefinition], returns a [Device] from the collection that matches the name or id, if it's a custom spec, returns a created
  * custom [Device].
+ *
+ * Note that if it's a custom spec, the dimensions will be converted to pixels to instantiate the custom [Device].
  *
  * @see createDeviceInstance
  */
@@ -169,8 +163,7 @@ fun Collection<Device>.findOrParseFromDefinition(
   return when {
     deviceDefinition.isBlank() -> null
     deviceDefinition.startsWith(DEVICE_BY_SPEC_PREFIX) -> {
-      val deviceBySpec =
-        DeviceConfig.toMutableDeviceConfigOrNull(deviceDefinition, this)?.createDeviceInstance()
+      val deviceBySpec = DeviceConfig.toMutableDeviceConfigOrNull(deviceDefinition, this)?.createDeviceInstance()
       if (deviceBySpec == null) {
         logger.warn("Unable to parse device configuration: $deviceDefinition")
       }

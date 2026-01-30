@@ -24,6 +24,6 @@ import com.android.tools.profilers.tasks.args.singleartifact.SingleArtifactTaskA
  *
  * This is distinct from allocations task arguments which are used for live/non-capture (purely allocations) memory tasks.
  */
-abstract class MemoryCaptureTaskArgs<T: MemorySessionArtifact<U>, U: GeneratedMessageV3>: SingleArtifactTaskArgs {
+abstract class MemoryCaptureTaskArgs<T : MemorySessionArtifact<U>, U : GeneratedMessageV3> : SingleArtifactTaskArgs {
   abstract fun getMemoryCaptureArtifact(): MemorySessionArtifact<U>?
 }

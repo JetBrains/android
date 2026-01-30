@@ -36,48 +36,71 @@ import org.mockito.kotlin.mock
 
 open class AbstractBuildAttributionReportBuilderTest {
 
-  val applicationPlugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "com.android.build.gradle.internal.plugins.AppPlugin")
-    .apply { recordDisplayName(PluginData.DisplayName("com.android.application", "")) }
-  val libraryPlugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "com.android.build.gradle.internal.plugins.LibraryPlugin")
-    .apply { recordDisplayName(PluginData.DisplayName("com.android.library", "")) }
-  val pluginA = PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.plugin.PluginA").apply { recordDisplayName(PluginData.DisplayName("pluginA", "")) }
-  val pluginB = PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.plugin.PluginB").apply { recordDisplayName(PluginData.DisplayName("pluginB", "")) }
+  val applicationPlugin =
+    PluginData(PluginData.PluginType.BINARY_PLUGIN, "com.android.build.gradle.internal.plugins.AppPlugin").apply {
+      recordDisplayName(PluginData.DisplayName("com.android.application", ""))
+    }
+  val libraryPlugin =
+    PluginData(PluginData.PluginType.BINARY_PLUGIN, "com.android.build.gradle.internal.plugins.LibraryPlugin").apply {
+      recordDisplayName(PluginData.DisplayName("com.android.library", ""))
+    }
+  val pluginA =
+    PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.plugin.PluginA").apply { recordDisplayName(PluginData.DisplayName("pluginA", "")) }
+  val pluginB =
+    PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.plugin.PluginB").apply { recordDisplayName(PluginData.DisplayName("pluginB", "")) }
   val pluginC = PluginData(PluginData.PluginType.UNKNOWN, "pluginC").apply { recordDisplayName(PluginData.DisplayName("pluginC", "")) }
 
-
-  /**
-   * Mock results provider with default empty values.
-   */
+  /** Mock results provider with default empty values. */
   open class MockResultsProvider : BuildEventsAnalysisResult {
     override fun getBuildRequestData(): GradleBuildInvoker.Request.RequestData = mock()
+
     override fun getBuildFinishedTimestamp(): Long = 0
+
     override fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> = emptyList()
+
     override fun getTotalBuildTimeMs(): Long = 0
+
     override fun getConfigurationPhaseTimeMs(): Long = 0
+
     override fun getCriticalPathTasks(): List<TaskData> = emptyList()
+
     override fun getTasksDeterminingBuildDuration(): List<TaskData> = emptyList()
+
     override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = emptyList()
+
     override fun getTotalConfigurationData(): ProjectConfigurationData = getProjectsConfigurationData().first()
+
     override fun getProjectsConfigurationData(): List<ProjectConfigurationData> = emptyList()
+
     override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = emptyList()
+
     override fun getAppliedPlugins(): Map<String, List<PluginData>> = emptyMap()
-    override fun getConfigurationCachingCompatibility(): ConfigurationCachingCompatibilityProjectResult = NoIncompatiblePlugins(emptyList(), false)
+
+    override fun getConfigurationCachingCompatibility(): ConfigurationCachingCompatibilityProjectResult =
+      NoIncompatiblePlugins(emptyList(), false)
+
     override fun getJetifierUsageResult(): JetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierNotUsed)
+
     override fun getTasksSharingOutput(): List<TasksSharingOutputData> = emptyList()
+
     override fun getGarbageCollectionData(): List<GarbageCollectionData> = emptyList()
+
     override fun getTotalGarbageCollectionTimeMs(): Long = 0
+
     override fun getJavaVersion(): Int? = null
+
     override fun isGCSettingSet(): Boolean? = null
+
     override fun buildUsesConfigurationCache(): Boolean = false
+
     override fun getDownloadsAnalyzerResult() = DownloadsAnalyzer.ActiveResult(repositoryResults = emptyList())
-    override fun getTaskCategoryWarningsAnalyzerResult(): TaskCategoryWarningsAnalyzer.Result = TaskCategoryWarningsAnalyzer.IssuesResult(
-      emptyList()
-    )
+
+    override fun getTaskCategoryWarningsAnalyzerResult(): TaskCategoryWarningsAnalyzer.Result =
+      TaskCategoryWarningsAnalyzer.IssuesResult(emptyList())
   }
 
   fun plugin(pluginData: PluginData, duration: Long) = PluginConfigurationData(pluginData, duration)
 
-  fun project(name: String, duration: Long, plugins: List<PluginConfigurationData> = emptyList()) = ProjectConfigurationData(name, duration,
-                                                                                                                             plugins,
-                                                                                                                             emptyList())
+  fun project(name: String, duration: Long, plugins: List<PluginConfigurationData> = emptyList()) =
+    ProjectConfigurationData(name, duration, plugins, emptyList())
 }

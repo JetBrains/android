@@ -18,18 +18,19 @@ package com.android.tools.profilers.cpu.analysis
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 
-/**
- * Analysis tab model for capture nodes.
- */
+/** Analysis tab model for capture nodes. */
 class CaptureNodeAnalysisSummaryTabModel(captureRange: Range, private val traceType: TraceType) :
-           CpuAnalysisSummaryTabModel<CaptureNodeAnalysisModel>(captureRange) {
-  override fun getLabel() = when (traceType) {
-    TraceType.ATRACE, TraceType.PERFETTO -> "Trace Event"
-    TraceType.ART, TraceType.SIMPLEPERF -> "Stack Frame"
-    else -> "Stack Frame"
-  }
+  CpuAnalysisSummaryTabModel<CaptureNodeAnalysisModel>(captureRange) {
+  override fun getLabel() =
+    when (traceType) {
+      TraceType.ATRACE,
+      TraceType.PERFETTO -> "Trace Event"
+      TraceType.ART,
+      TraceType.SIMPLEPERF -> "Stack Frame"
+      else -> "Stack Frame"
+    }
 
   // Find the smallest min and largest max of all nodes and return that as the selection range of multiple nodes.
-  override fun getSelectionRange() = Range(dataSeries.minOfOrNull { it.nodeRange.min } ?: Double.MAX_VALUE,
-                                           dataSeries.maxOfOrNull { it.nodeRange.max } ?: -Double.MAX_VALUE)
+  override fun getSelectionRange() =
+    Range(dataSeries.minOfOrNull { it.nodeRange.min } ?: Double.MAX_VALUE, dataSeries.maxOfOrNull { it.nodeRange.max } ?: -Double.MAX_VALUE)
 }

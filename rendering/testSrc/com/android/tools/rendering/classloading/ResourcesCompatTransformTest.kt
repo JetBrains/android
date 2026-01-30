@@ -34,15 +34,12 @@ class ResourcesCompatTransformTest {
     val value = TypedValue()
     value.string = "project-path/resources/font/font.ttf"
 
-    assertThrows(RuntimeException::class.java) {
-      ResourcesCompat.loadFont(null, null, value, 0, 0, null, null, false, false)
-    }
+    assertThrows(RuntimeException::class.java) { ResourcesCompat.loadFont(null, null, value, 0, 0, null, null, false, false) }
 
     val testClassLoader =
       setupTestClassLoaderWithTransformation(
         mapOf(
-          "androidx/core/content/res/ResourcesCompat\$FontCallback" to
-            ResourcesCompat.FontCallback::class.java,
+          "androidx/core/content/res/ResourcesCompat\$FontCallback" to ResourcesCompat.FontCallback::class.java,
           "androidx/core/content/res/ResourcesCompat" to ResourcesCompat::class.java,
         ),
         beforeTransformTrace,
@@ -52,8 +49,6 @@ class ResourcesCompatTransformTest {
       }
     testClassLoader.loadClass("androidx/core/content/res/ResourcesCompat\$FontCallback")
     val resourcesCompat = testClassLoader.loadClass("androidx/core/content/res/ResourcesCompat")
-    resourcesCompat.methods
-      .firstOrNull { it.name == "loadFont" }
-      ?.invoke(null, null, null, value, 0, 0, null, null, false, false)
+    resourcesCompat.methods.firstOrNull { it.name == "loadFont" }?.invoke(null, null, null, value, 0, 0, null, null, false, false)
   }
 }

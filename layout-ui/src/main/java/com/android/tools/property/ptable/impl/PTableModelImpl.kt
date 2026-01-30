@@ -34,8 +34,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   private val parentItems = IdentityHashMap<PTableItem, PTableGroupItem>()
   private var hasEditableCells = ThreeState.UNSURE
 
-  @VisibleForTesting
-  val expandedItems: MutableSet<PTableGroupItem> = Collections.newSetFromMap(IdentityHashMap())
+  @VisibleForTesting val expandedItems: MutableSet<PTableGroupItem> = Collections.newSetFromMap(IdentityHashMap())
 
   init {
     items.addAll(tableModel.items)
@@ -127,10 +126,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
       if (editable == ThreeState.UNSURE) {
         editable =
           ThreeState.fromBoolean(
-            items.any {
-              tableModel.isCellEditable(it, PTableColumn.VALUE) ||
-                tableModel.isCellEditable(it, PTableColumn.NAME)
-            }
+            items.any { tableModel.isCellEditable(it, PTableColumn.VALUE) || tableModel.isCellEditable(it, PTableColumn.NAME) }
           )
         hasEditableCells = editable
       }
@@ -215,11 +211,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     }
   }
 
-  private fun computeExpanded(
-    item: PTableGroupItem,
-    expanded: Set<PTableGroupItem>,
-    list: MutableList<PTableItem>,
-  ) {
+  private fun computeExpanded(item: PTableGroupItem, expanded: Set<PTableGroupItem>, list: MutableList<PTableItem>) {
     item.children.forEach {
       list.add(it)
       if (it is PTableGroupItem && expanded.contains(it)) {
@@ -237,9 +229,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   }
 
   private fun expandedRowCount(group: PTableGroupItem): Int {
-    return group.children.sumOf {
-      if (it is PTableGroupItem && expandedItems.contains(it)) 1 + expandedRowCount(it) else 1
-    }
+    return group.children.sumOf { if (it is PTableGroupItem && expandedItems.contains(it)) 1 + expandedRowCount(it) else 1 }
   }
 
   private fun recomputeParents() {
@@ -273,12 +263,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     }
   }
 
-  private fun <E> List<E>.copyInto(
-    destination: MutableList<E>,
-    destinationOffset: Int = 0,
-    startIndex: Int = 0,
-    endIndex: Int = size,
-  ) {
+  private fun <E> List<E>.copyInto(destination: MutableList<E>, destinationOffset: Int = 0, startIndex: Int = 0, endIndex: Int = size) {
     for (index in startIndex until endIndex) {
       destination[destinationOffset + index - startIndex] = this[index]
     }

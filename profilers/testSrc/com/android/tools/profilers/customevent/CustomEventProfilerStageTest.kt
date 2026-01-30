@@ -26,10 +26,10 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class CustomEventProfilerStageTest {
 
@@ -39,8 +39,7 @@ class CustomEventProfilerStageTest {
 
   private lateinit var profilers: StudioProfilers
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("CustomEventProfilerStageTest", transportService)
+  @get:Rule var grpcChannel = FakeGrpcChannel("CustomEventProfilerStageTest", transportService)
 
   @Before
   fun setUp() {
@@ -59,7 +58,6 @@ class CustomEventProfilerStageTest {
     val customEventsTrackGroup = stage.trackGroupModels[1]
     assertThat(customEventsTrackGroup.title).isEqualTo("Custom Events")
     assertThat(customEventsTrackGroup.size).isEqualTo(0)
-
   }
 
   @Test
@@ -68,11 +66,10 @@ class CustomEventProfilerStageTest {
     profilers.stage = stage
     stage.enter()
 
-    assertThat(stage.trackGroupModels).isNotEmpty();
+    assertThat(stage.trackGroupModels).isNotEmpty()
     assertThat(stage.trackGroupModels[0].size).isEqualTo(2)
     assertThat(stage.trackGroupModels[0][0].rendererType).isEqualTo(ProfilerTrackRendererType.USER_INTERACTION)
     assertThat(stage.trackGroupModels[0][1].rendererType).isEqualTo(ProfilerTrackRendererType.APP_LIFECYCLE)
-
   }
 
   @Test
@@ -80,22 +77,26 @@ class CustomEventProfilerStageTest {
     val stage = CustomEventProfilerStage(profilers)
     profilers.stage = stage
     // Add first event to stream and check that it has been loaded into the track group model.
-    transportService.addEventToStream(1, Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(100))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder().setName("test1"))
-      .setIsEnded(true)
-      .build())
-    transportService.addEventToStream(1, Common.Event.newBuilder()
-      .setGroupId(2)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(200))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder().setName("test2"))
-      .setIsEnded(true)
-      .build())
+    transportService.addEventToStream(
+      1,
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(100))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder().setName("test1"))
+        .setIsEnded(true)
+        .build(),
+    )
+    transportService.addEventToStream(
+      1,
+      Common.Event.newBuilder()
+        .setGroupId(2)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(200))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder().setName("test2"))
+        .setIsEnded(true)
+        .build(),
+    )
     stage.enter()
 
     stage.updateEventNames()
@@ -136,30 +137,34 @@ class CustomEventProfilerStageTest {
     assertThat(trackGroupUserCounter.size()).isEqualTo(0)
 
     // Add first event to stream and check that it has been loaded into the track group model.
-    transportService.addEventToStream(1, Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(100))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder().setName("test1"))
-      .setIsEnded(true)
-      .build())
+    transportService.addEventToStream(
+      1,
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(100))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder().setName("test1"))
+        .setIsEnded(true)
+        .build(),
+    )
 
-    stage.updateEventNames();
+    stage.updateEventNames()
     assertThat(trackGroupUserCounter.size()).isEqualTo(1)
     val track1 = trackGroupUserCounter[0].dataModel as CustomEventTrackModel
     val lineChart1 = track1.lineChartModel as UserCounterModel
     assertThat(lineChart1.eventName).isEqualTo("test1")
 
     // Add event with same name to stream.
-    transportService.addEventToStream(1, Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(1000))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder().setName("test1"))
-      .setIsEnded(true)
-      .build())
+    transportService.addEventToStream(
+      1,
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(1000))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder().setName("test1"))
+        .setIsEnded(true)
+        .build(),
+    )
 
     stage.updateEventNames()
     // Check that only one track is in the track group model since an event with the same name has been added.
@@ -178,14 +183,16 @@ class CustomEventProfilerStageTest {
     assertThat(trackGroupUserCounter.size()).isEqualTo(0)
 
     // Add first event to stream and check that it has been loaded into the track group model.
-    transportService.addEventToStream(1, Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(100))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder().setName("test1"))
-      .setIsEnded(true)
-      .build())
+    transportService.addEventToStream(
+      1,
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(100))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder().setName("test1"))
+        .setIsEnded(true)
+        .build(),
+    )
 
     stage.updateEventNames()
     assertThat(trackGroupUserCounter.size()).isEqualTo(1)
@@ -194,14 +201,16 @@ class CustomEventProfilerStageTest {
     assertThat(lineChart1.eventName).isEqualTo("test1")
 
     // Add a different event to stream.
-    transportService.addEventToStream(1, Common.Event.newBuilder()
-      .setGroupId(2)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(1000))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder().setName("test2"))
-      .setIsEnded(true)
-      .build())
+    transportService.addEventToStream(
+      1,
+      Common.Event.newBuilder()
+        .setGroupId(2)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(1000))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder().setName("test2"))
+        .setIsEnded(true)
+        .build(),
+    )
 
     // Check that a second track has been added.
     stage.updateEventNames()

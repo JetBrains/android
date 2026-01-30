@@ -20,9 +20,8 @@ import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 /** Interface for loading classes that can change with time. */
 interface ClassLoaderOverlays {
   /**
-   * Increases every time the classes are changed. One can periodically check this value against the
-   * previously read value to know whether the classes were changed since the last check. The values
-   * constitute a non-decreasing sequence of non-negative numbers.
+   * Increases every time the classes are changed. One can periodically check this value against the previously read value to know whether
+   * the classes were changed since the last check. The values constitute a non-decreasing sequence of non-negative numbers.
    */
   val modificationStamp: Long
 

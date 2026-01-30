@@ -31,36 +31,35 @@ class BuildResultsProtoMessageConverter {
     fun convertBuildAnalysisResultsFromObjectToBytes(
       buildResults: BuildAnalysisResults,
       plugins: Map<String, PluginData>,
-      tasks: Map<String, TaskData>
+      tasks: Map<String, TaskData>,
     ): BuildAnalysisResultsMessage {
       val analyzersDataBuilder = BuildAnalysisResultsMessage.newBuilder()
       analyzersDataBuilder.requestData = GradleBuildInvokerRequestRequestDataMessageConverter.transform(buildResults.getBuildRequestData())
-      analyzersDataBuilder.annotationProcessorsAnalyzerResult = AnnotationProcessorsAnalyzerResultMessageConverter.transform(
-        buildResults.getAnnotationProcessorAnalyzerResult()
-      )
-      analyzersDataBuilder.alwaysRunTasksAnalyzerResult = AlwaysRunTasksAnalyzerResultMessageConverter.transform(
-        buildResults.getAlwaysRunTasks())
-      analyzersDataBuilder.criticalPathAnalyzerResult = CriticalPathAnalyzerResultMessageConverter.transform(
-        buildResults.getCriticalPathAnalyzerResult())
-      analyzersDataBuilder.garbageCollectionAnalyzerResult = GarbageCollectionAnalyzerResultMessageConverter.transform(
-        buildResults.getGarbageCollectionAnalyzerResult()
-      )
-      analyzersDataBuilder.projectConfigurationAnalyzerResult = ProjectConfigurationAnalyzerResultMessageConverter.transform(
-        buildResults.getProjectConfigurationAnalyzerResult()
-      )
-      analyzersDataBuilder.tasksConfigurationAnalyzerResult = TaskConfigurationAnalyzerResultMessageConverter.transform(
-        buildResults.getTasksSharingOutput())
-      analyzersDataBuilder.jetifierUsageAnalyzerResult = JetifierUsageAnalyzerResultMessageConverter.transform(
-        buildResults.getJetifierUsageResult())
-      analyzersDataBuilder.downloadsAnalyzerResult = DownloadsAnalyzerResultMessageConverter.transform(
-        buildResults.getDownloadsAnalyzerResult())
-      analyzersDataBuilder.taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzerResultConverter.transform(
-        buildResults.getTaskCategoryWarningsAnalyzerResult())
+      analyzersDataBuilder.annotationProcessorsAnalyzerResult =
+        AnnotationProcessorsAnalyzerResultMessageConverter.transform(buildResults.getAnnotationProcessorAnalyzerResult())
+      analyzersDataBuilder.alwaysRunTasksAnalyzerResult =
+        AlwaysRunTasksAnalyzerResultMessageConverter.transform(buildResults.getAlwaysRunTasks())
+      analyzersDataBuilder.criticalPathAnalyzerResult =
+        CriticalPathAnalyzerResultMessageConverter.transform(buildResults.getCriticalPathAnalyzerResult())
+      analyzersDataBuilder.garbageCollectionAnalyzerResult =
+        GarbageCollectionAnalyzerResultMessageConverter.transform(buildResults.getGarbageCollectionAnalyzerResult())
+      analyzersDataBuilder.projectConfigurationAnalyzerResult =
+        ProjectConfigurationAnalyzerResultMessageConverter.transform(buildResults.getProjectConfigurationAnalyzerResult())
+      analyzersDataBuilder.tasksConfigurationAnalyzerResult =
+        TaskConfigurationAnalyzerResultMessageConverter.transform(buildResults.getTasksSharingOutput())
+      analyzersDataBuilder.jetifierUsageAnalyzerResult =
+        JetifierUsageAnalyzerResultMessageConverter.transform(buildResults.getJetifierUsageResult())
+      analyzersDataBuilder.downloadsAnalyzerResult =
+        DownloadsAnalyzerResultMessageConverter.transform(buildResults.getDownloadsAnalyzerResult())
+      analyzersDataBuilder.taskCategoryWarningsAnalyzerResult =
+        TaskCategoryWarningsAnalyzerResultConverter.transform(buildResults.getTaskCategoryWarningsAnalyzerResult())
       analyzersDataBuilder.buildSessionID = buildResults.getBuildSessionID()
-      analyzersDataBuilder.pluginCache = BuildAnalysisResultsMessage.PluginCache.newBuilder()
-        .addAllValues(plugins.values.map(::transformPluginData)).build()
-      analyzersDataBuilder.taskCache = BuildAnalysisResultsMessage.TaskCache.newBuilder()
-        .addAllValues(tasks.values.map(TaskDataMessageConverter.Companion::transform)).build()
+      analyzersDataBuilder.pluginCache =
+        BuildAnalysisResultsMessage.PluginCache.newBuilder().addAllValues(plugins.values.map(::transformPluginData)).build()
+      analyzersDataBuilder.taskCache =
+        BuildAnalysisResultsMessage.TaskCache.newBuilder()
+          .addAllValues(tasks.values.map(TaskDataMessageConverter.Companion::transform))
+          .build()
       return analyzersDataBuilder.build()
     }
 
@@ -68,27 +67,27 @@ class BuildResultsProtoMessageConverter {
       val requestData = GradleBuildInvokerRequestRequestDataMessageConverter.construct(buildResultsMsg.requestData)
       val tasks = mutableMapOf<String, TaskData>()
       val plugins = mutableMapOf<String, PluginData>()
-      buildResultsMsg.pluginCache.valuesList.map {
-        PluginData(constructPluginType(it.pluginType), it.idName)
-      }.forEach { plugins[it.idName] = it }
+      buildResultsMsg.pluginCache.valuesList
+        .map { PluginData(constructPluginType(it.pluginType), it.idName) }
+        .forEach { plugins[it.idName] = it }
       TaskDataMessageConverter.construct(buildResultsMsg.taskCache.valuesList, plugins).forEach { tasks[it.getTaskPath()] = it }
-      val annotationProcessorsAnalyzerResult = AnnotationProcessorsAnalyzerResultMessageConverter.construct(
-        buildResultsMsg.annotationProcessorsAnalyzerResult)
-      val alwaysRunTaskAnalyzerResult = AlwaysRunTasksAnalyzerResultMessageConverter.construct(buildResultsMsg.alwaysRunTasksAnalyzerResult,
-                                                                                               tasks)
-      val criticalPathAnalyzerResult = CriticalPathAnalyzerResultMessageConverter.construct(buildResultsMsg.criticalPathAnalyzerResult,
-                                                                                            tasks,
-                                                                                            plugins)
-      val garbageCollectionAnalyzerResult = GarbageCollectionAnalyzerResultMessageConverter.construct(
-        buildResultsMsg.garbageCollectionAnalyzerResult)
-      val projectConfigurationAnalyzerResult = ProjectConfigurationAnalyzerResultMessageConverter.construct(
-        buildResultsMsg.projectConfigurationAnalyzerResult)
-      val tasksConfigurationIssuesAnalyzerResult = TaskConfigurationAnalyzerResultMessageConverter.construct(
-        buildResultsMsg.tasksConfigurationAnalyzerResult, tasks)
+      val annotationProcessorsAnalyzerResult =
+        AnnotationProcessorsAnalyzerResultMessageConverter.construct(buildResultsMsg.annotationProcessorsAnalyzerResult)
+      val alwaysRunTaskAnalyzerResult =
+        AlwaysRunTasksAnalyzerResultMessageConverter.construct(buildResultsMsg.alwaysRunTasksAnalyzerResult, tasks)
+      val criticalPathAnalyzerResult =
+        CriticalPathAnalyzerResultMessageConverter.construct(buildResultsMsg.criticalPathAnalyzerResult, tasks, plugins)
+      val garbageCollectionAnalyzerResult =
+        GarbageCollectionAnalyzerResultMessageConverter.construct(buildResultsMsg.garbageCollectionAnalyzerResult)
+      val projectConfigurationAnalyzerResult =
+        ProjectConfigurationAnalyzerResultMessageConverter.construct(buildResultsMsg.projectConfigurationAnalyzerResult)
+      val tasksConfigurationIssuesAnalyzerResult =
+        TaskConfigurationAnalyzerResultMessageConverter.construct(buildResultsMsg.tasksConfigurationAnalyzerResult, tasks)
       val configurationCachingCompatibilityAnalyzerResult = NoDataFromSavedResult
       val jetifierUsageAnalyzerResult = JetifierUsageAnalyzerResultMessageConverter.construct(buildResultsMsg.jetifierUsageAnalyzerResult)
       val downloadsAnalyzerResult = DownloadsAnalyzerResultMessageConverter.construct(buildResultsMsg.downloadsAnalyzerResult)
-      val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzerResultConverter.construct(buildResultsMsg.taskCategoryWarningsAnalyzerResult)
+      val taskCategoryWarningsAnalyzerResult =
+        TaskCategoryWarningsAnalyzerResultConverter.construct(buildResultsMsg.taskCategoryWarningsAnalyzerResult)
       val buildSessionID: String = buildResultsMsg.buildSessionID
       return HistoricBuildAnalysisResults(
         buildSessionID = buildSessionID,

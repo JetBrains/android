@@ -37,19 +37,13 @@ private val tagsWithDestination = setOf("activity", "dialog", "fragment")
 
 class NavFileInspection : LocalInspectionTool() {
 
-  @Nls
-  override fun getGroupDisplayName(): String =
-    AndroidBundle.message("android.inspections.group.name")
+  @Nls override fun getGroupDisplayName(): String = AndroidBundle.message("android.inspections.group.name")
 
   @Nls override fun getDisplayName(): String = AndroidBundle.message("android.inspections.nav.file")
 
   override fun getShortName(): String = "NavigationFile"
 
-  override fun checkFile(
-    file: PsiFile,
-    manager: InspectionManager,
-    isOnTheFly: Boolean,
-  ): Array<ProblemDescriptor>? {
+  override fun checkFile(file: PsiFile, manager: InspectionManager, isOnTheFly: Boolean): Array<ProblemDescriptor>? {
     if (file !is XmlFile) {
       return ProblemDescriptor.EMPTY_ARRAY
     }
@@ -64,8 +58,7 @@ class NavFileInspection : LocalInspectionTool() {
   }
 
   private fun isRelevantFile(facet: AndroidFacet, file: XmlFile): Boolean {
-    val resourceType =
-      ModuleResourceManagers.getInstance(facet).localResourceManager.getFileResourceFolderType(file)
+    val resourceType = ModuleResourceManagers.getInstance(facet).localResourceManager.getFileResourceFolderType(file)
     return resourceType == ResourceFolderType.NAVIGATION
   }
 
@@ -87,8 +80,7 @@ class NavFileInspection : LocalInspectionTool() {
       if (!tagsWithDestination.contains(tag.name)) return
 
       val value = attribute.value ?: ""
-      val allowedDestinations =
-        getClassesForTag(module, tag.name).keys.map { it.qualifiedName }.toSet()
+      val allowedDestinations = getClassesForTag(module, tag.name).keys.map { it.qualifiedName }.toSet()
       if (!allowedDestinations.contains(value)) {
         attribute.valueElement?.let {
           myResult.add(

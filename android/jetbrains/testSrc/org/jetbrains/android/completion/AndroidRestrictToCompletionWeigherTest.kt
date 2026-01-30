@@ -133,15 +133,11 @@ class AndroidRestrictToCompletionWeigherTest {
     fixture.completeBasic()
     // Ensure that the weigher is active
     Truth.assertThat(
-        DumpLookupElementWeights.getLookupElementWeights(fixture.lookup as LookupImpl, true)
-          .filter { it.contains("restrictTo=") }
+        DumpLookupElementWeights.getLookupElementWeights(fixture.lookup as LookupImpl, true).filter { it.contains("restrictTo=") }
       )
       .hasSize(2)
     Truth.assertThat(fixture.renderedLookupElements)
-      .containsExactly(
-        "ClassLevel (androidx.library.public)",
-        "ClassLevel (androidx.library.internal)",
-      )
+      .containsExactly("ClassLevel (androidx.library.public)", "ClassLevel (androidx.library.internal)")
       .inOrder()
   }
 
@@ -162,10 +158,7 @@ class AndroidRestrictToCompletionWeigherTest {
 
     fixture.completeBasic()
     Truth.assertThat(fixture.renderedLookupElements)
-      .containsExactly(
-        "FileLevel (androidx.library.public)",
-        "FileLevel (androidx.library.internal)",
-      )
+      .containsExactly("FileLevel (androidx.library.public)", "FileLevel (androidx.library.internal)")
       .inOrder()
   }
 
@@ -186,10 +179,7 @@ class AndroidRestrictToCompletionWeigherTest {
 
     fixture.completeBasic()
     Truth.assertThat(fixture.renderedLookupElements)
-      .containsExactly(
-        "fileLevelFunction() (androidx.library.public) Unit",
-        "fileLevelFunction() (androidx.library.internal) Unit",
-      )
+      .containsExactly("fileLevelFunction() (androidx.library.public) Unit", "fileLevelFunction() (androidx.library.internal) Unit")
       .inOrder()
   }
 
@@ -210,10 +200,7 @@ class AndroidRestrictToCompletionWeigherTest {
 
     fixture.completeBasic()
     Truth.assertThat(fixture.renderedLookupElements)
-      .containsExactly(
-        "Inner (androidx.library.public.ClassLevel)",
-        "Inner (androidx.library.internal.ClassLevel)",
-      )
+      .containsExactly("Inner (androidx.library.public.ClassLevel)", "Inner (androidx.library.internal.ClassLevel)")
       .inOrder()
   }
 
@@ -222,9 +209,7 @@ class AndroidRestrictToCompletionWeigherTest {
       return runReadAction {
           lookupElements
             .orEmpty()
-            .map { lookupElement ->
-              LookupElementPresentation().apply { lookupElement.renderElement(this) }
-            }
+            .map { lookupElement -> LookupElementPresentation().apply { lookupElement.renderElement(this) } }
             .map { presentation ->
               buildString {
                 append(presentation.itemText)

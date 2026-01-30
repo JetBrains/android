@@ -35,10 +35,10 @@ import org.mockito.kotlin.whenever
 class CpuCaptureMinimapModelTest {
   private val timer = FakeTimer()
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuCaptureMinimapModelTest", FakeTransportService(timer))
+  @get:Rule var grpcChannel = FakeGrpcChannel("CpuCaptureMinimapModelTest", FakeTransportService(timer))
 
   private lateinit var profilers: StudioProfilers
+
   @Before
   fun setUp() {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
@@ -60,7 +60,7 @@ class CpuCaptureMinimapModelTest {
   @Test
   fun defaultViewIsCaptureView() {
     val timeline = DefaultTimeline()
-    timeline.viewRange.set(1.0,5.0)
+    timeline.viewRange.set(1.0, 5.0)
     val mockCapture = Mockito.mock(SystemTraceCpuCapture::class.java)
     whenever(mockCapture.range).thenReturn(Range(1.0, 10.0))
     whenever(mockCapture.type).thenReturn(TraceType.PERFETTO)

@@ -16,12 +16,12 @@
 package com.android.tools.profilers
 
 import com.android.tools.adtui.swing.FakeUi
-import com.intellij.testFramework.TestActionEvent
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Rule
 import org.junit.Test
@@ -29,13 +29,18 @@ import org.junit.Test
 class ProfilerDropDownComponentTest {
 
   @get:Rule
-  val rule = RuleChain(
-    ApplicationRule(),
-    // EdtRule is required for @RunsInEdt to work.
-    EdtRule()
-  )
+  val rule =
+    RuleChain(
+      ApplicationRule(),
+      // EdtRule is required for @RunsInEdt to work.
+      EdtRule(),
+    )
 
-  enum class TestEnum { A, B, C }
+  enum class TestEnum {
+    A,
+    B,
+    C,
+  }
 
   @Test
   fun componentIsCreated() {

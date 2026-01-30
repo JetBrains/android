@@ -24,26 +24,23 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData
 import com.google.common.truth.Truth
 import icons.StudioIcons
+import javax.swing.JComponent
+import javax.swing.JPanel
 import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import javax.swing.JComponent
-import javax.swing.JPanel
 
 @RunWith(Parameterized::class)
 class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
   private val timer = FakeTimer()
-  private val service = if (isTestingProfileable) FakeTransportService(timer, true,
-                                                                       AndroidVersion.VersionCodes.S,
-                                                                       Common.Process.ExposureLevel.PROFILEABLE)
-                        else FakeTransportService(timer)
+  private val service =
+    if (isTestingProfileable) FakeTransportService(timer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
+    else FakeTransportService(timer)
 
-  @JvmField
-  @Rule
-  val grpcChannel: FakeGrpcServer = FakeGrpcServer.createFakeGrpcServer("StageWithToolbarViewTestChannel", service)
+  @JvmField @Rule val grpcChannel: FakeGrpcServer = FakeGrpcServer.createFakeGrpcServer("StageWithToolbarViewTestChannel", service)
 
   private val ideProfilerServices = FakeIdeProfilerServices()
   private lateinit var studioProfilers: StudioProfilers
@@ -63,11 +60,14 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
 
     val fakeIdeProfilerComponents: IdeProfilerComponents = FakeIdeProfilerComponents()
     fakeStudioProfilersView = FakeStudioProfilersView(studioProfilers, fakeIdeProfilerComponents)
-    stageWithToolbarView = StageWithToolbarView(studioProfilers,
-                                                stageComponent,
-                                                fakeIdeProfilerComponents,
-                                                { stage: Stage<*> -> buildStageView(stage) },
-                                                JPanel())
+    stageWithToolbarView =
+      StageWithToolbarView(
+        studioProfilers,
+        stageComponent,
+        fakeIdeProfilerComponents,
+        { stage: Stage<*> -> buildStageView(stage) },
+        JPanel(),
+      )
 
     if (isTestingProfileable) {
       // We setup and profile a process, we assume that process has an agent attached by default.
@@ -75,12 +75,15 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
     }
   }
 
-  private fun buildStageView(stage: Stage<*>): StageView<*> = when (stage) {
-    is NullMonitorStage -> NullMonitorStageView(fakeStudioProfilersView, stage)
-    is StudioMonitorStage -> StudioMonitorStageView(fakeStudioProfilersView, stage)
-    is FakeStage -> FakeStageView(fakeStudioProfilersView, stage)
-    else -> { throw IllegalStateException("Unsupported stage found: ${stage.stageType}") }
-  }
+  private fun buildStageView(stage: Stage<*>): StageView<*> =
+    when (stage) {
+      is NullMonitorStage -> NullMonitorStageView(fakeStudioProfilersView, stage)
+      is StudioMonitorStage -> StudioMonitorStageView(fakeStudioProfilersView, stage)
+      is FakeStage -> FakeStageView(fakeStudioProfilersView, stage)
+      else -> {
+        throw IllegalStateException("Unsupported stage found: ${stage.stageType}")
+      }
+    }
 
   @Test
   fun testGoLiveButtonStates() {
@@ -94,8 +97,7 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
     for (item in contextMenuItems) {
       if (item.text == StageWithToolbarView.ATTACH_LIVE) {
         attachItem = item
-      }
-      else if (item.text == StageWithToolbarView.DETACH_LIVE) {
+      } else if (item.text == StageWithToolbarView.DETACH_LIVE) {
         detachItem = item
       }
     }
@@ -261,13 +263,14 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
     Truth.assertThat(studioProfilers.autoProfilingEnabled).isTrue()
     Truth.assertThat(stageWithToolbarView.stageViewComponent.isVisible).isFalse()
     Truth.assertThat(stageWithToolbarView.stageLoadingComponent.isVisible).isTrue()
-    val process = Common.Process.newBuilder()
-      .setPid(NEW_PROCESS_ID)
-      .setDeviceId(FakeTransportService.FAKE_DEVICE_ID)
-      .setState(Common.Process.State.ALIVE)
-      .setName(FAKE_PROCESS_2)
-      .setExposureLevel(if (isTestingProfileable) Common.Process.ExposureLevel.PROFILEABLE else Common.Process.ExposureLevel.DEBUGGABLE)
-      .build()
+    val process =
+      Common.Process.newBuilder()
+        .setPid(NEW_PROCESS_ID)
+        .setDeviceId(FakeTransportService.FAKE_DEVICE_ID)
+        .setState(Common.Process.State.ALIVE)
+        .setName(FAKE_PROCESS_2)
+        .setExposureLevel(if (isTestingProfileable) Common.Process.ExposureLevel.PROFILEABLE else Common.Process.ExposureLevel.DEBUGGABLE)
+        .build()
     startSession(FakeTransportService.FAKE_DEVICE, process)
     if (isTestingProfileable) {
       updateAgentStatus(NEW_PROCESS_ID, ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE)
@@ -300,13 +303,14 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
     Assume.assumeFalse(isTestingProfileable) // hardcoded `FAKE_DEVICE` is different than one used for the profileable test
     Truth.assertThat(stageWithToolbarView.stageViewComponent.isVisible).isTrue()
     Truth.assertThat(stageWithToolbarView.stageLoadingComponent.isVisible).isFalse()
-    val process = Common.Process.newBuilder()
-      .setPid(NEW_PROCESS_ID)
-      .setDeviceId(FakeTransportService.FAKE_DEVICE_ID)
-      .setState(Common.Process.State.ALIVE)
-      .setName(FAKE_PROCESS_2)
-      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
-      .build()
+    val process =
+      Common.Process.newBuilder()
+        .setPid(NEW_PROCESS_ID)
+        .setDeviceId(FakeTransportService.FAKE_DEVICE_ID)
+        .setState(Common.Process.State.ALIVE)
+        .setName(FAKE_PROCESS_2)
+        .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
+        .build()
     startSession(FakeTransportService.FAKE_DEVICE, process)
     updateAgentStatus(NEW_PROCESS_ID, ProfilersTestData.DEFAULT_AGENT_UNSPECIFIED_RESPONSE)
 
@@ -326,13 +330,14 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
     Assume.assumeFalse(isTestingProfileable) // hardcoded `FAKE_DEVICE` is different than one used for the profileable test
     Truth.assertThat(stageWithToolbarView.stageViewComponent.isVisible).isTrue()
     Truth.assertThat(stageWithToolbarView.stageLoadingComponent.isVisible).isFalse()
-    val process = Common.Process.newBuilder()
-      .setPid(NEW_PROCESS_ID)
-      .setDeviceId(FakeTransportService.FAKE_DEVICE_ID)
-      .setState(Common.Process.State.ALIVE)
-      .setName(FAKE_PROCESS_2)
-      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
-      .build()
+    val process =
+      Common.Process.newBuilder()
+        .setPid(NEW_PROCESS_ID)
+        .setDeviceId(FakeTransportService.FAKE_DEVICE_ID)
+        .setState(Common.Process.State.ALIVE)
+        .setName(FAKE_PROCESS_2)
+        .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
+        .build()
     startSession(FakeTransportService.FAKE_DEVICE, process)
     updateAgentStatus(NEW_PROCESS_ID, ProfilersTestData.DEFAULT_AGENT_UNSPECIFIED_RESPONSE)
 
@@ -350,22 +355,24 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
 
     // Disconnect the current device and connect to an unsupported device.
     val deadDevice = FakeTransportService.FAKE_DEVICE.toBuilder().setState(Common.Device.State.DISCONNECTED).build()
-    val device = Common.Device.newBuilder()
-      .setDeviceId(999)
-      .setSerial(UNSUPPORTED_DEVICE_NAME)
-      .setApiLevel(AndroidVersion.VersionCodes.KITKAT)
-      .setFeatureLevel(AndroidVersion.VersionCodes.KITKAT)
-      .setModel(UNSUPPORTED_DEVICE_NAME)
-      .setState(Common.Device.State.ONLINE)
-      .setUnsupportedReason(UNSUPPORTED_REASON)
-      .build()
-    val process = Common.Process.newBuilder()
-      .setPid(NEW_PROCESS_ID)
-      .setDeviceId(device.deviceId)
-      .setState(Common.Process.State.ALIVE)
-      .setName(FAKE_PROCESS_2)
-      .setExposureLevel(if (isTestingProfileable) Common.Process.ExposureLevel.PROFILEABLE else Common.Process.ExposureLevel.DEBUGGABLE)
-      .build()
+    val device =
+      Common.Device.newBuilder()
+        .setDeviceId(999)
+        .setSerial(UNSUPPORTED_DEVICE_NAME)
+        .setApiLevel(AndroidVersion.VersionCodes.KITKAT)
+        .setFeatureLevel(AndroidVersion.VersionCodes.KITKAT)
+        .setModel(UNSUPPORTED_DEVICE_NAME)
+        .setState(Common.Device.State.ONLINE)
+        .setUnsupportedReason(UNSUPPORTED_REASON)
+        .build()
+    val process =
+      Common.Process.newBuilder()
+        .setPid(NEW_PROCESS_ID)
+        .setDeviceId(device.deviceId)
+        .setState(Common.Process.State.ALIVE)
+        .setName(FAKE_PROCESS_2)
+        .setExposureLevel(if (isTestingProfileable) Common.Process.ExposureLevel.PROFILEABLE else Common.Process.ExposureLevel.DEBUGGABLE)
+        .build()
     service.updateDevice(FakeTransportService.FAKE_DEVICE, deadDevice)
 
     // Set the preferred device to the unsupported one. Loading screen will be displayed.
@@ -396,17 +403,19 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
   }
 
   private fun startSessionWithNewDeviceAndProcess() {
-    val onlineDevice = Common.Device.newBuilder()
-      .setDeviceId(NEW_DEVICE_ID.toLong())
-      .setFeatureLevel(AndroidVersion.VersionCodes.O)
-      .setState(Common.Device.State.ONLINE)
-      .build()
-    val onlineProcess = Common.Process.newBuilder()
-      .setPid(NEW_PROCESS_ID)
-      .setDeviceId(NEW_DEVICE_ID.toLong())
-      .setState(Common.Process.State.ALIVE)
-      .setExposureLevel(if (isTestingProfileable) Common.Process.ExposureLevel.PROFILEABLE else Common.Process.ExposureLevel.DEBUGGABLE)
-      .build()
+    val onlineDevice =
+      Common.Device.newBuilder()
+        .setDeviceId(NEW_DEVICE_ID.toLong())
+        .setFeatureLevel(AndroidVersion.VersionCodes.O)
+        .setState(Common.Device.State.ONLINE)
+        .build()
+    val onlineProcess =
+      Common.Process.newBuilder()
+        .setPid(NEW_PROCESS_ID)
+        .setDeviceId(NEW_DEVICE_ID.toLong())
+        .setState(Common.Process.State.ALIVE)
+        .setExposureLevel(if (isTestingProfileable) Common.Process.ExposureLevel.PROFILEABLE else Common.Process.ExposureLevel.DEBUGGABLE)
+        .build()
     startSession(onlineDevice, onlineProcess)
   }
 
@@ -424,11 +433,10 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
 
   private fun updateAgentStatus(pid: Int, agentData: AgentData) {
     val sessionStreamId = studioProfilers.session.streamId
-    service.addEventToStream(sessionStreamId, Common.Event.newBuilder()
-      .setPid(pid)
-      .setKind(Common.Event.Kind.AGENT)
-      .setAgentData(agentData)
-      .build())
+    service.addEventToStream(
+      sessionStreamId,
+      Common.Event.newBuilder().setPid(pid).setKind(Common.Event.Kind.AGENT).setAgentData(agentData).build(),
+    )
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
   }
 
@@ -442,17 +450,24 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
   }
 
-  private class FakeStudioProfilersView(override val studioProfilers: StudioProfilers,
-                                        override val ideProfilerComponents: IdeProfilerComponents) : StudioProfilersView {
+  private class FakeStudioProfilersView(
+    override val studioProfilers: StudioProfilers,
+    override val ideProfilerComponents: IdeProfilerComponents,
+  ) : StudioProfilersView {
     override val component: JComponent
       get() = JPanel()
+
     override val stageWithToolbarView: StageWithToolbarView
       get() = TODO("Not yet implemented")
+
     override val stageComponent: JPanel
       get() = TODO("Not yet implemented")
+
     override val stageView: StageView<*>?
       get() = null
+
     override fun installCommonMenuItems(component: JComponent) {}
+
     override fun dispose() {}
   }
 
@@ -463,9 +478,6 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
     private const val UNSUPPORTED_DEVICE_NAME = "UnsupportedDevice"
     private const val UNSUPPORTED_REASON = "This device is unsupported"
 
-    @JvmStatic
-    @Parameterized.Parameters
-    fun isTestingProfileable() = listOf(false, true)
+    @JvmStatic @Parameterized.Parameters fun isTestingProfileable() = listOf(false, true)
   }
 }
-

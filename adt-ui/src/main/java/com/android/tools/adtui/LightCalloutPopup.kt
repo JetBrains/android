@@ -45,12 +45,10 @@ class LightCalloutPopup(
   /**
    * @param content The content in Popup Window
    * @param parentComponent The anchor component. Can be null.
-   * @param location The position relates to [parentComponent]. If [parentComponent] is null,
-   *   position will relate to the top-left point of screen.
-   * @param position The popup position, see [Balloon.Position]. The default value is
-   *   [Balloon.Position.below].
-   * @param hideOnOutsideClick By default, the popup will close on any click performed outside its
-   *   bounds.
+   * @param location The position relates to [parentComponent]. If [parentComponent] is null, position will relate to the top-left point of
+   *   screen.
+   * @param position The popup position, see [Balloon.Position]. The default value is [Balloon.Position.below].
+   * @param hideOnOutsideClick By default, the popup will close on any click performed outside its bounds.
    */
   @JvmOverloads
   fun show(
@@ -123,12 +121,10 @@ class LightCalloutPopup(
 private val emptyRectangle = Rectangle(0, 0, 0, 0)
 
 /**
- * Return true if there is enough space in the application window below [location] in the
- * [parentComponent] coordinates to show [content].
+ * Return true if there is enough space in the application window below [location] in the [parentComponent] coordinates to show [content].
  */
 fun canShowBelow(parentComponent: JComponent, location: Point, content: JComponent): Boolean {
   val relativePoint = RelativePoint(parentComponent, location)
   val windowBounds = ComponentUtil.getWindow(parentComponent)?.bounds ?: emptyRectangle
-  return relativePoint.screenPoint.y + content.preferredSize.height <
-    windowBounds.y + windowBounds.height
+  return relativePoint.screenPoint.y + content.preferredSize.height < windowBounds.y + windowBounds.height
 }

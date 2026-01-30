@@ -17,12 +17,12 @@ package com.android.tools.profilers
 
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth.assertThat
+import javax.swing.MutableComboBoxModel
 import org.junit.Assume.assumeNotNull
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import javax.swing.MutableComboBoxModel
 
 @RunWith(Parameterized::class)
 class RecordingOptionsViewTest(configs: Array<RecordingOption>, editAction: ((MutableComboBoxModel<RecordingOption>) -> Unit)?) {
@@ -94,24 +94,24 @@ class RecordingOptionsViewTest(configs: Array<RecordingOption>, editAction: ((Mu
   }
 
   @Test
-  fun `start button disabled after pressed`() = view.builtInRadios.forEach { radio ->
-    radio.doClick()
-    with (view.startStopButton) {
-      assertThat(text).isEqualTo(RecordingOptionsView.START)
-      assertThat(isEnabled).isTrue()
-      doClick()
-
-      if (this@RecordingOptionsViewTest.model.canStop()) {
-        assertThat(text).isEqualTo(RecordingOptionsView.STOP)
+  fun `start button disabled after pressed`() =
+    view.builtInRadios.forEach { radio ->
+      radio.doClick()
+      with(view.startStopButton) {
+        assertThat(text).isEqualTo(RecordingOptionsView.START)
         assertThat(isEnabled).isTrue()
-      } else {
-        assertThat(text).isEqualTo(RecordingOptionsView.RECORDING)
-        assertThat(isEnabled).isFalse()
-      }
-    }
-    model.setFinished()
-  }
+        doClick()
 
+        if (this@RecordingOptionsViewTest.model.canStop()) {
+          assertThat(text).isEqualTo(RecordingOptionsView.STOP)
+          assertThat(isEnabled).isTrue()
+        } else {
+          assertThat(text).isEqualTo(RecordingOptionsView.RECORDING)
+          assertThat(isEnabled).isFalse()
+        }
+      }
+      model.setFinished()
+    }
 
   @Test
   fun `all options disabled when recording`() {
@@ -156,7 +156,7 @@ class RecordingOptionsViewTest(configs: Array<RecordingOption>, editAction: ((Mu
       startStopButton.doClick()
       checkEnabledSameBeforeAfter()
     }
-    model.apply{
+    model.apply {
       setOptionNotReady(model.builtInOptions[0], "not ready yet")
       checkEnabledSameBeforeAfter()
       setOptionReady(model.builtInOptions[0])
@@ -205,22 +205,22 @@ class RecordingOptionsViewTest(configs: Array<RecordingOption>, editAction: ((Mu
   }
 
   companion object {
-    private val EditConfigActions = arrayOf<((MutableComboBoxModel<RecordingOption>) -> Unit)?>(
-      null,
-      { if (it.size > 0) it.removeElementAt(0)
-        else it.addElement(RecordingOptionsModelTest.CustomConfigs[0]) }
-    )
+    private val EditConfigActions =
+      arrayOf<((MutableComboBoxModel<RecordingOption>) -> Unit)?>(
+        null,
+        { if (it.size > 0) it.removeElementAt(0) else it.addElement(RecordingOptionsModelTest.CustomConfigs[0]) },
+      )
 
-    @Parameterized.Parameters @JvmStatic
-    fun configs() = RecordingOptionsModelTest.configs().flatMap { config ->
-      EditConfigActions.map { action ->
-        (config.toList() + action).toTypedArray()
-      }
-    }.toTypedArray()
+    @Parameterized.Parameters
+    @JvmStatic
+    fun configs() =
+      RecordingOptionsModelTest.configs()
+        .flatMap { config -> EditConfigActions.map { action -> (config.toList() + action).toTypedArray() } }
+        .toTypedArray()
   }
 }
 
-private fun<T> T?.assumedNotNull(run: T.() -> Any) {
+private fun <T> T?.assumedNotNull(run: T.() -> Any) {
   assumeNotNull(this)
   this!!.run()
 }

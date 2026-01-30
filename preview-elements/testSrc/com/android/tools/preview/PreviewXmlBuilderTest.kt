@@ -15,8 +15,8 @@
  */
 package com.android.tools.preview
 
-import org.junit.Test
 import kotlin.test.assertEquals
+import org.junit.Test
 
 class PreviewXmlBuilderTest {
   @Test
@@ -26,11 +26,11 @@ class PreviewXmlBuilderTest {
     assertEquals(
       // language=XML
       """
-        <com.foo.bar.CustomView
-            xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:tools="http://schemas.android.com/tools"
-            tools:baz="hello"
-            android:intFoo="1" />
+      <com.foo.bar.CustomView
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
+          tools:baz="hello"
+          android:intFoo="1" />
       """
         .trimIndent(),
       builder.buildString().trimIndent(),

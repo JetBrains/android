@@ -25,7 +25,7 @@ import org.gradle.tooling.events.ProgressEvent
 class BuildAnalyzersWrapper(
   private val buildAnalyzers: List<BaseAnalyzer<out AnalyzerResult>>,
   private val taskContainer: TaskContainer,
-  private val pluginContainer: PluginContainer
+  private val pluginContainer: PluginContainer,
 ) {
 
   private val buildEventsAnalyzers = buildAnalyzers.filterIsInstance<BuildEventsAnalyzer>()
@@ -43,7 +43,7 @@ class BuildAnalyzersWrapper(
     androidGradlePluginAttributionData: AndroidGradlePluginAttributionData?,
     gradlePluginsData: GradlePluginsData,
     analyzersResult: BuildEventsAnalyzersProxy,
-    studioProvidedInfo: StudioProvidedInfo
+    studioProvidedInfo: StudioProvidedInfo,
   ) {
 
     if (androidGradlePluginAttributionData != null) {

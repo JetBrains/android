@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.profilers
 
 import com.android.tools.profilers.cpu.LiveCpuUsageModel
 import com.android.tools.profilers.event.EventMonitor
 import com.android.tools.profilers.memory.LiveMemoryFootprintModel
 import com.android.tools.profilers.sessions.SessionAspect
 import com.android.tools.profilers.tasks.analytics.TaskFinishedState
-import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
-import org.jetbrains.annotations.NotNull
 import java.util.Optional
+import org.jetbrains.annotations.NotNull
 
-class LiveStage(@NotNull private val profilers : StudioProfilers, val stopTask: () -> Unit) : StreamingStage(profilers) {
-  constructor(profilers : StudioProfilers) : this(profilers, {})
+class LiveStage(@NotNull private val profilers: StudioProfilers, val stopTask: () -> Unit) : StreamingStage(profilers) {
+  constructor(profilers: StudioProfilers) : this(profilers, {})
 
-  @NotNull
-  val liveModels = mutableListOf<LiveDataModel>()
+  @NotNull val liveModels = mutableListOf<LiveDataModel>()
 
-  @NotNull
-  var eventMonitor:Optional<EventMonitor> = Optional.empty()
+  @NotNull var eventMonitor: Optional<EventMonitor> = Optional.empty()
 
   private var sessionData = profilers.session
 
@@ -74,8 +71,7 @@ class LiveStage(@NotNull private val profilers : StudioProfilers, val stopTask: 
             studioProfilers.sessionsManager.removeDependencies(this)
           }
         }
-      }
-      else {
+      } else {
         // The value of 'false' is passed in for the 'isNewlyRecordedTask' as the session was not alive on entering this stage, indicating
         // that this is a previously recorded task. The assumption here is that if the live task made it to this point, it did not fail.
         myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED)

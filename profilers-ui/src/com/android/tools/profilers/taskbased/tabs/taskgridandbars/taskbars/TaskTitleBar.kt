@@ -41,17 +41,15 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
 
 /**
- * The bar hosted above the task grid containing the title of the task grid ("Tasks"). Optionally includes a task config icon button,
- * that, on click, opens the task config dialog.
+ * The bar hosted above the task grid containing the title of the task grid ("Tasks"). Optionally includes a task config icon button, that,
+ * on click, opens the task config dialog.
  */
 @Composable
 private fun TopBarContainer(taskConfigIconButton: @Composable () -> Unit) {
   Row(
-    modifier = Modifier
-      .fillMaxWidth()
-      .height(TOP_BAR_HEIGHT_DP)
-      .padding(TOP_BAR_START_PADDING_DP, end = TOP_BAR_END_PADDING_DP),
-    verticalAlignment = Alignment.CenterVertically) {
+    modifier = Modifier.fillMaxWidth().height(TOP_BAR_HEIGHT_DP).padding(TOP_BAR_START_PADDING_DP, end = TOP_BAR_END_PADDING_DP),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
     Text(TOP_BAR_TITLE)
     Spacer(modifier = Modifier.weight(1f))
     taskConfigIconButton()
@@ -62,15 +60,14 @@ private fun TopBarContainer(taskConfigIconButton: @Composable () -> Unit) {
 @Composable
 fun TopBar(profilers: StudioProfilers, ideProfilerComponents: IdeProfilerComponents) {
   TopBarContainer {
-    Tooltip(
-      { Text(TaskBasedUxStrings.TASK_CONFIG_DIALOG_DESC) },
-    ) {
+    Tooltip({ Text(TaskBasedUxStrings.TASK_CONFIG_DIALOG_DESC) }) {
       IconButton(
         onClick = {
           val ideServices = profilers.ideServices
           val model = CpuProfilerConfigModel(profilers, CpuProfilerStage(profilers))
           ideProfilerComponents.openTaskConfigurationsDialog(model, ideServices)
-        }) {
+        }
+      ) {
         Icon(
           key = StudioIconsCompose.Common.Settings,
           contentDescription = TaskBasedUxStrings.TASK_CONFIG_DIALOG_DESC,

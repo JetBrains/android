@@ -18,11 +18,8 @@ package com.android.tools.property.panel.impl.model
 import com.android.SdkConstants
 import com.android.tools.property.panel.api.PropertyItem
 
-/**
- * Model for a boolean property: on/off (usually used for a single flag in a property with flags).
- */
-class BooleanPropertyEditorModel(property: PropertyItem) :
-  TextFieldWithLeftButtonEditorModel(property, true) {
+/** Model for a boolean property: on/off (usually used for a single flag in a property with flags). */
+class BooleanPropertyEditorModel(property: PropertyItem) : TextFieldWithLeftButtonEditorModel(property, true) {
 
   override var value: String
     get() = property.resolvedValue.orEmpty()

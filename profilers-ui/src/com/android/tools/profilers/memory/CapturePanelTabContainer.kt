@@ -18,20 +18,15 @@ package com.android.tools.profilers.memory
 import javax.swing.JComponent
 
 /**
- * Interface for components that provide the body for the {@link CapturePanelUi} tabs.
- * When added to a tab the component is set as the content. When the tab is selected
- * the selected method is triggered. Likewise when deselected the deselected method is
- * triggered. This allows components to react to the current state when being activated.
+ * Interface for components that provide the body for the {@link CapturePanelUi} tabs. When added to a tab the component is set as the
+ * content. When the tab is selected the selected method is triggered. Likewise when deselected the deselected method is triggered. This
+ * allows components to react to the current state when being activated.
  */
 interface CapturePanelTabContainer {
 
-  /**
-   * Body component to be added to the TabPane.
-   */
+  /** Body component to be added to the TabPane. */
   val component: JComponent
 
-  /**
-   * When a tab is selected/deselected and visibility state is about to change.
-   */
+  /** When a tab is selected/deselected and visibility state is about to change. */
   fun onSelectionChanged(selected: Boolean) {}
 }

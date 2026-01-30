@@ -64,13 +64,9 @@ import com.intellij.openapi.project.Project
 import java.io.Closeable
 import java.util.concurrent.TimeUnit
 
-class BuildAttributionAnalyticsManager(
-  buildSessionId: String,
-  project: Project
-) : Closeable {
-  private val eventBuilder = AndroidStudioEvent.newBuilder()
-    .setKind(AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS)
-    .withProjectId(project)
+class BuildAttributionAnalyticsManager(buildSessionId: String, project: Project) : Closeable {
+  private val eventBuilder =
+    AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS).withProjectId(project)
 
   private val attributionStatsBuilder = BuildAttributionStats.newBuilder().setBuildAttributionReportSessionId(buildSessionId)
 
@@ -78,12 +74,11 @@ class BuildAttributionAnalyticsManager(
     val watch = Stopwatch.createStarted()
     postBuildAnalysis()
 
-    val performanceStats = BuildAttributionPerformanceStats.newBuilder()
-      .setPostBuildAnalysisDurationMs(watch.stop().elapsed(TimeUnit.MILLISECONDS))
-      .setToolingApiBuildFinishedEventLatencyMs(toolingApiLatencyMs)
-    numberOfGeneratedPartialResults?.let {
-      performanceStats.setNumberOfGeneratedPartialResults(it)
-    }
+    val performanceStats =
+      BuildAttributionPerformanceStats.newBuilder()
+        .setPostBuildAnalysisDurationMs(watch.stop().elapsed(TimeUnit.MILLISECONDS))
+        .setToolingApiBuildFinishedEventLatencyMs(toolingApiLatencyMs)
+    numberOfGeneratedPartialResults?.let { performanceStats.setNumberOfGeneratedPartialResults(it) }
 
     attributionStatsBuilder.setBuildAttributionPerformanceStats(performanceStats)
   }
@@ -96,13 +91,14 @@ class BuildAttributionAnalyticsManager(
     analyzersDataBuilder.alwaysRunTasksAnalyzerData = transformAlwaysRunTasksAnalyzerData(analysisResult.getAlwaysRunTasks())
     analyzersDataBuilder.annotationProcessorsAnalyzerData =
       transformAnnotationProcessorsAnalyzerData(analysisResult.getNonIncrementalAnnotationProcessorsData())
-    analyzersDataBuilder.criticalPathAnalyzerData = transformCriticalPathAnalyzerData(
-      analysisResult.getCriticalPathTasks().sumOf { it.executionTime },
-      analysisResult.getTasksDeterminingBuildDuration().sumOf(TaskData::executionTime),
-      analysisResult.getCriticalPathTasks().size,
-      analysisResult.getTasksDeterminingBuildDuration().size,
-      analysisResult.getPluginsDeterminingBuildDuration()
-    )
+    analyzersDataBuilder.criticalPathAnalyzerData =
+      transformCriticalPathAnalyzerData(
+        analysisResult.getCriticalPathTasks().sumOf { it.executionTime },
+        analysisResult.getTasksDeterminingBuildDuration().sumOf(TaskData::executionTime),
+        analysisResult.getCriticalPathTasks().size,
+        analysisResult.getTasksDeterminingBuildDuration().size,
+        analysisResult.getPluginsDeterminingBuildDuration(),
+      )
     analyzersDataBuilder.projectConfigurationAnalyzerData =
       transformProjectConfigurationAnalyzerData(analysisResult.getProjectsConfigurationData(), analysisResult.getTotalConfigurationData())
     analyzersDataBuilder.tasksConfigurationIssuesAnalyzerData =
@@ -116,9 +112,8 @@ class BuildAttributionAnalyticsManager(
       }
     }
     if (analysisResult.getTaskCategoryWarningsAnalyzerResult() is TaskCategoryWarningsAnalyzer.IssuesResult) {
-      analyzersDataBuilder.taskCategoryIssuesData = transformTaskCategoryIssuesData(
-        analysisResult.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult
-      )
+      analyzersDataBuilder.taskCategoryIssuesData =
+        transformTaskCategoryIssuesData(analysisResult.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult)
     }
     attributionStatsBuilder.setBuildAttributionAnalyzersData(analyzersDataBuilder)
   }
@@ -128,9 +123,7 @@ class BuildAttributionAnalyticsManager(
   }
 
   private fun transformAlwaysRunTasksAnalyzerData(alwaysRunTasks: List<AlwaysRunTaskData>) =
-    AlwaysRunTasksAnalyzerData.newBuilder()
-      .addAllAlwaysRunTasks(alwaysRunTasks.map(::transformAlwaysRunTaskData))
-      .build()
+    AlwaysRunTasksAnalyzerData.newBuilder().addAllAlwaysRunTasks(alwaysRunTasks.map(::transformAlwaysRunTaskData)).build()
 
   private fun transformAnnotationProcessorsAnalyzerData(nonIncrementalAnnotationProcessors: List<AnnotationProcessorData>) =
     AnnotationProcessorsAnalyzerData.newBuilder()
@@ -142,18 +135,19 @@ class BuildAttributionAnalyticsManager(
     tasksDeterminingBuildDurationMs: Long,
     numberOfTasksOnCriticalPath: Int,
     numberOfTasksDeterminingBuildDuration: Int,
-    pluginsCriticalPath: List<PluginBuildData>
-  ) = CriticalPathAnalyzerData.newBuilder()
-    .setCriticalPathDurationMs(criticalPathDurationMs)
-    .setTasksDeterminingBuildDurationMs(tasksDeterminingBuildDurationMs)
-    .setNumberOfTasksOnCriticalPath(numberOfTasksOnCriticalPath)
-    .setNumberOfTasksDeterminingBuildDuration(numberOfTasksDeterminingBuildDuration)
-    .addAllPluginsCriticalPath(pluginsCriticalPath.map(::transformPluginBuildData))
-    .build()
+    pluginsCriticalPath: List<PluginBuildData>,
+  ) =
+    CriticalPathAnalyzerData.newBuilder()
+      .setCriticalPathDurationMs(criticalPathDurationMs)
+      .setTasksDeterminingBuildDurationMs(tasksDeterminingBuildDurationMs)
+      .setNumberOfTasksOnCriticalPath(numberOfTasksOnCriticalPath)
+      .setNumberOfTasksDeterminingBuildDuration(numberOfTasksDeterminingBuildDuration)
+      .addAllPluginsCriticalPath(pluginsCriticalPath.map(::transformPluginBuildData))
+      .build()
 
   private fun transformProjectConfigurationAnalyzerData(
     projectConfigurationData: List<ProjectConfigurationData>,
-    totalConfigurationData: ProjectConfigurationData
+    totalConfigurationData: ProjectConfigurationData,
   ) =
     ProjectConfigurationAnalyzerData.newBuilder()
       .addAllProjectConfigurationData(projectConfigurationData.map(::transformProjectConfigurationData))
@@ -199,10 +193,8 @@ class BuildAttributionAnalyticsManager(
 
   private fun transformAlwaysRunTaskReason(reason: AlwaysRunTaskData.Reason) =
     when (reason) {
-      AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS ->
-        AlwaysRunTasksAnalyzerData.AlwaysRunTask.AlwaysRunReason.NO_OUTPUTS_WITH_ACTIONS
-      AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE ->
-        AlwaysRunTasksAnalyzerData.AlwaysRunTask.AlwaysRunReason.UP_TO_DATE_WHEN_FALSE
+      AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS -> AlwaysRunTasksAnalyzerData.AlwaysRunTask.AlwaysRunReason.NO_OUTPUTS_WITH_ACTIONS
+      AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE -> AlwaysRunTasksAnalyzerData.AlwaysRunTask.AlwaysRunReason.UP_TO_DATE_WHEN_FALSE
     }
 
   private fun transformAlwaysRunTaskData(alwaysRunTaskData: AlwaysRunTaskData) =
@@ -233,8 +225,7 @@ class BuildAttributionAnalyticsManager(
         ProjectConfigurationAnalyzerData.ConfigurationStep.StepType.COMPILING_BUILD_SCRIPTS
       ProjectConfigurationData.ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS ->
         ProjectConfigurationAnalyzerData.ConfigurationStep.StepType.EXECUTING_BUILD_SCRIPT_BLOCKS
-      ProjectConfigurationData.ConfigurationStep.Type.OTHER ->
-        ProjectConfigurationAnalyzerData.ConfigurationStep.StepType.OTHER
+      ProjectConfigurationData.ConfigurationStep.Type.OTHER -> ProjectConfigurationAnalyzerData.ConfigurationStep.StepType.OTHER
     }
 
   private fun transformConfigurationStepData(configurationStep: ProjectConfigurationData.ConfigurationStep) =
@@ -255,39 +246,47 @@ class BuildAttributionAnalyticsManager(
       .addAllTasksSharingOutput(tasksSharingOutputData.taskList.map(::transformTaskData))
       .build()
 
-  private fun transformConfigurationCacheCompatibilityData(configurationCachingCompatibilityState: ConfigurationCachingCompatibilityProjectResult) =
-    ConfigurationCacheCompatibilityData.newBuilder().apply {
-      compatibilityState = when (configurationCachingCompatibilityState) {
-        is AGPUpdateRequired -> ConfigurationCacheCompatibilityData.CompatibilityState.AGP_NOT_COMPATIBLE
-        is NoIncompatiblePlugins -> ConfigurationCacheCompatibilityData.CompatibilityState.INCOMPATIBLE_PLUGINS_NOT_DETECTED
-        is IncompatiblePluginsDetected -> ConfigurationCacheCompatibilityData.CompatibilityState.INCOMPATIBLE_PLUGINS_DETECTED
-        ConfigurationCachingTurnedOn -> ConfigurationCacheCompatibilityData.CompatibilityState.CONFIGURATION_CACHE_TURNED_ON
-        is ConfigurationCacheCompatibilityTestFlow -> ConfigurationCacheCompatibilityData.CompatibilityState.CONFIGURATION_CACHE_TRIAL_FLOW_BUILD
-        ConfigurationCachingTurnedOff -> ConfigurationCacheCompatibilityData.CompatibilityState.CONFIGURATION_CACHE_TURNED_OFF
-        NoDataFromSavedResult -> ConfigurationCacheCompatibilityData.CompatibilityState.UNKNOWN_STATE
+  private fun transformConfigurationCacheCompatibilityData(
+    configurationCachingCompatibilityState: ConfigurationCachingCompatibilityProjectResult
+  ) =
+    ConfigurationCacheCompatibilityData.newBuilder()
+      .apply {
+        compatibilityState =
+          when (configurationCachingCompatibilityState) {
+            is AGPUpdateRequired -> ConfigurationCacheCompatibilityData.CompatibilityState.AGP_NOT_COMPATIBLE
+            is NoIncompatiblePlugins -> ConfigurationCacheCompatibilityData.CompatibilityState.INCOMPATIBLE_PLUGINS_NOT_DETECTED
+            is IncompatiblePluginsDetected -> ConfigurationCacheCompatibilityData.CompatibilityState.INCOMPATIBLE_PLUGINS_DETECTED
+            ConfigurationCachingTurnedOn -> ConfigurationCacheCompatibilityData.CompatibilityState.CONFIGURATION_CACHE_TURNED_ON
+            is ConfigurationCacheCompatibilityTestFlow ->
+              ConfigurationCacheCompatibilityData.CompatibilityState.CONFIGURATION_CACHE_TRIAL_FLOW_BUILD
+            ConfigurationCachingTurnedOff -> ConfigurationCacheCompatibilityData.CompatibilityState.CONFIGURATION_CACHE_TURNED_OFF
+            NoDataFromSavedResult -> ConfigurationCacheCompatibilityData.CompatibilityState.UNKNOWN_STATE
+          }
+        if (configurationCachingCompatibilityState is IncompatiblePluginsDetected) {
+          addAllIncompatiblePlugins(
+            configurationCachingCompatibilityState.incompatiblePluginWarnings.map { transformPluginData(it.plugin) }
+          )
+          addAllIncompatiblePlugins(configurationCachingCompatibilityState.upgradePluginWarnings.map { transformPluginData(it.plugin) })
+        }
       }
-      if (configurationCachingCompatibilityState is IncompatiblePluginsDetected) {
-        addAllIncompatiblePlugins(configurationCachingCompatibilityState.incompatiblePluginWarnings.map { transformPluginData(it.plugin) })
-        addAllIncompatiblePlugins(configurationCachingCompatibilityState.upgradePluginWarnings.map { transformPluginData(it.plugin) })
-      }
-    }
       .build()
 
   private fun transformJetifierUsageData(jetifierUsageResult: JetifierUsageAnalyzerResult) =
-    JetifierUsageData.newBuilder().apply {
-      checkJetifierTaskBuild = jetifierUsageResult.checkJetifierBuild
-      when (jetifierUsageResult.projectStatus) {
-        AnalyzerNotRun -> null
-        JetifierCanBeRemoved -> JetifierUsageData.JetifierUsageState.JETIFIER_CAN_BE_REMOVED
-        JetifierNotUsed -> JetifierUsageData.JetifierUsageState.JETIFIER_NOT_USED
-        JetifierUsedCheckRequired -> JetifierUsageData.JetifierUsageState.JETIFIER_USED_CHECK_REQUIRED
-        is JetifierRequiredForLibraries -> JetifierUsageData.JetifierUsageState.JETIFIER_REQUIRED_FOR_LIBRARIES
-      }?.let { jetifierUsageState = it }
+    JetifierUsageData.newBuilder()
+      .apply {
+        checkJetifierTaskBuild = jetifierUsageResult.checkJetifierBuild
+        when (jetifierUsageResult.projectStatus) {
+          AnalyzerNotRun -> null
+          JetifierCanBeRemoved -> JetifierUsageData.JetifierUsageState.JETIFIER_CAN_BE_REMOVED
+          JetifierNotUsed -> JetifierUsageData.JetifierUsageState.JETIFIER_NOT_USED
+          JetifierUsedCheckRequired -> JetifierUsageData.JetifierUsageState.JETIFIER_USED_CHECK_REQUIRED
+          is JetifierRequiredForLibraries -> JetifierUsageData.JetifierUsageState.JETIFIER_REQUIRED_FOR_LIBRARIES
+        }?.let { jetifierUsageState = it }
 
-      if (jetifierUsageResult.projectStatus is JetifierRequiredForLibraries) {
-        numberOfLibrariesRequireJetifier = jetifierUsageResult.projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs.size
+        if (jetifierUsageResult.projectStatus is JetifierRequiredForLibraries) {
+          numberOfLibrariesRequireJetifier = jetifierUsageResult.projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs.size
+        }
       }
-    }
       .build()
 
   private fun transformDownloadsAnalyzerData(downloadsAnalyzerResult: DownloadsAnalyzer.ActiveResult): BuildDownloadsAnalysisData =
@@ -305,11 +304,9 @@ class BuildAttributionAnalyticsManager(
     }
 
   private fun transformTaskCategoryIssuesData(taskCategoryIssuesResult: TaskCategoryWarningsAnalyzer.IssuesResult): TaskCategoryIssuesData =
-    TaskCategoryIssuesData.newBuilder().apply {
-      addAllReportedIssues(
-        taskCategoryIssuesResult.taskCategoryIssues.mapNotNull(::transformTaskCategoryIssue)
-      )
-    }.build()
+    TaskCategoryIssuesData.newBuilder()
+      .apply { addAllReportedIssues(taskCategoryIssuesResult.taskCategoryIssues.mapNotNull(::transformTaskCategoryIssue)) }
+      .build()
 
   fun logBuildSuccess(buildInvocationType: BuildInvocationType) {
     attributionStatsBuilder.buildType = buildInvocationType.metricsType
@@ -333,20 +330,24 @@ class BuildAttributionAnalyticsManager(
 }
 
 fun transformDownloadsAnalyzerData(repositoryResults: List<DownloadsAnalyzer.RepositoryResult>): BuildDownloadsAnalysisData =
-  BuildDownloadsAnalysisData.newBuilder().apply {
-    addAllRepositories(repositoryResults.map { repoResult ->
-      BuildDownloadsAnalysisData.RepositoryStats.newBuilder().apply {
-        repositoryType = repoResult.repository.analyticsType
-        successRequestsCount = repoResult.successRequestsCount
-        successRequestsTotalTimeMs = repoResult.successRequestsTimeMs
-        successRequestsTotalBytesDownloaded = repoResult.successRequestsBytesDownloaded
-        failedRequestsCount = repoResult.failedRequestsCount
-        failedRequestsTotalTimeMs = repoResult.failedRequestsTimeMs
-        failedRequestsTotalBytesDownloaded = repoResult.failedRequestsBytesDownloaded
-        missedRequestsCount = repoResult.missedRequestsCount
-        missedRequestsTotalTimeMs = repoResult.missedRequestsTimeMs
-      }
-        .build()
-    })
-  }
+  BuildDownloadsAnalysisData.newBuilder()
+    .apply {
+      addAllRepositories(
+        repositoryResults.map { repoResult ->
+          BuildDownloadsAnalysisData.RepositoryStats.newBuilder()
+            .apply {
+              repositoryType = repoResult.repository.analyticsType
+              successRequestsCount = repoResult.successRequestsCount
+              successRequestsTotalTimeMs = repoResult.successRequestsTimeMs
+              successRequestsTotalBytesDownloaded = repoResult.successRequestsBytesDownloaded
+              failedRequestsCount = repoResult.failedRequestsCount
+              failedRequestsTotalTimeMs = repoResult.failedRequestsTimeMs
+              failedRequestsTotalBytesDownloaded = repoResult.failedRequestsBytesDownloaded
+              missedRequestsCount = repoResult.missedRequestsCount
+              missedRequestsTotalTimeMs = repoResult.missedRequestsTimeMs
+            }
+            .build()
+        }
+      )
+    }
     .build()

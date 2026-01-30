@@ -29,18 +29,13 @@ class LiveViewSessionArtifactTest {
   private val transportService = FakeTransportService(timer)
   private val session = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(Long.MAX_VALUE).build()
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("LiveViewSessionArtifactTestChannel", transportService)
+  @get:Rule var grpcChannel = FakeGrpcChannel("LiveViewSessionArtifactTestChannel", transportService)
 
   private lateinit var profilers: StudioProfilers
 
   @Before
   fun setup() {
-    profilers = StudioProfilers(
-      ProfilerClient(grpcChannel.channel),
-      FakeIdeProfilerServices(),
-      FakeTimer()
-    )
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), FakeTimer())
   }
 
   @Test
@@ -79,6 +74,5 @@ class LiveViewSessionArtifactTest {
     transportService.addEventToStream(session.streamId, liveViewEvent)
   }
 
-  private fun createMetadata(type: Common.SessionMetaData.SessionType) =
-    Common.SessionMetaData.newBuilder().setType(type).build()
+  private fun createMetadata(type: Common.SessionMetaData.SessionType) = Common.SessionMetaData.newBuilder().setType(type).build()
 }

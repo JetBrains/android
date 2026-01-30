@@ -19,9 +19,7 @@ import com.android.tools.profiler.proto.Memory
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.tasks.args.singleartifact.SingleArtifactTaskArgs
 
-/**
- * The following class serves as a wrapper for all arguments/data passed to allocations task handlers.
- */
-abstract class AllocationsTaskArgs<T: SessionArtifact<Memory.AllocationsInfo>> : SingleArtifactTaskArgs {
+/** The following class serves as a wrapper for all arguments/data passed to allocations task handlers. */
+abstract class AllocationsTaskArgs<T : SessionArtifact<Memory.AllocationsInfo>> : SingleArtifactTaskArgs {
   abstract fun getAllocationSessionArtifact(): T?
 }

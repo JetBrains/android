@@ -34,8 +34,7 @@ import javax.swing.plaf.UIResource
 /**
  * Static text component.
  *
- * Used for certain table renderer instead of [PropertyTextField] to avoid scrolling, and clipping
- * of expanded text.
+ * Used for certain table renderer instead of [PropertyTextField] to avoid scrolling, and clipping of expanded text.
  */
 class PropertyLabel(private val model: BasePropertyEditorModel) : JBLabel() {
   init {
@@ -54,21 +53,14 @@ class PropertyLabel(private val model: BasePropertyEditorModel) : JBLabel() {
     // Trick: Use the component from the event.source for tooltip in tables. See
     // TableEditor.getToolTip().
     val component = event.source as? JComponent ?: this
-    PropertyTooltip.setToolTip(
-      component,
-      model.property,
-      forValue = true,
-      text = model.property.value.orEmpty(),
-    )
+    PropertyTooltip.setToolTip(component, model.property, forValue = true, text = model.property.value.orEmpty())
     return null
   }
 
   private fun updateFromModel() {
     val actualValue = model.value
     val textValue = actualValue.takeIf { it.isNotEmpty() } ?: model.defaultValue
-    val textColor =
-      if (actualValue.isEmpty()) NamedColorUtil.getInactiveTextColor()
-      else UIUtil.getLabelForeground()
+    val textColor = if (actualValue.isEmpty()) NamedColorUtil.getInactiveTextColor() else UIUtil.getLabelForeground()
     text = expandableText(textValue, model.tableExpansionState)
     isVisible = model.visible
     foreground = model.displayedForeground(textColor)
@@ -77,11 +69,7 @@ class PropertyLabel(private val model: BasePropertyEditorModel) : JBLabel() {
     updateOutline()
     // Avoid painting the right vertical edge of the cell border if this is the left part of the
     // complete value:
-    ClientProperty.put(
-      this,
-      HIDE_RIGHT_BORDER,
-      model.tableExpansionState == TableExpansionState.EXPANDED_CELL_FOR_POPUP,
-    )
+    ClientProperty.put(this, HIDE_RIGHT_BORDER, model.tableExpansionState == TableExpansionState.EXPANDED_CELL_FOR_POPUP)
   }
 
   // Update the outline property on component such that the Darcula border will

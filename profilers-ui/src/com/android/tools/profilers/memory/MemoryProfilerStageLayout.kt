@@ -23,14 +23,13 @@ import com.intellij.ui.JBSplitter
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-
-/**
- * This class abstracts away the laying out of (@link MemoryProfilerStageView}
- */
-class MemoryProfilerStageLayout(private val timelineView: JComponent?,
-                                val capturePanel: CapturePanel,
-                                recordPanel: RecordingOptionsView,
-                                private val makeLoadingPanel: () -> LoadingPanel) {
+/** This class abstracts away the laying out of (@link MemoryProfilerStageView} */
+class MemoryProfilerStageLayout(
+  private val timelineView: JComponent?,
+  val capturePanel: CapturePanel,
+  recordPanel: RecordingOptionsView,
+  private val makeLoadingPanel: () -> LoadingPanel,
+) {
   val toolbar = JPanel(createToolbarLayout())
 
   protected var loadingPanel: LoadingPanel? = null
@@ -54,28 +53,32 @@ class MemoryProfilerStageLayout(private val timelineView: JComponent?,
       }
     }
 
-  private val instanceDetailsSplitter = JBSplitter(true).apply {
-    border = DEFAULT_VERTICAL_BORDERS
-    isOpaque = true
-    firstComponent = capturePanel.classSetView.component
-    secondComponent = capturePanel.instanceDetailsView.component
-  }
-  val chartCaptureSplitter = JBSplitter(true).apply {
-    border = DEFAULT_VERTICAL_BORDERS
-    firstComponent = timelineView
-  }
-  val mainSplitter = JBSplitter(false).apply {
-    border = DEFAULT_VERTICAL_BORDERS
-    firstComponent = chartCaptureSplitter
-    secondComponent = instanceDetailsSplitter
-    proportion = .6f
-  }
+  private val instanceDetailsSplitter =
+    JBSplitter(true).apply {
+      border = DEFAULT_VERTICAL_BORDERS
+      isOpaque = true
+      firstComponent = capturePanel.classSetView.component
+      secondComponent = capturePanel.instanceDetailsView.component
+    }
+  val chartCaptureSplitter =
+    JBSplitter(true).apply {
+      border = DEFAULT_VERTICAL_BORDERS
+      firstComponent = timelineView
+    }
+  val mainSplitter =
+    JBSplitter(false).apply {
+      border = DEFAULT_VERTICAL_BORDERS
+      firstComponent = chartCaptureSplitter
+      secondComponent = instanceDetailsSplitter
+      proportion = .6f
+    }
 
-  val component = JBSplitter(false).apply {
-    firstComponent = recordPanel
-    secondComponent = mainSplitter
-    proportion = .35f
-  }
+  val component =
+    JBSplitter(false).apply {
+      firstComponent = recordPanel
+      secondComponent = mainSplitter
+      proportion = .35f
+    }
 
   var isShowingCaptureUi = false
     set(isShown) {

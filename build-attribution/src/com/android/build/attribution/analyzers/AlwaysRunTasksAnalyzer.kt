@@ -26,32 +26,25 @@ import org.gradle.tooling.events.task.TaskOperationResult
 import org.gradle.tooling.events.task.TaskSuccessResult
 import org.gradle.tooling.model.UnsupportedMethodException
 
-/**
- * Analyzer for reporting tasks that always run due to misconfiguration.
- */
-class AlwaysRunTasksAnalyzer(
-  private val taskContainer: TaskContainer,
-  private val pluginContainer: PluginContainer
-) : BaseAnalyzer<AlwaysRunTasksAnalyzer.Result>(),
-    BuildEventsAnalyzer,
-    PostBuildProcessAnalyzer {
+/** Analyzer for reporting tasks that always run due to misconfiguration. */
+class AlwaysRunTasksAnalyzer(private val taskContainer: TaskContainer, private val pluginContainer: PluginContainer) :
+  BaseAnalyzer<AlwaysRunTasksAnalyzer.Result>(), BuildEventsAnalyzer, PostBuildProcessAnalyzer {
   private val alwaysRunTasksSet = HashSet<AlwaysRunTaskData>()
 
   override fun receiveEvent(event: ProgressEvent) {
     if (event is TaskFinishEvent && event.result is TaskSuccessResult) {
       event.result.executionReasons().forEach { reasonMessage ->
-        AlwaysRunTaskData.Reason.findMatchingReason(reasonMessage)?.let {
-          alwaysRunTasksSet.add(AlwaysRunTaskData(getTask(event), it))
-        }
+        AlwaysRunTaskData.Reason.findMatchingReason(reasonMessage)?.let { alwaysRunTasksSet.add(AlwaysRunTaskData(getTask(event), it)) }
       }
     }
   }
 
-  private fun TaskOperationResult.executionReasons(): List<String> = try {
-    (this as? TaskSuccessResult)?.executionReasons ?: emptyList()
-  } catch (e: UnsupportedMethodException) {
-    emptyList()
-  }
+  private fun TaskOperationResult.executionReasons(): List<String> =
+    try {
+      (this as? TaskSuccessResult)?.executionReasons ?: emptyList()
+    } catch (e: UnsupportedMethodException) {
+      emptyList()
+    }
 
   private fun getTask(event: TaskFinishEvent): TaskData {
     return taskContainer.getTask(event, pluginContainer)
@@ -66,9 +59,7 @@ class AlwaysRunTasksAnalyzer(
     ensureResultCalculated()
   }
 
-  override fun calculateResult(): Result = Result(
-    alwaysRunTasksSet.filter { applyIgnoredTasksFilter(it.taskData) }
-  )
+  override fun calculateResult(): Result = Result(alwaysRunTasksSet.filter { applyIgnoredTasksFilter(it.taskData) })
 
   data class Result(val alwaysRunTasks: List<AlwaysRunTaskData>) : AnalyzerResult
 }

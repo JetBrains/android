@@ -19,8 +19,5 @@ import com.android.tools.property.panel.api.ActionIconButton
 import com.intellij.openapi.actionSystem.AnAction
 import javax.swing.Icon
 
-class FakeActionIconButton(
-  override var actionButtonFocusable: Boolean,
-  override var actionIcon: Icon,
-  override var action: AnAction?,
-) : ActionIconButton
+class FakeActionIconButton(override var actionButtonFocusable: Boolean, override var actionIcon: Icon, override var action: AnAction?) :
+  ActionIconButton

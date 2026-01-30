@@ -34,11 +34,13 @@ class NativeCallStackSetTest {
   @Test
   fun classifierChildNode() {
     val classifier = NativeCallStackSet.createDefaultClassifier()
-    val allocationStack = Memory.AllocationStack.newBuilder()
-      .setFullStack(Memory.AllocationStack.StackFrameWrapper.newBuilder()
-                      .addFrames(Memory.AllocationStack.StackFrame.newBuilder()
-                                   .setMethodName("Test")))
-      .build()
+    val allocationStack =
+      Memory.AllocationStack.newBuilder()
+        .setFullStack(
+          Memory.AllocationStack.StackFrameWrapper.newBuilder()
+            .addFrames(Memory.AllocationStack.StackFrame.newBuilder().setMethodName("Test"))
+        )
+        .build()
     val instanceObject = Mockito.mock(InstanceObject::class.java)
     whenever(instanceObject.callStackDepth).thenReturn(1)
     whenever(instanceObject.allocationCallStack).thenReturn(allocationStack)
@@ -53,8 +55,7 @@ class NativeCallStackSetTest {
     val instanceObject = Mockito.mock(InstanceObject::class.java)
     whenever(instanceObject.callStackDepth).thenReturn(0)
     whenever(instanceObject.allocationCallStack).thenReturn(null)
-    whenever(instanceObject.classEntry).thenReturn(
-      ClassDb.ClassEntry(0, 0, "Test"))
+    whenever(instanceObject.classEntry).thenReturn(ClassDb.ClassEntry(0, 0, "Test"))
     val callstackSet = classifier.getClassifierSet(instanceObject, true)
     assertThat(callstackSet).isInstanceOf(NativeAllocationMethodSet::class.java)
     assertThat((callstackSet as NativeAllocationMethodSet).name).isEqualTo("Test")
@@ -68,16 +69,17 @@ class NativeCallStackSetTest {
     whenever(leafInstance.callStackDepth).thenReturn(0)
     whenever(leafInstance.allocationCallStack).thenReturn(null)
     whenever(leafInstance.instanceCount).thenReturn(1)
-    whenever(leafInstance.classEntry).thenReturn(
-      ClassDb.ClassEntry(0, 0, "Test"))
+    whenever(leafInstance.classEntry).thenReturn(ClassDb.ClassEntry(0, 0, "Test"))
     val leafSet = classifier.getClassifierSet(leafInstance, true)!!
     assertThat(leafSet.addDeltaInstanceObject(leafInstance)).isTrue()
     // Callstack instance.
-    val allocationStack = Memory.AllocationStack.newBuilder()
-      .setFullStack(Memory.AllocationStack.StackFrameWrapper.newBuilder()
-                      .addFrames(Memory.AllocationStack.StackFrame.newBuilder()
-                                   .setMethodName("Test Method")))
-      .build()
+    val allocationStack =
+      Memory.AllocationStack.newBuilder()
+        .setFullStack(
+          Memory.AllocationStack.StackFrameWrapper.newBuilder()
+            .addFrames(Memory.AllocationStack.StackFrame.newBuilder().setMethodName("Test Method"))
+        )
+        .build()
     val callStackInstance = Mockito.mock(InstanceObject::class.java)
     whenever(callStackInstance.callStackDepth).thenReturn(1)
     whenever(callStackInstance.allocationCallStack).thenReturn(allocationStack)
@@ -98,8 +100,7 @@ class NativeCallStackSetTest {
     whenever(leafInstance1.callStackDepth).thenReturn(0)
     whenever(leafInstance1.allocationCallStack).thenReturn(null)
     whenever(leafInstance1.instanceCount).thenReturn(1)
-    whenever(leafInstance1.classEntry).thenReturn(
-      ClassDb.ClassEntry(0, 0, "Test Leaf 1"))
+    whenever(leafInstance1.classEntry).thenReturn(ClassDb.ClassEntry(0, 0, "Test Leaf 1"))
     val leafSet1 = classifier.getClassifierSet(leafInstance1, true)!!
     assertThat(leafSet1.addDeltaInstanceObject(leafInstance1)).isTrue()
     // Leaf instance 2
@@ -107,16 +108,17 @@ class NativeCallStackSetTest {
     whenever(leafInstance2.callStackDepth).thenReturn(0)
     whenever(leafInstance2.allocationCallStack).thenReturn(null)
     whenever(leafInstance2.instanceCount).thenReturn(1)
-    whenever(leafInstance2.classEntry).thenReturn(
-      ClassDb.ClassEntry(0, 0, "Test Leaf 2"))
+    whenever(leafInstance2.classEntry).thenReturn(ClassDb.ClassEntry(0, 0, "Test Leaf 2"))
     val leafSet2 = classifier.getClassifierSet(leafInstance2, true)!!
     assertThat(leafSet2.addDeltaInstanceObject(leafInstance2)).isTrue()
     // Callstack instance.
-    val allocationStack = Memory.AllocationStack.newBuilder()
-      .setFullStack(Memory.AllocationStack.StackFrameWrapper.newBuilder()
-                      .addFrames(Memory.AllocationStack.StackFrame.newBuilder()
-                                   .setMethodName("Test Root")))
-      .build()
+    val allocationStack =
+      Memory.AllocationStack.newBuilder()
+        .setFullStack(
+          Memory.AllocationStack.StackFrameWrapper.newBuilder()
+            .addFrames(Memory.AllocationStack.StackFrame.newBuilder().setMethodName("Test Root"))
+        )
+        .build()
     val callStackInstance = Mockito.mock(InstanceObject::class.java)
     whenever(callStackInstance.callStackDepth).thenReturn(1)
     whenever(callStackInstance.allocationCallStack).thenReturn(allocationStack)

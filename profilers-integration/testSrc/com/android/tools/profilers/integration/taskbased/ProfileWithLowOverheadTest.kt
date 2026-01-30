@@ -19,17 +19,21 @@ import com.android.tools.profilers.integration.ProfilersTestBase
 import com.android.tools.testlib.Emulator
 import org.junit.Test
 
-class ProfileWithLowOverheadTest: ProfilersTestBase() {
+class ProfileWithLowOverheadTest : ProfilersTestBase() {
 
   override val systemImage = Emulator.SystemImage.API_33_PlayStore
 
   /**
-   * Validate “Profile ‘app’ with LowOverhead” is  working.
+   * Validate “Profile ‘app’ with LowOverhead” is working.
+   *
    * <p>
-   *  This is run to qualify releases. Please involve the test team in substantial changes.
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   *
    * <p>
-   *  TT ID: e79493c3-9b2b-4e61-b629-93421a3b2fb9
+   * TT ID: e79493c3-9b2b-4e61-b629-93421a3b2fb9
+   *
    * <p>
+   *
    *  <pre>
    *   Test Steps:
    *   1. Import minapp in the testData directory of this module.
@@ -37,12 +41,13 @@ class ProfileWithLowOverheadTest: ProfilersTestBase() {
    *   Verify:
    *   1. Verify in the logs that the running profileable process is found.
    *  </pre>
+   *
    * <p>
    */
   @Test
   fun testLowOverheadSession() {
     taskBasedProfiling(
-      deployApp=false,
+      deployApp = false,
       testFunction = { studio, adb ->
         // Since there is no definitive way to tell that the emulator is ready
         // TODO(b/260867011): Remove the wait, once there is a definitive way to tell that the emulator is ready to deploy the app.
@@ -51,7 +56,7 @@ class ProfileWithLowOverheadTest: ProfilersTestBase() {
 
         profileWithLowOverhead(studio, adb)
         verifyIdeaLog(".*Found\\s+running\\s+project\\s+process:\\s+\\d+,\\s+Profileable\$", 120)
-      }
+      },
     )
   }
 }

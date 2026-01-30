@@ -27,13 +27,11 @@ import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.toUElement
 
 /**
- * A [CompletionWeigher] that decreases the priority of elements annotated with
- * `androidx.annotation.RestrictTo` so they are not suggested at the top when compared with elements
- * of the same name that are not annotated.
+ * A [CompletionWeigher] that decreases the priority of elements annotated with `androidx.annotation.RestrictTo` so they are not suggested
+ * at the top when compared with elements of the same name that are not annotated.
  *
- * This is applied in cases like `androidx.xr.runtime.internal.Anchor` vs
- * `androidx.xr.arcore.Anchor` where the latter is not annotated and should have priority over the
- * former.
+ * This is applied in cases like `androidx.xr.runtime.internal.Anchor` vs `androidx.xr.arcore.Anchor` where the latter is not annotated and
+ * should have priority over the former.
  */
 class AndroidRestrictToCompletionWeigher : CompletionWeigher() {
   enum class Result {

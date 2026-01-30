@@ -20,9 +20,7 @@ import org.junit.Test
 
 class ResourceUtilsTest {
 
-  /**
-   * Tests [ResolutionUtils.getStyleResourceUrl]
-   */
+  /** Tests [ResolutionUtils.getStyleResourceUrl] */
   @Test
   fun testGetStyleResourceUrl() {
     assertEquals("@android:style/Theme", getStyleResourceUrl("android:Theme"))

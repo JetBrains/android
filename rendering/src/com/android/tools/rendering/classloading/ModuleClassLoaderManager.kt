@@ -18,33 +18,25 @@ package com.android.tools.rendering.classloading
 import com.intellij.openapi.module.Module
 import java.io.Closeable
 
-inline fun <T : ModuleClassLoader, R> ModuleClassLoaderManager.Reference<T>.useWithClassLoader(
-  block: (T) -> R
-) = use { block(classLoader) }
+inline fun <T : ModuleClassLoader, R> ModuleClassLoaderManager.Reference<T>.useWithClassLoader(block: (T) -> R) = use { block(classLoader) }
 
 /**
  * Responsible for providing access to [ModuleClassLoader]s.
  *
- * This is required because normally [ModuleClassLoader] is a very heavy resource, and it is
- * important to keep as few instances of those as possible and delete those right after they are no
- * longer needed.
+ * This is required because normally [ModuleClassLoader] is a very heavy resource, and it is important to keep as few instances of those as
+ * possible and delete those right after they are no longer needed.
  */
 interface ModuleClassLoaderManager<T : ModuleClassLoader> {
   /**
-   * A reference to a [ModuleClassLoader]. This reference is used as a token for users of the
-   * [ModuleClassLoaderManager] to ensure the correct handling of shared and private module class
-   * loaders. When the caller finishes using the [ModuleClassLoader] it should call
+   * A reference to a [ModuleClassLoader]. This reference is used as a token for users of the [ModuleClassLoaderManager] to ensure the
+   * correct handling of shared and private module class loaders. When the caller finishes using the [ModuleClassLoader] it should call
    * [Reference.close] to release the reference.
    *
-   * References implement [Closeable] to they can be used in try/catch blocks with automatic
-   * release.
+   * References implement [Closeable] to they can be used in try/catch blocks with automatic release.
    *
    * Released references should not be used after the release call.
    */
-  class Reference<T : ModuleClassLoader>(
-    val classLoader: T,
-    private val closer: (Reference<*>) -> Unit,
-  ) : Closeable {
+  class Reference<T : ModuleClassLoader>(val classLoader: T, private val closer: (Reference<*>) -> Unit) : Closeable {
     override fun close() = closer(this)
   }
 

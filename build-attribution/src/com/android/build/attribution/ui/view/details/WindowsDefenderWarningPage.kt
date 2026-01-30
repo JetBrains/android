@@ -34,15 +34,14 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
-class WindowsDefenderWarningPage(
-  data: WindowsDefenderCheckService.WindowsDefenderWarningData,
-  actionHandlers: ViewActionHandlers
-): JPanel() {
+class WindowsDefenderWarningPage(data: WindowsDefenderCheckService.WindowsDefenderWarningData, actionHandlers: ViewActionHandlers) :
+  JPanel() {
 
   private val linksHandler = HtmlLinksHandler(actionHandlers)
   private val pageHandler = actionHandlers.windowsDefenderPageHandler()
   private val learnMoreLink = linksHandler.externalLink("Learn more", BuildAnalyzerBrowserLinks.WINDOWS_DEFENDER)
-  val contentHtml = """
+  val contentHtml =
+    """
           <b>Anti-virus</b><br/>
           <br/>
           The IDE has detected Microsoft Defender with Real-Time Protection enabled.<br/>
@@ -52,61 +51,69 @@ class WindowsDefenderWarningPage(
           It is recommended to make sure the following paths are added to the Defender folder exclusion list:<br/>
           <br/>
           ${data.interestingPaths.joinToString(separator = "<br/>\n")}
-        """.trimIndent()
+        """
+      .trimIndent()
 
-  val autoExcludeStatus = JLabel().apply {
-    isVisible = false
-    horizontalAlignment = SwingConstants.LEFT
-  }
+  val autoExcludeStatus =
+    JLabel().apply {
+      isVisible = false
+      horizontalAlignment = SwingConstants.LEFT
+    }
 
   val autoExcludeLink: ActionLink
-  val autoExclusionLine = JPanel(HorizontalLayout(0)).apply {
-    val (preLink, link, postLink) =
-      Triple("You can ", "automatically check and exclude missing paths", " (note: Windows will ask for administrative privileges).")
-    autoExcludeLink = ActionLink(link) {
-      autoExcludeStatus.isVisible = true
-      autoExcludeStatus.icon = AnimatedIcon.Default()
-      autoExcludeStatus.text = "Running..."
-      pageHandler.runAutoExclusionScript { success -> invokeLater {
-        if (success) {
-          autoExcludeStatus.icon = StudioIcons.Common.SUCCESS_INLINE
-          autoExcludeStatus.text = DiagnosticBundle.message("defender.config.success")
+  val autoExclusionLine =
+    JPanel(HorizontalLayout(0)).apply {
+      val (preLink, link, postLink) =
+        Triple("You can ", "automatically check and exclude missing paths", " (note: Windows will ask for administrative privileges).")
+      autoExcludeLink =
+        ActionLink(link) {
+          autoExcludeStatus.isVisible = true
+          autoExcludeStatus.icon = AnimatedIcon.Default()
+          autoExcludeStatus.text = "Running..."
+          pageHandler.runAutoExclusionScript { success ->
+            invokeLater {
+              if (success) {
+                autoExcludeStatus.icon = StudioIcons.Common.SUCCESS_INLINE
+                autoExcludeStatus.text = DiagnosticBundle.message("defender.config.success")
+              } else {
+                autoExcludeStatus.icon = StudioIcons.Common.WARNING_INLINE
+                autoExcludeStatus.text = DiagnosticBundle.message("defender.config.failed")
+              }
+            }
+          }
         }
-        else {
-          autoExcludeStatus.icon = StudioIcons.Common.WARNING_INLINE
-          autoExcludeStatus.text = DiagnosticBundle.message("defender.config.failed")
-        }
-      }}
+      add(JLabel(preLink), HorizontalLayout.LEFT)
+      add(autoExcludeLink, HorizontalLayout.LEFT)
+      add(JLabel(postLink), HorizontalLayout.LEFT)
     }
-    add(JLabel(preLink), HorizontalLayout.LEFT)
-    add(autoExcludeLink, HorizontalLayout.LEFT)
-    add(JLabel(postLink), HorizontalLayout.LEFT)
-  }
 
-  val warningSuppressedMessage = JLabel(
-    DiagnosticBundle.message("defender.config.restore",ActionsBundle.message("action.ResetWindowsDefenderNotification.text"))
-  )
+  val warningSuppressedMessage =
+    JLabel(DiagnosticBundle.message("defender.config.restore", ActionsBundle.message("action.ResetWindowsDefenderNotification.text")))
   val suppressWarningLink: ActionLink
-  val suppressLine = JPanel(HorizontalLayout(0)).apply {
-    val (preLink, link, postLink) =
-      Triple("Once configured manually, you can ", "ignore this warning for this project", " to no longer see it.")
-    suppressWarningLink = ActionLink(link) {
-      pageHandler.ignoreCheckForProject()
-      warningSuppressedMessage.isVisible = true
+  val suppressLine =
+    JPanel(HorizontalLayout(0)).apply {
+      val (preLink, link, postLink) =
+        Triple("Once configured manually, you can ", "ignore this warning for this project", " to no longer see it.")
+      suppressWarningLink =
+        ActionLink(link) {
+          pageHandler.ignoreCheckForProject()
+          warningSuppressedMessage.isVisible = true
+        }
+      add(JLabel(preLink), HorizontalLayout.LEFT)
+      add(suppressWarningLink, HorizontalLayout.LEFT)
+      add(JLabel(postLink), HorizontalLayout.LEFT)
     }
-    add(JLabel(preLink), HorizontalLayout.LEFT)
-    add(suppressWarningLink, HorizontalLayout.LEFT)
-    add(JLabel(postLink), HorizontalLayout.LEFT)
-  }
 
-  private val manualInstructionsLine = JPanel(HorizontalLayout(0)).apply {
-    val (preLink, link) = Pair("You can configure active scanning manually following ", "these instructions")
-    val manualInstructionsLink = BrowserLink(link, WindowsDefenderCheckService.manualInstructionsLink).apply {
-      addActionListener { pageHandler.trackShowingManualInstructions() }
+  private val manualInstructionsLine =
+    JPanel(HorizontalLayout(0)).apply {
+      val (preLink, link) = Pair("You can configure active scanning manually following ", "these instructions")
+      val manualInstructionsLink =
+        BrowserLink(link, WindowsDefenderCheckService.manualInstructionsLink).apply {
+          addActionListener { pageHandler.trackShowingManualInstructions() }
+        }
+      add(JLabel(preLink), HorizontalLayout.LEFT)
+      add(manualInstructionsLink, HorizontalLayout.LEFT)
     }
-    add(JLabel(preLink), HorizontalLayout.LEFT)
-    add(manualInstructionsLink, HorizontalLayout.LEFT)
-  }
 
   init {
     warningSuppressedMessage.isVisible = false

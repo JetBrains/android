@@ -23,35 +23,26 @@ import com.android.tools.preview.config.PARAMETER_SHOW_DECORATION
 import com.android.tools.preview.config.PARAMETER_SHOW_SYSTEM_UI
 
 /**
- * Parses the given [backgroundColor] and returns a [PreviewDisplaySettings.Background]. The
- * [backgroundColor] can be an [Int], [Long], or [String]. If it's a [String], it will be parsed as
- * a Long. If the parsing fails, [PreviewDisplaySettings.Background.None] is returned.
+ * Parses the given [backgroundColor] and returns a [PreviewDisplaySettings.Background]. The [backgroundColor] can be an [Int], [Long], or
+ * [String]. If it's a [String], it will be parsed as a Long. If the parsing fails, [PreviewDisplaySettings.Background.None] is returned.
  */
 private fun parseBackgroundColor(backgroundColor: Any): PreviewDisplaySettings.Background {
   val backgroundColorString =
     when (backgroundColor) {
       is Int -> backgroundColor.toString(16)
       is Long -> backgroundColor.toString(16)
-      is String ->
-        backgroundColor.toLongOrNull()?.toString(16)
-          ?: return PreviewDisplaySettings.Background.None
+      is String -> backgroundColor.toLongOrNull()?.toString(16) ?: return PreviewDisplaySettings.Background.None
       else -> return PreviewDisplaySettings.Background.None // Unable to parse
     }
   return PreviewDisplaySettings.Background.Color("#$backgroundColorString")
 }
 
-/**
- * Converts the given preview annotation represented by the [attributesProvider] to a
- * [ComposePreviewElement].
- */
+/** Converts the given preview annotation represented by the [attributesProvider] to a [ComposePreviewElement]. */
 fun <T : Any> previewAnnotationToPreviewElement(
   attributesProvider: AnnotationAttributesProvider,
   annotatedMethod: AnnotatedMethod<T>,
   previewElementDefinition: T?,
-  parameterizedElementConstructor:
-    (SingleComposePreviewElementInstance<T>, Collection<PreviewParameter>) -> ComposePreviewElement<
-        T
-      >,
+  parameterizedElementConstructor: (SingleComposePreviewElementInstance<T>, Collection<PreviewParameter>) -> ComposePreviewElement<T>,
   overrideGroupName: String? = null,
   buildPreviewName: (nameParameter: String?) -> String,
   buildParameterName: (nameParameter: String?) -> String? = { it },
@@ -69,8 +60,7 @@ fun <T : Any> previewAnnotationToPreviewElement(
   val showBackground = attributesProvider.getBooleanAttribute(PARAMETER_SHOW_BACKGROUND) ?: false
   // We don't use the library's default value for BackgroundColor and instead use a value defined
   // here, see PreviewElement#toPreviewXml.
-  val backgroundColor =
-    attributesProvider.getDeclaredAttributeValue<Any>(PARAMETER_BACKGROUND_COLOR)
+  val backgroundColor = attributesProvider.getDeclaredAttributeValue<Any>(PARAMETER_BACKGROUND_COLOR)
 
   // If the same composable functions is found multiple times, only keep the first one. This usually
   // will happen during copy & paste and both the compiler and Studio will flag it as an error.
@@ -110,16 +100,14 @@ fun <T : Any> previewAnnotationToPreviewElement(
 }
 
 /**
- * Returns a list of [PreviewParameter] for the given [Collection] of parameters annotated with
- * `PreviewParameter`, where each parameter is represented by a [Pair] of its name and
- * [AnnotationAttributesProvider] for the annotation.
+ * Returns a list of [PreviewParameter] for the given [Collection] of parameters annotated with `PreviewParameter`, where each parameter is
+ * represented by a [Pair] of its name and [AnnotationAttributesProvider] for the annotation.
  */
 private fun getPreviewParameters(
   attributesProviders: Collection<Pair<String, AnnotationAttributesProvider>>
 ): Collection<PreviewParameter> =
   attributesProviders.mapIndexedNotNull { index, (name, attributesProvider) ->
-    val providerClassFqn =
-      (attributesProvider.findClassNameValue("provider")) ?: return@mapIndexedNotNull null
+    val providerClassFqn = (attributesProvider.findClassNameValue("provider")) ?: return@mapIndexedNotNull null
     val limit = attributesProvider.getIntAttribute("limit") ?: Int.MAX_VALUE
     PreviewParameter(name, index, providerClassFqn, limit)
   }

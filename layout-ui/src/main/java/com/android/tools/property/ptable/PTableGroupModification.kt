@@ -18,10 +18,6 @@ package com.android.tools.property.ptable
 /**
  * Elements removed and added to the children of a [PTableGroupItem].
  *
- * The children of a [PTableGroupItem] can be modified, but the [PTable] needs to update its model
- * for the correct expansion behaviour.
+ * The children of a [PTableGroupItem] can be modified, but the [PTable] needs to update its model for the correct expansion behaviour.
  */
-class PTableGroupModification(
-  val added: List<PTableItem>,
-  val removed: List<PTableItem> = emptyList(),
-)
+class PTableGroupModification(val added: List<PTableItem>, val removed: List<PTableItem> = emptyList())

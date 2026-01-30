@@ -19,7 +19,6 @@ import com.android.tools.asdriver.tests.AndroidStudio
 import com.android.tools.profilers.integration.ProfilersTaskTestBase
 import org.junit.Test
 
-
 class LeakCanaryTaskTest : ProfilersTaskTestBase() {
 
   override fun selectTask(studio: AndroidStudio) {
@@ -43,18 +42,17 @@ class LeakCanaryTaskTest : ProfilersTaskTestBase() {
    * Validate LeakCanary task workflow is working.
    *
    * Test Steps:
-   *  1. Import "minApp" in the testData directory of this module.
-   *  2. Deploy App and open profiler tool window, set to debuggable mode.
-   *  3. Select device -> process -> task (LeakCanary)
-   *  4. Start the task
-   *  5. Stop the session.
+   * 1. Import "minApp" in the testData directory of this module.
+   * 2. Deploy App and open profiler tool window, set to debuggable mode.
+   * 3. Select device -> process -> task (LeakCanary)
+   * 4. Start the task
+   * 5. Stop the session.
    *
    * Test Verifications:
-   *  1. Verify if the profiler tool window is opened.
-   *  2. Verify task start succeeded.
-   *  3. Verify session stopped.
-   *  4. Verify UI component.
+   * 1. Verify if the profiler tool window is opened.
+   * 2. Verify task start succeeded.
+   * 3. Verify session stopped.
+   * 4. Verify UI component.
    */
-  @Test
-  fun test() = testTask()
+  @Test fun test() = testTask()
 }

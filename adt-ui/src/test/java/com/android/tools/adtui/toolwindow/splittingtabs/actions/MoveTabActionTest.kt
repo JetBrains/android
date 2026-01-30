@@ -39,9 +39,7 @@ class MoveTabActionTest {
 
   private val moveLeftAction = MoveTabAction.Left()
   private val moveRightAction = MoveTabAction.Right()
-  private val toolWindow by lazy {
-    ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)
-  }
+  private val toolWindow by lazy { ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project) }
   private val content1 by lazy { createContent(toolWindow) }
   private val content2 by lazy { createContent(toolWindow) }
   private val content3 by lazy { createContent(toolWindow) }
@@ -73,10 +71,7 @@ class MoveTabActionTest {
 
     moveLeftAction.actionPerformed(content1)
 
-    assertThat(toolWindow.contentManager.contents)
-      .asList()
-      .containsExactly(content1, content2, content3)
-      .inOrder()
+    assertThat(toolWindow.contentManager.contents).asList().containsExactly(content1, content2, content3).inOrder()
   }
 
   @Test
@@ -87,10 +82,7 @@ class MoveTabActionTest {
 
     moveRightAction.actionPerformed(content3)
 
-    assertThat(toolWindow.contentManager.contents)
-      .asList()
-      .containsExactly(content1, content2, content3)
-      .inOrder()
+    assertThat(toolWindow.contentManager.contents).asList().containsExactly(content1, content2, content3).inOrder()
   }
 
   @Test
@@ -101,10 +93,7 @@ class MoveTabActionTest {
 
     moveLeftAction.actionPerformed(content2)
 
-    assertThat(toolWindow.contentManager.contents)
-      .asList()
-      .containsExactly(content2, content1, content3)
-      .inOrder()
+    assertThat(toolWindow.contentManager.contents).asList().containsExactly(content2, content1, content3).inOrder()
   }
 
   @Test
@@ -115,17 +104,10 @@ class MoveTabActionTest {
 
     moveRightAction.actionPerformed(content2)
 
-    assertThat(toolWindow.contentManager.contents)
-      .asList()
-      .containsExactly(content1, content3, content2)
-      .inOrder()
+    assertThat(toolWindow.contentManager.contents).asList().containsExactly(content1, content3, content2).inOrder()
   }
 
-  private fun assertActionsEnabledState(
-    content: Content,
-    leftEnabled: Boolean,
-    rightEnabled: Boolean,
-  ) {
+  private fun assertActionsEnabledState(content: Content, leftEnabled: Boolean, rightEnabled: Boolean) {
     val presentation = Presentation()
     assertThat(presentation.isVisible).isTrue()
     assertThat(moveLeftAction.isEnabled(content)).isEqualTo(leftEnabled)
@@ -141,10 +123,7 @@ class MoveTabActionTest {
           it,
           null,
           object : ChildComponentFactory {
-            override fun createChildComponent(
-              state: String?,
-              popupActionGroup: DefaultActionGroup,
-            ): JComponent = JPanel()
+            override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = JPanel()
           },
         )
     }

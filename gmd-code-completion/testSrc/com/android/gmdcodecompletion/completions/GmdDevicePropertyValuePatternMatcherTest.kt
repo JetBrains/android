@@ -22,23 +22,27 @@ import com.android.tools.idea.testing.caret
 import java.util.Calendar
 
 /**
- * Currently missing pattern matching test for Kotlin Gradle build file since
- * Kotlin side implementation relies on PSI element resolve() method. It is more
- * meaningful to do a full integration test to test this part.
+ * Currently missing pattern matching test for Kotlin Gradle build file since Kotlin side implementation relies on PSI element resolve()
+ * method. It is more meaningful to do a full integration test to test this part.
  */
 class GmdDevicePropertyValuePatternMatcherTest : GmdCodeCompletionTestBase() {
 
   fun testDevicePropertyPatternMatching_singleField() {
     val calendar = Calendar.getInstance()
     calendar.add(Calendar.DATE, 1)
-    val testManagedVirtualDeviceCatalogState = ManagedVirtualDeviceCatalogState(expireDate = calendar.time).apply {
-      this.myDeviceCatalog.devices.putAll(mapOf(
-        "testDevice1" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
-        "testDevice2" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
-      ))
-      this.myDeviceCatalog.isEmptyCatalog = false
-    }
-    managedVirtualDevicePropertyNameCompletionTestHelper(listOf("testDevice1", "testDevice2"), """
+    val testManagedVirtualDeviceCatalogState =
+      ManagedVirtualDeviceCatalogState(expireDate = calendar.time).apply {
+        this.myDeviceCatalog.devices.putAll(
+          mapOf(
+            "testDevice1" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
+            "testDevice2" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
+          )
+        )
+        this.myDeviceCatalog.isEmptyCatalog = false
+      }
+    managedVirtualDevicePropertyNameCompletionTestHelper(
+      listOf("testDevice1", "testDevice2"),
+      """
       android {
         testOptions {
           managedDevices {
@@ -50,20 +54,28 @@ class GmdDevicePropertyValuePatternMatcherTest : GmdCodeCompletionTestBase() {
           }
         }
       }
-    """.trimIndent(), testManagedVirtualDeviceCatalogState)
+    """
+        .trimIndent(),
+      testManagedVirtualDeviceCatalogState,
+    )
   }
 
   fun testDevicePropertyPatternMatching_singleFieldWithSimplifiedDsl() {
     val calendar = Calendar.getInstance()
     calendar.add(Calendar.DATE, 1)
-    val testManagedVirtualDeviceCatalogState = ManagedVirtualDeviceCatalogState(expireDate = calendar.time).apply {
-      this.myDeviceCatalog.devices.putAll(mapOf(
-        "testDevice1" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
-        "testDevice2" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
-      ))
-      this.myDeviceCatalog.isEmptyCatalog = false
-    }
-    managedVirtualDevicePropertyNameCompletionTestHelper(listOf("testDevice1", "testDevice2"), """
+    val testManagedVirtualDeviceCatalogState =
+      ManagedVirtualDeviceCatalogState(expireDate = calendar.time).apply {
+        this.myDeviceCatalog.devices.putAll(
+          mapOf(
+            "testDevice1" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
+            "testDevice2" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
+          )
+        )
+        this.myDeviceCatalog.isEmptyCatalog = false
+      }
+    managedVirtualDevicePropertyNameCompletionTestHelper(
+      listOf("testDevice1", "testDevice2"),
+      """
       android {
         testOptions {
           managedDevices {
@@ -75,21 +87,29 @@ class GmdDevicePropertyValuePatternMatcherTest : GmdCodeCompletionTestBase() {
           }
         }
       }
-    """.trimIndent(), testManagedVirtualDeviceCatalogState)
+    """
+        .trimIndent(),
+      testManagedVirtualDeviceCatalogState,
+    )
   }
 
   fun testDevicePropertyPatternMatching_withOtherFields() {
     val calendar = Calendar.getInstance()
     calendar.add(Calendar.DATE, 1)
     val testApiLevel = testMinAndTargetApiLevel.targetSdk - 1
-    val testManagedVirtualDeviceCatalogState = ManagedVirtualDeviceCatalogState(expireDate = calendar.time).apply {
-      this.myDeviceCatalog.devices.putAll(mapOf(
-        "testDevice1" to AndroidDeviceInfo(supportedApis = listOf(testApiLevel)),
-        "testDevice2" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
-      ))
-      this.myDeviceCatalog.isEmptyCatalog = false
-    }
-    managedVirtualDevicePropertyNameCompletionTestHelper(listOf("testDevice1"), """
+    val testManagedVirtualDeviceCatalogState =
+      ManagedVirtualDeviceCatalogState(expireDate = calendar.time).apply {
+        this.myDeviceCatalog.devices.putAll(
+          mapOf(
+            "testDevice1" to AndroidDeviceInfo(supportedApis = listOf(testApiLevel)),
+            "testDevice2" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
+          )
+        )
+        this.myDeviceCatalog.isEmptyCatalog = false
+      }
+    managedVirtualDevicePropertyNameCompletionTestHelper(
+      listOf("testDevice1"),
+      """
       android {
         testOptions {
           managedDevices {
@@ -102,6 +122,9 @@ class GmdDevicePropertyValuePatternMatcherTest : GmdCodeCompletionTestBase() {
           }
         }
       }
-    """.trimIndent(), testManagedVirtualDeviceCatalogState)
+    """
+        .trimIndent(),
+      testManagedVirtualDeviceCatalogState,
+    )
   }
 }

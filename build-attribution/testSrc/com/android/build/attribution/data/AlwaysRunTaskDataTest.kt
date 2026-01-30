@@ -27,12 +27,10 @@ class AlwaysRunTaskDataTest {
   fun testFindMatchingReason() {
     // If this test fails after an update, need to update strings in AlwaysRunTaskData.Reason.findMatchingReason.
     // We will probably need to match both old and new message versions in case of a change.
-    Truth.assertThat(AlwaysRunTaskData.Reason.findMatchingReason(DefaultTaskExecutionMode.noOutputs().rebuildReason.get())).isEqualTo(
-      NO_OUTPUTS_WITH_ACTIONS
-    )
-    Truth.assertThat(AlwaysRunTaskData.Reason.findMatchingReason(DefaultTaskExecutionMode.upToDateWhenFalse().rebuildReason.get())).isEqualTo(
-      UP_TO_DATE_WHEN_FALSE
-    )
+    Truth.assertThat(AlwaysRunTaskData.Reason.findMatchingReason(DefaultTaskExecutionMode.noOutputs().rebuildReason.get()))
+      .isEqualTo(NO_OUTPUTS_WITH_ACTIONS)
+    Truth.assertThat(AlwaysRunTaskData.Reason.findMatchingReason(DefaultTaskExecutionMode.upToDateWhenFalse().rebuildReason.get()))
+      .isEqualTo(UP_TO_DATE_WHEN_FALSE)
     Truth.assertThat(AlwaysRunTaskData.Reason.findMatchingReason(DefaultTaskExecutionMode.rerunTasksEnabled().rebuildReason.get())).isNull()
   }
 }

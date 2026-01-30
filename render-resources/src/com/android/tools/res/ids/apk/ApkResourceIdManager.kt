@@ -30,14 +30,11 @@ import java.util.function.Consumer
  * Resolve application resources from the information stored in the apk resource table (resources.arsc). Also, functionality from
  * [ResourceIdManagerBase] allows it to resolve android framework ids.
  */
-class ApkResourceIdManager : ResourceIdManagerBase(
-  ResourceIdManagerModelModule.noNamespacingApp(true),
-  true
-) {
+class ApkResourceIdManager : ResourceIdManagerBase(ResourceIdManagerModelModule.noNamespacingApp(true), true) {
   private val apkResources = SingleNamespaceIdMapping(ResourceNamespace.RES_AUTO)
 
   // No-op, we should prevent loading from R-classes
-  override fun resetCompiledIds(rClassProvider: Consumer<ResourceIdManager.RClassParser>) { }
+  override fun resetCompiledIds(rClassProvider: Consumer<ResourceIdManager.RClassParser>) {}
 
   override fun findById(id: Int): ResourceReference? {
     return apkResources.findById(id) ?: super.findById(id)

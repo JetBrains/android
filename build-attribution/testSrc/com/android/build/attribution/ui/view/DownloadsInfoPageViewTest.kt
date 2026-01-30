@@ -30,8 +30,7 @@ import org.mockito.Mockito
 
 class DownloadsInfoPageViewTest {
 
-  @get:Rule
-  var disposableRule = DisposableRule()
+  @get:Rule var disposableRule = DisposableRule()
 
   @Test
   fun testViewCreatedWithNonEmptyData() {
@@ -59,14 +58,16 @@ class DownloadsInfoPageViewTest {
 
   @Test
   fun testStatusColumnPresentation() {
-    val downloads = listOf(
-      downloadResult(DownloadsAnalyzer.DownloadStatus.SUCCESS, null),
-      downloadResult(DownloadsAnalyzer.DownloadStatus.MISSED, null),
-      downloadResult(DownloadsAnalyzer.DownloadStatus.FAILURE, "error\nmessage")
-    )
-    val resultList = downloads.groupBy { it.repository }.map { (repo, events) ->
-      DownloadsAnalyzer.RepositoryResult(repository = repo, downloads = events)
-    }
+    val downloads =
+      listOf(
+        downloadResult(DownloadsAnalyzer.DownloadStatus.SUCCESS, null),
+        downloadResult(DownloadsAnalyzer.DownloadStatus.MISSED, null),
+        downloadResult(DownloadsAnalyzer.DownloadStatus.FAILURE, "error\nmessage"),
+      )
+    val resultList =
+      downloads
+        .groupBy { it.repository }
+        .map { (repo, events) -> DownloadsAnalyzer.RepositoryResult(repository = repo, downloads = events) }
     val downloadsData = DownloadsAnalyzer.ActiveResult(resultList)
     val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
     val pageModel = DownloadsInfoPageModel(downloadsData)
@@ -76,34 +77,41 @@ class DownloadsInfoPageViewTest {
     val requestsTable = downloadsPage.requestsList
 
     // Convert first column cells into text presentation and compare
-    Truth.assertThat((0 until requestsTable.rowCount).joinToString(separator = "\n---\n") { row ->
-      val renderer = requestsTable.getCellRenderer(row, 0)
-      val component = requestsTable.prepareRenderer(renderer, row, 0) as ColoredTableCellRenderer
-      val cellIcon = when (component.icon) {
-        warningIcon() -> "icon:[W]"
-        null -> "no icon"
-        else -> "unexpected icon"
-      }
-      val cellText = component.getCharSequence(false)
-      val cellTooltip = component.toolTipText?.let { "tooltip:[$it]" } ?: "no tooltip"
-      "[$cellText], $cellIcon, $cellTooltip"
-    })
-      .isEqualTo("""
+    Truth.assertThat(
+        (0 until requestsTable.rowCount).joinToString(separator = "\n---\n") { row ->
+          val renderer = requestsTable.getCellRenderer(row, 0)
+          val component = requestsTable.prepareRenderer(renderer, row, 0) as ColoredTableCellRenderer
+          val cellIcon =
+            when (component.icon) {
+              warningIcon() -> "icon:[W]"
+              null -> "no icon"
+              else -> "unexpected icon"
+            }
+          val cellText = component.getCharSequence(false)
+          val cellTooltip = component.toolTipText?.let { "tooltip:[$it]" } ?: "no tooltip"
+          "[$cellText], $cellIcon, $cellTooltip"
+        }
+      )
+      .isEqualTo(
+        """
         [Ok], no icon, no tooltip
         ---
         [Not Found], icon:[W], no tooltip
         ---
         [Error], icon:[W], tooltip:[error<br/>message]
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
   }
 
-  private fun downloadResult(status: DownloadsAnalyzer.DownloadStatus, failureMessage: String?): DownloadsAnalyzer.DownloadResult = DownloadsAnalyzer.DownloadResult(
-    timestamp = 0,
-    repository = DownloadsAnalyzer.KnownRepository.GOOGLE,
-    url = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.pom",
-    status = status,
-    duration = 100,
-    bytes = 1000,
-    failureMessage = failureMessage
-  )
+  private fun downloadResult(status: DownloadsAnalyzer.DownloadStatus, failureMessage: String?): DownloadsAnalyzer.DownloadResult =
+    DownloadsAnalyzer.DownloadResult(
+      timestamp = 0,
+      repository = DownloadsAnalyzer.KnownRepository.GOOGLE,
+      url = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.pom",
+      status = status,
+      duration = 100,
+      bytes = 1000,
+      failureMessage = failureMessage,
+    )
 }

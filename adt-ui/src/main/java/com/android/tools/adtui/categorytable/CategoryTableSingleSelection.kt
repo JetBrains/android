@@ -73,8 +73,7 @@ class CategoryTableSingleSelection<T : Any>(val table: CategoryTable<T>) {
 
   private fun ifCategoryRowSelected(block: (CategoryRowComponent<T>) -> Unit) {
     val key = selectedKey.value ?: return
-    val categoryRow =
-      table.rowComponents.first { it.rowKey == key } as? CategoryRowComponent<T> ?: return
+    val categoryRow = table.rowComponents.first { it.rowKey == key } as? CategoryRowComponent<T> ?: return
     block(categoryRow)
   }
 

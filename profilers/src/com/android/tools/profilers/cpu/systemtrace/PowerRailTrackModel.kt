@@ -23,16 +23,11 @@ import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode
 import com.android.tools.profilers.cpu.LazyDataSeries
 import java.util.function.Supplier
 
-/**
- * Track model for Power counter in CPU capture stage.
- */
-class PowerRailTrackModel(dataSeries: PowerCounterData,
-                          viewRange: Range,
-                          displayMode: PowerProfilerDisplayMode) : LineChartModel() {
+/** Track model for Power counter in CPU capture stage. */
+class PowerRailTrackModel(dataSeries: PowerCounterData, viewRange: Range, displayMode: PowerProfilerDisplayMode) : LineChartModel() {
   /**
-   * [primaryCounterValues] represents the data to be displayed in the track, as well as in
-   * the tooltip, while [secondaryCounterValues] serves as supplementary data, and will only be
-   * displayed in the tooltip.
+   * [primaryCounterValues] represents the data to be displayed in the track, as well as in the tooltip, while [secondaryCounterValues]
+   * serves as supplementary data, and will only be displayed in the tooltip.
    */
   private val primaryCounterValues: List<SeriesData<Long>>
   private val secondaryCounterValues: List<SeriesData<Long>>
@@ -55,12 +50,20 @@ class PowerRailTrackModel(dataSeries: PowerCounterData,
   // the range works well to represent the data, but this is likely going to change.
   val baselineNormalizer = (maxValue - minValue) / 4
 
-  val primaryPowerRailCounterSeries = RangedContinuousSeries("Power Rails", viewRange,
-                                                             Range(minValue.toDouble() - baselineNormalizer, maxValue.toDouble()),
-                                                             LazyDataSeries(Supplier { primaryCounterValues }))
-  val secondaryPowerRailCounterSeries = RangedContinuousSeries("Power Rails", viewRange,
-                                                               Range(minValue.toDouble() - baselineNormalizer, maxValue.toDouble()),
-                                                               LazyDataSeries(Supplier { secondaryCounterValues }))
+  val primaryPowerRailCounterSeries =
+    RangedContinuousSeries(
+      "Power Rails",
+      viewRange,
+      Range(minValue.toDouble() - baselineNormalizer, maxValue.toDouble()),
+      LazyDataSeries(Supplier { primaryCounterValues }),
+    )
+  val secondaryPowerRailCounterSeries =
+    RangedContinuousSeries(
+      "Power Rails",
+      viewRange,
+      Range(minValue.toDouble() - baselineNormalizer, maxValue.toDouble()),
+      LazyDataSeries(Supplier { secondaryCounterValues }),
+    )
 
   init {
     // Only add the primary counter series to the line chart model as
@@ -75,47 +78,48 @@ class PowerRailTrackModel(dataSeries: PowerCounterData,
 
     // This map defines the power rail groupings. Rails that map to the
     // same group will have their series data aggregated into one counter.
-    val powerRailGroupMap = mapOf(
-      "power.rails.modem" to "Cellular",
-      "power.rails.radio.frontend" to "Cellular",
-      "power.VSYS_PWR_MMWAVE_uws" to "Cellular",
-      "power.rails.wifi.bt" to "WLAN",
-      "power.rails.display" to "Display",
-      "power.rails.cpu.big" to "CPU Big",
-      "power.rails.cpu.mid" to "CPU Mid",
-      "power.rails.cpu.little" to "CPU Little",
-      "power.rails.gpu" to "GPU",
-      "power.S8S_VDD_G3D_L2_uws" to "GPU",
-      "power.rails.system.fabric" to "Infrastructure",
-      "power.rails.memory.interface" to "Infrastructure",
-      "power.rails.ddr.a" to "Memory",
-      "power.rails.ddr.b" to "Memory",
-      "power.rails.ddr.c" to "Memory",
-      "power.L15M_VDD_SLC_M_uws" to "System Cache",
-      "power.rails.aoc.memory" to "Sensor Core",
-      "power.rails.aoc.logic" to "Sensor Core",
-      "power.L7S_SENSORS_uws" to "Sensor Core",
-      "power.rails.gps" to "GPS",
-      "power.S1S_VDD_CAM_uws" to "Camera",
-      "power.S6M_LLDO1_uws" to "Misc",
-      "power.S8M_LLDO2_uws" to "Misc",
-      "power.L2S_PLL_MIPI_UFS_uws" to "UFS (Disk)",
-    )
+    val powerRailGroupMap =
+      mapOf(
+        "power.rails.modem" to "Cellular",
+        "power.rails.radio.frontend" to "Cellular",
+        "power.VSYS_PWR_MMWAVE_uws" to "Cellular",
+        "power.rails.wifi.bt" to "WLAN",
+        "power.rails.display" to "Display",
+        "power.rails.cpu.big" to "CPU Big",
+        "power.rails.cpu.mid" to "CPU Mid",
+        "power.rails.cpu.little" to "CPU Little",
+        "power.rails.gpu" to "GPU",
+        "power.S8S_VDD_G3D_L2_uws" to "GPU",
+        "power.rails.system.fabric" to "Infrastructure",
+        "power.rails.memory.interface" to "Infrastructure",
+        "power.rails.ddr.a" to "Memory",
+        "power.rails.ddr.b" to "Memory",
+        "power.rails.ddr.c" to "Memory",
+        "power.L15M_VDD_SLC_M_uws" to "System Cache",
+        "power.rails.aoc.memory" to "Sensor Core",
+        "power.rails.aoc.logic" to "Sensor Core",
+        "power.L7S_SENSORS_uws" to "Sensor Core",
+        "power.rails.gps" to "GPS",
+        "power.S1S_VDD_CAM_uws" to "Camera",
+        "power.S6M_LLDO1_uws" to "Misc",
+        "power.S8M_LLDO2_uws" to "Misc",
+        "power.L2S_PLL_MIPI_UFS_uws" to "UFS (Disk)",
+      )
 
     // List of filters used to detect power rails that should be hidden.
     // These filters take a higher priority than the 'powerRailGroupMap',
     // as rails can be mapped to a group, but also hidden.
-    private val powerRailNameFilters = listOf<(String) -> Boolean>(
-      { i -> i != "power.rails.memory.interface" },
-      { i -> i != "power.rails.system.fabric" },
-      { i -> i != "power.L15M_VDD_SLC_M_uws" },
-      { i -> i != "power.S6M_LLDO1_uws" },
-      { i -> i != "power.S8M_LLDO2_uws" },
-    )
+    private val powerRailNameFilters =
+      listOf<(String) -> Boolean>(
+        { i -> i != "power.rails.memory.interface" },
+        { i -> i != "power.rails.system.fabric" },
+        { i -> i != "power.L15M_VDD_SLC_M_uws" },
+        { i -> i != "power.S6M_LLDO1_uws" },
+        { i -> i != "power.S8M_LLDO2_uws" },
+      )
 
     // This method runs a power rail name through filters to see if it should be hidden.
-    fun isPowerRailShown(railName: String): Boolean = powerRailNameFilters.fold(true) { filterResult, filter ->
-      filterResult && filter.invoke(railName)
-    }
+    fun isPowerRailShown(railName: String): Boolean =
+      powerRailNameFilters.fold(true) { filterResult, filter -> filterResult && filter.invoke(railName) }
   }
 }

@@ -23,9 +23,9 @@ import com.android.tools.profilers.StreamingStage
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.util.concurrent.TimeUnit
 
 class RecordingScreenModel<T>(stage: T) : AspectObserver(), Updatable where T : StreamingStage, T : InterimStage {
 

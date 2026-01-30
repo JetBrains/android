@@ -29,6 +29,9 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.workspaceModel.ide.legacyBridge.ModuleBridge
+import java.io.File
+import java.util.Arrays
+import java.util.concurrent.TimeUnit
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_STORE_PASSWORD_KEY
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.trySavePasswords
@@ -36,9 +39,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
-import java.io.File
-import java.util.Arrays
-import java.util.concurrent.TimeUnit
 
 class KeystoreStepTest : LightPlatformTestCase() {
   private lateinit var ideComponents: IdeComponents
@@ -108,10 +108,12 @@ class KeystoreStepTest : LightPlatformTestCase() {
     val unsortedModulesOrder = listOf("appB", "app1", "appD", "xappC", "appA")
     val moduleBridge = module as ModuleBridge
     unsortedModulesOrder.forEach { name ->
-      val nModule = object : ModuleBridge by moduleBridge {
-        override fun getName(): String = name
-        override fun dispose() {}
-      }
+      val nModule =
+        object : ModuleBridge by moduleBridge {
+          override fun getName(): String = name
+
+          override fun dispose() {}
+        }
       Disposer.register(testRootDisposable, nModule)
       facets.add(FakeAndroidFacet(nModule))
     }
@@ -119,9 +121,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
     keystoreStep._init()
 
     val expectedModulesOrder = listOf("app1", "appA", "appB", "appD", "xappC")
-    val currentModulesOrder = (0 until keystoreStep.myModuleCombo.itemCount).map {
-      keystoreStep.myModuleCombo.getItemAt(it).module.name
-    }
+    val currentModulesOrder = (0 until keystoreStep.myModuleCombo.itemCount).map { keystoreStep.myModuleCombo.getItemAt(it).module.name }
     assertEquals(expectedModulesOrder, currentModulesOrder)
   }
 
@@ -216,35 +216,34 @@ class KeystoreStepTest : LightPlatformTestCase() {
       keyPasswordField.text = keyPassword
       commitForNext()
     }
-    KeystoreStep(wizard, true, facets).setFieldsAndCommit(
-      keyStore = testKeyStorePath1,
-      keyAlias = testKeyAlias1,
-      keyStorePassword = "keystore1",
-      keyPassword = "keystore1_alias1"
-    )
+    KeystoreStep(wizard, true, facets)
+      .setFieldsAndCommit(
+        keyStore = testKeyStorePath1,
+        keyAlias = testKeyAlias1,
+        keyStorePassword = "keystore1",
+        keyPassword = "keystore1_alias1",
+      )
 
-    KeystoreStep(wizard, true, facets).also {
-      waitForCondition(1, TimeUnit.SECONDS) { it.keyStorePasswordField.password.isNotEmpty() }
-    }.setFieldsAndCommit(
-      keyStore = testKeyStorePath1,
-      keyAlias = testKeyAlias2,
-      keyStorePassword = "keystore1",
-      keyPassword = "keystore1_alias2"
-    )
+    KeystoreStep(wizard, true, facets)
+      .also { waitForCondition(1, TimeUnit.SECONDS) { it.keyStorePasswordField.password.isNotEmpty() } }
+      .setFieldsAndCommit(
+        keyStore = testKeyStorePath1,
+        keyAlias = testKeyAlias2,
+        keyStorePassword = "keystore1",
+        keyPassword = "keystore1_alias2",
+      )
 
-    KeystoreStep(wizard, true, facets).also {
-      waitForCondition(1, TimeUnit.SECONDS) { it.keyStorePasswordField.password.isNotEmpty() }
-    }.setFieldsAndCommit(
-      keyStore = testKeyStorePath2,
-      keyAlias = testKeyAlias1,
-      keyStorePassword = "keystore2",
-      keyPassword = "keystore2_alias1"
-    )
+    KeystoreStep(wizard, true, facets)
+      .also { waitForCondition(1, TimeUnit.SECONDS) { it.keyStorePasswordField.password.isNotEmpty() } }
+      .setFieldsAndCommit(
+        keyStore = testKeyStorePath2,
+        keyAlias = testKeyAlias1,
+        keyStorePassword = "keystore2",
+        keyPassword = "keystore2_alias1",
+      )
 
     fun KeystoreStep.checkFields(keyStore: String, keyAlias: String, keyStorePassword: String, keyPassword: String) {
-      waitForCondition(1, TimeUnit.SECONDS) {
-        keyStorePasswordField.password.isNotEmpty() && keyPasswordField.password.isNotEmpty()
-      }
+      waitForCondition(1, TimeUnit.SECONDS) { keyStorePasswordField.password.isNotEmpty() && keyPasswordField.password.isNotEmpty() }
       assertEquals(keyStore, keyStorePathField.text)
       assertEquals(keyAlias, keyAliasField.text)
       assertEquals(keyStorePassword, String(keyStorePasswordField.password))
@@ -254,34 +253,22 @@ class KeystoreStepTest : LightPlatformTestCase() {
     settings.KEY_STORE_PATH = testKeyStorePath1
     settings.KEY_ALIAS = testKeyAlias1
 
-    KeystoreStep(wizard, true, facets).checkFields(
-      keyStore = testKeyStorePath1,
-      keyAlias = testKeyAlias1,
-      keyStorePassword = "keystore1",
-      keyPassword = "keystore1_alias1"
-    )
+    KeystoreStep(wizard, true, facets)
+      .checkFields(keyStore = testKeyStorePath1, keyAlias = testKeyAlias1, keyStorePassword = "keystore1", keyPassword = "keystore1_alias1")
 
     // Change settings back to first keystore and second alias
     settings.KEY_STORE_PATH = testKeyStorePath1
     settings.KEY_ALIAS = testKeyAlias2
 
-    KeystoreStep(wizard, true, facets).checkFields(
-      keyStore = testKeyStorePath1,
-      keyAlias = testKeyAlias2,
-      keyStorePassword = "keystore1",
-      keyPassword = "keystore1_alias2"
-    )
+    KeystoreStep(wizard, true, facets)
+      .checkFields(keyStore = testKeyStorePath1, keyAlias = testKeyAlias2, keyStorePassword = "keystore1", keyPassword = "keystore1_alias2")
 
     // Change settings back to second keystore
     settings.KEY_STORE_PATH = testKeyStorePath2
     settings.KEY_ALIAS = testKeyAlias1
 
-    KeystoreStep(wizard, true, facets).checkFields(
-      keyStore = testKeyStorePath2,
-      keyAlias = testKeyAlias1,
-      keyStorePassword = "keystore2",
-      keyPassword = "keystore2_alias1"
-    )
+    KeystoreStep(wizard, true, facets)
+      .checkFields(keyStore = testKeyStorePath2, keyAlias = testKeyAlias1, keyStorePassword = "keystore2", keyPassword = "keystore2_alias1")
   }
 
   // See b/64995008 & b/70937387 - we want to ensure smooth transition so that the user didn't have to retype both passwords
@@ -443,9 +430,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
     Truth.assertThat(keystoreStep.helpId).startsWith(AndroidWebHelpProvider.HELP_PREFIX + "studio/publish/app-signing")
   }
 
-  private class FakeAndroidFacet(
-    module: Module,
-  ) : AndroidFacet(module, NAME, AndroidFacetConfiguration())
+  private class FakeAndroidFacet(module: Module) : AndroidFacet(module, NAME, AndroidFacetConfiguration())
 
   private fun setupWizardHelper(): ExportSignedPackageWizard {
     val testKeyStorePath = "/test/path/to/keystore"

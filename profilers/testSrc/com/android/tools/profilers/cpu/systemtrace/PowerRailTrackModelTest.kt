@@ -26,9 +26,12 @@ class PowerRailTrackModelTest {
 
   @Test
   fun nonZeroRangeValuesComputedCorrectlyWithDeltaAsPrimary() {
-    val powerRailTrackModel = PowerRailTrackModel(
-      PowerCounterData(NON_ZERO_RANGE_POWER_RAIL_DELTA_VALUES, NON_ZERO_RANGE_POWER_RAIL_CUMULATIVE_VALUES), Range(0.0, 3000.0),
-      PowerProfilerDisplayMode.DELTA)
+    val powerRailTrackModel =
+      PowerRailTrackModel(
+        PowerCounterData(NON_ZERO_RANGE_POWER_RAIL_DELTA_VALUES, NON_ZERO_RANGE_POWER_RAIL_CUMULATIVE_VALUES),
+        Range(0.0, 3000.0),
+        PowerProfilerDisplayMode.DELTA,
+      )
 
     assertThat(powerRailTrackModel.maxValue).isEqualTo(2000L)
     assertThat(powerRailTrackModel.minValue).isEqualTo(1000L)
@@ -40,9 +43,12 @@ class PowerRailTrackModelTest {
 
   @Test
   fun nonZeroRangeValuesComputedCorrectlyWithCumulativeAsPrimary() {
-    val powerRailTrackModel = PowerRailTrackModel(
-      PowerCounterData(NON_ZERO_RANGE_POWER_RAIL_DELTA_VALUES, NON_ZERO_RANGE_POWER_RAIL_CUMULATIVE_VALUES), Range(0.0, 3000.0),
-      PowerProfilerDisplayMode.CUMULATIVE)
+    val powerRailTrackModel =
+      PowerRailTrackModel(
+        PowerCounterData(NON_ZERO_RANGE_POWER_RAIL_DELTA_VALUES, NON_ZERO_RANGE_POWER_RAIL_CUMULATIVE_VALUES),
+        Range(0.0, 3000.0),
+        PowerProfilerDisplayMode.CUMULATIVE,
+      )
 
     assertThat(powerRailTrackModel.maxValue).isEqualTo(5000L)
     assertThat(powerRailTrackModel.minValue).isEqualTo(1000L)
@@ -56,8 +62,12 @@ class PowerRailTrackModelTest {
   fun zeroRangeValuesComputedCorrectly() {
     // Because we send in the same data for both delta and cumulative values in PowerCounterData, the choice of primary/secondary
     // does not matter. This is okay as the choice of primary/secondary is not relevant to this test.
-    val powerRailTrackModel = PowerRailTrackModel(PowerCounterData(ZERO_RANGE_POWER_RAIL_VALUES, ZERO_RANGE_POWER_RAIL_VALUES),
-                                                  Range(0.0, 3000.0), PowerProfilerDisplayMode.DELTA)
+    val powerRailTrackModel =
+      PowerRailTrackModel(
+        PowerCounterData(ZERO_RANGE_POWER_RAIL_VALUES, ZERO_RANGE_POWER_RAIL_VALUES),
+        Range(0.0, 3000.0),
+        PowerProfilerDisplayMode.DELTA,
+      )
 
     assertThat(powerRailTrackModel.maxValue).isEqualTo(1000L)
     assertThat(powerRailTrackModel.minValue).isEqualTo(1000L)
@@ -69,14 +79,15 @@ class PowerRailTrackModelTest {
 
   @Test
   fun hiddenPowerRailsDetected() {
-    val powerRails = listOf(
-      "foo",
-      "power.rails.memory.interface",
-      "power.rails.system.fabric",
-      "power.L15M_VDD_SLC_M_uws",
-      "power.S6M_LLDO1_uws",
-      "power.S8M_LLDO2_uws",
-    )
+    val powerRails =
+      listOf(
+        "foo",
+        "power.rails.memory.interface",
+        "power.rails.system.fabric",
+        "power.L15M_VDD_SLC_M_uws",
+        "power.S6M_LLDO1_uws",
+        "power.S8M_LLDO2_uws",
+      )
 
     val hiddenPowerRails = powerRails.filter { isPowerRailShown(it) }
 
@@ -85,24 +96,12 @@ class PowerRailTrackModelTest {
   }
 
   companion object {
-    private val NON_ZERO_RANGE_POWER_RAIL_CUMULATIVE_VALUES = listOf(
-      SeriesData(0L, 1000L),
-      SeriesData(1000L, 2000L),
-      SeriesData(2000L, 3000L),
-      SeriesData(3000L, 5000L)
-    )
+    private val NON_ZERO_RANGE_POWER_RAIL_CUMULATIVE_VALUES =
+      listOf(SeriesData(0L, 1000L), SeriesData(1000L, 2000L), SeriesData(2000L, 3000L), SeriesData(3000L, 5000L))
 
-    private val NON_ZERO_RANGE_POWER_RAIL_DELTA_VALUES = listOf(
-      SeriesData(0L, 1000L),
-      SeriesData(1000L, 1000L),
-      SeriesData(2000L, 1000L),
-      SeriesData(3000L, 2000L)
-    )
+    private val NON_ZERO_RANGE_POWER_RAIL_DELTA_VALUES =
+      listOf(SeriesData(0L, 1000L), SeriesData(1000L, 1000L), SeriesData(2000L, 1000L), SeriesData(3000L, 2000L))
 
-    private val ZERO_RANGE_POWER_RAIL_VALUES = listOf(
-      SeriesData(0L, 1000L),
-      SeriesData(1000L, 1000L),
-      SeriesData(2000L, 1000L)
-    )
+    private val ZERO_RANGE_POWER_RAIL_VALUES = listOf(SeriesData(0L, 1000L), SeriesData(1000L, 1000L), SeriesData(2000L, 1000L))
   }
 }

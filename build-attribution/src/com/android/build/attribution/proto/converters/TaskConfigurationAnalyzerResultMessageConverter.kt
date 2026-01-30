@@ -22,15 +22,16 @@ import com.android.build.attribution.data.TasksSharingOutputData
 
 class TaskConfigurationAnalyzerResultMessageConverter {
   companion object {
-    fun transform(tasksSharingOutputData: List<TasksSharingOutputData>)
-      : BuildAnalysisResultsMessage.TasksConfigurationIssuesAnalyzerResult? =
+    fun transform(
+      tasksSharingOutputData: List<TasksSharingOutputData>
+    ): BuildAnalysisResultsMessage.TasksConfigurationIssuesAnalyzerResult? =
       BuildAnalysisResultsMessage.TasksConfigurationIssuesAnalyzerResult.newBuilder()
         .addAllTasksSharingOutputData(tasksSharingOutputData.map(Companion::transformTasksSharingOutputData))
         .build()
 
     fun construct(
       tasksConfigurationAnalyzerResult: BuildAnalysisResultsMessage.TasksConfigurationIssuesAnalyzerResult,
-      tasks: Map<String, TaskData>
+      tasks: Map<String, TaskData>,
     ): TasksConfigurationIssuesAnalyzer.Result {
       val tasksSharingOutputData = mutableListOf<TasksSharingOutputData>()
       for (task in tasksConfigurationAnalyzerResult.tasksSharingOutputDataList) {

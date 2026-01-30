@@ -29,10 +29,10 @@ import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class UserEventTooltipViewTest {
   private lateinit var simpleEventTooltipView: FakeUserEventTooltipView
@@ -40,14 +40,11 @@ class UserEventTooltipViewTest {
   private lateinit var monitor: EventMonitor
   private val transportService = FakeTransportService(timer)
 
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("UserEventTooltipViewTest", transportService)
+  @get:Rule val grpcChannel = FakeGrpcChannel("UserEventTooltipViewTest", transportService)
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Before
   fun setup() {
@@ -69,23 +66,25 @@ class UserEventTooltipViewTest {
 
   @Test
   fun testTouchEventLongPressDuration() {
-    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
-                                      Common.Event.newBuilder()
-                                        .setKind(Common.Event.Kind.INTERACTION)
-                                        .setTimestamp(TEST_START_TIME_NS)
-                                        .setGroupId(1)
-                                        .setInteraction(
-                                          Interaction.InteractionData.newBuilder().setType(Interaction.InteractionData.Type.TOUCH))
-                                        .build())
-    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
-                                      Common.Event.newBuilder()
-                                        .setKind(Common.Event.Kind.INTERACTION)
-                                        .setTimestamp(TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1))
-                                        .setGroupId(1)
-                                        .setIsEnded(true)
-                                        .setInteraction(
-                                          Interaction.InteractionData.newBuilder().setType(Interaction.InteractionData.Type.TOUCH))
-                                        .build())
+    transportService.addEventToStream(
+      FakeTransportService.FAKE_DEVICE_ID,
+      Common.Event.newBuilder()
+        .setKind(Common.Event.Kind.INTERACTION)
+        .setTimestamp(TEST_START_TIME_NS)
+        .setGroupId(1)
+        .setInteraction(Interaction.InteractionData.newBuilder().setType(Interaction.InteractionData.Type.TOUCH))
+        .build(),
+    )
+    transportService.addEventToStream(
+      FakeTransportService.FAKE_DEVICE_ID,
+      Common.Event.newBuilder()
+        .setKind(Common.Event.Kind.INTERACTION)
+        .setTimestamp(TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1))
+        .setGroupId(1)
+        .setIsEnded(true)
+        .setInteraction(Interaction.InteractionData.newBuilder().setType(Interaction.InteractionData.Type.TOUCH))
+        .build(),
+    )
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     assertThat(simpleEventTooltipView.headingText).matches("00:01.001")
     assertThat(simpleEventTooltipView.contentText).matches("Touch Event - Press")
@@ -95,15 +94,16 @@ class UserEventTooltipViewTest {
 
   @Test
   fun testRotationEventNoDuration() {
-    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
-                                      Common.Event.newBuilder()
-                                        .setKind(Common.Event.Kind.INTERACTION)
-                                        .setTimestamp(TEST_START_TIME_NS)
-                                        .setGroupId(2)
-                                        .setIsEnded(true)
-                                        .setInteraction(
-                                          Interaction.InteractionData.newBuilder().setType(Interaction.InteractionData.Type.ROTATION))
-                                        .build())
+    transportService.addEventToStream(
+      FakeTransportService.FAKE_DEVICE_ID,
+      Common.Event.newBuilder()
+        .setKind(Common.Event.Kind.INTERACTION)
+        .setTimestamp(TEST_START_TIME_NS)
+        .setGroupId(2)
+        .setIsEnded(true)
+        .setInteraction(Interaction.InteractionData.newBuilder().setType(Interaction.InteractionData.Type.ROTATION))
+        .build(),
+    )
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     assertThat(simpleEventTooltipView.headingText).matches("00:01.001")
     assertThat(simpleEventTooltipView.contentText).matches("Rotation Event")
@@ -113,15 +113,16 @@ class UserEventTooltipViewTest {
 
   @Test
   fun testKeyEventNoDuration() {
-    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
-                                      Common.Event.newBuilder()
-                                        .setKind(Common.Event.Kind.INTERACTION)
-                                        .setTimestamp(TEST_START_TIME_NS)
-                                        .setGroupId(3)
-                                        .setIsEnded(true)
-                                        .setInteraction(
-                                          Interaction.InteractionData.newBuilder().setType(Interaction.InteractionData.Type.KEY))
-                                        .build())
+    transportService.addEventToStream(
+      FakeTransportService.FAKE_DEVICE_ID,
+      Common.Event.newBuilder()
+        .setKind(Common.Event.Kind.INTERACTION)
+        .setTimestamp(TEST_START_TIME_NS)
+        .setGroupId(3)
+        .setIsEnded(true)
+        .setInteraction(Interaction.InteractionData.newBuilder().setType(Interaction.InteractionData.Type.KEY))
+        .build(),
+    )
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     assertThat(simpleEventTooltipView.headingText).matches("00:01.001")
     assertThat(simpleEventTooltipView.contentText).matches("Key Event - Press")

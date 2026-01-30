@@ -26,8 +26,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class TasksConfigurationIssuesAnalyzerTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testTasksConfigurationIssuesAnalyzer() {
@@ -41,7 +40,6 @@ class TasksConfigurationIssuesAnalyzerTest {
 
       assertThat(results.getTasksSharingOutput()).hasSize(1)
       val tasksSharingOutput = results.getTasksSharingOutput()[0]
-
 
       assertThat(tasksSharingOutput.outputFilePath).endsWith("app/build/outputs/shared_output")
       assertThat(tasksSharingOutput.taskList).hasSize(2)

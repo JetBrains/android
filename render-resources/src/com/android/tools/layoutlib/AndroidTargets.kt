@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("AndroidTargets")
+
 package com.android.tools.layoutlib
 
 import com.android.sdklib.IAndroidTarget

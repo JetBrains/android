@@ -37,8 +37,8 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 /**
- * Listens for download events during Sync and tracks time when there are active downloads happening.
- * Once this time is above threshold notification is shown.
+ * Listens for download events during Sync and tracks time when there are active downloads happening. Once this time is above threshold
+ * notification is shown.
  */
 class LongDownloadsNotifier(
   private val taskId: ExternalSystemTaskId,
@@ -46,7 +46,7 @@ class LongDownloadsNotifier(
   private val buildFinishedDisposable: CheckedDisposable,
   private val buildStartTimestampMs: Long,
   scheduler: ScheduledExecutorService = EdtExecutorService.getScheduledExecutorInstance(),
-  ticker: Ticker = Ticker.systemTicker()
+  ticker: Ticker = Ticker.systemTicker(),
 ) {
   private val runningRequestsSet = mutableSetOf<DownloadRequestKey>()
   private val watch = Stopwatch.createUnstarted(ticker)
@@ -55,13 +55,15 @@ class LongDownloadsNotifier(
   private val notificationRecheckDelayInSeconds = 5L
 
   init {
-    val runnable = object : Runnable {
-      override fun run() {
-        if (notified) return
-        notifyIfTimeElapsed()
+    val runnable =
+      object : Runnable {
+        override fun run() {
+          if (notified) return
+          notifyIfTimeElapsed()
+        }
       }
-    }
-    val taskFuture = scheduler.scheduleWithFixedDelay(runnable, notificationThresholdInSeconds, notificationRecheckDelayInSeconds, TimeUnit.SECONDS)
+    val taskFuture =
+      scheduler.scheduleWithFixedDelay(runnable, notificationThresholdInSeconds, notificationRecheckDelayInSeconds, TimeUnit.SECONDS)
     Disposer.register(buildFinishedDisposable) { taskFuture.cancel(false) }
   }
 
@@ -69,14 +71,12 @@ class LongDownloadsNotifier(
     if (notified) return
     if (!downloadRequest.completed) {
       runningRequestsSet.add(downloadRequest.requestKey)
-    }
-    else {
+    } else {
       runningRequestsSet.remove(downloadRequest.requestKey)
     }
     if (runningRequestsSet.isNotEmpty()) {
       synchronized(watch) { if (!watch.isRunning) watch.start() }
-    }
-    else {
+    } else {
       synchronized(watch) { if (watch.isRunning) watch.stop() }
     }
     notifyIfTimeElapsed()
@@ -85,15 +85,19 @@ class LongDownloadsNotifier(
   private fun notifyIfTimeElapsed() {
     synchronized(watch) {
       if (!notified && watch.elapsed().seconds >= notificationThresholdInSeconds) {
-        NotificationGroupManager.getInstance().getNotificationGroup(BUILD_ANALYZER_NOTIFICATION_GROUP_ID)
+        NotificationGroupManager.getInstance()
+          .getNotificationGroup(BUILD_ANALYZER_NOTIFICATION_GROUP_ID)
           .createNotification("Sync is taking a significant amount of time to download dependencies.", NotificationType.WARNING)
-          .addAction(object : AnAction("Open Sync tool window for details") {
-            override fun actionPerformed(e: AnActionEvent) {
-              // There is no need to select content as it should be automatically selected because Sync is currently running.
-              BuildContentManager.getInstance(project).getOrCreateToolWindow().show {}
-              logUserEvent(BuildOutputDownloadsInfoEvent.Interaction.NOTIFICATION_LINK_CLICK)
+          .addAction(
+            object : AnAction("Open Sync tool window for details") {
+              override fun actionPerformed(e: AnActionEvent) {
+                // There is no need to select content as it should be automatically selected because Sync is currently running.
+                BuildContentManager.getInstance(project).getOrCreateToolWindow().show {}
+                logUserEvent(BuildOutputDownloadsInfoEvent.Interaction.NOTIFICATION_LINK_CLICK)
+              }
             }
-          }).notify(project)
+          )
+          .notify(project)
         notified = true
         logUserEvent(BuildOutputDownloadsInfoEvent.Interaction.NOTIFICATION_TRIGGERED)
       }
@@ -101,14 +105,19 @@ class LongDownloadsNotifier(
   }
 
   private fun logUserEvent(reportedInteraction: BuildOutputDownloadsInfoEvent.Interaction) {
-    val event = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION)
-      .setBuildOutputDownloadsInfoEvent(BuildOutputDownloadsInfoEvent.newBuilder().apply {
-        view = if (taskId.type == ExternalSystemTaskType.RESOLVE_PROJECT) BuildOutputDownloadsInfoEvent.View.SYNC_VIEW else BuildOutputDownloadsInfoEvent.View.BUILD_VIEW
-        msSinceBuildStart = (System.currentTimeMillis() - buildStartTimestampMs).toInt()
-        buildFinished = buildFinishedDisposable.isDisposed
-        interaction = reportedInteraction
-      })
+    val event =
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION)
+        .setBuildOutputDownloadsInfoEvent(
+          BuildOutputDownloadsInfoEvent.newBuilder().apply {
+            view =
+              if (taskId.type == ExternalSystemTaskType.RESOLVE_PROJECT) BuildOutputDownloadsInfoEvent.View.SYNC_VIEW
+              else BuildOutputDownloadsInfoEvent.View.BUILD_VIEW
+            msSinceBuildStart = (System.currentTimeMillis() - buildStartTimestampMs).toInt()
+            buildFinished = buildFinishedDisposable.isDisposed
+            interaction = reportedInteraction
+          }
+        )
     UsageTracker.log(event.withProjectId(project))
   }
 }

@@ -19,36 +19,32 @@ import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 
-class BuildAnalyzerViewModel(
-  val reportUiData: BuildAttributionReportUiData,
-  val warningSuppressions: BuildAttributionWarningsFilter
-) {
+class BuildAnalyzerViewModel(val reportUiData: BuildAttributionReportUiData, val warningSuppressions: BuildAttributionWarningsFilter) {
   enum class DataSet(val uiName: String) {
-    OVERVIEW("Overview"), TASKS("Tasks"), WARNINGS("Warnings"), DOWNLOADS("Downloads")
+    OVERVIEW("Overview"),
+    TASKS("Tasks"),
+    WARNINGS("Warnings"),
+    DOWNLOADS("Downloads"),
   }
 
   val availableDataSets: List<DataSet>
-    get() = listOfNotNull(
-      DataSet.OVERVIEW,
-      DataSet.TASKS,
-      DataSet.WARNINGS,
-      if (reportUiData.downloadsData != DownloadsAnalyzer.AnalyzerIsDisabled) DataSet.DOWNLOADS else null
-    )
+    get() =
+      listOfNotNull(
+        DataSet.OVERVIEW,
+        DataSet.TASKS,
+        DataSet.WARNINGS,
+        if (reportUiData.downloadsData != DownloadsAnalyzer.AnalyzerIsDisabled) DataSet.DOWNLOADS else null,
+      )
 
-  /**
-   * Listener to be called on selection change.
-   * Called only if the selectedData value was changed.
-   */
+  /** Listener to be called on selection change. Called only if the selectedData value was changed. */
   var dataSetSelectionListener: (() -> Unit)? = null
 
-  /**
-   * Keeps track of currently selected dataSet page.
-   * Notifies the listener on set if the value is different from the current one.
-   */
-  var selectedData: DataSet = when {
-    reportUiData.jetifierData.checkJetifierBuild -> DataSet.WARNINGS
-    else -> DataSet.OVERVIEW
-  }
+  /** Keeps track of currently selected dataSet page. Notifies the listener on set if the value is different from the current one. */
+  var selectedData: DataSet =
+    when {
+      reportUiData.jetifierData.checkJetifierBuild -> DataSet.WARNINGS
+      else -> DataSet.OVERVIEW
+    }
     set(value) {
       if (value != field) {
         field = value

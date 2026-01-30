@@ -19,14 +19,13 @@ import com.android.tools.profilers.cpu.CpuCapture
 
 object FramesAnalysisModel {
   @JvmStatic
-  fun of(capture: CpuCapture): CpuAnalysisModel<CpuCapture>? = when {
-    capture.systemTraceData?.androidFrameLayers?.isNotEmpty() ?: false -> {
-      CpuAnalysisModel<CpuCapture>("All Frames").also {
-        it.addTabModel(CpuAnalysisFramesTabModel(capture.range).apply {
-          dataSeries.add(capture)
-        })
+  fun of(capture: CpuCapture): CpuAnalysisModel<CpuCapture>? =
+    when {
+      capture.systemTraceData?.androidFrameLayers?.isNotEmpty() ?: false -> {
+        CpuAnalysisModel<CpuCapture>("All Frames").also {
+          it.addTabModel(CpuAnalysisFramesTabModel(capture.range).apply { dataSeries.add(capture) })
+        }
       }
+      else -> null
     }
-    else -> null
-  }
 }

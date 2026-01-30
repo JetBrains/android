@@ -25,12 +25,10 @@ import org.junit.Test
 import sample.SampleComposeComponent
 
 /**
- * The following test class and test serve as an example of how we can test the content and behavior
- * of Compose Desktop UI.
+ * The following test class and test serve as an example of how we can test the content and behavior of Compose Desktop UI.
  *
- * This sample test utilizes the Jewel standalone theme which is for scoped for testing only. NOTE:
- * The Jewel standalone theme should only ever be used for testing and never used in production
- * code.
+ * This sample test utilizes the Jewel standalone theme which is for scoped for testing only. NOTE: The Jewel standalone theme should only
+ * ever be used for testing and never used in production code.
  */
 class SampleComposeComponentTest {
 

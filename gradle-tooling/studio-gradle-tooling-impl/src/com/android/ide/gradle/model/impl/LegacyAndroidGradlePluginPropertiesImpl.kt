@@ -27,5 +27,5 @@ data class LegacyAndroidGradlePluginPropertiesImpl(
   override val mappingR8TextFiles: Map<String, File?>,
   override val buildTypesMatchingFallbacks: Map<String, List<String>>,
   override val productFlavorsMatchingFallbacks: Map<String, List<String>>,
-  override val missingDimensionStrategies: Map<String, Map<String, List<String>>>
+  override val missingDimensionStrategies: Map<String, Map<String, List<String>>>,
 ) : LegacyAndroidGradlePluginProperties

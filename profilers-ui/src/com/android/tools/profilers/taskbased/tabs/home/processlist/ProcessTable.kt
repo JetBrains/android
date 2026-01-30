@@ -42,8 +42,8 @@ import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBas
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.table.LeftAlignedColumnText
 import com.android.tools.profilers.taskbased.common.table.RightAlignedColumnText
-import icons.StudioIconsCompose
 import com.intellij.openapi.diagnostic.Logger
+import icons.StudioIconsCompose
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
 import org.jetbrains.jewel.foundation.lazy.SelectionMode
 import org.jetbrains.jewel.foundation.lazy.items
@@ -52,6 +52,7 @@ import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 
 private val logger = Logger.getInstance("ProcessTable")
+
 @Composable
 private fun ProcessListRow(selectedProcess: Common.Process, process: Common.Process, isPreferredProcess: Boolean) {
   val processName = process.name
@@ -62,19 +63,13 @@ private fun ProcessListRow(selectedProcess: Common.Process, process: Common.Proc
   }
 
   Row(
-    modifier = Modifier
-      .fillMaxWidth()
-      .height(TABLE_ROW_HEIGHT_DP)
-      .background(
-        if (process == selectedProcess)
-          TABLE_ROW_SELECTION_BACKGROUND_COLOR
-        else
-          Color.Transparent
-      )
-      .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
-      .testTag("ProcessListRow")
+    modifier =
+      Modifier.fillMaxWidth()
+        .height(TABLE_ROW_HEIGHT_DP)
+        .background(if (process == selectedProcess) TABLE_ROW_SELECTION_BACKGROUND_COLOR else Color.Transparent)
+        .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
+        .testTag("ProcessListRow")
   ) {
-
     val isRunning = process.state == Common.Process.State.ALIVE
 
     val pidText = if (isRunning) pid.toString() else ""
@@ -85,14 +80,15 @@ private fun ProcessListRow(selectedProcess: Common.Process, process: Common.Proc
     // The android head icon to indicate the preferred process
     if (isPreferredProcess) {
       LeftAlignedColumnText(processName, StudioIconsCompose.Common.AndroidHead, rowScope = this)
-      if(isRunning){
-        logger.warn("Found running project process: ${process.pid}, ${
+      if (isRunning) {
+        logger.warn(
+          "Found running project process: ${process.pid}, ${
           if(process.isProfileable()) TaskBasedUxStrings.PROFILEABLE_PROCESS_TITLE
           else TaskBasedUxStrings.DEBUGGABLE_PROCESS_TITLE
-        }")
+        }"
+        )
       }
-    }
-    else {
+    } else {
       LeftAlignedColumnText(processName, rowScope = this)
     }
 
@@ -104,11 +100,11 @@ private fun ProcessListRow(selectedProcess: Common.Process, process: Common.Proc
 @Composable
 private fun ProcessListHeader() {
   Row(
-    modifier = Modifier
-      .fillMaxWidth()
-      .height(TABLE_ROW_HEIGHT_DP)
-      .background(TABLE_HEADER_BACKGROUND_COLOR)
-      .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
+    modifier =
+      Modifier.fillMaxWidth()
+        .height(TABLE_ROW_HEIGHT_DP)
+        .background(TABLE_HEADER_BACKGROUND_COLOR)
+        .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
   ) {
     LeftAlignedColumnText(text = "Process name", rowScope = this)
     Divider(thickness = 1.dp, modifier = Modifier.fillMaxHeight(), orientation = Orientation.Vertical)
@@ -119,14 +115,16 @@ private fun ProcessListHeader() {
 }
 
 @Composable
-fun ProcessTable(processList: List<Common.Process>,
-                 selectedProcess: Common.Process,
-                 preferredProcessName: String?,
-                 onProcessSelection: (Common.Process) -> Unit) {
+fun ProcessTable(
+  processList: List<Common.Process>,
+  selectedProcess: Common.Process,
+  preferredProcessName: String?,
+  onProcessSelection: (Common.Process) -> Unit,
+) {
   val listState = rememberSelectableLazyListState()
 
   Box(modifier = Modifier.fillMaxSize()) {
-    SelectableLazyColumn (
+    SelectableLazyColumn(
       state = listState,
       selectionMode = SelectionMode.Single,
       onSelectedIndexesChange = {
@@ -135,7 +133,7 @@ fun ProcessTable(processList: List<Common.Process>,
           val newSelectedDeviceProcess = processList[it.first() - 1]
           onProcessSelection(newSelectedDeviceProcess)
         }
-      }
+      },
     ) {
       stickyHeader(key = Integer.MAX_VALUE) {
         ProcessListHeader()

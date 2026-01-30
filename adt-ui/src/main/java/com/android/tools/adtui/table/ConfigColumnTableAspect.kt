@@ -44,8 +44,7 @@ import javax.swing.table.TableColumn
  *
  * Adds the ability to manage the tables' column configuration in a persistable configuration.
  *
- * The call passes in a configuration as `MutableList<ColumnInfo>` which is updated as columns are
- * hidden, shown, resized and moved.
+ * The call passes in a configuration as `MutableList<ColumnInfo>` which is updated as columns are hidden, shown, resized and moved.
  *
  * Usage:
  * ```
@@ -53,11 +52,7 @@ import javax.swing.table.TableColumn
  * ```
  */
 class ConfigColumnTableAspect
-private constructor(
-  private val project: Project,
-  private val table: JTable,
-  private val config: MutableList<ColumnInfo>,
-) {
+private constructor(private val project: Project, private val table: JTable, private val config: MutableList<ColumnInfo>) {
 
   /** A persistable representation of a table column configuration */
   @Tag("column-info")
@@ -75,8 +70,7 @@ private constructor(
   private val tcm
     get() = table.columnModel
 
-  private val allColumns =
-    tcm.columns.asSequence().associateByTo(LinkedHashMap()) { it.headerValue }
+  private val allColumns = tcm.columns.asSequence().associateByTo(LinkedHashMap()) { it.headerValue }
   private val configColumns = config.associateBy { it.name }
   private val columnModelListener = ColumnModelListener()
   private var initialUpdateDone = false
@@ -105,9 +99,7 @@ private constructor(
     val configCols = config.map { it.name }
 
     if (configCols.size != modelCols.size || !configCols.toSet().containsAll(modelCols)) {
-      throw IllegalArgumentException(
-        "Configuration doesn't match model. Config columns=$configCols modelColumns=$modelCols"
-      )
+      throw IllegalArgumentException("Configuration doesn't match model. Config columns=$configCols modelColumns=$modelCols")
     }
   }
 
@@ -153,10 +145,7 @@ private constructor(
   }
 
   /** Creates a simple ListPopup of [ToggleColumnAction] with a preselected item */
-  private fun JBPopupFactory.createActionGroupPopup(
-    actionGroup: ActionGroup,
-    isPreSelected: (ToggleColumnAction) -> Boolean,
-  ) =
+  private fun JBPopupFactory.createActionGroupPopup(actionGroup: ActionGroup, isPreSelected: (ToggleColumnAction) -> Boolean) =
     createActionGroupPopup(
       null,
       actionGroup,
@@ -247,8 +236,7 @@ private constructor(
   }
 
   /** Toggles the visibility of a column */
-  private inner class ToggleColumnAction(val columnInfo: ColumnInfo) :
-    ToggleAction(columnInfo.name) {
+  private inner class ToggleColumnAction(val columnInfo: ColumnInfo) : ToggleAction(columnInfo.name) {
 
     override fun getActionUpdateThread() = BGT
 

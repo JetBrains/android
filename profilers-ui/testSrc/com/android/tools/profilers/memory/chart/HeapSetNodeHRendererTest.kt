@@ -30,22 +30,21 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.Graphics2DDelegate
 import com.intellij.util.ui.ImageUtil
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito
-import org.mockito.kotlin.whenever
 import java.awt.Font
 import java.awt.Paint
 import java.awt.Shape
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class HeapSetNodeHRendererTest {
   private val timer = FakeTimer()
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("MEMORY_TEST_CHANNEL", FakeTransportService(timer))
+  @get:Rule var grpcChannel = FakeGrpcChannel("MEMORY_TEST_CHANNEL", FakeTransportService(timer))
   private lateinit var stage: MainMemoryProfilerStage
 
   @Before
@@ -53,9 +52,7 @@ class HeapSetNodeHRendererTest {
     val loader = FakeCaptureObjectLoader()
     loader.setReturnImmediateFuture(true)
     val fakeIdeProfilerServices = FakeIdeProfilerServices()
-    stage = MainMemoryProfilerStage(
-      StudioProfilers(ProfilerClient(grpcChannel.channel), fakeIdeProfilerServices, FakeTimer()),
-      loader)
+    stage = MainMemoryProfilerStage(StudioProfilers(ProfilerClient(grpcChannel.channel), fakeIdeProfilerServices, FakeTimer()), loader)
   }
 
   @Test
@@ -76,9 +73,11 @@ class HeapSetNodeHRendererTest {
     fakeGraphics.expectFillShapes(renderWindow)
 
     assertThat(fakeGraphics.colors).hasSize(2)
-    assertThat(fakeGraphics.colors).containsExactly(
-      DataVisualizationColors.paletteManager.getBackgroundColor(name.hashCode()),
-      DataVisualizationColors.paletteManager.getForegroundColor(name.hashCode()))
+    assertThat(fakeGraphics.colors)
+      .containsExactly(
+        DataVisualizationColors.paletteManager.getBackgroundColor(name.hashCode()),
+        DataVisualizationColors.paletteManager.getForegroundColor(name.hashCode()),
+      )
 
     assertThat(fakeGraphics.fonts).hasSize(1)
     assertThat(fakeGraphics.fonts).containsExactly(fakeGraphics.font)
@@ -99,9 +98,11 @@ class HeapSetNodeHRendererTest {
     val fakeGraphics = TestGraphics2D()
     renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, isFocused = false, isDeselected = true)
     assertThat(fakeGraphics.colors).hasSize(2)
-    assertThat(fakeGraphics.colors).containsExactly(
-      DataVisualizationColors.paletteManager.toGrayscale(DataVisualizationColors.paletteManager.getBackgroundColor(name.hashCode())),
-      DataVisualizationColors.paletteManager.getForegroundColor(name.hashCode()))
+    assertThat(fakeGraphics.colors)
+      .containsExactly(
+        DataVisualizationColors.paletteManager.toGrayscale(DataVisualizationColors.paletteManager.getBackgroundColor(name.hashCode())),
+        DataVisualizationColors.paletteManager.getForegroundColor(name.hashCode()),
+      )
   }
 
   @Test
@@ -117,10 +118,12 @@ class HeapSetNodeHRendererTest {
     val fakeGraphics = TestGraphics2D()
     renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, isFocused = false, isDeselected = false)
     assertThat(fakeGraphics.colors).hasSize(3)
-    assertThat(fakeGraphics.colors).containsExactly(
-      DataVisualizationColors.paletteManager.getBackgroundColor(name.hashCode()),
-      DataVisualizationColors.paletteManager.getForegroundColor(name.hashCode()),
-      ColorUtil.withAlpha(DataVisualizationColors.paletteManager.getForegroundColor(name.hashCode()), .2))
+    assertThat(fakeGraphics.colors)
+      .containsExactly(
+        DataVisualizationColors.paletteManager.getBackgroundColor(name.hashCode()),
+        DataVisualizationColors.paletteManager.getForegroundColor(name.hashCode()),
+        ColorUtil.withAlpha(DataVisualizationColors.paletteManager.getForegroundColor(name.hashCode()), .2),
+      )
   }
 
   @Test

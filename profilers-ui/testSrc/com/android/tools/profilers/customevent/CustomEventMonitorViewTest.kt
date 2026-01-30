@@ -30,26 +30,23 @@ import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class CustomEventMonitorViewTest {
 
   private lateinit var monitorView: CustomEventMonitorView
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  @get:Rule
-  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CustomEventMonitorViewTest", transportService)
+  @get:Rule var grpcServer = FakeGrpcServer.createFakeGrpcServer("CustomEventMonitorViewTest", transportService)
 
   @Before
   fun setUp() {

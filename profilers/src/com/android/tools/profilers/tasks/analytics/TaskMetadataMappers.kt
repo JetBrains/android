@@ -25,44 +25,43 @@ import com.google.wireless.android.sdk.stats.TaskFailedMetadata.TraceStopStatus
 
 // Extension functions to convert Transport Pipeline Proto statuses to Studio Stats Proto statuses
 fun TrackStatus.toStatsProto(): AllocationTrackStatus {
-  val statsProtoStatus = when (this.status) {
-    TrackStatus.Status.SUCCESS -> AllocationTrackStatus.Status.SUCCESS
-    TrackStatus.Status.UNSPECIFIED -> AllocationTrackStatus.Status.STATUS_UNSPECIFIED
-    TrackStatus.Status.IN_PROGRESS -> AllocationTrackStatus.Status.IN_PROGRESS
-    TrackStatus.Status.NOT_ENABLED -> AllocationTrackStatus.Status.NOT_ENABLED
-    TrackStatus.Status.NOT_PROFILING -> AllocationTrackStatus.Status.NOT_PROFILING
-    TrackStatus.Status.FAILURE_UNKNOWN -> AllocationTrackStatus.Status.FAILURE_UNKNOWN
-    TrackStatus.Status.UNRECOGNIZED -> AllocationTrackStatus.Status.UNRECOGNIZED
-    TrackStatus.Status.AGENT_UNATTACHABLE -> AllocationTrackStatus.Status.AGENT_UN_ATTACHABLE
-    else -> AllocationTrackStatus.Status.UNRECOGNIZED
-  }
-  return AllocationTrackStatus.newBuilder()
-    .setStartTimeNs(this.startTime)
-    .setStatus(statsProtoStatus)
-    .build()
+  val statsProtoStatus =
+    when (this.status) {
+      TrackStatus.Status.SUCCESS -> AllocationTrackStatus.Status.SUCCESS
+      TrackStatus.Status.UNSPECIFIED -> AllocationTrackStatus.Status.STATUS_UNSPECIFIED
+      TrackStatus.Status.IN_PROGRESS -> AllocationTrackStatus.Status.IN_PROGRESS
+      TrackStatus.Status.NOT_ENABLED -> AllocationTrackStatus.Status.NOT_ENABLED
+      TrackStatus.Status.NOT_PROFILING -> AllocationTrackStatus.Status.NOT_PROFILING
+      TrackStatus.Status.FAILURE_UNKNOWN -> AllocationTrackStatus.Status.FAILURE_UNKNOWN
+      TrackStatus.Status.UNRECOGNIZED -> AllocationTrackStatus.Status.UNRECOGNIZED
+      TrackStatus.Status.AGENT_UNATTACHABLE -> AllocationTrackStatus.Status.AGENT_UN_ATTACHABLE
+      else -> AllocationTrackStatus.Status.UNRECOGNIZED
+    }
+  return AllocationTrackStatus.newBuilder().setStartTimeNs(this.startTime).setStatus(statsProtoStatus).build()
 }
 
 fun Trace.TraceStopStatus.toStatsProto(): TraceStopStatus {
-  val statsProtoStatus = when (this.status) {
-    Trace.TraceStopStatus.Status.UNSPECIFIED -> TraceStopStatus.Status.STATUS_UNSPECIFIED
-    Trace.TraceStopStatus.Status.SUCCESS -> TraceStopStatus.Status.SUCCESS
-    Trace.TraceStopStatus.Status.NO_ONGOING_PROFILING -> TraceStopStatus.Status.NO_ONGOING_PROFILING
-    Trace.TraceStopStatus.Status.APP_PROCESS_DIED -> TraceStopStatus.Status.APP_PROCESS_DIED
-    Trace.TraceStopStatus.Status.APP_PID_CHANGED -> TraceStopStatus.Status.APP_PID_CHANGED
-    Trace.TraceStopStatus.Status.PROFILER_PROCESS_DIED -> TraceStopStatus.Status.PROFILER_PROCESS_DIED
-    Trace.TraceStopStatus.Status.STOP_COMMAND_FAILED -> TraceStopStatus.Status.STOP_COMMAND_FAILED
-    Trace.TraceStopStatus.Status.STILL_PROFILING_AFTER_STOP -> TraceStopStatus.Status.STILL_PROFILING_AFTER_STOP
-    Trace.TraceStopStatus.Status.CANNOT_START_WAITING -> TraceStopStatus.Status.CANNOT_START_WAITING
-    Trace.TraceStopStatus.Status.WAIT_TIMEOUT -> TraceStopStatus.Status.WAIT_TIMEOUT
-    Trace.TraceStopStatus.Status.WAIT_FAILED -> TraceStopStatus.Status.WAIT_FAILED
-    Trace.TraceStopStatus.Status.CANNOT_READ_WAIT_EVENT -> TraceStopStatus.Status.CANNOT_READ_WAIT_EVENT
-    Trace.TraceStopStatus.Status.CANNOT_COPY_FILE -> TraceStopStatus.Status.CANNOT_COPY_FILE
-    Trace.TraceStopStatus.Status.CANNOT_FORM_FILE -> TraceStopStatus.Status.CANNOT_FORM_FILE
-    Trace.TraceStopStatus.Status.CANNOT_READ_FILE -> TraceStopStatus.Status.CANNOT_READ_FILE
-    Trace.TraceStopStatus.Status.OTHER_FAILURE -> TraceStopStatus.Status.OTHER_FAILURE
-    Trace.TraceStopStatus.Status.UNRECOGNIZED -> TraceStopStatus.Status.UNRECOGNIZED
-    else -> TraceStopStatus.Status.UNRECOGNIZED
-  }
+  val statsProtoStatus =
+    when (this.status) {
+      Trace.TraceStopStatus.Status.UNSPECIFIED -> TraceStopStatus.Status.STATUS_UNSPECIFIED
+      Trace.TraceStopStatus.Status.SUCCESS -> TraceStopStatus.Status.SUCCESS
+      Trace.TraceStopStatus.Status.NO_ONGOING_PROFILING -> TraceStopStatus.Status.NO_ONGOING_PROFILING
+      Trace.TraceStopStatus.Status.APP_PROCESS_DIED -> TraceStopStatus.Status.APP_PROCESS_DIED
+      Trace.TraceStopStatus.Status.APP_PID_CHANGED -> TraceStopStatus.Status.APP_PID_CHANGED
+      Trace.TraceStopStatus.Status.PROFILER_PROCESS_DIED -> TraceStopStatus.Status.PROFILER_PROCESS_DIED
+      Trace.TraceStopStatus.Status.STOP_COMMAND_FAILED -> TraceStopStatus.Status.STOP_COMMAND_FAILED
+      Trace.TraceStopStatus.Status.STILL_PROFILING_AFTER_STOP -> TraceStopStatus.Status.STILL_PROFILING_AFTER_STOP
+      Trace.TraceStopStatus.Status.CANNOT_START_WAITING -> TraceStopStatus.Status.CANNOT_START_WAITING
+      Trace.TraceStopStatus.Status.WAIT_TIMEOUT -> TraceStopStatus.Status.WAIT_TIMEOUT
+      Trace.TraceStopStatus.Status.WAIT_FAILED -> TraceStopStatus.Status.WAIT_FAILED
+      Trace.TraceStopStatus.Status.CANNOT_READ_WAIT_EVENT -> TraceStopStatus.Status.CANNOT_READ_WAIT_EVENT
+      Trace.TraceStopStatus.Status.CANNOT_COPY_FILE -> TraceStopStatus.Status.CANNOT_COPY_FILE
+      Trace.TraceStopStatus.Status.CANNOT_FORM_FILE -> TraceStopStatus.Status.CANNOT_FORM_FILE
+      Trace.TraceStopStatus.Status.CANNOT_READ_FILE -> TraceStopStatus.Status.CANNOT_READ_FILE
+      Trace.TraceStopStatus.Status.OTHER_FAILURE -> TraceStopStatus.Status.OTHER_FAILURE
+      Trace.TraceStopStatus.Status.UNRECOGNIZED -> TraceStopStatus.Status.UNRECOGNIZED
+      else -> TraceStopStatus.Status.UNRECOGNIZED
+    }
 
   return TraceStopStatus.newBuilder()
     .setStatus(statsProtoStatus)
@@ -72,13 +71,14 @@ fun Trace.TraceStopStatus.toStatsProto(): TraceStopStatus {
 }
 
 fun Trace.TraceStartStatus.toStatsProto(): TraceStartStatus {
-  val statsProtoStatus = when (this.status) {
-    Trace.TraceStartStatus.Status.SUCCESS -> TraceStartStatus.Status.SUCCESS
-    Trace.TraceStartStatus.Status.UNSPECIFIED -> TraceStartStatus.Status.STATUS_UNSPECIFIED
-    Trace.TraceStartStatus.Status.FAILURE -> TraceStartStatus.Status.FAILURE
-    Trace.TraceStartStatus.Status.UNRECOGNIZED -> TraceStartStatus.Status.UNRECOGNIZED
-    else -> TraceStartStatus.Status.UNRECOGNIZED
-  }
+  val statsProtoStatus =
+    when (this.status) {
+      Trace.TraceStartStatus.Status.SUCCESS -> TraceStartStatus.Status.SUCCESS
+      Trace.TraceStartStatus.Status.UNSPECIFIED -> TraceStartStatus.Status.STATUS_UNSPECIFIED
+      Trace.TraceStartStatus.Status.FAILURE -> TraceStartStatus.Status.FAILURE
+      Trace.TraceStartStatus.Status.UNRECOGNIZED -> TraceStartStatus.Status.UNRECOGNIZED
+      else -> TraceStartStatus.Status.UNRECOGNIZED
+    }
 
   return TraceStartStatus.newBuilder()
     .setStatus(statsProtoStatus)
@@ -88,18 +88,16 @@ fun Trace.TraceStartStatus.toStatsProto(): TraceStartStatus {
 }
 
 fun Memory.HeapDumpStatus.toStatsProto(): HeapDumpStatus {
-  val statsProtoStatus = when (this.status) {
-    Memory.HeapDumpStatus.Status.UNSPECIFIED -> HeapDumpStatus.Status.STATUS_UNSPECIFIED
-    Memory.HeapDumpStatus.Status.SUCCESS -> HeapDumpStatus.Status.SUCCESS
-    Memory.HeapDumpStatus.Status.IN_PROGRESS -> HeapDumpStatus.Status.IN_PROGRESS
-    Memory.HeapDumpStatus.Status.NOT_PROFILING -> HeapDumpStatus.Status.NOT_PROFILING
-    Memory.HeapDumpStatus.Status.FAILURE_UNKNOWN -> HeapDumpStatus.Status.FAILURE_UNKNOWN
-    Memory.HeapDumpStatus.Status.UNRECOGNIZED -> HeapDumpStatus.Status.UNRECOGNIZED
-    else -> HeapDumpStatus.Status.UNRECOGNIZED
-  }
+  val statsProtoStatus =
+    when (this.status) {
+      Memory.HeapDumpStatus.Status.UNSPECIFIED -> HeapDumpStatus.Status.STATUS_UNSPECIFIED
+      Memory.HeapDumpStatus.Status.SUCCESS -> HeapDumpStatus.Status.SUCCESS
+      Memory.HeapDumpStatus.Status.IN_PROGRESS -> HeapDumpStatus.Status.IN_PROGRESS
+      Memory.HeapDumpStatus.Status.NOT_PROFILING -> HeapDumpStatus.Status.NOT_PROFILING
+      Memory.HeapDumpStatus.Status.FAILURE_UNKNOWN -> HeapDumpStatus.Status.FAILURE_UNKNOWN
+      Memory.HeapDumpStatus.Status.UNRECOGNIZED -> HeapDumpStatus.Status.UNRECOGNIZED
+      else -> HeapDumpStatus.Status.UNRECOGNIZED
+    }
 
-  return HeapDumpStatus.newBuilder()
-    .setStatus(statsProtoStatus)
-    .setStartTimeNs(this.startTime)
-    .build()
+  return HeapDumpStatus.newBuilder().setStatus(statsProtoStatus).setStartTimeNs(this.startTime).build()
 }

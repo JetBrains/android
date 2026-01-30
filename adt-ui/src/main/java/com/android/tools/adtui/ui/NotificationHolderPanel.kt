@@ -93,8 +93,8 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
   }
 
   /**
-   * Adds a notification panel. If the [notificationPanel] has a close action, that action has to
-   * make sure that the notification is removed when the action is executed.
+   * Adds a notification panel. If the [notificationPanel] has a close action, that action has to make sure that the notification is removed
+   * when the action is executed.
    */
   fun addNotification(notificationPanel: EditorNotificationPanel) {
     setLayer(notificationPanel, POPUP_LAYER)
@@ -110,9 +110,8 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
   }
 
   /**
-   * Shows a fade-out notification with the given text. If [status] is null, the notification is
-   * shown with info background and without an icon. Otherwise, it is shown with the background and
-   * icon corresponding to [status].
+   * Shows a fade-out notification with the given text. If [status] is null, the notification is shown with info background and without an
+   * icon. Otherwise, it is shown with the background and icon corresponding to [status].
    */
   fun showFadeOutNotification(text: String, status: EditorNotificationPanel.Status? = null) {
     hideFadeOutNotification()
@@ -129,12 +128,8 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
     hideFadeOutNotificationPopup()
   }
 
-  private fun createFadeOutNotificationPopup(
-    severity: EditorNotificationPanel.Status?
-  ): NotificationPopup {
-    val notificationPanel =
-      severity?.let { EditorNotificationPanel(it) }
-        ?: EditorNotificationPanel(HintUtil.INFORMATION_COLOR_KEY)
+  private fun createFadeOutNotificationPopup(severity: EditorNotificationPanel.Status?): NotificationPopup {
+    val notificationPanel = severity?.let { EditorNotificationPanel(it) } ?: EditorNotificationPanel(HintUtil.INFORMATION_COLOR_KEY)
     val popup = NotificationPopup(notificationPanel)
     setLayer(popup, POPUP_LAYER)
     addImpl(popup, null, 0)
@@ -170,8 +165,7 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
     fun fromDataContext(event: AnActionEvent): NotificationHolderPanel? = event.getData(KEY)
   }
 
-  private class NotificationPopup(val notificationPanel: EditorNotificationPanel) :
-    BorderLayoutPanel() {
+  private class NotificationPopup(val notificationPanel: EditorNotificationPanel) : BorderLayoutPanel() {
     var alpha = 1.0F
 
     init {
@@ -188,14 +182,8 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
         try {
           g2d.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha)
           g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-          g2d.setRenderingHint(
-            RenderingHints.KEY_INTERPOLATION,
-            RenderingHints.VALUE_INTERPOLATION_BICUBIC,
-          )
-          g2d.setRenderingHint(
-            RenderingHints.KEY_ALPHA_INTERPOLATION,
-            RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY,
-          )
+          g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC)
+          g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY)
           super.paint(g2d)
         } finally {
           g2d.dispose()
@@ -204,8 +192,7 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
     }
   }
 
-  private inner class FadeOutAnimator :
-    Animator("FadeOutAnimator", TOTAL_FRAMES, FADEOUT_TIME_MILLIS, false) {
+  private inner class FadeOutAnimator : Animator("FadeOutAnimator", TOTAL_FRAMES, FADEOUT_TIME_MILLIS, false) {
 
     override fun paintNow(frame: Int, totalFrames: Int, cycle: Int) {
       val popup = fadeOutNotificationPopup ?: return

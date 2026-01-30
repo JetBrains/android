@@ -26,11 +26,11 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
-import org.jetbrains.annotations.TestOnly
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.Arrays
 import java.util.function.Consumer
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 private const val FIRST_PACKAGE_ID: Byte = 0x02
@@ -62,9 +62,7 @@ private val fieldNameOrdering: Comparator<String> = Comparator { name1, name2 ->
 
 @VisibleForTesting
 fun buildResourceId(packageId: Byte, typeId: Byte, entryId: Short): Int =
-  (packageId.toInt() shl 24) or
-    (typeId.toInt() shl 16) or
-    (entryId.toInt() and 0xffff)
+  (packageId.toInt() shl 24) or (typeId.toInt() shl 16) or (entryId.toInt() and 0xffff)
 
 /** Loads the given [Class] from disk if available. */
 private fun Class<*>.loadClassBytes(fqcn: String = simpleName): ByteArray =
@@ -75,17 +73,16 @@ private fun Class<*>.loadClassBytes(fqcn: String = simpleName): ByteArray =
   }
 
 /**
- * Reads numeric ids from the given R class (loading it from the bytecode without using reflection)
- * and stores them in the supplied [SingleNamespaceIdMapping].
+ * Reads numeric ids from the given R class (loading it from the bytecode without using reflection) and stores them in the supplied
+ * [SingleNamespaceIdMapping].
  *
  * @param klass the R class to read ids from
  * @param into the result [SingleNamespaceIdMapping]
- * @param lookForAttrsInStyleables whether to get attr ids by looking at `R.styleable`. Aapt has a
- *   feature where an ignore list of all resources to be put in the R class can be supplied at build
- *   time (to reduce the size of the R class). In this case the numeric ids of attr resources can
- *   still "leak" into bytecode in the `styleable` class. If this argument is set to `true`, names
- *   of the attrs are inferred from corresponding fields in the `styleable` class and their numeric
- *   ids are saved. This is applicable mostly to the internal android R class.
+ * @param lookForAttrsInStyleables whether to get attr ids by looking at `R.styleable`. Aapt has a feature where an ignore list of all
+ *   resources to be put in the R class can be supplied at build time (to reduce the size of the R class). In this case the numeric ids of
+ *   attr resources can still "leak" into bytecode in the `styleable` class. If this argument is set to `true`, names of the attrs are
+ *   inferred from corresponding fields in the `styleable` class and their numeric ids are saved. This is applicable mostly to the internal
+ *   android R class.
  */
 private fun loadIdsFromResourceClassFromBytecode(
   klassBytes: ByteArray,
@@ -94,9 +91,7 @@ private fun loadIdsFromResourceClassFromBytecode(
   lookForAttrsInStyleables: Boolean = false,
 ) {
 
-  val fieldOrdering: Comparator<ResourceClass.Field> = Comparator { f1, f2 ->
-    fieldNameOrdering.compare(f1.name, f2.name)
-  }
+  val fieldOrdering: Comparator<ResourceClass.Field> = Comparator { f1, f2 -> fieldNameOrdering.compare(f1.name, f2.name) }
 
   val klass = resourceIdClassBinaryParser(klassBytes, classLoader)
   for (innerClass in klass.declaredClasses) {
@@ -126,8 +121,7 @@ private fun loadIdsFromResourceClassFromBytecode(
         val sortedFields = innerClass.declaredFields.sortedWith(fieldOrdering)
         for (field in sortedFields) {
           if (field is ResourceClass.Field.IntArray) {
-            currentArray =
-              field.value.filterIsInstance<ResourceClass.Field.Int>().map { it.value }.toIntArray()
+            currentArray = field.value.filterIsInstance<ResourceClass.Field.Int>().map { it.value }.toIntArray()
             currentStyleable = field.name
           } else {
             val attrName: String = field.name.substring(currentStyleable.length + 1)
@@ -146,17 +140,16 @@ private fun loadIdsFromResourceClassFromBytecode(
 }
 
 /**
- * Reads numeric ids from the given R class (loading it from the bytecode without using reflection)
- * and stores them in the supplied [SingleNamespaceIdMapping].
+ * Reads numeric ids from the given R class (loading it from the bytecode without using reflection) and stores them in the supplied
+ * [SingleNamespaceIdMapping].
  *
  * @param klass the R class to read ids from
  * @param into the result [SingleNamespaceIdMapping]
- * @param lookForAttrsInStyleables whether to get attr ids by looking at `R.styleable`. Aapt has a
- *   feature where an ignore list of all resources to be put in the R class can be supplied at build
- *   time (to reduce the size of the R class). In this case the numeric ids of attr resources can
- *   still "leak" into bytecode in the `styleable` class. If this argument is set to `true`, names
- *   of the attrs are inferred from corresponding fields in the `styleable` class and their numeric
- *   ids are saved. This is applicable mostly to the internal android R class.
+ * @param lookForAttrsInStyleables whether to get attr ids by looking at `R.styleable`. Aapt has a feature where an ignore list of all
+ *   resources to be put in the R class can be supplied at build time (to reduce the size of the R class). In this case the numeric ids of
+ *   attr resources can still "leak" into bytecode in the `styleable` class. If this argument is set to `true`, names of the attrs are
+ *   inferred from corresponding fields in the `styleable` class and their numeric ids are saved. This is applicable mostly to the internal
+ *   android R class.
  */
 private fun loadIdsFromResourceClassFromBytecode(
   theKlass: Class<*>,
@@ -164,34 +157,29 @@ private fun loadIdsFromResourceClassFromBytecode(
   lookForAttrsInStyleables: Boolean = false,
 ) {
   assert(theKlass.simpleName == "R") { "Numeric ids can only be loaded from top-level R classes." }
-  loadIdsFromResourceClassFromBytecode(theKlass.loadClassBytes(), classLoader =  {
-    theKlass.loadClassBytes(it)
-  }, into, lookForAttrsInStyleables)
+  loadIdsFromResourceClassFromBytecode(
+    theKlass.loadClassBytes(),
+    classLoader = { theKlass.loadClassBytes(it) },
+    into,
+    lookForAttrsInStyleables,
+  )
 }
 
 /**
- * Reads numeric ids from the given R class (using reflection) and stores them in the supplied
- * [SingleNamespaceIdMapping].
+ * Reads numeric ids from the given R class (using reflection) and stores them in the supplied [SingleNamespaceIdMapping].
  *
  * @param klass the R class to read ids from
  * @param into the result [SingleNamespaceIdMapping]
- * @param lookForAttrsInStyleables whether to get attr ids by looking at `R.styleable`. Aapt has a
- *   feature where an ignore list of all resources to be put in the R class can be supplied at build
- *   time (to reduce the size of the R class). In this case the numeric ids of attr resources can
- *   still "leak" into bytecode in the `styleable` class. If this argument is set to `true`, names
- *   of the attrs are inferred from corresponding fields in the `styleable` class and their numeric
- *   ids are saved. This is applicable mostly to the internal android R class.
+ * @param lookForAttrsInStyleables whether to get attr ids by looking at `R.styleable`. Aapt has a feature where an ignore list of all
+ *   resources to be put in the R class can be supplied at build time (to reduce the size of the R class). In this case the numeric ids of
+ *   attr resources can still "leak" into bytecode in the `styleable` class. If this argument is set to `true`, names of the attrs are
+ *   inferred from corresponding fields in the `styleable` class and their numeric ids are saved. This is applicable mostly to the internal
+ *   android R class.
  */
-private fun loadIdsFromResourceClass(
-  klass: Class<*>,
-  into: SingleNamespaceIdMapping,
-  lookForAttrsInStyleables: Boolean = false,
-) {
+private fun loadIdsFromResourceClass(klass: Class<*>, into: SingleNamespaceIdMapping, lookForAttrsInStyleables: Boolean = false) {
   assert(klass.simpleName == "R") { "Numeric ids can only be loaded from top-level R classes." }
 
-  val fieldOrdering: Comparator<Field> = Comparator { f1, f2 ->
-    fieldNameOrdering.compare(f1.name, f2.name)
-  }
+  val fieldOrdering: Comparator<Field> = Comparator { f1, f2 -> fieldNameOrdering.compare(f1.name, f2.name) }
 
   for (innerClass in klass.declaredClasses) {
     val type = ResourceType.fromClassName(innerClass.simpleName) ?: continue
@@ -238,9 +226,7 @@ private fun loadIdsFromResourceClass(
   }
 }
 
-/**
- * Provider class that loads the framework resources.
- */
+/** Provider class that loads the framework resources. */
 internal interface FrameworkResourceIdsProvider : ModificationTracker {
 
   /**
@@ -258,34 +244,27 @@ internal interface FrameworkResourceIdsProvider : ModificationTracker {
 
     /**
      * Method that allows creating new instances of a [FrameworkResourceIdsProvider]. Typically, we want to re-use the same instance via
-     * [getInstance] since the framework resource ids are immutable for a given Layoutlib, and they are expensive to create.
-     * This method allows to have different instances just for testing purposes.
+     * [getInstance] since the framework resource ids are immutable for a given Layoutlib, and they are expensive to create. This method
+     * allows to have different instances just for testing purposes.
      */
-    @TestOnly
-    fun createInstanceForTests(): FrameworkResourceIdsProvider = FrameworkResourceIds()
+    @TestOnly fun createInstanceForTests(): FrameworkResourceIdsProvider = FrameworkResourceIds()
   }
 }
 
 /**
- * Singleton containing the resource ids for the current framework used in Layoutlib. There are
- * immutable and only change when a new layoutlib is added.
+ * Singleton containing the resource ids for the current framework used in Layoutlib. There are immutable and only change when a new
+ * layoutlib is added.
  */
-private class FrameworkResourceIds: FrameworkResourceIdsProvider {
+private class FrameworkResourceIds : FrameworkResourceIdsProvider {
   sealed class LoadedState {
-    /**
-     * The framework ids have not been initialized yet.
-     */
+    /** The framework ids have not been initialized yet. */
     object NotLoaded : LoadedState()
 
-    /**
-     * The framework ids have been loaded from the given [rClass].
-     */
+    /** The framework ids have been loaded from the given [rClass]. */
     data class Loaded(val useRBytecodeParsing: Boolean, val rClass: Class<*>) : LoadedState()
   }
 
-  /**
-   * Number of times that the resources have been re-loaded.
-   */
+  /** Number of times that the resources have been re-loaded. */
   val loadedCount = SimpleModificationTracker()
 
   private val loadFrameworkIdsLock = Any()
@@ -294,10 +273,7 @@ private class FrameworkResourceIds: FrameworkResourceIdsProvider {
 
   override fun loadFrameworkIds(useRBytecodeParsing: Boolean): SingleNamespaceIdMapping =
     synchronized(loadFrameworkIdsLock) {
-      val rClass =
-        LayoutLibraryLoader.getLayoutLibraryProvider()
-          .map { provider -> provider.frameworkRClass }
-          .orElse(null)
+      val rClass = LayoutLibraryLoader.getLayoutLibraryProvider().map { provider -> provider.frameworkRClass }.orElse(null)
 
       if (rClass == null) {
         thisLogger().warn("Framework R class not found")
@@ -331,15 +307,9 @@ private class FrameworkResourceIds: FrameworkResourceIdsProvider {
         fromIdMap.clear()
       }
 
-
       if (useRBytecodeParsing) {
-        loadIdsFromResourceClassFromBytecode(
-          rClass,
-          into = frameworkIds,
-          lookForAttrsInStyleables = true,
-        )
-      }
-      else {
+        loadIdsFromResourceClassFromBytecode(rClass, into = frameworkIds, lookForAttrsInStyleables = true)
+      } else {
         loadIdsFromResourceClass(rClass, into = frameworkIds, lookForAttrsInStyleables = true)
       }
 
@@ -350,26 +320,25 @@ private class FrameworkResourceIds: FrameworkResourceIdsProvider {
 }
 
 /** Studio agnostic implementation of [ResourceIdManager]. */
-open class ResourceIdManagerBase internal constructor(
+open class ResourceIdManagerBase
+internal constructor(
   private val module: ResourceIdManagerModelModule,
   private val searchFrameworkIds: Boolean,
-  frameworkResourceIdsProvider: FrameworkResourceIdsProvider
+  frameworkResourceIdsProvider: FrameworkResourceIdsProvider,
 ) : ResourceIdManager {
   private var generationCounter = 1L
 
   constructor(
     module: ResourceIdManagerModelModule,
-    searchFrameworkIds: Boolean = false
-  ): this(module, searchFrameworkIds, FrameworkResourceIdsProvider.createInstanceForTests())
+    searchFrameworkIds: Boolean = false,
+  ) : this(module, searchFrameworkIds, FrameworkResourceIdsProvider.createInstanceForTests())
 
   /**
-   * Class for generating dynamic ids with the given byte as the "package id" part of the 32-bit
-   * resource id.
+   * Class for generating dynamic ids with the given byte as the "package id" part of the 32-bit resource id.
    *
-   * The generated ids follow the aapt PPTTEEEE format: 1 byte for package, 1 byte for type, 2 bytes
-   * for entry id. The entry IDs are assigned sequentially, starting with the highest possible value
-   * and going down. This should mean they won't conflict with [compiledIds] assigned by real aapt
-   * in a normal-size project (although there is no mechanism to check that).
+   * The generated ids follow the aapt PPTTEEEE format: 1 byte for package, 1 byte for type, 2 bytes for entry id. The entry IDs are
+   * assigned sequentially, starting with the highest possible value and going down. This should mean they won't conflict with [compiledIds]
+   * assigned by real aapt in a normal-size project (although there is no mechanism to check that).
    */
   private class IdProvider(private val packageByte: Byte) {
     @OptIn(ExperimentalStdlibApi::class)
@@ -411,18 +380,16 @@ open class ResourceIdManagerBase internal constructor(
   @GuardedBy("this") private val dynamicFromIdMap = Int2ObjectOpenHashMap<ResourceReference>()
 
   /**
-   * Ids read from the real `R.class` file saved to disk by aapt. They are used instead of dynamic
-   * ids, to make sure numeric values compiled into custom views bytecode are consistent with the
-   * resource-to-id mapping that this class maintains.
+   * Ids read from the real `R.class` file saved to disk by aapt. They are used instead of dynamic ids, to make sure numeric values compiled
+   * into custom views bytecode are consistent with the resource-to-id mapping that this class maintains.
    *
-   * These are only read when we know the custom views are compiled against an R class with fields
-   * marked as final. See [finalIdsUsed].
+   * These are only read when we know the custom views are compiled against an R class with fields marked as final. See [finalIdsUsed].
    */
   @GuardedBy("this") private var compiledIds: SingleNamespaceIdMapping? = null
 
   /**
-   * Ids from the framework `R.class`. It is initialized here so the loading of the resources
-   * happens at a predictable point during the initialization of the class.
+   * Ids from the framework `R.class`. It is initialized here so the loading of the resources happens at a predictable point during the
+   * initialization of the class.
    */
   private val frameworkIds: SingleNamespaceIdMapping = frameworkResourceIdsProvider.loadFrameworkIds(module.useRBytecodeParsing)
 
@@ -443,8 +410,8 @@ open class ResourceIdManagerBase internal constructor(
   /**
    * Returns the compiled id of the given resource, if known.
    *
-   * See [compiledIds] for an explanation of what this means for project resources. For framework
-   * resources, this will return the value read from [com.android.internal.R].
+   * See [compiledIds] for an explanation of what this means for project resources. For framework resources, this will return the value read
+   * from [com.android.internal.R].
    */
   @Synchronized
   override fun getCompiledId(resource: ResourceReference): Int? {
@@ -459,8 +426,7 @@ open class ResourceIdManagerBase internal constructor(
   }
 
   /**
-   * Returns the compiled id if known, otherwise returns the dynamic id of the resource (which may
-   * need to be generated).
+   * Returns the compiled id if known, otherwise returns the dynamic id of the resource (which may need to be generated).
    *
    * See [getCompiledId] and [dynamicToIdMap] for an explanation of what this means.
    */
@@ -476,8 +442,7 @@ open class ResourceIdManagerBase internal constructor(
       return dynamicId
     }
 
-    val provider =
-      perNamespaceProviders.getOrPut(resource.namespace) { IdProvider(nextPackageId++) }
+    val provider = perNamespaceProviders.getOrPut(resource.namespace) { IdProvider(nextPackageId++) }
     val newId = provider.getNext(resource.resourceType)
 
     dynamicToIdMap.put(resource, newId)
@@ -499,13 +464,14 @@ open class ResourceIdManagerBase internal constructor(
   override fun resetCompiledIds(rClassProvider: Consumer<ResourceIdManager.RClassParser>) {
     val temporaryCompileIds = SingleNamespaceIdMapping(ResourceNamespace.RES_AUTO)
     try {
-      rClassProvider.accept(object: ResourceIdManager.RClassParser {
-        override fun parseUsingReflection(rClass: Class<*>) =
-          loadIdsFromResourceClass(rClass, into = temporaryCompileIds)
+      rClassProvider.accept(
+        object : ResourceIdManager.RClassParser {
+          override fun parseUsingReflection(rClass: Class<*>) = loadIdsFromResourceClass(rClass, into = temporaryCompileIds)
 
-        override fun parseBytecode(rClass: ByteArray, rClassProvider: (String) -> ByteArray) =
-          loadIdsFromResourceClassFromBytecode(rClass, classLoader = rClassProvider, into = temporaryCompileIds)
-      })
+          override fun parseBytecode(rClass: ByteArray, rClassProvider: (String) -> ByteArray) =
+            loadIdsFromResourceClassFromBytecode(rClass, classLoader = rClassProvider, into = temporaryCompileIds)
+        }
+      )
     } finally {
       synchronized(this) { compiledIds = temporaryCompileIds }
     }

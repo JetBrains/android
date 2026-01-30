@@ -28,9 +28,8 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.hasActualModifier
 
 /**
- * Returns Composable function icon for [KtFunction] elements that are composable, or null otherwise
- * to allow fallback to any other providers. This may be used in various places across the IDE; one
- * example is in the "Add Import" menu.
+ * Returns Composable function icon for [KtFunction] elements that are composable, or null otherwise to allow fallback to any other
+ * providers. This may be used in various places across the IDE; one example is in the "Add Import" menu.
  */
 class ComposableIconProvider : KotlinIconProvider() {
 

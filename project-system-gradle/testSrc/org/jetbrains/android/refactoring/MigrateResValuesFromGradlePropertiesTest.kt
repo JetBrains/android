@@ -26,21 +26,18 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent.createTestEvent
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
 abstract class MigrateResValuesFromGradlePropertiesTest(
   val agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
-  val propertyValue: Boolean?
+  val propertyValue: Boolean?,
 ) {
 
   private val projectRule = AndroidGradleProjectRule()
 
-  @JvmField
-  @Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @JvmField @Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   @Test
   @RunsInEdt
@@ -76,9 +73,7 @@ abstract class MigrateResValuesFromGradlePropertiesTest(
     val action = MigrateResValuesFromGradlePropertiesAction()
     val event = createTestEvent(action, DataManager.getInstance().getDataContext(projectRule.fixture.editor.component))
 
-    ApplicationManager.getApplication().runReadAction {
-      action.update(event)
-    }
+    ApplicationManager.getApplication().runReadAction { action.update(event) }
 
     Truth.assertThat(event.presentation.isEnabled).isTrue()
     Truth.assertThat(event.presentation.isVisible).isTrue()

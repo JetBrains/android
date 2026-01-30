@@ -26,15 +26,17 @@ import com.android.tools.profilers.sessions.SessionArtifact
 import java.io.OutputStream
 import java.util.concurrent.TimeUnit
 
-class AllocationSessionArtifact(override val profilers: StudioProfilers,
-                                override val session: Common.Session,
-                                override val sessionMetaData: Common.SessionMetaData,
-                                private val info: Memory.AllocationsInfo,
-                                val startUs: Double,
-                                val endUs: Double)
-  : SessionArtifact<Memory.AllocationsInfo>, ExportableArtifact {
+class AllocationSessionArtifact(
+  override val profilers: StudioProfilers,
+  override val session: Common.Session,
+  override val sessionMetaData: Common.SessionMetaData,
+  private val info: Memory.AllocationsInfo,
+  val startUs: Double,
+  val endUs: Double,
+) : SessionArtifact<Memory.AllocationsInfo>, ExportableArtifact {
 
-  val subtitle: String get() = TimeFormatter.getFullClockString(timestampNs.nanosToMicros())
+  val subtitle: String
+    get() = TimeFormatter.getFullClockString(timestampNs.nanosToMicros())
 
   override val artifactProto = info
 
@@ -59,24 +61,30 @@ class AllocationSessionArtifact(override val profilers: StudioProfilers,
   }
 
   override fun doSelect() {
-    if (session !== profilers.session)
-      profilers.sessionsManager.setSession(session)
+    if (session !== profilers.session) profilers.sessionsManager.setSession(session)
     profilers.stage = AllocationStage.makeStaticStage(profilers, minTrackingTimeUs = startUs, maxTrackingTimeUs = endUs)
   }
 
   companion object {
     @JvmStatic
-    fun getSessionArtifacts(profilers: StudioProfilers,
-                            session: Common.Session,
-                            sessionMetadata: Common.SessionMetaData): List<SessionArtifact<*>> {
+    fun getSessionArtifacts(
+      profilers: StudioProfilers,
+      session: Common.Session,
+      sessionMetadata: Common.SessionMetaData,
+    ): List<SessionArtifact<*>> {
       val rangeUs = Range(session.startTimestamp.nanosToMicros().toDouble(), session.endTimestamp.nanosToMicros().toDouble())
       return getAllocationInfosForSession(profilers.client, session, rangeUs).mapNotNull { info ->
         if (info.legacy) {
           LegacyAllocationsSessionArtifact(profilers, session, sessionMetadata, info)
-        }
-        else {
-          AllocationSessionArtifact(profilers, session, sessionMetadata, info, info.startTime.nanosToMicros().toDouble(),
-                                    info.endTime.nanosToMicros().toDouble())
+        } else {
+          AllocationSessionArtifact(
+            profilers,
+            session,
+            sessionMetadata,
+            info,
+            info.startTime.nanosToMicros().toDouble(),
+            info.endTime.nanosToMicros().toDouble(),
+          )
         }
       }
     }

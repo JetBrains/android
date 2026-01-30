@@ -25,9 +25,9 @@ import com.android.tools.profilers.tasks.args.TaskArgs
 import com.intellij.openapi.diagnostic.Logger
 
 /**
- * The ProfilerTaskHandler serves as the base class for all task handlers. It enforces implementation of what to do on task start, stop,
- * and how to load a task. Moreover, it also enforces implementation for a method to create the respective task arguments, when to know if
- * the task is defined as terminated, what to return for the task name, and whether the task supports a specific artifact.
+ * The ProfilerTaskHandler serves as the base class for all task handlers. It enforces implementation of what to do on task start, stop, and
+ * how to load a task. Moreover, it also enforces implementation for a method to create the respective task arguments, when to know if the
+ * task is defined as terminated, what to return for the task name, and whether the task supports a specific artifact.
  */
 abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager) {
   protected var myTaskTracker: TaskTracker = TaskTracker.createNullTaskTracker(sessionsManager.studioProfilers)
@@ -49,15 +49,14 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
    * task or load the task with the supplied args). Note that the returned boolean only tells us if the ProfilerTaskHandlers' enter was
    * successful, it does not tell us if the startTask or loadTask functionality was successful.
    */
-  open fun enter(args: TaskArgs) : Boolean {
+  open fun enter(args: TaskArgs): Boolean {
     myTaskTracker = TaskTracker.createTaskTracker(sessionsManager.studioProfilers)
 
     myTaskTracker.trackTaskEntered()
 
     if (sessionsManager.isSessionAlive) {
       startTask(args)
-    }
-    else {
+    } else {
       return loadTask(args)
     }
 
@@ -77,9 +76,7 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
    */
   abstract fun startTask(args: TaskArgs)
 
-  /**
-   * Task behavior on stop.
-   */
+  /** Task behavior on stop. */
   abstract fun stopTask()
 
   /**
@@ -87,11 +84,9 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
    *
    * Returns a boolean indicating whether it was able to cast to the correct TaskArgs subtype or not.
    */
-  abstract fun loadTask(args: TaskArgs) : Boolean
+  abstract fun loadTask(args: TaskArgs): Boolean
 
-  /**
-   * Returns the name of the task.
-   */
+  /** Returns the name of the task. */
   abstract fun getTaskName(): String
 
   /**
@@ -104,7 +99,7 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
    * @param sessionItems list of session items (sessions taken in the current profiler instance or from importing) that contain artifacts
    * @param selectedSession the current session (alive or not) that the current task corresponds to
    */
-  fun createArgs(isStartupTask: Boolean,sessionItems: Map<Long, SessionItem>, selectedSession: Common.Session): TaskArgs {
+  fun createArgs(isStartupTask: Boolean, sessionItems: Map<Long, SessionItem>, selectedSession: Common.Session): TaskArgs {
     val isTaskOngoing = SessionsManager.isSessionAlive(selectedSession)
     // Finds the artifact that backs the task identified via its corresponding unique session (selectedSession).
     val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionItems, ::supportsArtifact)
@@ -112,42 +107,33 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
     return if (isTaskOngoing) {
       // If the session/task is not complete yet, then the TaskArgs only need to contain data on whether it is a startup task or not.
       createStartTaskArgs(isStartupTask)
-    }
-    else if (artifact != null && supportsArtifact(artifact)) {
+    } else if (artifact != null && supportsArtifact(artifact)) {
       // If the task is complete and supports the found artifact, a TaskArgs is constructed using the artifact to load the completed task.
       createLoadingTaskArgs(artifact)
-    }
-    else {
+    } else {
       // There should never be a state in which a session is complete (not alive) and does not have a corresponding artifact present.
       throw IllegalStateException("No supported artifact was found to construct the TaskArgs with")
     }
   }
 
-  /**
-   * Returns whether the task supports a given session artifact (backing data construct).
-   */
+  /** Returns whether the task supports a given session artifact (backing data construct). */
   abstract fun supportsArtifact(artifact: SessionArtifact<*>?): Boolean
 
-  /**
-   * Returns the TaskArgs (arguments construct) used when starting a task.
-   */
+  /** Returns the TaskArgs (arguments construct) used when starting a task. */
   protected abstract fun createStartTaskArgs(isStartupTask: Boolean): TaskArgs
 
-  /**
-   * Returns the TaskArgs (arguments construct) used when loading an existing task.
-   */
+  /** Returns the TaskArgs (arguments construct) used when loading an existing task. */
   protected abstract fun createLoadingTaskArgs(artifact: SessionArtifact<*>): TaskArgs
 
   /**
-   * Checks whether the task supports a given device and process. If it doesn't, an error is returned representing the cause,
-   * otherwise, it returns null. Some tasks only require checking the device, some only the process, and some require checking both.
+   * Checks whether the task supports a given device and process. If it doesn't, an error is returned representing the cause, otherwise, it
+   * returns null. Some tasks only require checking the device, some only the process, and some require checking both.
    *
    * This method is called under the assumption that the device and process selections are all valid (not null nor default instances).
    */
   abstract fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError?
-  /**
-   * Unified error handler for all task handlers.
-   */
+
+  /** Unified error handler for all task handlers. */
   fun handleError(errorMessage: String) {
     // TODO(b/298246786): Improve/refine the error handling
     getLogger().error("There was an error with the ${getTaskName()} task. Error message: $errorMessage.")

@@ -59,8 +59,7 @@ class ComposePostFormatProcessorTest {
         .trimIndent(),
     )
 
-    val settings =
-      CodeStyle.getSettings(project).getCustomSettings(KotlinCodeStyleSettings::class.java)
+    val settings = CodeStyle.getSettings(project).getCustomSettings(KotlinCodeStyleSettings::class.java)
     settings.CONTINUATION_INDENT_FOR_CHAINED_CALLS = false
   }
 
@@ -84,8 +83,7 @@ class ComposePostFormatProcessorTest {
     )
 
     WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
-      CodeStyleManager.getInstance(project)
-        .reformatText(fixture.file, listOf(fixture.file.textRange))
+      CodeStyleManager.getInstance(project).reformatText(fixture.file, listOf(fixture.file.textRange))
     }
 
     fixture.checkResult(
@@ -143,8 +141,7 @@ class ComposePostFormatProcessorTest {
     )
 
     WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
-      CodeStyleManager.getInstance(project)
-        .reformatText(fixture.file, listOf(fixture.file.textRange))
+      CodeStyleManager.getInstance(project).reformatText(fixture.file, listOf(fixture.file.textRange))
     }
 
     fixture.checkResult(
@@ -203,8 +200,7 @@ class ComposePostFormatProcessorTest {
     )
 
     WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
-      CodeStyleManager.getInstance(project)
-        .reformatText(fixture.file, listOf(fixture.file.textRange))
+      CodeStyleManager.getInstance(project).reformatText(fixture.file, listOf(fixture.file.textRange))
     }
 
     fixture.checkResult(

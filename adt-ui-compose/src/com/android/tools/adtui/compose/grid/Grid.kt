@@ -28,18 +28,16 @@ import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.layout.Layout
 
 /**
- * A layout that positions elements in a two-dimensional grid. Row and column sizes are determined
- * by the measurements of the cell contents. Space is allocated in a left to right, top to bottom
- * order.
+ * A layout that positions elements in a two-dimensional grid. Row and column sizes are determined by the measurements of the cell contents.
+ * Space is allocated in a left to right, top to bottom order.
  *
  * @param modifier The modifier to be applied to the Grid.
  * @param horizontalArrangement The horizontal arrangement of the layout's children.
  * @param verticalArrangement The horizontal arrangement of the layout's children.
- * @param horizontalAlignment The default horizontal alignment of the layout's children; may be
- *   overridden by [GridRowScope.align] modifiers.
- * @param verticalAlignment The default vertical alignment of the layout's children; may be
- *   overridden by [GridRowScope.align], [GridRowScope.alignBy], or [GridRowScope.alignByBaseline]
+ * @param horizontalAlignment The default horizontal alignment of the layout's children; may be overridden by [GridRowScope.align]
  *   modifiers.
+ * @param verticalAlignment The default vertical alignment of the layout's children; may be overridden by [GridRowScope.align],
+ *   [GridRowScope.alignBy], or [GridRowScope.alignByBaseline] modifiers.
  */
 @Composable
 fun Grid(
@@ -52,12 +50,7 @@ fun Grid(
 ) {
   val measurePolicy =
     remember(horizontalArrangement, verticalArrangement, horizontalAlignment, verticalAlignment) {
-      GridMeasurePolicy(
-        horizontalArrangement,
-        verticalArrangement,
-        horizontalAlignment,
-        verticalAlignment,
-      )
+      GridMeasurePolicy(horizontalArrangement, verticalArrangement, horizontalAlignment, verticalAlignment)
     }
   val gridScope = GridScopeImpl()
   with(gridScope) { content() }
@@ -81,38 +74,33 @@ internal class GridScopeImpl : GridScope {
 @Immutable
 interface GridRowScope {
   /**
-   * Align the element horizontally within the grid cell. This alignment will have priority over the
-   * [Grid]'s `horizontalAlignment` parameter.
+   * Align the element horizontally within the grid cell. This alignment will have priority over the [Grid]'s `horizontalAlignment`
+   * parameter.
    */
   @Stable fun Modifier.align(alignment: Alignment.Horizontal): Modifier
 
   /**
-   * Align the element vertically within the grid cell. This alignment will have priority over the
-   * [Grid]'s `verticalAlignment` parameter.
+   * Align the element vertically within the grid cell. This alignment will have priority over the [Grid]'s `verticalAlignment` parameter.
    */
   @Stable fun Modifier.align(alignment: Alignment.Vertical): Modifier
 
   /**
-   * Position the element vertically such that its [alignmentLine] aligns with sibling elements also
-   * configured to [alignBy]. [alignBy] is a form of [align], so both modifiers will not work
-   * together if specified for the same layout. [alignBy] can be used to align two layouts by
-   * baseline inside a GridRow, using `alignBy(FirstBaseline)`. Within a GridRow, all components
-   * with [alignBy] will align vertically using the specified [HorizontalAlignmentLine]s or values
-   * provided using the other [alignBy] overload, forming a sibling group. At least one element of
-   * the sibling group will be placed as it had [Alignment.Top] align in GridRow, and the alignment
-   * of the other siblings will be then determined such that the alignment lines coincide. Note that
-   * if only one element in a GridRow has the [alignBy] modifier specified the element will be
-   * positioned as if it had [Alignment.Top] align.
+   * Position the element vertically such that its [alignmentLine] aligns with sibling elements also configured to [alignBy]. [alignBy] is a
+   * form of [align], so both modifiers will not work together if specified for the same layout. [alignBy] can be used to align two layouts
+   * by baseline inside a GridRow, using `alignBy(FirstBaseline)`. Within a GridRow, all components with [alignBy] will align vertically
+   * using the specified [HorizontalAlignmentLine]s or values provided using the other [alignBy] overload, forming a sibling group. At least
+   * one element of the sibling group will be placed as it had [Alignment.Top] align in GridRow, and the alignment of the other siblings
+   * will be then determined such that the alignment lines coincide. Note that if only one element in a GridRow has the [alignBy] modifier
+   * specified the element will be positioned as if it had [Alignment.Top] align.
    *
    * @see alignByBaseline
    */
   @Stable fun Modifier.alignBy(alignmentLine: HorizontalAlignmentLine): Modifier
 
   /**
-   * Position the element vertically such that its first baseline aligns with sibling elements also
-   * configured to [alignByBaseline] or [alignBy]. This modifier is a form of [align], so both
-   * modifiers will not work together if specified for the same layout. [alignByBaseline] is a
-   * particular case of [alignBy]. See [alignBy] for more details.
+   * Position the element vertically such that its first baseline aligns with sibling elements also configured to [alignByBaseline] or
+   * [alignBy]. This modifier is a form of [align], so both modifiers will not work together if specified for the same layout.
+   * [alignByBaseline] is a particular case of [alignBy]. See [alignBy] for more details.
    *
    * @see alignBy
    */
@@ -120,17 +108,12 @@ interface GridRowScope {
 }
 
 internal object GridRowScopeInstance : GridRowScope {
-  @Stable
-  override fun Modifier.align(alignment: Alignment.Horizontal) =
-    this.then(HorizontalAlignElement(alignment))
+  @Stable override fun Modifier.align(alignment: Alignment.Horizontal) = this.then(HorizontalAlignElement(alignment))
+
+  @Stable override fun Modifier.align(alignment: Alignment.Vertical) = this.then(VerticalAlignElement(alignment))
 
   @Stable
-  override fun Modifier.align(alignment: Alignment.Vertical) =
-    this.then(VerticalAlignElement(alignment))
-
-  @Stable
-  override fun Modifier.alignBy(alignmentLine: HorizontalAlignmentLine) =
-    this.then(WithAlignmentLineElement(alignmentLine = alignmentLine))
+  override fun Modifier.alignBy(alignmentLine: HorizontalAlignmentLine) = this.then(WithAlignmentLineElement(alignmentLine = alignmentLine))
 
   @Stable override fun Modifier.alignByBaseline() = alignBy(FirstBaseline)
 }

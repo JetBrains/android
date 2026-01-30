@@ -36,6 +36,7 @@ import com.intellij.psi.util.startOffset
 import com.intellij.xdebugger.frame.XNamedValue
 import com.sun.jdi.IntegerValue
 import com.sun.jdi.Location
+import java.util.concurrent.CancellationException
 import org.jetbrains.kotlin.idea.codeinsight.utils.findExistingEditor
 import org.jetbrains.kotlin.idea.debugger.core.stackFrame.KotlinStackFrame
 import org.jetbrains.kotlin.idea.debugger.core.stackFrame.KotlinStackFrameValueContributor
@@ -43,7 +44,6 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import java.util.concurrent.CancellationException
 
 private const val COMPOSER_VAR = "\$composer"
 private const val CHANGED_VAR = "\$changed"
@@ -85,15 +85,7 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
       if (nodeManager == null) {
         thisLogger().warn("Unable to add $COMPOSER_VAR. nodeManager is null")
       } else {
-        values.add(
-          JavaValue.create(
-            null,
-            LocalVariableDescriptorImpl(context.project, composer),
-            context,
-            nodeManager,
-            false,
-          )
-        )
+        values.add(JavaValue.create(null, LocalVariableDescriptorImpl(context.project, composer), context, nodeManager, false))
       }
     }
 
@@ -115,8 +107,7 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
     }
 
     try {
-      val functionInfo =
-        getFunctionInfo(context.debugProcess.positionManager, frame.stackFrameProxy.location())
+      val functionInfo = getFunctionInfo(context.debugProcess.positionManager, frame.stackFrameProxy.location())
       // Named parameters
       functionInfo.parameters.zip(states.drop(stateObjects.size)).forEach { (param, state) ->
         stateObjects.add(Parameter(state, param, variableMap[param]))
@@ -137,20 +128,12 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
   /**
    * Finds the parameter names of a function.
    *
-   * Inspired by
-   * [org.jetbrains.kotlin.idea.debugger.coroutine.KotlinVariableNameFinder.findVariableNames].
+   * Inspired by [org.jetbrains.kotlin.idea.debugger.coroutine.KotlinVariableNameFinder.findVariableNames].
    */
-  private fun getFunctionInfo(
-    positionManager: CompoundPositionManager,
-    location: Location,
-  ): FunctionInfo {
+  private fun getFunctionInfo(positionManager: CompoundPositionManager, location: Location): FunctionInfo {
     return runReadAction {
-      val element =
-        positionManager.getSourcePosition(location)?.elementAt
-          ?: throw IllegalStateException("Unable to get source position")
-      val function =
-        element.parentOfType<KtFunction>(withSelf = true)
-          ?: throw IllegalStateException("Unable to find KtFunction element")
+      val element = positionManager.getSourcePosition(location)?.elementAt ?: throw IllegalStateException("Unable to get source position")
+      val function = element.parentOfType<KtFunction>(withSelf = true) ?: throw IllegalStateException("Unable to find KtFunction element")
       val parameters = function.valueParameters.mapNotNull { it.name }
       FunctionInfo(getDescription(function), parameters)
     }
@@ -161,28 +144,16 @@ internal class ComposeValueContributor : KotlinStackFrameValueContributor {
 
 private fun getDescription(function: KtFunction): String {
   return when (function) {
-    is KtFunctionLiteral ->
-      ComposeBundle.message(
-        "recomposition.state.function.description.lambda",
-        getLambdaName(function),
-      )
-    else ->
-      ComposeBundle.message(
-        "recomposition.state.function.description.function",
-        function.nameAsSafeName.asString(),
-      )
+    is KtFunctionLiteral -> ComposeBundle.message("recomposition.state.function.description.lambda", getLambdaName(function))
+    else -> ComposeBundle.message("recomposition.state.function.description.function", function.nameAsSafeName.asString())
   }
 }
 
-/**
- * Search parent hierarchy for either a declaration of a composable function or a call to a
- * composable function.
- */
+/** Search parent hierarchy for either a declaration of a composable function or a call to a composable function. */
 private fun getLambdaName(lambda: KtFunctionLiteral): String {
   var element: PsiElement = lambda
   while (true) {
-    element =
-      element.parentOfTypes(KtNamedFunction::class, KtCallExpression::class) ?: return "lambda"
+    element = element.parentOfTypes(KtNamedFunction::class, KtCallExpression::class) ?: return "lambda"
     when {
       element is KtNamedFunction && element.isComposableFunction() -> return element.getLambdaName()
       element is KtCallExpression && element.isTargetComposable() -> return element.getLambdaName()
@@ -192,32 +163,21 @@ private fun getLambdaName(lambda: KtFunctionLiteral): String {
 
 private fun KtNamedFunction.getLambdaName() = "lambda@${nameAsSafeName.asString()}"
 
-private fun KtCallExpression.getLambdaName() =
-  calleeExpression?.let { "lambda@${it.text}" } ?: "lambda"
+private fun KtCallExpression.getLambdaName() = calleeExpression?.let { "lambda@${it.text}" } ?: "lambda"
 
 private fun KtCallExpression.isTargetComposable(): Boolean {
   val editor = findExistingEditor() ?: return false
-  val target =
-    TargetElementUtil.getInstance()
-      .findTargetElement(editor, REFERENCED_ELEMENT_ACCEPTED, startOffset) ?: return false
+  val target = TargetElementUtil.getInstance().findTargetElement(editor, REFERENCED_ELEMENT_ACCEPTED, startOffset) ?: return false
   return target.isComposableFunction()
 }
 
-private fun getParamStates(
-  frame: KotlinStackFrame,
-  variables: List<LocalVariableProxyImpl>,
-): List<ParamState> {
-  val vars =
-    (variables.filterByPrefix(DIRTY_VAR).takeIf { it.isNotEmpty() }
-      ?: variables.filterByPrefix(CHANGED_VAR))
+private fun getParamStates(frame: KotlinStackFrame, variables: List<LocalVariableProxyImpl>): List<ParamState> {
+  val vars = (variables.filterByPrefix(DIRTY_VAR).takeIf { it.isNotEmpty() } ?: variables.filterByPrefix(CHANGED_VAR))
   return ParamState.decode(vars.map { it.intValue(frame) })
 }
 
-private fun LocalVariableProxyImpl.intValue(frame: KotlinStackFrame) =
-  (frame.stackFrameProxy.getValue(this) as IntegerValue).value()
+private fun LocalVariableProxyImpl.intValue(frame: KotlinStackFrame) = (frame.stackFrameProxy.getValue(this) as IntegerValue).value()
 
-private fun List<LocalVariableProxyImpl>.filterByPrefix(prefix: String) =
-  filter { it.name().startsWith(prefix) }.sortedBy { it.name() }
+private fun List<LocalVariableProxyImpl>.filterByPrefix(prefix: String) = filter { it.name().startsWith(prefix) }.sortedBy { it.name() }
 
-private fun KotlinStackFrame.findComposer() =
-  stackFrameProxy.visibleVariables().find { it.name() == COMPOSER_VAR }
+private fun KotlinStackFrame.findComposer() = stackFrameProxy.visibleVariables().find { it.name() == COMPOSER_VAR }

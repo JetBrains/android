@@ -18,13 +18,13 @@ package org.jetbrains.android.refactoring.namespaces
 import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -60,13 +60,13 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.UsageView
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import java.util.UUID
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.AndroidGradleBaseRefactoringAction
 import org.jetbrains.android.refactoring.getProjectProperties
 import org.jetbrains.android.refactoring.project
 import org.jetbrains.android.refactoring.syncBeforeFinishingRefactoring
 import org.jetbrains.android.util.AndroidBundle
-import java.util.UUID
 
 private fun findFacetsToMigrate(project: Project): List<AndroidFacet> {
   return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).filter { facet ->
@@ -81,13 +81,16 @@ private fun findFacetsToMigrate(project: Project): List<AndroidFacet> {
  */
 class MigrateToNonTransitiveRClassesAction : AndroidGradleBaseRefactoringAction() {
   override fun getHandler(dataContext: DataContext) = MigrateToNonTransitiveRClassesHandler()
+
   override fun isHidden() = StudioFlags.MIGRATE_TO_NON_TRANSITIVE_R_CLASSES_REFACTORING_ENABLED.get().not()
+
   override fun isAvailableInEditorOnly() = false
+
   override fun isAvailableForLanguage(language: Language?) = true
 
   override fun isEnabledOnDataContext(dataContext: DataContext) = dataContext.project?.let(this::isEnabledOnProject) ?: false
-  override fun isEnabledOnElements(elements: Array<PsiElement>) = elements.firstOrNull()
-    ?.let { isEnabledOnProject(it.project) } ?: false
+
+  override fun isEnabledOnElements(elements: Array<PsiElement>) = elements.firstOrNull()?.let { isEnabledOnProject(it.project) } ?: false
 
   override fun isAvailableOnElementInEditorAndFile(element: PsiElement, editor: Editor, file: PsiFile, context: DataContext): Boolean {
     return isEnabledOnProject(element.project)
@@ -102,11 +105,9 @@ class MigrateToNonTransitiveRClassesAction : AndroidGradleBaseRefactoringAction(
  * Since there's no user input required to start the refactoring, it just runs a fresh [MigrateToResourceNamespacesProcessor].
  */
 class MigrateToNonTransitiveRClassesHandler : RefactoringActionHandler {
-  @UiThread
-  override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext?) = invoke(project)
+  @UiThread override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext?) = invoke(project)
 
-  @UiThread
-  override fun invoke(project: Project, elements: Array<PsiElement>, dataContext: DataContext?) = invoke(project)
+  @UiThread override fun invoke(project: Project, elements: Array<PsiElement>, dataContext: DataContext?) = invoke(project)
 
   private fun invoke(project: Project) {
     val pluginInfo = AndroidPluginInfo.find(project)
@@ -115,11 +116,11 @@ class MigrateToNonTransitiveRClassesHandler : RefactoringActionHandler {
     val pluginVersion = pluginInfo?.pluginVersion ?: AgpVersion(7, 0, 0)
 
     // Android Gradle Plugin version less than 4.2.0 is not supported.
-    if (!pluginVersion.isAtLeast(4, 2, 0,"alpha", 0, true)) {
+    if (!pluginVersion.isAtLeast(4, 2, 0, "alpha", 0, true)) {
       Messages.showErrorDialog(
         project,
         AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.error.old.agp.message"),
-        AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.error.old.agp.title")
+        AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.error.old.agp.title"),
       )
       return
     }
@@ -129,14 +130,13 @@ class MigrateToNonTransitiveRClassesHandler : RefactoringActionHandler {
   }
 }
 
-/**
- * Implements the "migrate to resource namespaces" refactoring by finding all references to resources and rewriting them.
- */
-class MigrateToNonTransitiveRClassesProcessor private constructor(
+/** Implements the "migrate to resource namespaces" refactoring by finding all references to resources and rewriting them. */
+class MigrateToNonTransitiveRClassesProcessor
+private constructor(
   project: Project,
   private val facetsToMigrate: Collection<AndroidFacet>,
   private val updateTopLevelGradleProperties: Boolean,
-  private val agpVersion: AgpVersion
+  private val agpVersion: AgpVersion,
 ) : BaseRefactoringProcessor(project) {
 
   val uuid = UUID.randomUUID().toString()
@@ -148,12 +148,7 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     private val LOG = Logger.getInstance(BaseRefactoringProcessor::class.java)
 
     fun forSingleModule(facet: AndroidFacet, agpVersion: AgpVersion): MigrateToNonTransitiveRClassesProcessor {
-      return MigrateToNonTransitiveRClassesProcessor(
-        facet.module.project,
-        setOf(facet),
-        updateTopLevelGradleProperties = false,
-        agpVersion
-      )
+      return MigrateToNonTransitiveRClassesProcessor(facet.module.project, setOf(facet), updateTopLevelGradleProperties = false, agpVersion)
     }
 
     fun forEntireProject(project: Project, agpVersion: AgpVersion): MigrateToNonTransitiveRClassesProcessor {
@@ -161,7 +156,7 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
         project,
         facetsToMigrate = findFacetsToMigrate(project),
         updateTopLevelGradleProperties = true,
-        agpVersion
+        agpVersion,
       )
     }
   }
@@ -202,7 +197,9 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
         panel.add(createWarningLabel(AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.warning.recommend.upgrade")))
       }
       if (hasUncommittedChanges) {
-        panel.add(createWarningLabel(AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.warning.uncommitted.changes")))
+        panel.add(
+          createWarningLabel(AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.warning.uncommitted.changes"))
+        )
       }
 
       usageView.setAdditionalComponent(panel)
@@ -254,14 +251,14 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
             propertiesFile.findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true")
           }
           agpVersion >= AGP_NON_TRANSITIVE_V2 -> {
-            propertiesFile.findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: propertiesFile.addProperty(
-              NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
+            propertiesFile.findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true")
+              ?: propertiesFile.addProperty(NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
           }
           agpVersion >= AGP_NON_TRANSITIVE_V1 -> {
-            propertiesFile.findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: propertiesFile.addProperty(
-              NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
-            propertiesFile.findPropertyByKey(NON_TRANSITIVE_APP_R_CLASSES_PROPERTY)?.setValue("true") ?: propertiesFile.addProperty(
-              NON_TRANSITIVE_APP_R_CLASSES_PROPERTY, "true")
+            propertiesFile.findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true")
+              ?: propertiesFile.addProperty(NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
+            propertiesFile.findPropertyByKey(NON_TRANSITIVE_APP_R_CLASSES_PROPERTY)?.setValue("true")
+              ?: propertiesFile.addProperty(NON_TRANSITIVE_APP_R_CLASSES_PROPERTY, "true")
           }
           else -> {
             LOG.error("AGP version too low for MigrateToNonTransitiveRClasses: $agpVersion")
@@ -269,21 +266,29 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
         }
       }
 
-      val listener = object : GradleSyncListener {
-        override fun syncSkipped(project: Project) = trackProcessorUsage(SYNC_SKIPPED)
-        override fun syncFailed(project: Project, errorMessage: String) = trackProcessorUsage(SYNC_FAILED)
-        override fun syncSucceeded(project: Project) = trackProcessorUsage(SYNC_SUCCEEDED)
-      }
-      syncBeforeFinishingRefactoring(myProject, GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES, listener)
-      UndoManager.getInstance(myProject).undoableActionPerformed(object : BasicUndoableAction() {
-        override fun undo() {
-          GradleSyncInvoker.getInstance().requestProjectSync(myProject, GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE, listener)
-        }
+      val listener =
+        object : GradleSyncListener {
+          override fun syncSkipped(project: Project) = trackProcessorUsage(SYNC_SKIPPED)
 
-        override fun redo() {
-          GradleSyncInvoker.getInstance().requestProjectSync(myProject, GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE, listener)
+          override fun syncFailed(project: Project, errorMessage: String) = trackProcessorUsage(SYNC_FAILED)
+
+          override fun syncSucceeded(project: Project) = trackProcessorUsage(SYNC_SUCCEEDED)
         }
-      })
+      syncBeforeFinishingRefactoring(myProject, GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES, listener)
+      UndoManager.getInstance(myProject)
+        .undoableActionPerformed(
+          object : BasicUndoableAction() {
+            override fun undo() {
+              GradleSyncInvoker.getInstance()
+                .requestProjectSync(myProject, GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE, listener)
+            }
+
+            override fun redo() {
+              GradleSyncInvoker.getInstance()
+                .requestProjectSync(myProject, GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE, listener)
+            }
+          }
+        )
     }
   }
 
@@ -291,22 +296,23 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     trackProcessorUsage(PREVIEW_REFACTORING, usages.size)
     super.previewRefactoring(usages)
   }
-  override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor = object : UsageViewDescriptorAdapter() {
-    override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
-    override fun getProcessedElementsHeader() =
-      AndroidBundle.message("android.refactoring.migrateto.resourceview.header")
-  }
+
+  override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor =
+    object : UsageViewDescriptorAdapter() {
+      override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
+
+      override fun getProcessedElementsHeader() = AndroidBundle.message("android.refactoring.migrateto.resourceview.header")
+    }
 
   private fun trackProcessorUsage(kind: NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind, usages: Int? = null) {
-    val processorEvent = NonTransitiveRClassMigrationEvent.newBuilder()
-      .setMigrationUuid(uuid)
-      .setKind(kind)
-      .apply { usages?.let { setUsages(it) } }
+    val processorEvent =
+      NonTransitiveRClassMigrationEvent.newBuilder().setMigrationUuid(uuid).setKind(kind).apply { usages?.let { setUsages(it) } }
 
-    val studioEvent = AndroidStudioEvent
-      .newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.MIGRATE_TO_NON_TRANSITIVE_R_CLASS).withProjectId(myProject)
-      .setNonTransitiveRClassMigrationEvent(processorEvent.build())
+    val studioEvent =
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.MIGRATE_TO_NON_TRANSITIVE_R_CLASS)
+        .withProjectId(myProject)
+        .setNonTransitiveRClassMigrationEvent(processorEvent.build())
 
     UsageTracker.log(studioEvent)
   }

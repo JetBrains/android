@@ -28,20 +28,16 @@ import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.modules
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.Calendar
 import kotlin.concurrent.withLock
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * This class updates FTL device catalog when local cache is outdated, empty or corrupted
  *
  * PersistentStateComponent must disable roaming type
  */
-@State(
-  name = "FtlDeviceCatalogService",
-  storages = [Storage(value = "FtlDeviceCatalogService.xml", roamingType = RoamingType.DISABLED)],
-)
+@State(name = "FtlDeviceCatalogService", storages = [Storage(value = "FtlDeviceCatalogService.xml", roamingType = RoamingType.DISABLED)])
 @Service(Service.Level.APP)
 class FtlDeviceCatalogService : GmdDeviceCatalogService<FtlDeviceCatalogState>(FtlDeviceCatalogState(), "FtlDeviceCatalogService") {
   companion object {
@@ -68,30 +64,25 @@ class FtlDeviceCatalogService : GmdDeviceCatalogService<FtlDeviceCatalogState>(F
         }
       }
       deviceCatalog.apiLevels.addAll(remoteCatalog.versions?.mapNotNull { it.apiLevel } ?: emptyList())
-      deviceCatalog.orientation.addAll(
-        remoteCatalog.runtimeConfiguration?.orientations?.mapNotNull { it.id } ?: emptyList()
-      )
+      deviceCatalog.orientation.addAll(remoteCatalog.runtimeConfiguration?.orientations?.mapNotNull { it.id } ?: emptyList())
       remoteCatalog.runtimeConfiguration?.locales?.mapNotNull { locale ->
         if (locale.id != null && locale.id != "") {
-          deviceCatalog.locale[locale.id] =
-            FtlDeviceCatalog.LocaleInfo(languageName = locale.name ?: "", region = locale.region ?: "")
+          deviceCatalog.locale[locale.id] = FtlDeviceCatalog.LocaleInfo(languageName = locale.name ?: "", region = locale.region ?: "")
         }
       }
-      deviceCatalog.isEmptyCatalog = deviceCatalog.devices.isEmpty() &&
-                                     deviceCatalog.apiLevels.isEmpty() &&
-                                     deviceCatalog.orientation.isEmpty() &&
-                                     deviceCatalog.locale.isEmpty()
+      deviceCatalog.isEmptyCatalog =
+        deviceCatalog.devices.isEmpty() &&
+          deviceCatalog.apiLevels.isEmpty() &&
+          deviceCatalog.orientation.isEmpty() &&
+          deviceCatalog.locale.isEmpty()
       return deviceCatalog
     }
   }
 
-  /**
-   * Return false if FTL plugin is not enabled to NOT run updateDeviceCatalogTaskAction
-   */
+  /** Return false if FTL plugin is not enabled to NOT run updateDeviceCatalogTaskAction */
   override fun shouldUpdate(project: Project): Boolean = isFtlPluginEnabled(project)
 
-  override fun updateDeviceCatalogTaskAction(project: Project,
-                                             indicator: ProgressIndicator) {
+  override fun updateDeviceCatalogTaskAction(project: Project, indicator: ProgressIndicator) {
     indicator.isIndeterminate = false
     indicator.fraction = 0.0
 

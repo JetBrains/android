@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("LogAnonymizer")
+
 package com.android.tools.log
 
 import com.android.SdkConstants
@@ -24,21 +25,20 @@ import java.security.SecureRandom
 /** Utility methods used to anonymize information going to the local logs. */
 private val SALT = Integer.toString(SecureRandom().nextInt())
 
-/**
- * Returns whether a given class name belong to a namespace that does not need to be anonymized
- */
+/** Returns whether a given class name belong to a namespace that does not need to be anonymized */
 fun isPublicClass(className: String?): Boolean {
   var className = className ?: return false
   className = className.replace("/", ".")
-  return className.startsWith("java.") || className.startsWith("javax.") ||
-         className.startsWith(SdkConstants.ANDROID_SUPPORT_ARTIFACT_PREFIX) ||
-         className.startsWith(SdkConstants.ANDROID_PKG_PREFIX) ||
-         className.startsWith("com.google.")
+  return className.startsWith("java.") ||
+    className.startsWith("javax.") ||
+    className.startsWith(SdkConstants.ANDROID_SUPPORT_ARTIFACT_PREFIX) ||
+    className.startsWith(SdkConstants.ANDROID_PKG_PREFIX) ||
+    className.startsWith("com.google.")
 }
 
 /**
- * Returns a hash for the given class name. The hash value will be consistent only for the current session. Once the IDE is shutdown,
- * the hash for the class name will change.
+ * Returns a hash for the given class name. The hash value will be consistent only for the current session. Once the IDE is shutdown, the
+ * hash for the class name will change.
  */
 fun anonymizeClassName(className: String?): String {
   var className = className ?: return "null"

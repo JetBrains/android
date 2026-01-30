@@ -28,8 +28,8 @@ interface DynamicTypeAnimator {
    * Sets the float values that this animation will animate between.
    *
    * @param values The float values to animate between.
-   * @throws IllegalArgumentException if this [DynamicTypeAnimator] is not configured with a
-   *   suitable [TypeEvaluator] for float values (e.g., [FloatEvaluator]).
+   * @throws IllegalArgumentException if this [DynamicTypeAnimator] is not configured with a suitable [TypeEvaluator] for float values
+   *   (e.g., [FloatEvaluator]).
    */
   fun setFloatValues(vararg values: Float)
 
@@ -37,8 +37,8 @@ interface DynamicTypeAnimator {
    * Sets the integer values that this animation will animate between.
    *
    * @param values The integer values to animate between.
-   * @throws IllegalArgumentException if this [DynamicTypeAnimator] is not configured with a
-   *   suitable [TypeEvaluator] for integer values (e.g., [IntEvaluator] or [ ]).
+   * @throws IllegalArgumentException if this [DynamicTypeAnimator] is not configured with a suitable [TypeEvaluator] for integer values
+   *   (e.g., [IntEvaluator] or [ ]).
    */
   fun setIntValues(vararg values: Int)
 
@@ -85,9 +85,9 @@ interface DynamicTypeAnimator {
   fun getStartDelayMs(): Long
 
   /**
-   * Returns whether this animator uses the outputs of previous animators as its input. This is
-   * typically used to chain animations together, where the result of one animation is used as the
-   * starting point for the next. A single animation in a chain is also considered terminal.
+   * Returns whether this animator uses the outputs of previous animators as its input. This is typically used to chain animations together,
+   * where the result of one animation is used as the starting point for the next. A single animation in a chain is also considered
+   * terminal.
    *
    * @return `true` if this animator uses previous animator outputs as its input, `false` otherwise.
    */

@@ -57,10 +57,7 @@ class ManifestClass(val facet: AndroidFacet, psiManager: PsiManager) :
 
   init {
     val lightVirtualFile = containingFile.viewProvider.virtualFile
-    lightVirtualFile.putUserData(
-      MODULE_POINTER_KEY,
-      ModulePointerManager.getInstance(project).create(facet.module),
-    )
+    lightVirtualFile.putUserData(MODULE_POINTER_KEY, ModulePointerManager.getInstance(project).create(facet.module))
     lightVirtualFile.putUserData(LIGHT_CLASS_KEY, ManifestClass::class.java)
   }
 
@@ -80,46 +77,30 @@ class ManifestClass(val facet: AndroidFacet, psiManager: PsiManager) :
     return classes.toTypedArray()
   }
 
-  override fun getInnerClassesDependencies() =
-    MergedManifestModificationTracker.getInstance(facet.module)
+  override fun getInnerClassesDependencies() = MergedManifestModificationTracker.getInstance(facet.module)
 }
 
-/**
- * Base class for light implementations of inner classes of the Manifest class, e.g.
- * `Manifest.permission`.
- */
-sealed class ManifestInnerClass(
-  private val myFacet: AndroidFacet,
-  name: String,
-  parentClass: AndroidLightClassBase,
-) : AndroidLightInnerClassBase(parentClass, name) {
+/** Base class for light implementations of inner classes of the Manifest class, e.g. `Manifest.permission`. */
+sealed class ManifestInnerClass(private val myFacet: AndroidFacet, name: String, parentClass: AndroidLightClassBase) :
+  AndroidLightInnerClassBase(parentClass, name) {
 
   protected data class FieldInfo(val fieldName: String, val fieldValue: String)
 
-  private val javaLangString =
-    PsiType.getJavaLangString(myManager, GlobalSearchScope.allScope(project))
+  private val javaLangString = PsiType.getJavaLangString(myManager, GlobalSearchScope.allScope(project))
   private val factory = JavaPsiFacade.getElementFactory(project)
 
   private val myFieldsCache: CachedValue<Array<PsiField>> =
     CachedValuesManager.getManager(project).createCachedValue {
       val manifest = Manifest.getMainManifest(myFacet)
       if (manifest == null) {
-        CachedValueProvider.Result.create(
-          PsiField.EMPTY_ARRAY,
-          MergedManifestModificationTracker.getInstance(myFacet.module),
-        )
+        CachedValueProvider.Result.create(PsiField.EMPTY_ARRAY, MergedManifestModificationTracker.getInstance(myFacet.module))
       } else {
         CachedValueProvider.Result.create<Array<PsiField>>(
           doGetFields()
             .map { (name, value) ->
-              ManifestLightField(
-                  name,
-                  this,
-                  javaLangString,
-                  AndroidLightField.FieldModifier.FINAL,
-                  value,
-                )
-                .apply { initializer = factory.createExpressionFromText("\"$value\"", this) }
+              ManifestLightField(name, this, javaLangString, AndroidLightField.FieldModifier.FINAL, value).apply {
+                initializer = factory.createExpressionFromText("\"$value\"", this)
+              }
             }
             .toTypedArray(),
           listOf(MergedManifestModificationTracker.getInstance(myFacet.module)),
@@ -131,28 +112,20 @@ sealed class ManifestInnerClass(
 
   private fun doGetFields(): List<FieldInfo> {
     LOG.debug { "Recomputing fields for $this" }
-    return getNamesFromManifest().map {
-      FieldInfo(getFieldNameByResourceName(getShortName(it)), it)
-    }
+    return getNamesFromManifest().map { FieldInfo(getFieldNameByResourceName(getShortName(it)), it) }
   }
 
   protected abstract fun getNamesFromManifest(): Collection<String>
 }
 
 /** Light implementation of `Manifest.permission`. */
-internal class PermissionClass(
-  private val facet: AndroidFacet,
-  parentClass: AndroidLightClassBase,
-) : ManifestInnerClass(facet, "permission", parentClass) {
-  override fun getNamesFromManifest(): Collection<String> =
-    getCustomPermissions(facet) ?: emptySet()
+internal class PermissionClass(private val facet: AndroidFacet, parentClass: AndroidLightClassBase) :
+  ManifestInnerClass(facet, "permission", parentClass) {
+  override fun getNamesFromManifest(): Collection<String> = getCustomPermissions(facet) ?: emptySet()
 }
 
 /** Light implementation of `Manifest.permission_group`. */
-internal class PermissionGroupClass(
-  private val facet: AndroidFacet,
-  parentClass: AndroidLightClassBase,
-) : ManifestInnerClass(facet, "permission_group", parentClass) {
-  override fun getNamesFromManifest(): Collection<String> =
-    getCustomPermissionGroups(facet) ?: emptySet()
+internal class PermissionGroupClass(private val facet: AndroidFacet, parentClass: AndroidLightClassBase) :
+  ManifestInnerClass(facet, "permission_group", parentClass) {
+  override fun getNamesFromManifest(): Collection<String> = getCustomPermissionGroups(facet) ?: emptySet()
 }

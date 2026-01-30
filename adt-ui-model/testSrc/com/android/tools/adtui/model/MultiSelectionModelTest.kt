@@ -26,24 +26,13 @@ class MultiSelectionModelTest {
       model.setSelection("Key1", setOf(1, 2, 3))
       model.setSelection("Key2", setOf(2, 3, 4, 5))
       model.setSelection("Key3", setOf(0))
-      assertThat(selections())
-        .containsExactly(
-          Entry("Key1", setOf(1, 2, 3)),
-          Entry("Key2", setOf(2, 3, 4, 5)),
-          Entry("Key3", setOf(0)),
-        )
+      assertThat(selections()).containsExactly(Entry("Key1", setOf(1, 2, 3)), Entry("Key2", setOf(2, 3, 4, 5)), Entry("Key3", setOf(0)))
 
       model.setSelection("Key2", setOf(42))
-      assertThat(selections())
-        .containsExactly(
-          Entry("Key1", setOf(1, 2, 3)),
-          Entry("Key2", setOf(42)),
-          Entry("Key3", setOf(0)),
-        )
+      assertThat(selections()).containsExactly(Entry("Key1", setOf(1, 2, 3)), Entry("Key2", setOf(42)), Entry("Key3", setOf(0)))
 
       model.removeSelection("Key2")
-      assertThat(selections())
-        .containsExactly(Entry("Key1", setOf(1, 2, 3)), Entry("Key3", setOf(0)))
+      assertThat(selections()).containsExactly(Entry("Key1", setOf(1, 2, 3)), Entry("Key3", setOf(0)))
 
       model.clearSelection()
       assertThat(selections()).isEmpty()
@@ -162,19 +151,14 @@ class MultiSelectionModelTest {
   private fun <T> testWithObserver(run: (MultiSelectionModel<T>, () -> List<Entry<T>>) -> Unit) =
     testWithObserver(MultiSelectionModel<T>::selections, run)
 
-  private fun <T, O> testWithObserver(
-    observe: (MultiSelectionModel<T>) -> O,
-    run: (MultiSelectionModel<T>, () -> O) -> Unit,
-  ) {
+  private fun <T, O> testWithObserver(observe: (MultiSelectionModel<T>) -> O, run: (MultiSelectionModel<T>, () -> O) -> Unit) {
     val model = MultiSelectionModel<T>()
     val observer = AspectObserver()
     var observation = observe(model)
     model
       .addDependency(observer)
       .onChange(MultiSelectionModel.Aspect.SELECTIONS_CHANGED) { observation = observe(model) }
-      .onChange(MultiSelectionModel.Aspect.ACTIVE_SELECTION_CHANGED) {
-        observation = observe(model)
-      }
+      .onChange(MultiSelectionModel.Aspect.ACTIVE_SELECTION_CHANGED) { observation = observe(model) }
     run(model) { observation.also { observer.hashCode() /* keep it live */ } }
   }
 }

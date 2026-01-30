@@ -55,16 +55,14 @@ class CategoryTableTest {
   fun group() {
     val values = CategoryTableDemo.devices
     val sorted = groupAndSort(values, listOf(Status.attribute), emptyList())
-    assertThat(sorted.map { it.status })
-      .containsExactly("Offline", "Offline", "Offline", "Online", "Online", "Online")
+    assertThat(sorted.map { it.status }).containsExactly("Offline", "Offline", "Offline", "Online", "Online", "Online")
   }
 
   @Test
   fun nestedGroup() {
     val values = CategoryTableDemo.devices
     val sorted = groupAndSort(values, listOf(Status.attribute, Type.attribute), emptyList())
-    assertThat(sorted.map { it.type })
-      .containsExactly("Phone", "Phone", "Tablet", "Phone", "Phone", "Tablet")
+    assertThat(sorted.map { it.type }).containsExactly("Phone", "Phone", "Tablet", "Phone", "Phone", "Tablet")
   }
 
   @Test
@@ -98,24 +96,16 @@ class CategoryTableTest {
     val table = CategoryTable(CategoryTableDemo.columns, { it.name })
     val device = CategoryTableDemo.Device("Pixel 4", "33", "Phone", "Offline")
     table.toggleSortOrder(Api.attribute)
-    listOf(
-        device,
-        device.copy(name = "Pixel 5"),
-        device.copy(name = "Pixel 6"),
-        device.copy(name = "Pixel 7"),
-      )
-      .forEach { table.addOrUpdateRow(it) }
+    listOf(device, device.copy(name = "Pixel 5"), device.copy(name = "Pixel 6"), device.copy(name = "Pixel 7")).forEach {
+      table.addOrUpdateRow(it)
+    }
 
-    assertThat(table.values.map { it.name })
-      .containsExactly("Pixel 4", "Pixel 5", "Pixel 6", "Pixel 7")
-      .inOrder()
+    assertThat(table.values.map { it.name }).containsExactly("Pixel 4", "Pixel 5", "Pixel 6", "Pixel 7").inOrder()
 
     table.addOrUpdateRow(device.copy(name = "Pixel 4a"), "Pixel 5")
     table.addOrUpdateRow(device.copy(name = "Pixel 3a", api = "32"), "Pixel 5")
 
-    assertThat(table.values.map { it.name })
-      .containsExactly("Pixel 3a", "Pixel 4", "Pixel 4a", "Pixel 5", "Pixel 6", "Pixel 7")
-      .inOrder()
+    assertThat(table.values.map { it.name }).containsExactly("Pixel 3a", "Pixel 4", "Pixel 4a", "Pixel 5", "Pixel 6", "Pixel 7").inOrder()
   }
 
   @Test
@@ -152,21 +142,8 @@ class CategoryTableTest {
     table.addGrouping(Api)
 
     assertThat(table.rowComponents.map { it.stringValue() })
-      .containsExactly(
-        "25",
-        "Nexus 7",
-        "26",
-        "Nexus 7",
-        "31",
-        "Pixel 6",
-        "Pixel 6a",
-        "32",
-        "Pixel 5",
-        "33",
-        "Pixel 7",
-      )
-    assertThat(table.header.columnModel.columnList.map { it.headerValue })
-      .containsExactly("Name", "Status", "Type", "Actions")
+      .containsExactly("25", "Nexus 7", "26", "Nexus 7", "31", "Pixel 6", "Pixel 6a", "32", "Pixel 5", "33", "Pixel 7")
+    assertThat(table.header.columnModel.columnList.map { it.headerValue }).containsExactly("Name", "Status", "Type", "Actions")
 
     table.addGrouping(Type)
 
@@ -189,28 +166,16 @@ class CategoryTableTest {
         "33, Phone",
         "Pixel 7",
       )
-    assertThat(table.header.columnModel.columnList.map { it.headerValue })
-      .containsExactly("Name", "Status", "Actions")
+    assertThat(table.header.columnModel.columnList.map { it.headerValue }).containsExactly("Name", "Status", "Actions")
 
     table.removeGrouping(Api)
 
     assertThat(table.rowComponents.map { it.stringValue() })
-      .containsExactly(
-        "Tablet",
-        "Nexus 7",
-        "Nexus 7",
-        "Phone",
-        "Pixel 5",
-        "Pixel 6",
-        "Pixel 6a",
-        "Pixel 7",
-      )
-    assertThat(table.header.columnModel.columnList.map { it.headerValue })
-      .containsExactly("Name", "Api", "Status", "Actions")
+      .containsExactly("Tablet", "Nexus 7", "Nexus 7", "Phone", "Pixel 5", "Pixel 6", "Pixel 6a", "Pixel 7")
+    assertThat(table.header.columnModel.columnList.map { it.headerValue }).containsExactly("Name", "Api", "Status", "Actions")
 
     table.addGrouping(Status)
-    assertThat(table.header.columnModel.columnList.map { it.headerValue })
-      .containsExactly("Name", "Api", "Status", "Actions")
+    assertThat(table.header.columnModel.columnList.map { it.headerValue }).containsExactly("Name", "Api", "Status", "Actions")
   }
 
   private fun RowComponent<CategoryTableDemo.Device>.stringValue() =
@@ -229,35 +194,27 @@ class CategoryTableTest {
     fakeUi.layout()
 
     // All columns have fixed width except the first, which should absorb the extra width.
-    assertThat(table.header.tableColumns.map { it.width })
-      .containsExactly(410, 80, 80, 80, 150)
-      .inOrder()
+    assertThat(table.header.tableColumns.map { it.width }).containsExactly(410, 80, 80, 80, 150).inOrder()
 
     scrollPane.setBounds(0, 0, 500, 400)
     fakeUi.layout()
 
     // We are space-constrained, take some space away from each element (except the last, which is
     // fixed-size).
-    assertThat(table.header.tableColumns.map { it.width })
-      .containsExactly(247, 34, 34, 34, 150)
-      .inOrder()
+    assertThat(table.header.tableColumns.map { it.width }).containsExactly(247, 34, 34, 34, 150).inOrder()
 
     scrollPane.setBounds(0, 0, 410, 400)
     fakeUi.layout()
 
     // We have just enough width to give every component its minimum width.
-    assertThat(table.header.tableColumns.map { it.width })
-      .containsExactly(200, 20, 20, 20, 150)
-      .inOrder()
+    assertThat(table.header.tableColumns.map { it.width }).containsExactly(200, 20, 20, 20, 150).inOrder()
 
     scrollPane.setBounds(0, 0, 200, 400)
     fakeUi.layout()
 
     // We don't have enough space for the minimum; the columns keep their width but the rendering is
     // truncated.
-    assertThat(table.header.tableColumns.map { it.width })
-      .containsExactly(200, 20, 20, 20, 150)
-      .inOrder()
+    assertThat(table.header.tableColumns.map { it.width }).containsExactly(200, 20, 20, 20, 150).inOrder()
   }
 
   @Test
@@ -267,27 +224,17 @@ class CategoryTableTest {
     scrollPane.setBounds(0, 0, 400, 400)
     val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
 
-    table.addOrUpdateRow(
-      CategoryTableDemo.Device(
-        "Copy 3 of Google Pixel 7 Pro API 34 arm64 Google Play",
-        "34",
-        "Phone",
-        "Offline",
-      )
-    )
+    table.addOrUpdateRow(CategoryTableDemo.Device("Copy 3 of Google Pixel 7 Pro API 34 arm64 Google Play", "34", "Phone", "Offline"))
     fakeUi.layout()
 
     // Hover over the first component.
-    val firstRowCells =
-      (table.rowComponents[0] as ValueRowComponent<*>).componentList.map { it.component }
+    val firstRowCells = (table.rowComponents[0] as ValueRowComponent<*>).componentList.map { it.component }
     fakeUi.mouse.moveTo(convertPoint(firstRowCells[0], 5, 5, scrollPane))
     fakeUi.layout()
 
     // It should expand to its preferred width.  Other components retain their normal width.
     assertThat(firstRowCells[0].preferredWidth).isGreaterThan(200)
-    assertThat(firstRowCells.map { it.width })
-      .containsExactly(firstRowCells[0].preferredWidth, 20, 20, 20, 150)
-      .inOrder()
+    assertThat(firstRowCells.map { it.width }).containsExactly(firstRowCells[0].preferredWidth, 20, 20, 20, 150).inOrder()
 
     // Move the mouse to the next cell.
     fakeUi.mouse.moveTo(convertPoint(firstRowCells[1], 5, 5, scrollPane))
@@ -315,8 +262,7 @@ class CategoryTableTest {
     val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
 
     fakeUi.clickRelativeTo(scrollPane, 2, 2)
-    assertThat(table.columnSorters)
-      .containsExactly(ColumnSortOrder(table.columns[0].attribute, SortOrder.ASCENDING))
+    assertThat(table.columnSorters).containsExactly(ColumnSortOrder(table.columns[0].attribute, SortOrder.ASCENDING))
 
     fakeUi.clickRelativeTo(scrollPane, table.header.tableColumns[0].width + 2, 2)
     assertThat(table.columnSorters)
@@ -437,11 +383,7 @@ class CategoryTableTest {
     TestApplicationManager.getInstance()
     HeadlessDataManager.fallbackToProductionDataManager(disposableRule.disposable)
 
-    val table =
-      CategoryTable(
-        CategoryTableDemo.columns,
-        rowDataProvider = DefaultValueRowDataProvider(DEVICE_DATA_KEY),
-      )
+    val table = CategoryTable(CategoryTableDemo.columns, rowDataProvider = DefaultValueRowDataProvider(DEVICE_DATA_KEY))
 
     CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
 
@@ -528,15 +470,13 @@ class CategoryTableTest {
     assertThat(table.width).isEqualTo(widthWithoutScrollbar - scrollPane.verticalScrollBar.width)
 
     assertThat(table.preferredSize).isNotNull()
-    assertThat(table.maximumSize)
-      .isEqualTo(Dimension(Short.MAX_VALUE.toInt(), Short.MAX_VALUE.toInt()))
+    assertThat(table.maximumSize).isEqualTo(Dimension(Short.MAX_VALUE.toInt(), Short.MAX_VALUE.toInt()))
   }
 
   @Test
   fun emptyStatePanel() {
     val emptyStatePanel = EmptyStatePanel("No devices")
-    val table =
-      CategoryTable(CategoryTableDemo.columns, { it.name }, emptyStatePanel = emptyStatePanel)
+    val table = CategoryTable(CategoryTableDemo.columns, { it.name }, emptyStatePanel = emptyStatePanel)
     val scrollPane = createScrollPane(table)
     val fakeUi = FakeUi(scrollPane)
 

@@ -34,13 +34,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * This class tests how gradle TAPI Download events are converted and populate the UI model that is rendered on build output.
- */
+/** This class tests how gradle TAPI Download events are converted and populate the UI model that is rendered on build output. */
 class DownloadEventsProcessorTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val projectConfigurationDescriptor = createProjectConfigurationOperationDescriptor(":")
 
@@ -50,104 +47,87 @@ class DownloadEventsProcessorTest {
   @Before
   fun setUp() {
     dataModel = DownloadInfoDataModel(projectRule.testRootDisposable)
-    eventsProcessor = DownloadsAnalyzer.DownloadEventsProcessor(
-      statsAccumulator = null,
-      downloadsInfoDataModel = dataModel
-    )
+    eventsProcessor = DownloadsAnalyzer.DownloadEventsProcessor(statsAccumulator = null, downloadsInfoDataModel = dataModel)
   }
 
   @Test
   fun testSuccessfulDownloadEventsProcessed() {
     doTestReceivedEvents(
-      gradleProgressEvents = listOf(
-        downloadStartEventStub(downloadOperationDescriptorStub(url = url1,parent = projectConfigurationDescriptor)),
-        downloadFinishEventStub(
-          downloadOperationDescriptorStub(url = url1,parent = projectConfigurationDescriptor),
-          downloadSuccessStub(0, 100, 10000) // time: 100, totalRepoTime: 100, totalRepoBytes: 10000
-        )
-      ),
-      expectedModelUpdates = listOf(
-        DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE, true, 10000, 100)
-      )
+      gradleProgressEvents =
+        listOf(
+          downloadStartEventStub(downloadOperationDescriptorStub(url = url1, parent = projectConfigurationDescriptor)),
+          downloadFinishEventStub(
+            downloadOperationDescriptorStub(url = url1, parent = projectConfigurationDescriptor),
+            downloadSuccessStub(0, 100, 10000), // time: 100, totalRepoTime: 100, totalRepoBytes: 10000
+          ),
+        ),
+      expectedModelUpdates = listOf(DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE, true, 10000, 100)),
     )
   }
 
   @Test
   fun testDownloadEventsProcessedInSeveralUpdates() {
     doTestReceivedEvents(
-      gradleProgressEvents = listOf(
-        downloadStartEventStub(downloadOperationDescriptorStub(url = url1,parent = projectConfigurationDescriptor))
-      ),
-      expectedModelUpdates = listOf(
-        DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE)
-      )
+      gradleProgressEvents =
+        listOf(downloadStartEventStub(downloadOperationDescriptorStub(url = url1, parent = projectConfigurationDescriptor))),
+      expectedModelUpdates = listOf(DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE)),
     )
 
     doTestReceivedEvents(
-      gradleProgressEvents = listOf(
-        downloadFinishEventStub(
-          downloadOperationDescriptorStub(url = url1,parent = projectConfigurationDescriptor),
-          downloadSuccessStub(0, 100, 10000) // time: 100, totalRepoTime: 100, totalRepoBytes: 10000
-        )
-      ),
-      expectedModelUpdates = listOf(
-        DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE, true, 10000, 100)
-      )
+      gradleProgressEvents =
+        listOf(
+          downloadFinishEventStub(
+            downloadOperationDescriptorStub(url = url1, parent = projectConfigurationDescriptor),
+            downloadSuccessStub(0, 100, 10000), // time: 100, totalRepoTime: 100, totalRepoBytes: 10000
+          )
+        ),
+      expectedModelUpdates = listOf(DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE, true, 10000, 100)),
     )
   }
 
   @Test
   fun testFailedDownloadEventsProcessed() {
     doTestReceivedEvents(
-      gradleProgressEvents = listOf(
-        downloadStartEventStub(downloadOperationDescriptorStub(url = url1,parent = projectConfigurationDescriptor)),
-        downloadFinishEventStub(
-          downloadOperationDescriptorStub(url = url1,parent = projectConfigurationDescriptor),
-          downloadFailureStub(0, 100, 10000, listOf(
-            failureStub(
-              "Failed request 1",
-              listOf(failureStub("Caused by 1", emptyList()))
-            )))
-        )
-      ),
-      expectedModelUpdates = listOf(
-        DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE, true, 10000, 100, "Failed request 1\nCaused by 1\n"),
-      )
+      gradleProgressEvents =
+        listOf(
+          downloadStartEventStub(downloadOperationDescriptorStub(url = url1, parent = projectConfigurationDescriptor)),
+          downloadFinishEventStub(
+            downloadOperationDescriptorStub(url = url1, parent = projectConfigurationDescriptor),
+            downloadFailureStub(0, 100, 10000, listOf(failureStub("Failed request 1", listOf(failureStub("Caused by 1", emptyList()))))),
+          ),
+        ),
+      expectedModelUpdates =
+        listOf(DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE, true, 10000, 100, "Failed request 1\nCaused by 1\n")),
     )
   }
 
   @Test
   fun testNotFoundDownloadEventsProcessed() {
     doTestReceivedEvents(
-      gradleProgressEvents = listOf(
-        downloadStartEventStub(downloadOperationDescriptorStub(url = url1,parent = projectConfigurationDescriptor)),
-        downloadFinishEventStub(
-          downloadOperationDescriptorStub(url = url1,parent = projectConfigurationDescriptor),
-          downloadSuccessStub(0, 100, 0) // time: 100, totalRepoTime: 100, totalRepoBytes: 10000
-        )
-      ),
-      expectedModelUpdates = listOf(
-        DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE, true, 0, 100, "Not Found"),
-      )
+      gradleProgressEvents =
+        listOf(
+          downloadStartEventStub(downloadOperationDescriptorStub(url = url1, parent = projectConfigurationDescriptor)),
+          downloadFinishEventStub(
+            downloadOperationDescriptorStub(url = url1, parent = projectConfigurationDescriptor),
+            downloadSuccessStub(0, 100, 0), // time: 100, totalRepoTime: 100, totalRepoBytes: 10000
+          ),
+        ),
+      expectedModelUpdates = listOf(DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE, true, 0, 100, "Not Found")),
     )
   }
 
-  private fun doTestReceivedEvents(
-    gradleProgressEvents: List<ProgressEvent>,
-    expectedModelUpdates: List<DownloadRequestItem>
-  ) {
-    gradleProgressEvents.forEach {
-      eventsProcessor.receiveEvent(it)
-    }
+  private fun doTestReceivedEvents(gradleProgressEvents: List<ProgressEvent>, expectedModelUpdates: List<DownloadRequestItem>) {
+    gradleProgressEvents.forEach { eventsProcessor.receiveEvent(it) }
 
     runInEdtAndWait {
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
       val modelUpdates = mutableListOf<DownloadRequestItem>()
-      val fakeUiModel = object : DownloadInfoDataModel.Listener {
-        override fun updateDownloadRequests(downloadRequests: List<DownloadRequestItem>) {
-          modelUpdates.addAll(downloadRequests)
+      val fakeUiModel =
+        object : DownloadInfoDataModel.Listener {
+          override fun updateDownloadRequests(downloadRequests: List<DownloadRequestItem>) {
+            modelUpdates.addAll(downloadRequests)
+          }
         }
-      }
       dataModel.subscribeUiModel(fakeUiModel)
       Truth.assertThat(modelUpdates).isEqualTo(expectedModelUpdates)
     }

@@ -15,26 +15,22 @@
  */
 package com.android.tools.profilers.memory.adapters.instancefilters
 
-/**
- * A concrete filter object that represents "no filter" or "None".
- * It matches all instances.
- */
-object NoneFilter : CaptureObjectInstanceFilter(
-  displayName = "None",
-  summaryDescription = "Show all instances with no filter.",
-  detailedDescription = null,
-  documentationLink = null,
-  instanceTest = { true }
-)
+/** A concrete filter object that represents "no filter" or "None". It matches all instances. */
+object NoneFilter :
+  CaptureObjectInstanceFilter(
+    displayName = "None",
+    summaryDescription = "Show all instances with no filter.",
+    detailedDescription = null,
+    documentationLink = null,
+    instanceTest = { true },
+  )
 
-/**
- * A concrete filter object that represents "all class type filter" or "All Classes".
- * It matches all instances.
- */
-object AllClassTypeFilter : CaptureObjectInstanceFilter(
-  displayName = "All classes",
-  summaryDescription = "Show instances from all class types.",
-  detailedDescription = null,
-  documentationLink = null,
-  instanceTest = { true }
-)
+/** A concrete filter object that represents "all class type filter" or "All Classes". It matches all instances. */
+object AllClassTypeFilter :
+  CaptureObjectInstanceFilter(
+    displayName = "All classes",
+    summaryDescription = "Show instances from all class types.",
+    detailedDescription = null,
+    documentationLink = null,
+    instanceTest = { true },
+  )

@@ -21,8 +21,7 @@ import com.sun.jdi.Type
 import com.sun.jdi.VirtualMachine
 import org.mockito.kotlin.mock
 
-class MockIntegerValue(private val value: Int, private val virtualMachine: VirtualMachine) :
-  IntegerValue by mock() {
+class MockIntegerValue(private val value: Int, private val virtualMachine: VirtualMachine) : IntegerValue by mock() {
   override fun toString(): String = value.toString()
 
   override fun virtualMachine(): VirtualMachine = virtualMachine

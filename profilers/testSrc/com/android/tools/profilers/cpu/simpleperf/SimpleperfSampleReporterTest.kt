@@ -22,17 +22,16 @@ import com.android.tools.profilers.cpu.TracePreProcessor
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.intellij.openapi.util.io.FileUtil
+import java.io.File
+import java.io.FileOutputStream
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
-import java.io.File
-import java.io.FileOutputStream
 
 class SimpleperfSampleReporterTest {
 
-  @get:Rule
-  val expected = ExpectedException.none()!!
+  @get:Rule val expected = ExpectedException.none()!!
 
   private lateinit var sampleReporter: SimpleperfSampleReporter
 
@@ -61,9 +60,8 @@ class SimpleperfSampleReporterTest {
 
   @Test
   fun preProcessingRawTraceReturnsValidTrace() {
-    val processedTrace = sampleReporter.preProcessTrace(
-      CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace"),
-      emptyList())
+    val processedTrace =
+      sampleReporter.preProcessTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace"), emptyList())
     assertThat(processedTrace).isNotEqualTo(TracePreProcessor.FAILURE)
 
     val trace = FileUtil.createTempFile("cpu_trace", ".trace", true)
@@ -113,8 +111,7 @@ class SimpleperfSampleReporterTest {
 
   @Test
   fun unknownSymbolsNotSymbolizedWhenProvidingInvalidSymDir() {
-    val symDir = listOf(
-      resolveWorkspacePath("tools/adt/idea/profilers/testData/cputraces").toString()) // Dir without valid .so files
+    val symDir = listOf(resolveWorkspacePath("tools/adt/idea/profilers/testData/cputraces").toString()) // Dir without valid .so files
     // The unknown symbol should NO be properly symbolized
     unknownRawSymbolsSymbolizedOnlyIfValidSymDirProvided(symDir, "libnative_cpu.so+0xdb18")
   }
@@ -128,8 +125,7 @@ class SimpleperfSampleReporterTest {
 
     // When providing multiples path to SimpleperfSampleReporter, we should include a --symdir flag in the report-sample command
     // corresponding to each directory passed.
-    val command = sampleReporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true),
-                                                        listOf(symDir1, symDir2))
+    val command = sampleReporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true), listOf(symDir1, symDir2))
     assertThat(command.count { it == "--symdir" }).isEqualTo(2)
 
     val firstSymDirIndex = command.indexOfFirst { it == "--symdir" }

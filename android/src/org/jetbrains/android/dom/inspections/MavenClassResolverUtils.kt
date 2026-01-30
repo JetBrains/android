@@ -37,12 +37,10 @@ internal fun MavenClassRegistry.collectFixesFromMavenClassRegistry(
   completionFileType: FileType?,
 ): List<LocalQuickFix> {
   val useAndroidX = project.isAndroidx()
-  if (project.getProjectSystem().getTokenOrNull(AndroidMavenImportToken.EP_NAME) == null)
-    return listOf()
+  if (project.getProjectSystem().getTokenOrNull(AndroidMavenImportToken.EP_NAME) == null) return listOf()
 
   return findLibraryData(className, null, useAndroidX, completionFileType, module).map {
-    val resolvedArtifact =
-      if (useAndroidX) AndroidxNameUtils.getCoordinateMapping(it.artifact) else it.artifact
+    val resolvedArtifact = if (useAndroidX) AndroidxNameUtils.getCoordinateMapping(it.artifact) else it.artifact
     AndroidMavenImportFix(this, className, resolvedArtifact, it.version)
   }
 }

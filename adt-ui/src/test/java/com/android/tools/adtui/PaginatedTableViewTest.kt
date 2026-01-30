@@ -89,8 +89,7 @@ class PaginatedTableViewTest {
 
   @Test
   fun updatePageSize() {
-    val tableView =
-      PaginatedTableView(PaginatedListModel(10, (1..50).toMutableList()), arrayOf(10, 25, 100))
+    val tableView = PaginatedTableView(PaginatedListModel(10, (1..50).toMutableList()), arrayOf(10, 25, 100))
     assertThat(tableView.pageSizeComboBox.isVisible).isTrue()
 
     // Combo box is pre-selected.

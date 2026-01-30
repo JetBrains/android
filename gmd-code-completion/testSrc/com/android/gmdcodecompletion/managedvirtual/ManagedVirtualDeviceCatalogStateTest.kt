@@ -19,12 +19,12 @@ import com.android.gmdcodecompletion.freshFtlDeviceCatalogState
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.testFramework.TestApplicationManager
+import java.util.Calendar
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.util.Calendar
 
 class ManagedVirtualDeviceCatalogStateTest {
   @Before
@@ -39,8 +39,14 @@ class ManagedVirtualDeviceCatalogStateTest {
 
   @Test
   fun testManagedVirtualDeviceCatalogStateOutdated() {
-    val catalog = ProgressManager.getInstance().runProcessWithProgressSynchronously(
-      ThrowableComputable { ManagedVirtualDeviceCatalogService.syncDeviceCatalog() }, "", false, null)
+    val catalog =
+      ProgressManager.getInstance()
+        .runProcessWithProgressSynchronously(
+          ThrowableComputable { ManagedVirtualDeviceCatalogService.syncDeviceCatalog() },
+          "",
+          false,
+          null,
+        )
 
     assertFalse(ManagedVirtualDeviceCatalogState(Calendar.getInstance().time, catalog).isCacheFresh())
   }
@@ -61,8 +67,13 @@ class ManagedVirtualDeviceCatalogStateTest {
   fun testManagedVirtualDeviceCatalogConverter() {
     val converter = ManagedVirtualDeviceCatalogState.ManagedVirtualDeviceCatalogConverter()
     val testManagedVirtualDeviceCatalog =
-      ProgressManager.getInstance().runProcessWithProgressSynchronously(
-        ThrowableComputable { ManagedVirtualDeviceCatalogService.syncDeviceCatalog() }, "", false, null)
+      ProgressManager.getInstance()
+        .runProcessWithProgressSynchronously(
+          ThrowableComputable { ManagedVirtualDeviceCatalogService.syncDeviceCatalog() },
+          "",
+          false,
+          null,
+        )
     val serializedString = converter.toString(testManagedVirtualDeviceCatalog)
     val deserializedDeviceCatalog = converter.fromString(serializedString)
     // If there are serialization issues it will throw error before reaching assertTrue

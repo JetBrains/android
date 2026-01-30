@@ -27,8 +27,7 @@ class NativeAllocationMethodSetTest {
   @Test
   fun subClassifierIsDefault() {
     val callstackSet = NativeAllocationMethodSet("Test")
-    assertThat(callstackSet.createSubClassifier()).isEqualTo(
-      Classifier.Id)
+    assertThat(callstackSet.createSubClassifier()).isEqualTo(Classifier.Id)
   }
 
   @Test
@@ -43,8 +42,7 @@ class NativeAllocationMethodSetTest {
   fun classifier() {
     val classifier = NativeAllocationMethodSet.createDefaultClassifier()
     val instanceObject = mock(InstanceObject::class.java)
-    whenever(instanceObject.classEntry).thenReturn(
-      ClassDb.ClassEntry(0, 0, "Test"))
+    whenever(instanceObject.classEntry).thenReturn(ClassDb.ClassEntry(0, 0, "Test"))
     val callstackSet = classifier.getClassifierSet(instanceObject, true)
     assertThat(callstackSet).isInstanceOf(NativeAllocationMethodSet::class.java)
     assertThat((callstackSet as NativeAllocationMethodSet).name).isEqualTo("Test")

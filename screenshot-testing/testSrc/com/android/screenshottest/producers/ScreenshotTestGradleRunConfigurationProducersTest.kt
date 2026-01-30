@@ -32,21 +32,19 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
+import kotlin.test.assertEquals
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import kotlin.test.assertEquals
 
 @RunsInEdt
 class ScreenshotTestGradleRunConfigurationProducersTest {
-  @get:Rule
-  val flagRule = FlagRule(StudioFlags.ENABLE_SCREENSHOT_TESTING, true)
+  @get:Rule val flagRule = FlagRule(StudioFlags.ENABLE_SCREENSHOT_TESTING, true)
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
 
   private val SIMPLE_SCREENSHOT = "app/src/screenshotTest/java/com/example/application/MyScreenshotTest.kt"
   private val NO_PREVIEW_TEST = "app/src/screenshotTest/java/com/example/application/NoPreviewTest.kt"
@@ -104,16 +102,10 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     assertThat(taskNames).hasSize(5)
 
     // Drop the base task and chunk the remaining arguments into pairs like [--tests, "filter"].
-    val testFilters = taskNames.drop(1)
-      .chunked(2)
-      .filter { it.size == 2 && it[0] == "--tests" }
-      .map { it[1] }
+    val testFilters = taskNames.drop(1).chunked(2).filter { it.size == 2 && it[0] == "--tests" }.map { it[1] }
 
     // Verify that we have exactly the two expected filters.
-    val expectedFilters = listOf(
-      "\"com.example.application.MyClassInMixedFile\"",
-      "\"com.example.application.MyFileWithMixedTestsKt\""
-    )
+    val expectedFilters = listOf("\"com.example.application.MyClassInMixedFile\"", "\"com.example.application.MyFileWithMixedTestsKt\"")
     assertThat(testFilters).hasSize(expectedFilters.size)
     assertThat(testFilters).containsAllIn(expectedFilters)
   }
@@ -154,7 +146,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
   @Test
   fun testConfigurationFromMethod() {
     val project = projectRule.project
-    val runConfiguration = createAndroidGradleTestConfigurationFromMethod(project, "com.example.application.MyScreenshotTest", "PreviewMethod")
+    val runConfiguration =
+      createAndroidGradleTestConfigurationFromMethod(project, "com.example.application.MyScreenshotTest", "PreviewMethod")
     requireNotNull(runConfiguration)
     assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
     assertEquals(true, runConfiguration.isRunAsTest)
@@ -174,7 +167,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
   @Test
   fun testConfigurationFromMethodOnlyPreviewTest() {
     val project = projectRule.project
-    val runConfiguration = createAndroidGradleTestConfigurationFromMethod(project, "com.example.application.OnlyPreviewTest", "PreviewMethod")
+    val runConfiguration =
+      createAndroidGradleTestConfigurationFromMethod(project, "com.example.application.OnlyPreviewTest", "PreviewMethod")
     Assert.assertNotNull(runConfiguration)
     assertEquals(true, runConfiguration!!.isRunAsTest)
     assertEquals(3, runConfiguration.settings.taskNames.size)
@@ -186,7 +180,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
   @Test
   fun testConfigurationFromMethodMultiPreview() {
     val project = projectRule.project
-    val runConfiguration = createAndroidGradleTestConfigurationFromMethod(project, "com.example.application.MyScreenshotTestMultiPreview", "PreviewMethod")
+    val runConfiguration =
+      createAndroidGradleTestConfigurationFromMethod(project, "com.example.application.MyScreenshotTestMultiPreview", "PreviewMethod")
     requireNotNull(runConfiguration)
     assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
     assertEquals(true, runConfiguration.isRunAsTest)
@@ -199,7 +194,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
   @Test
   fun testConfigurationFromMethodTopLevel() {
     val project = projectRule.project
-    val runConfiguration = createAndroidGradleTestConfigurationFromMethod(project, "com.example.application.MyScreenshotTestTopLevelKt", "PreviewMethod")
+    val runConfiguration =
+      createAndroidGradleTestConfigurationFromMethod(project, "com.example.application.MyScreenshotTestTopLevelKt", "PreviewMethod")
     requireNotNull(runConfiguration)
     assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
     assertEquals(true, runConfiguration.isRunAsTest)
@@ -207,7 +203,6 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
     assertEquals("--tests", runConfiguration.settings.taskNames[1])
     assertEquals("\"com.example.application.MyScreenshotTestTopLevelKt.PreviewMethod\"", runConfiguration.settings.taskNames[2])
-
   }
 
   @Test
@@ -260,9 +255,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     // test app directory
     val psiFile = TestConfigurationTestingUtil.getPsiElement(project, "app", true)
     val context = TestConfigurationTestingUtil.createContext(project, psiFile)
-    val contextConfiguration = context.configurationsFromContext?.firstOrNull{
-      it.configuration.name.contains("Screenshot")
-    }  as ConfigurationFromContextImpl?
+    val contextConfiguration =
+      context.configurationsFromContext?.firstOrNull { it.configuration.name.contains("Screenshot") } as ConfigurationFromContextImpl?
     val runConfiguration = contextConfiguration!!.configuration as GradleRunConfiguration
     requireNotNull(runConfiguration)
     assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
@@ -277,9 +271,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     val project = projectRule.project
     val psiFile = TestConfigurationTestingUtil.getPsiElement(project, "app/src", true)
     val context = TestConfigurationTestingUtil.createContext(project, psiFile)
-    val contextConfiguration = context.configurationsFromContext?.firstOrNull{
-      it.configuration.name.contains("Screenshot")
-    }  as ConfigurationFromContextImpl?
+    val contextConfiguration =
+      context.configurationsFromContext?.firstOrNull { it.configuration.name.contains("Screenshot") } as ConfigurationFromContextImpl?
     val runConfiguration = contextConfiguration!!.configuration as GradleRunConfiguration
     requireNotNull(runConfiguration)
     assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
@@ -290,10 +283,12 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
 
     // Compare generated run-config against unrelated context. It should return false.
     // This should not cause NPE.
-    assertThat(contextConfiguration.configurationProducer.isConfigurationFromContext(
-      runConfiguration,
-      TestConfigurationTestingUtil.createContext(project, TestConfigurationTestingUtil.getPsiElement(project, "nonAndroidModule", true))
-    ))
+    assertThat(
+        contextConfiguration.configurationProducer.isConfigurationFromContext(
+          runConfiguration,
+          TestConfigurationTestingUtil.createContext(project, TestConfigurationTestingUtil.getPsiElement(project, "nonAndroidModule", true)),
+        )
+      )
       .isFalse()
   }
 
@@ -302,9 +297,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     val project = projectRule.project
     val psiFile = TestConfigurationTestingUtil.getPsiElement(project, "app/src/screenshotTest/java", true)
     val context = TestConfigurationTestingUtil.createContext(project, psiFile)
-    val contextConfiguration = context.configurationsFromContext?.firstOrNull{
-      it.configuration.name.contains("Screenshot")
-    }  as ConfigurationFromContextImpl?
+    val contextConfiguration =
+      context.configurationsFromContext?.firstOrNull { it.configuration.name.contains("Screenshot") } as ConfigurationFromContextImpl?
     val runConfiguration = contextConfiguration!!.configuration as GradleRunConfiguration
     requireNotNull(runConfiguration)
     assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
@@ -319,9 +313,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     val project = projectRule.project
     val psiFile = TestConfigurationTestingUtil.getPsiElement(project, "app/src/main/java", true)
     val context = TestConfigurationTestingUtil.createContext(project, psiFile)
-    val contextConfiguration = context.configurationsFromContext?.firstOrNull{
-      it.configuration.name.contains("Screenshot")
-    }  as ConfigurationFromContextImpl?
+    val contextConfiguration =
+      context.configurationsFromContext?.firstOrNull { it.configuration.name.contains("Screenshot") } as ConfigurationFromContextImpl?
     Assert.assertNull(contextConfiguration)
   }
 
@@ -335,225 +328,256 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
   }
 
   private fun createProjectStructureForTest() {
-    //simple screenshotTest
-    createRelativeFileWithContent(SIMPLE_SCREENSHOT,
-                                  """
-    package com.example.application
+    // simple screenshotTest
+    createRelativeFileWithContent(
+      SIMPLE_SCREENSHOT,
+      """
+      package com.example.application
 
-    import androidx.compose.runtime.Composable
-    import androidx.compose.ui.tooling.preview.Preview
-    import com.android.tools.screenshot.PreviewTest
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview
+      import com.android.tools.screenshot.PreviewTest
 
-    class MyScreenshotTest {
+      class MyScreenshotTest {
+        @PreviewTest
+        @Preview(showBackground = true)
+        @Composable
+        fun PreviewMethod() {
+        }
+        
+        @PreviewTest
+        @Preview(showBackground = true)
+        @Composable
+        fun AnotherPreviewMethod() {
+        }
+      }
+
+      """
+        .trimIndent(),
+    )
+
+    // without preview test annotation
+    createRelativeFileWithContent(
+      NO_PREVIEW_TEST,
+      """
+      package com.example.application
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview
+      import com.android.tools.screenshot.PreviewTest
+
+      class NoPreviewTest {
+        @Preview(showBackground = true)
+        @Composable
+        fun PreviewMethod() {
+        }
+        
+        @Preview(showBackground = true)
+        @Composable
+        fun AnotherPreviewMethod() {
+        }
+      }
+
+      """
+        .trimIndent(),
+    )
+
+    // only preview test annotation - no preview annotation
+    createRelativeFileWithContent(
+      ONLY_PREVIEW_TEST,
+      """
+      package com.example.application
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview
+      import com.android.tools.screenshot.PreviewTest
+
+      class OnlyPreviewTest {
+        @PreviewTest
+        @Composable
+        fun PreviewMethod() {
+        }
+        
+        @PreviewTest
+        @Composable
+        fun AnotherPreviewMethod() {
+        }
+      }
+
+      """
+        .trimIndent(),
+    )
+
+    // Multi preview annotations
+    createRelativeFileWithContent(
+      MULTI_PREVIEW,
+      """
+      package com.example.application
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview
+      import com.android.tools.screenshot.PreviewTest
+
+      class MyScreenshotTestMultiPreview {
+        @PreviewTest
+        @Preview(showBackground = true)
+        @Composable
+        fun PreviewMethod() {
+        }
+        
+        @PreviewTest
+        @MultiPreview
+        @Composable
+        fun AnotherPreviewMethod() {
+        }
+      }
+
+      @Preview(name = "with background", showBackground = true)
+      @Preview(name = "without background", showBackground = false)
+      annotation class MultiPreview
+
+      """
+        .trimIndent(),
+    )
+
+    // file in a different package
+    createRelativeFileWithContent(
+      DIFFERENT_PACKAGE,
+      """
+      package com.example.application
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview
+      import com.android.tools.screenshot.PreviewTest
+
+      class MyScreenshotTest {
+        @PreviewTest
+        @Preview(showBackground = true)
+        @Composable
+        fun PreviewMethod() {
+        }
+        
+        @PreviewTest
+        @Preview(showBackground = true)
+        @Composable
+        fun AnotherPreviewMethod() {
+        }
+      }
+
+      """
+        .trimIndent(),
+    )
+
+    // class with no methods
+    createRelativeFileWithContent(
+      EMPTY_CLASS,
+      """
+      package com.example.application
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview
+
+      class MyEmptyClass {
+      }
+
+      """
+        .trimIndent(),
+    )
+
+    // class with no preview methods
+    createRelativeFileWithContent(
+      NO_PREVIEWS,
+      """
+      package com.example.application
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview
+
+      class NoPreviewsClass {
+        @Composable
+        fun PreviewMethod() {
+        }
+
+        @Composable
+        fun AnotherPreviewMethod() {
+        }
+      }
+
+      """
+        .trimIndent(),
+    )
+
+    // top level function
+    createRelativeFileWithContent(
+      TOP_LEVEL,
+      """
+      package com.example.application
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview
+      import com.android.tools.screenshot.PreviewTest
+
       @PreviewTest
       @Preview(showBackground = true)
       @Composable
       fun PreviewMethod() {
       }
-      
-      @PreviewTest
-      @Preview(showBackground = true)
-      @Composable
-      fun AnotherPreviewMethod() {
-      }
-    }
 
-    """.trimIndent())
-
-    //without preview test annotation
-    createRelativeFileWithContent(NO_PREVIEW_TEST,
-                                  """
-    package com.example.application
-
-    import androidx.compose.runtime.Composable
-    import androidx.compose.ui.tooling.preview.Preview
-    import com.android.tools.screenshot.PreviewTest
-
-    class NoPreviewTest {
-      @Preview(showBackground = true)
-      @Composable
-      fun PreviewMethod() {
-      }
-      
-      @Preview(showBackground = true)
-      @Composable
-      fun AnotherPreviewMethod() {
-      }
-    }
-
-    """.trimIndent())
-
-    //only preview test annotation - no preview annotation
-    createRelativeFileWithContent(ONLY_PREVIEW_TEST,
-                                  """
-    package com.example.application
-
-    import androidx.compose.runtime.Composable
-    import androidx.compose.ui.tooling.preview.Preview
-    import com.android.tools.screenshot.PreviewTest
-
-    class OnlyPreviewTest {
-      @PreviewTest
-      @Composable
-      fun PreviewMethod() {
-      }
-      
-      @PreviewTest
-      @Composable
-      fun AnotherPreviewMethod() {
-      }
-    }
-
-    """.trimIndent())
-
-    //Multi preview annotations
-    createRelativeFileWithContent(MULTI_PREVIEW,
-                                  """
-    package com.example.application
-
-    import androidx.compose.runtime.Composable
-    import androidx.compose.ui.tooling.preview.Preview
-    import com.android.tools.screenshot.PreviewTest
-
-    class MyScreenshotTestMultiPreview {
-      @PreviewTest
-      @Preview(showBackground = true)
-      @Composable
-      fun PreviewMethod() {
-      }
-      
-      @PreviewTest
-      @MultiPreview
-      @Composable
-      fun AnotherPreviewMethod() {
-      }
-    }
-
-    @Preview(name = "with background", showBackground = true)
-    @Preview(name = "without background", showBackground = false)
-    annotation class MultiPreview
-
-    """.trimIndent())
-
-    //file in a different package
-    createRelativeFileWithContent(DIFFERENT_PACKAGE,
-                                  """
-    package com.example.application
-
-    import androidx.compose.runtime.Composable
-    import androidx.compose.ui.tooling.preview.Preview
-    import com.android.tools.screenshot.PreviewTest
-
-    class MyScreenshotTest {
-      @PreviewTest
-      @Preview(showBackground = true)
-      @Composable
-      fun PreviewMethod() {
-      }
-      
-      @PreviewTest
-      @Preview(showBackground = true)
-      @Composable
-      fun AnotherPreviewMethod() {
-      }
-    }
-
-    """.trimIndent())
-
-    //class with no methods
-    createRelativeFileWithContent(EMPTY_CLASS,
-                                  """
-    package com.example.application
-
-    import androidx.compose.runtime.Composable
-    import androidx.compose.ui.tooling.preview.Preview
-
-    class MyEmptyClass {
-    }
-
-    """.trimIndent())
-
-    //class with no preview methods
-    createRelativeFileWithContent(NO_PREVIEWS,
-                                  """
-    package com.example.application
-
-    import androidx.compose.runtime.Composable
-    import androidx.compose.ui.tooling.preview.Preview
-
-    class NoPreviewsClass {
-      @Composable
-      fun PreviewMethod() {
-      }
-
-      @Composable
-      fun AnotherPreviewMethod() {
-      }
-    }
-
-    """.trimIndent())
-
-    //top level function
-    createRelativeFileWithContent(TOP_LEVEL,
-                                  """
-    package com.example.application
-
-    import androidx.compose.runtime.Composable
-    import androidx.compose.ui.tooling.preview.Preview
-    import com.android.tools.screenshot.PreviewTest
-
-    @PreviewTest
-    @Preview(showBackground = true)
-    @Composable
-    fun PreviewMethod() {
-    }
-
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     // File with both a top-level test and a test in a class
-    createRelativeFileWithContent(MIXED_TESTS_FILE,
-                                  """
-    package com.example.application
+    createRelativeFileWithContent(
+      MIXED_TESTS_FILE,
+      """
+      package com.example.application
 
-    import androidx.compose.runtime.Composable
-    import androidx.compose.ui.tooling.preview.Preview
-    import com.android.tools.screenshot.PreviewTest
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview
+      import com.android.tools.screenshot.PreviewTest
 
-    @PreviewTest
-    @Preview
-    @Composable
-    fun TopLevelTestInMixedFile() {
-    }
-
-    class MyClassInMixedFile {
       @PreviewTest
       @Preview
       @Composable
-      fun ClassTestInMixedFile() {
+      fun TopLevelTestInMixedFile() {
       }
-    }
-    """.trimIndent())
+
+      class MyClassInMixedFile {
+        @PreviewTest
+        @Preview
+        @Composable
+        fun ClassTestInMixedFile() {
+        }
+      }
+      """
+        .trimIndent(),
+    )
   }
 
   private fun stubPreviewTestAnnotation() {
     createRelativeFileWithContent(
-      "app/src/screenshotTest/java/com/android/tools/screenshot/PreviewTest.kt", """
-    package com.android.tools.screenshot
-    
-    @MustBeDocumented
-    @Retention(AnnotationRetention.BINARY)
-    @Target(
-        AnnotationTarget.FUNCTION
+      "app/src/screenshotTest/java/com/android/tools/screenshot/PreviewTest.kt",
+      """
+      package com.android.tools.screenshot
+
+      @MustBeDocumented
+      @Retention(AnnotationRetention.BINARY)
+      @Target(
+          AnnotationTarget.FUNCTION
+      )
+      annotation class PreviewTest {
+      }
+          
+      """
+        .trimIndent(),
     )
-    annotation class PreviewTest {
-    }
-        
-      """.trimIndent())
   }
 
   private fun stubComposeAnnotation() {
     createRelativeFileWithContent(
-      "app/src/screenshotTest/java/androidx/compose/runtime/Composable.kt", """
+      "app/src/screenshotTest/java/androidx/compose/runtime/Composable.kt",
+      """
       package androidx.compose.runtime
       @Target(
           AnnotationTarget.FUNCTION,
@@ -563,12 +587,15 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
           AnnotationTarget.PROPERTY_GETTER
       )
       annotation class Composable
-  """.trimIndent()
+      """
+        .trimIndent(),
     )
   }
 
   private fun stubPreviewAnnotation() {
-    createRelativeFileWithContent("app/src/screenshotTest/java/androidx/compose/ui/tooling/preview/Preview.kt", """
+    createRelativeFileWithContent(
+      "app/src/screenshotTest/java/androidx/compose/ui/tooling/preview/Preview.kt",
+      """
   package androidx.compose.ui.tooling.preview
 
   import kotlin.reflect.KClass
@@ -607,14 +634,12 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
       val provider: KClass<out PreviewParameterProvider<*>>,
       val limit: Int = Int.MAX_VALUE
   )
-  """)
+  """,
+    )
   }
 
   private fun createRelativeFileWithContent(relativePath: String, content: String): File {
-    val newFile = File(
-      projectRule.project.basePath,
-      FileUtils.toSystemDependentPath(relativePath)
-    )
+    val newFile = File(projectRule.project.basePath, FileUtils.toSystemDependentPath(relativePath))
     FileUtil.createIfDoesntExist(newFile)
     newFile.writeText(content)
     return newFile

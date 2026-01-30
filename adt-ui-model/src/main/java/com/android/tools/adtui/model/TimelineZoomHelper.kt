@@ -35,8 +35,8 @@ import kotlin.math.max
  */
 
 /**
- * In order to prevent attempts to zoom larger than the current view range, this cap serves to limit
- * the delta range to a fixed number proportional to the current view range.
+ * In order to prevent attempts to zoom larger than the current view range, this cap serves to limit the delta range to a fixed number
+ * proportional to the current view range.
  */
 private const val ZOOM_IN_DELTA_RANGE_US_MAX_RATIO = 0.90
 
@@ -44,19 +44,14 @@ private const val ZOOM_IN_DELTA_RANGE_US_MAX_RATIO = 0.90
 private const val ZOOM_LERP_THRESHOLD_NS = 10.0
 
 /** Facilitates some zoom related operations that are used Timelines */
-class TimelineZoomHelper(
-  private val dataRange: Range,
-  private val viewRange: Range,
-  private val zoomLeft: Range,
-) {
+class TimelineZoomHelper(private val dataRange: Range, private val viewRange: Range, private val zoomLeft: Range) {
 
   /**
-   * Calculates a zoom within the current data bounds. If a zoom extends beyond data max the left
-   * over is applied to the view minimum.
+   * Calculates a zoom within the current data bounds. If a zoom extends beyond data max the left over is applied to the view minimum.
    *
    * @param amountUs the amount of time request to change the view by.
-   * @param ratio a ratio between 0 and 1 that determines the focal point of the zoom. 1 applies the
-   *   full delta to the min while 0 applies the full delta to the max.
+   * @param ratio a ratio between 0 and 1 that determines the focal point of the zoom. 1 applies the full delta to the min while 0 applies
+   *   the full delta to the max.
    */
   fun zoom(amountUs: Double, ratio: Double) {
     var deltaUs = amountUs
@@ -95,11 +90,7 @@ class TimelineZoomHelper(
 
   /** Updates [zoomLeft] after a timeline `frameViewToRange` call */
   fun updateZoomLeft(targetRange: Range, paddingRatio: Double) {
-    val finalRange =
-      Range(
-        targetRange.min - targetRange.length * paddingRatio,
-        targetRange.max + targetRange.length * paddingRatio,
-      )
+    val finalRange = Range(targetRange.min - targetRange.length * paddingRatio, targetRange.max + targetRange.length * paddingRatio)
 
     // Cap requested view to max data.
     if (finalRange.max > dataRange.max) {
@@ -109,10 +100,9 @@ class TimelineZoomHelper(
   }
 
   /**
-   * Handles updating the view range by the delta stored in our {@link #myZoomLeft} value. If we
-   * have a delta stored in {@link #myZoomLeft} we apply a percentage of that value to our current
-   * view, and reduce the delta currently stored. Eg: View = 10, 100 myZoomLeft = 30,-30 After we
-   * call this function we end up with View = 20, 90 myZoomLeft = 20, -20.
+   * Handles updating the view range by the delta stored in our {@link #myZoomLeft} value. If we have a delta stored in {@link #myZoomLeft}
+   * we apply a percentage of that value to our current view, and reduce the delta currently stored. Eg: View = 10, 100 myZoomLeft = 30,-30
+   * After we call this function we end up with View = 20, 90 myZoomLeft = 20, -20.
    */
   fun handleZoomView(elapsedNs: Long) {
     if (zoomLeft.min != 0.0 || zoomLeft.max != 0.0) {

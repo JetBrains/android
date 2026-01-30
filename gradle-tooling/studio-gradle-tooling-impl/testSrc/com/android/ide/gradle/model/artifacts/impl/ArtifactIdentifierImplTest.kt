@@ -19,9 +19,7 @@ import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import nl.jqno.equalsverifier.EqualsVerifier
 import org.junit.Test
 
-/**
- * Test class for [ArtifactIdentifierImpl].
- */
+/** Test class for [ArtifactIdentifierImpl]. */
 class ArtifactIdentifierImplTest {
   @Test
   @Throws(Exception::class)

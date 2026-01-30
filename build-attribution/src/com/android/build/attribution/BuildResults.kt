@@ -59,11 +59,11 @@ data class BuildAnalysisResults(
   private val taskCategoryWarningsAnalyzerResult: TaskCategoryWarningsAnalyzer.Result,
   private val buildSessionID: String,
   private val taskMap: Map<String, TaskData>,
-  private val pluginMap: Map<String, PluginData>
+  private val pluginMap: Map<String, PluginData>,
 ) : AbstractBuildAnalysisResult, BuildEventsAnalysisResult {
 
   @Override
-  override fun getBuildRequestData() : GradleBuildInvoker.Request.RequestData {
+  override fun getBuildRequestData(): GradleBuildInvoker.Request.RequestData {
     return buildRequestData
   }
 
@@ -86,6 +86,7 @@ data class BuildAnalysisResults(
   fun getCriticalPathAnalyzerResult(): CriticalPathAnalyzer.Result {
     return criticalPathAnalyzerResult
   }
+
   fun getBuildStartedTimestamp(): Long {
     return criticalPathAnalyzerResult.buildStartedTimestamp
   }
@@ -95,7 +96,7 @@ data class BuildAnalysisResults(
   }
 
   @Override
-  override fun getBuildFinishedTimestamp() : Long{
+  override fun getBuildFinishedTimestamp(): Long {
     return criticalPathAnalyzerResult.buildFinishedTimestamp
   }
 
@@ -104,12 +105,12 @@ data class BuildAnalysisResults(
   }
 
   override fun getTotalBuildTimeMs(): Long {
-    return criticalPathAnalyzerResult.buildFinishedTimestamp-criticalPathAnalyzerResult.buildStartedTimestamp
+    return criticalPathAnalyzerResult.buildFinishedTimestamp - criticalPathAnalyzerResult.buildStartedTimestamp
   }
 
   override fun getConfigurationPhaseTimeMs(): Long {
     return criticalPathAnalyzerResult.run {
-      val firstTaskStartTime = tasksDeterminingBuildDuration.minByOrNull { it.executionStartTime } ?.executionStartTime
+      val firstTaskStartTime = tasksDeterminingBuildDuration.minByOrNull { it.executionStartTime }?.executionStartTime
       (firstTaskStartTime ?: buildFinishedTimestamp) - buildStartedTimestamp
     }
   }
@@ -126,16 +127,17 @@ data class BuildAnalysisResults(
     return criticalPathAnalyzerResult.pluginsDeterminingBuildDuration
   }
 
-  override fun getTotalConfigurationData(): ProjectConfigurationData = projectConfigurationAnalyzerResult.run {
-    val totalConfigurationTime = projectsConfigurationData.sumOf { it.totalConfigurationTimeMs }
-    val totalPluginConfiguration = pluginsConfigurationDataMap.map { entry ->
-      PluginConfigurationData(entry.key, entry.value)
+  override fun getTotalConfigurationData(): ProjectConfigurationData =
+    projectConfigurationAnalyzerResult.run {
+      val totalConfigurationTime = projectsConfigurationData.sumOf { it.totalConfigurationTimeMs }
+      val totalPluginConfiguration = pluginsConfigurationDataMap.map { entry -> PluginConfigurationData(entry.key, entry.value) }
+      val totalConfigurationSteps =
+        projectsConfigurationData
+          .flatMap { it.configurationSteps }
+          .groupBy { it.type }
+          .map { entry -> ProjectConfigurationData.ConfigurationStep(entry.key, entry.value.sumOf { it.configurationTimeMs }) }
+      return ProjectConfigurationData("Total Configuration Data", totalConfigurationTime, totalPluginConfiguration, totalConfigurationSteps)
     }
-    val totalConfigurationSteps = projectsConfigurationData.flatMap { it.configurationSteps }.groupBy { it.type }.map { entry ->
-      ProjectConfigurationData.ConfigurationStep(entry.key, entry.value.sumOf { it.configurationTimeMs })
-    }
-    return ProjectConfigurationData("Total Configuration Data", totalConfigurationTime, totalPluginConfiguration, totalConfigurationSteps)
-  }
 
   override fun getProjectsConfigurationData(): List<ProjectConfigurationData> {
     return projectConfigurationAnalyzerResult.projectsConfigurationData
@@ -177,9 +179,10 @@ data class BuildAnalysisResults(
     return garbageCollectionAnalyzerResult.isSettingSet
   }
 
-  override fun buildUsesConfigurationCache(): Boolean = configurationCachingCompatibilityAnalyzerResult.let {
-    it == ConfigurationCachingTurnedOn || it is ConfigurationCacheCompatibilityTestFlow
-  }
+  override fun buildUsesConfigurationCache(): Boolean =
+    configurationCachingCompatibilityAnalyzerResult.let {
+      it == ConfigurationCachingTurnedOn || it is ConfigurationCacheCompatibilityTestFlow
+    }
 
   override fun getDownloadsAnalyzerResult(): DownloadsAnalyzer.Result {
     return downloadsAnalyzerResult
@@ -193,24 +196,23 @@ data class BuildAnalysisResults(
     return buildSessionID
   }
 
-  fun toHistoricalResults() = HistoricBuildAnalysisResults(
-  getBuildSessionID(),
-  with(buildRequestData) {
-    HistoricalRequestData(mode, rootProjectPath.path, gradleTasks, jvmArguments, commandLineArguments, env)
-  },
-  taskMap,
-  pluginMap,
-  annotationProcessorAnalyzerResult,
-  alwaysRunTasksAnalyzerResult,
-  criticalPathAnalyzerResult,
-  garbageCollectionAnalyzerResult,
-  projectConfigurationAnalyzerResult,
-  tasksConfigurationIssuesAnalyzerResult,
-  configurationCachingCompatibilityAnalyzerResult,
-  jetifierUsageAnalyzerResult,
-  downloadsAnalyzerResult,
-  taskCategoryWarningsAnalyzerResult
-  )
+  fun toHistoricalResults() =
+    HistoricBuildAnalysisResults(
+      getBuildSessionID(),
+      with(buildRequestData) { HistoricalRequestData(mode, rootProjectPath.path, gradleTasks, jvmArguments, commandLineArguments, env) },
+      taskMap,
+      pluginMap,
+      annotationProcessorAnalyzerResult,
+      alwaysRunTasksAnalyzerResult,
+      criticalPathAnalyzerResult,
+      garbageCollectionAnalyzerResult,
+      projectConfigurationAnalyzerResult,
+      tasksConfigurationIssuesAnalyzerResult,
+      configurationCachingCompatibilityAnalyzerResult,
+      jetifierUsageAnalyzerResult,
+      downloadsAnalyzerResult,
+      taskCategoryWarningsAnalyzerResult,
+    )
 }
 
 data class HistoricBuildAnalysisResults(
@@ -236,14 +238,15 @@ data class HistoricalRequestData(
   val gradleTasks: List<String>,
   val jvmArguments: List<String>,
   val commandLineArguments: List<String>,
-  val env: Map<String, String>
+  val env: Map<String, String>,
 )
 
-data class FailureResult(
-  private val buildSessionID: String,
-  val failureType: Type
-) : AbstractBuildAnalysisResult {
+data class FailureResult(private val buildSessionID: String, val failureType: Type) : AbstractBuildAnalysisResult {
   override fun getBuildSessionID(): String = buildSessionID
 
-  enum class Type { BUILD_FAILURE, ANALYSIS_FAILURE, ANALYSIS_CANCELED }
+  enum class Type {
+    BUILD_FAILURE,
+    ANALYSIS_FAILURE,
+    ANALYSIS_CANCELED,
+  }
 }

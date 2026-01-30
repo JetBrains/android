@@ -22,11 +22,8 @@ import com.android.tools.adtui.model.StateChartModel
 import com.android.tools.profilers.cpu.LazyDataSeries
 import java.util.function.Supplier
 
-/**
- * Track model for the Surfaceflinger track in CPU capture stage.
- */
-class SurfaceflingerTrackModel(val systemTraceData: CpuSystemTraceData,
-                               val viewRange: Range) : StateChartModel<SurfaceflingerEvent?>() {
+/** Track model for the Surfaceflinger track in CPU capture stage. */
+class SurfaceflingerTrackModel(val systemTraceData: CpuSystemTraceData, val viewRange: Range) : StateChartModel<SurfaceflingerEvent?>() {
   val surfaceflingerEvents: DataSeries<SurfaceflingerEvent>
 
   init {

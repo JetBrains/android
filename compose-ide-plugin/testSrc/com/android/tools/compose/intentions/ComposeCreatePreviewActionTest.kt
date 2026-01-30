@@ -38,12 +38,7 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureAdtTestCase() {
     // invalid analysis result. ShowIntentionActionsHandler.chooseActionAndInvoke(..) will
     // internally run `ComposeCreatePreviewActionK2::perform(..)` on a background thread
     // and update PSIs on EDT.
-    ShowIntentionActionsHandler.chooseActionAndInvoke(
-        myFixture.file,
-        myFixture.editor,
-        action,
-        action.text,
-      )
+    ShowIntentionActionsHandler.chooseActionAndInvoke(myFixture.file, myFixture.editor, action, action.text)
   }
 
   fun testCursorAtAnnotation() {

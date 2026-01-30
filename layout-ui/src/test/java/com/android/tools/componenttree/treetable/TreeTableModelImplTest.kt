@@ -251,12 +251,7 @@ class TreeTableModelImplTest {
     var nodesRemoved = 0
     var treeChanged = 0
 
-    fun anyChanges(): Boolean =
-      inserted != 0 ||
-        structureChanges != 0 ||
-        nodesChanged != 0 ||
-        nodesRemoved != 0 ||
-        treeChanged != 0
+    fun anyChanges(): Boolean = inserted != 0 || structureChanges != 0 || nodesChanged != 0 || nodesRemoved != 0 || treeChanged != 0
 
     override fun treeNodesInserted(event: TreeModelEvent) {
       inserted++

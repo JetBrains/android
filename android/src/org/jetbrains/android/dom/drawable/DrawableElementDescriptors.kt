@@ -47,20 +47,15 @@ object DrawableResourceNSDescriptor : XmlNSDescriptorImpl() {
             }
           }
           .toTypedArray<XmlElementDescriptor>()
-      CachedValueProvider.Result.create(
-        static,
-        AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project),
-      )
+      CachedValueProvider.Result.create(static, AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project))
     }
   }
 }
 
 // TODO: don't extend AndroidXmlTagDescriptor. Currently it extends AndroidXmlTagDescriptor for
 // support inspection behavior.
-class CustomDrawableElementDescriptor(
-  override val clazz: PsiClass?,
-  delegate: XmlElementDescriptor,
-) : TagFromClassDescriptor, AndroidXmlTagDescriptor(delegate) {
+class CustomDrawableElementDescriptor(override val clazz: PsiClass?, delegate: XmlElementDescriptor) :
+  TagFromClassDescriptor, AndroidXmlTagDescriptor(delegate) {
   override val isContainer = false
 
   override fun getDeclaration() = clazz

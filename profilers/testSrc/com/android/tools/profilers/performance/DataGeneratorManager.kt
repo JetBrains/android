@@ -16,15 +16,11 @@
 package com.android.tools.profilers.performance
 
 import com.android.tools.profiler.proto.Common
-
 import java.sql.Connection
 import java.util.ArrayList
 import java.util.Random
 
-/**
- * This class is responsible for managing generator properties, as well as
- * triggering each generator to generate data.
- */
+/** This class is responsible for managing generator properties, as well as triggering each generator to generate data. */
 class DataGeneratorManager(connection: Connection, performantDb: Boolean) {
   private var myProperties: GeneratorProperties? = null
   private var myGenerators: MutableList<DataGenerator> = ArrayList()
@@ -32,8 +28,7 @@ class DataGeneratorManager(connection: Connection, performantDb: Boolean) {
   init {
     if (performantDb) {
       myGenerators.add(MemoryLiveAllocationGenerator(connection))
-    }
-    else {
+    } else {
       myGenerators.add(EventsGenerator(connection))
       myGenerators.add(CpuGenerator(connection))
       myGenerators.add(NetworkGenerator(connection))
@@ -42,34 +37,28 @@ class DataGeneratorManager(connection: Connection, performantDb: Boolean) {
   }
 
   /**
-   * Should be called before {@link :generateData} and {@link :endSession}.
-   * This function is responsible for generating the properties used in data
-   * generation as well as setting up the session.
+   * Should be called before {@link :generateData} and {@link :endSession}. This function is responsible for generating the properties used
+   * in data generation as well as setting up the session.
    */
   fun beginSession(seed: Long) {
     val random = Random(seed)
     val pid = random.nextInt()
-    myProperties = GeneratorProperties.Builder(Common.Session.newBuilder()
-                                                 .setStreamId(random.nextLong())
-                                                 .setPid(pid)
-                                                 .setSessionId(random.nextInt().toLong())
-                                                 .build())
-      .setPid(pid)
-      .build()
+    myProperties =
+      GeneratorProperties.Builder(
+          Common.Session.newBuilder().setStreamId(random.nextLong()).setPid(pid).setSessionId(random.nextInt().toLong()).build()
+        )
+        .setPid(pid)
+        .build()
   }
 
-  /**
-   * Triggers data generation for a given timestamp.
-   */
+  /** Triggers data generation for a given timestamp. */
   fun generateData(timestamp: Long) {
     for (generator in myGenerators) {
       generator.generate(timestamp, myProperties!!)
     }
   }
 
-  /**
-   * Ends the current session and returns the session object used in data generation.
-   */
+  /** Ends the current session and returns the session object used in data generation. */
   fun endSession(): Common.Session {
     val session = myProperties!!.session
     myProperties = null

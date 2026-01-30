@@ -11,7 +11,6 @@ import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.tasks.analytics.TaskFinishedState
 import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata
 import com.android.tools.profilers.tasks.analytics.TaskStopFailedMetadata
-import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import java.util.concurrent.Executor
@@ -24,30 +23,39 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
 
-/**
- * This class implements a stage tracking allocations, either live or finished
- */
-class AllocationStage private constructor(profilers: StudioProfilers,
-                                          loader: CaptureObjectLoader,
-                                          initMinUs: Double,
-                                          initMaxUs: Double,
-                                          val stopTask: () -> Unit = {})
-  : BaseStreamingMemoryProfilerStage(profilers, loader) {
+/** This class implements a stage tracking allocations, either live or finished */
+class AllocationStage
+private constructor(
+  profilers: StudioProfilers,
+  loader: CaptureObjectLoader,
+  initMinUs: Double,
+  initMaxUs: Double,
+  val stopTask: () -> Unit = {},
+) : BaseStreamingMemoryProfilerStage(profilers, loader) {
 
   // The boundaries of the allocation tracking period.
   // - If tracking hasn't started yet, `minTrackingTimeUs` is -∞
   // - If live tracking session hasn't finished yet, `maxTrackingTimeUs` is +∞
   var minTrackingTimeUs = initMinUs
     private set
+
   var maxTrackingTimeUs = initMaxUs
     private set
-  val hasStartedTracking get() = minTrackingTimeUs > NEGATIVE_INFINITY
-  val hasEndedTracking get() = maxTrackingTimeUs < POSITIVE_INFINITY
-  val isStatic get() = hasStartedTracking && hasEndedTracking
+
+  val hasStartedTracking
+    get() = minTrackingTimeUs > NEGATIVE_INFINITY
+
+  val hasEndedTracking
+    get() = maxTrackingTimeUs < POSITIVE_INFINITY
+
+  val isStatic
+    get() = hasStartedTracking && hasEndedTracking
+
   private var lastTrackingEvent = Common.Event.getDefaultInstance()
 
   private val allocationDurationData = makeModel(CaptureDataSeries::ofAllocationInfos)
-  override val captureSeries get() = listOf(allocationDurationData)
+  override val captureSeries
+    get() = listOf(allocationDurationData)
 
   var hasAgentError = false
 
@@ -55,23 +63,31 @@ class AllocationStage private constructor(profilers: StudioProfilers,
     if (studioProfilers.sessionsManager.isSessionAlive && isLiveAllocationTrackingSupported) {
       // Note the max of current data range which is the current timestamp on device
       val currentRangeMax = TimeUnit.MICROSECONDS.toNanos(studioProfilers.timeline.dataRange.max.toLong())
-      val listener = TransportEventListener(
-        Common.Event.Kind.MEMORY_ALLOC_TRACKING, studioProfilers.ideServices.mainExecutor,
-        { true }, { sessionData.streamId }, { sessionData.pid }, null,
-        // wait for only new events, not old ones such as those from previous recordings
-        { currentRangeMax }
-      ) {
-        lastTrackingEvent = it
-        aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS)
-        true
-      }
+      val listener =
+        TransportEventListener(
+          Common.Event.Kind.MEMORY_ALLOC_TRACKING,
+          studioProfilers.ideServices.mainExecutor,
+          { true },
+          { sessionData.streamId },
+          { sessionData.pid },
+          null,
+          // wait for only new events, not old ones such as those from previous recordings
+          { currentRangeMax },
+        ) {
+          lastTrackingEvent = it
+          aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS)
+          true
+        }
       studioProfilers.transportPoller.registerListener(listener)
     }
   }
 
   override fun getParentStage() = MainMemoryProfilerStage(studioProfilers, loader)
+
   override fun getHomeStageClass() = MainMemoryProfilerStage::class.java
+
   override fun isInteractingWithTimeline() = false
+
   override fun getConfirmExitMessage() = if (hasEndedTracking) null else "Going back will end allocation recording. Proceed?"
 
   override fun selectCaptureFromSelectionRange() {
@@ -92,7 +108,7 @@ class AllocationStage private constructor(profilers: StudioProfilers,
   fun isAlmostAllSelected(): Boolean {
     fun Double.almostEqual(that: Double) = abs(this - that) <= 0.001
     return timeline.selectionRange.min.almostEqual(minTrackingTimeUs) &&
-           timeline.selectionRange.max.almostEqual(min(maxTrackingTimeUs, timeline.dataRange.max))
+      timeline.selectionRange.max.almostEqual(min(maxTrackingTimeUs, timeline.dataRange.max))
   }
 
   override fun onEnter() {
@@ -132,14 +148,17 @@ class AllocationStage private constructor(profilers: StudioProfilers,
     timeline.viewRange.set(minTrackingTimeUs, minTrackingTimeUs)
     timeline.dataRange.addDependency(this).onChange(Range.Aspect.RANGE, ::onNewData)
   }
-  val isAgentAttached get() = studioProfilers.isAgentAttached
+
+  val isAgentAttached
+    get() = studioProfilers.isAgentAttached
 
   fun stopTrackingDueToUnattachableAgent() {
     stopTracking()
     hasAgentError = true
     if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
-      myTaskTracker.trackStartTaskFailed(TaskStartFailedMetadata(
-          allocationTrackStatus = TrackStatus.newBuilder().setStatus(TrackStatus.Status.AGENT_UNATTACHABLE).build()))
+      myTaskTracker.trackStartTaskFailed(
+        TaskStartFailedMetadata(allocationTrackStatus = TrackStatus.newBuilder().setStatus(TrackStatus.Status.AGENT_UNATTACHABLE).build())
+      )
     }
     aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS)
     cleanupFailedCapture()
@@ -158,7 +177,7 @@ class AllocationStage private constructor(profilers: StudioProfilers,
     // Agent is expected to get attached before startTracking. Agent changed event will also trigger this code path in case of tracking
     // not started yet.
     aspect.addDependency(this).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS) {
-       if (hasStartedTracking) aspect.removeDependencies(this) else startLiveDataTimeline()
+      if (hasStartedTracking) aspect.removeDependencies(this) else startLiveDataTimeline()
     }
     setupTrackingEventListener()
     trackAllocations(true, false)
@@ -175,17 +194,12 @@ class AllocationStage private constructor(profilers: StudioProfilers,
   }
 
   /**
-   * Responsible for tracking allocations and sends metric based on the status being returned.
-   * enable: Boolean which indicates if tracking should be started or not.
-   * endSession: Boolean which indicates if current session should be ended or not.
+   * Responsible for tracking allocations and sends metric based on the status being returned. enable: Boolean which indicates if tracking
+   * should be started or not. endSession: Boolean which indicates if current session should be ended or not.
    */
   private fun trackAllocations(enable: Boolean, endSession: Boolean) {
-    MemoryProfiler.trackAllocations(
-      profilers = studioProfilers,
-      session = sessionData,
-      enable = enable,
-      endSession = endSession,
-    ) { status ->
+    MemoryProfiler.trackAllocations(profilers = studioProfilers, session = sessionData, enable = enable, endSession = endSession) { status
+      ->
       when (status?.status) {
         TrackStatus.Status.SUCCESS -> {
           if (enable) {
@@ -199,7 +213,8 @@ class AllocationStage private constructor(profilers: StudioProfilers,
             logger.info("PROFILER: Java/Kotlin Allocations capture stop succeeded")
           }
         }
-        TrackStatus.Status.IN_PROGRESS, TrackStatus.Status.NOT_ENABLED -> {
+        TrackStatus.Status.IN_PROGRESS,
+        TrackStatus.Status.NOT_ENABLED -> {
           // Still in progress or not enabled yet. Not enabled yet usually happens in stage exit.
         }
         else -> {
@@ -213,16 +228,17 @@ class AllocationStage private constructor(profilers: StudioProfilers,
               myTaskTracker.trackStartTaskFailed(TaskStartFailedMetadata(allocationTrackStatus = status))
             }
             logger.info("PROFILER: Java/Kotlin Allocations capture start failed")
-          }
-          else {
+          } else {
             // stop task failure
             if (isTaskBasedUxEnabled) {
-              myTaskTracker.trackStopTaskFailed(TaskStopFailedMetadata(allocationTrackStatus = status, traceStopStatus = null, cpuCaptureMetadata = null))
+              myTaskTracker.trackStopTaskFailed(
+                TaskStopFailedMetadata(allocationTrackStatus = status, traceStopStatus = null, cpuCaptureMetadata = null)
+              )
             }
             logger.info("PROFILER: Java/Kotlin Allocations capture stop failed")
           }
 
-          cleanupFailedCapture();
+          cleanupFailedCapture()
         }
       }
     }
@@ -239,47 +255,51 @@ class AllocationStage private constructor(profilers: StudioProfilers,
   }
 
   private fun cleanupFailedCapture() {
-    if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled &&
-        studioProfilers.sessionsManager.isSessionAlive) {
-        studioProfilers.sessionsManager.endCurrentSession()
+    if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled && studioProfilers.sessionsManager.isSessionAlive) {
+      studioProfilers.sessionsManager.endCurrentSession()
     }
   }
 
-  private fun onNewData() = with(timeline) {
-    assert(!hasEndedTracking)
-    val dataMax = dataRange.max
-    when {
-      dataMax >= viewRange.max -> {
-        val initialSessionLengthUs = TimeUnit.SECONDS.toMicros(15).toDouble()
-        val length = max(2 * (dataMax - minTrackingTimeUs), initialSessionLengthUs)
-        viewRange.set(minTrackingTimeUs, minTrackingTimeUs + length)
+  private fun onNewData() =
+    with(timeline) {
+      assert(!hasEndedTracking)
+      val dataMax = dataRange.max
+      when {
+        dataMax >= viewRange.max -> {
+          val initialSessionLengthUs = TimeUnit.SECONDS.toMicros(15).toDouble()
+          val length = max(2 * (dataMax - minTrackingTimeUs), initialSessionLengthUs)
+          viewRange.set(minTrackingTimeUs, minTrackingTimeUs + length)
+        }
+        // TODO(b/172492874) fix manually changing timeline's view-range to trigger repaint
+        Random.nextBoolean() -> viewRange.max++
+        else -> viewRange.max--
       }
-      // TODO(b/172492874) fix manually changing timeline's view-range to trigger repaint
-      Random.nextBoolean() -> viewRange.max++
-      else -> viewRange.max--
+      if (selectionRange.min === minTrackingTimeUs || selectionRange.isEmpty) {
+        selectionRange.set(minTrackingTimeUs, dataMax)
+      }
     }
-    if (selectionRange.min === minTrackingTimeUs || selectionRange.isEmpty) {
-      selectionRange.set(minTrackingTimeUs, dataMax)
-    }
-  }
 
   override fun getStageType() = AndroidProfilerEvent.Stage.MEMORY_JVM_RECORDING_STAGE
 
   companion object {
-    @JvmStatic @JvmOverloads
+    @JvmStatic
+    @JvmOverloads
     fun makeLiveStage(profilers: StudioProfilers, loader: CaptureObjectLoader = CaptureObjectLoader()) =
       AllocationStage(profilers, loader, NEGATIVE_INFINITY, POSITIVE_INFINITY)
 
-    /**
-     * Constructor for live AllocationStage utilized for the Java/Kotlin Allocations task.
-     */
+    /** Constructor for live AllocationStage utilized for the Java/Kotlin Allocations task. */
     @JvmStatic
     fun makeLiveStage(profilers: StudioProfilers, stopTask: Runnable) =
       AllocationStage(profilers, CaptureObjectLoader(), NEGATIVE_INFINITY, POSITIVE_INFINITY) { stopTask.run() }
 
-    @JvmStatic @JvmOverloads
-    fun makeStaticStage(profilers: StudioProfilers, loader: CaptureObjectLoader = CaptureObjectLoader(),
-                        minTrackingTimeUs: Double, maxTrackingTimeUs: Double) =
+    @JvmStatic
+    @JvmOverloads
+    fun makeStaticStage(
+      profilers: StudioProfilers,
+      loader: CaptureObjectLoader = CaptureObjectLoader(),
+      minTrackingTimeUs: Double,
+      maxTrackingTimeUs: Double,
+    ) =
       AllocationStage(profilers, loader, minTrackingTimeUs, maxTrackingTimeUs).also {
         require(minTrackingTimeUs.isFinite())
         require(maxTrackingTimeUs.isFinite())

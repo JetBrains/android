@@ -34,29 +34,26 @@ class BatteryDrainTrackModelTest {
 
   @Test
   fun batteryDrainCounterNamesFormattedCorrectly() {
-    val batteryDrainCounters = listOf(
-      // Case 1: The following three predefined names should use the static mapping.
-      // These names are predefined by perfetto.
-      "batt.capacity_pct",
-      "batt.charge_uah",
-      "batt.current_ua",
-      // Case 2: There is no static mapping, but the "batt." prefix is present.
-      // Here, we remove the prefix and return the rest of the name.
-      "batt.foo",
-      // Case 3: There is no static mapping and the "batt." prefix is not present.
-      // Here, we simply return the exact name back.
-      "foo.bar"
-    )
+    val batteryDrainCounters =
+      listOf(
+        // Case 1: The following three predefined names should use the static mapping.
+        // These names are predefined by perfetto.
+        "batt.capacity_pct",
+        "batt.charge_uah",
+        "batt.current_ua",
+        // Case 2: There is no static mapping, but the "batt." prefix is present.
+        // Here, we remove the prefix and return the rest of the name.
+        "batt.foo",
+        // Case 3: There is no static mapping and the "batt." prefix is not present.
+        // Here, we simply return the exact name back.
+        "foo.bar",
+      )
 
     val formattedBatteryDrainCounters = batteryDrainCounters.map { getFormattedBatteryDrainName(it) }
     assertThat(formattedBatteryDrainCounters).containsExactly("Capacity", "Charge", "Current", "foo", "foo.bar").inOrder()
   }
 
   companion object {
-    private val BATTERY_DRAIN_VALUES = listOf(
-      SeriesData(0L, 1000L),
-      SeriesData(1000L, 2000L),
-      SeriesData(2000L, 3000L)
-    )
+    private val BATTERY_DRAIN_VALUES = listOf(SeriesData(0L, 1000L), SeriesData(1000L, 2000L), SeriesData(2000L, 3000L))
   }
 }

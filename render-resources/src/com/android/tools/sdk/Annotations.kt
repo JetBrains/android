@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 @file:JvmName("Annotations")
+
 package com.android.tools.sdk
 
 import com.android.sdklib.IAndroidTarget
 
 /**
- * Indicates whether annotations.jar needs to be added to the classpath of an Android SDK. annotations.jar is not needed for API 16
- * or newer. The annotations are already included in android.jar.
+ * Indicates whether annotations.jar needs to be added to the classpath of an Android SDK. annotations.jar is not needed for API 16 or
+ * newer. The annotations are already included in android.jar.
  */
 fun IAndroidTarget.needsAnnotationsJarInClasspath(): Boolean = this.version.apiLevel <= 15

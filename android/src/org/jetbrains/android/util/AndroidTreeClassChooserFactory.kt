@@ -32,18 +32,34 @@ object AndroidTreeClassChooserFactory {
     scope: GlobalSearchScope?,
     base: PsiClass?,
     initialClass: PsiClass?,
-    classFilter: ClassFilter?
-  ) = TreeJavaClassChooserDialog(
-    title, project, scope, classFilter, GroupByTypeComparator(project, ProjectViewPane.ID), base, initialClass, false
-  )
+    classFilter: ClassFilter?,
+  ) =
+    TreeJavaClassChooserDialog(
+      title,
+      project,
+      scope,
+      classFilter,
+      GroupByTypeComparator(project, ProjectViewPane.ID),
+      base,
+      initialClass,
+      false,
+    )
 
   fun createNoInnerClassesScopeChooser(
     project: Project,
     title: @NlsContexts.DialogTitle String?,
     scope: GlobalSearchScope?,
     classFilter: ClassFilter?,
-    initialClass: PsiClass?
-  ) = TreeJavaClassChooserDialog(
-    title, project, scope, classFilter, GroupByTypeComparator(project, ProjectViewPane.ID), null, initialClass, false
-  )
+    initialClass: PsiClass?,
+  ) =
+    TreeJavaClassChooserDialog(
+      title,
+      project,
+      scope,
+      classFilter,
+      GroupByTypeComparator(project, ProjectViewPane.ID),
+      null,
+      initialClass,
+      false,
+    )
 }

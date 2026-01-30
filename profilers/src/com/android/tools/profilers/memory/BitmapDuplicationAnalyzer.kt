@@ -23,9 +23,8 @@ import java.util.Locale
 /**
  * Analyzes a heap dump to find duplicate bitmap instances based on their pixel data.
  *
- * This analyzer works by finding the shared android.graphics.Bitmap$DumpData`. It
- * builds a map of native pointers to pixel buffers and then hashes the dimensions
- * and buffer content of each bitmap to identify duplicates.
+ * This analyzer works by finding the shared android.graphics.Bitmap$DumpData`. It builds a map of native pointers to pixel buffers and then
+ * hashes the dimensions and buffer content of each bitmap to identify duplicates.
  */
 class BitmapDuplicationAnalyzer {
 
@@ -37,17 +36,11 @@ class BitmapDuplicationAnalyzer {
     const val BITMAP_DUMP_DATA_CLASS_NAME = "android.graphics.Bitmap\$DumpData"
   }
 
-  /**
-   * A data class to hold identifying information for a bitmap to check for equality.
-   */
-  private data class BitmapInfo(
-    val height: Int,
-    val width: Int,
-    val bufferHash: Int
-  ) : Comparable<BitmapInfo> {
+  /** A data class to hold identifying information for a bitmap to check for equality. */
+  private data class BitmapInfo(val height: Int, val width: Int, val bufferHash: Int) : Comparable<BitmapInfo> {
     /**
-     * Orders bitmaps by their size (dimension HxW) and then buffer hash,
-     * in descending order so larger bitmaps are considered more significant.
+     * Orders bitmaps by their size (dimension HxW) and then buffer hash, in descending order so larger bitmaps are considered more
+     * significant.
      */
     override fun compareTo(other: BitmapInfo): Int {
       val areaCompare = (other.width * other.height).compareTo(this.width * this.height)
@@ -58,8 +51,8 @@ class BitmapDuplicationAnalyzer {
   }
 
   /**
-   * Analyzes a collection of instances to find duplicate Bitmaps based on content.
-   * This should be called once after all instances are loaded.
+   * Analyzes a collection of instances to find duplicate Bitmaps based on content. This should be called once after all instances are
+   * loaded.
    */
   fun analyze(instances: Iterable<InstanceObject>) {
     duplicateBitmapInstances.clear()
@@ -75,9 +68,7 @@ class BitmapDuplicationAnalyzer {
     val bitmapsByInfo = mutableMapOf<BitmapInfo, MutableList<InstanceObject>>()
     for (instance in instances) {
       if (instance.classEntry.className == BITMAP_CLASS_NAME && instance.depth != Integer.MAX_VALUE) {
-        getBitmapInfo(instance, ptrToBufferMap)?.let { info ->
-          bitmapsByInfo.computeIfAbsent(info) { mutableListOf() }.add(instance)
-        }
+        getBitmapInfo(instance, ptrToBufferMap)?.let { info -> bitmapsByInfo.computeIfAbsent(info) { mutableListOf() }.add(instance) }
       }
     }
 
@@ -89,14 +80,10 @@ class BitmapDuplicationAnalyzer {
     }
   }
 
-  /**
-   * Returns the set of InstanceObjects identified as duplicates.
-   */
+  /** Returns the set of InstanceObjects identified as duplicates. */
   fun getDuplicateInstances(): Set<InstanceObject> = duplicateBitmapInstances
 
-  /**
-   * Creates a [BitmapInfo] object for a given bitmap instance if its dimensions and pixel buffer can be found.
-   */
+  /** Creates a [BitmapInfo] object for a given bitmap instance if its dimensions and pixel buffer can be found. */
   private fun getBitmapInfo(instance: InstanceObject, ptrToBufferMap: Map<Long, ByteArray>): BitmapInfo? {
     var width: Int? = null
     var height: Int? = null
@@ -116,11 +103,10 @@ class BitmapDuplicationAnalyzer {
     return BitmapInfo(height, width, buffer.contentHashCode())
   }
 
-  /**
-   * Builds a map of native pointers to their corresponding byte buffers.
-   */
+  /** Builds a map of native pointers to their corresponding byte buffers. */
   private fun buildPtrToBufferMap(instances: Iterable<InstanceObject>): Map<Long, ByteArray> {
-    return instances.filter { it.classEntry.className == BITMAP_DUMP_DATA_CLASS_NAME && it.depth != Integer.MAX_VALUE }
+    return instances
+      .filter { it.classEntry.className == BITMAP_DUMP_DATA_CLASS_NAME && it.depth != Integer.MAX_VALUE }
       .fold(mutableMapOf()) { acc, dumpDataInstance ->
         val buffersInstance = getNestedInstanceObject(dumpDataInstance, "buffers")
         val nativesInstance = getNestedInstanceObject(dumpDataInstance, "natives")
@@ -133,8 +119,10 @@ class BitmapDuplicationAnalyzer {
         if (buffersFields.size != nativesFields.size) {
           LOG.warn(
             String.format(
-              Locale.US, "Mismatch in size between 'buffers' (%d) and 'natives' (%d) fields. Cannot process.",
-              buffersFields.size, nativesFields.size
+              Locale.US,
+              "Mismatch in size between 'buffers' (%d) and 'natives' (%d) fields. Cannot process.",
+              buffersFields.size,
+              nativesFields.size,
             )
           )
           return@fold acc
@@ -151,10 +139,12 @@ class BitmapDuplicationAnalyzer {
   }
 
   private fun getByteArrayFromInstanceObject(instance: InstanceObject): ByteArray? {
-    val arrayObject = instance.arrayObject ?: run {
-      LOG.warn("Buffer instance does not contain an ArrayObject.")
-      return null
-    }
+    val arrayObject =
+      instance.arrayObject
+        ?: run {
+          LOG.warn("Buffer instance does not contain an ArrayObject.")
+          return null
+        }
 
     if (arrayObject.arrayElementType != ValueObject.ValueType.BYTE) {
       LOG.warn("ArrayObject element type is not BYTE. Found: ${arrayObject.arrayElementType}")
@@ -165,8 +155,6 @@ class BitmapDuplicationAnalyzer {
   }
 
   private fun getNestedInstanceObject(parentInstance: InstanceObject, fieldName: String): InstanceObject? {
-    return parentInstance.fields.firstOrNull { field ->
-      fieldName == field.fieldName && field.value is InstanceObject
-    }?.getAsInstance()
+    return parentInstance.fields.firstOrNull { field -> fieldName == field.fieldName && field.value is InstanceObject }?.getAsInstance()
   }
 }

@@ -25,11 +25,9 @@ import com.intellij.ui.content.Content
 /**
  * A base class for all Splitting Tabs related context menu (right-click) actions.
  *
- * It is responsible for enabling the action only for content that belongs to a Splitting Tabs Tool
- * Window.
+ * It is responsible for enabling the action only for content that belongs to a Splitting Tabs Tool Window.
  */
-internal abstract class SplittingTabsContextMenuAction(val text: String) :
-  ToolWindowContextMenuActionBase(), DumbAware {
+internal abstract class SplittingTabsContextMenuAction(val text: String) : ToolWindowContextMenuActionBase(), DumbAware {
 
   init {
     templatePresentation.text = text
@@ -51,10 +49,7 @@ internal abstract class SplittingTabsContextMenuAction(val text: String) :
 
   open fun isEnabled(content: Content) = true
 
-  /**
-   * Routes actionPerformed() calls to subclass only if content is a Splitting Tabs content and
-   * required parameters are valid.
-   */
+  /** Routes actionPerformed() calls to subclass only if content is a Splitting Tabs content and required parameters are valid. */
   final override fun actionPerformed(e: AnActionEvent, toolWindow: ToolWindow, content: Content?) {
     // ensure content has a manager so subclasses can !! safely
     if (content?.manager == null) {

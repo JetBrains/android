@@ -30,14 +30,12 @@ import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import org.jetbrains.android.facet.AndroidFacet
 import java.io.IOException
 import java.lang.ref.WeakReference
 import java.util.regex.Pattern
+import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * Finds the `packageName` for a given external library.
- */
+/** Finds the `packageName` for a given external library. */
 private fun ExternalAndroidLibrary.getResolvedPackageName(): String? {
   if (packageName != null) {
     return packageName
@@ -45,37 +43,32 @@ private fun ExternalAndroidLibrary.getResolvedPackageName(): String? {
   return manifestFile?.let {
     return try {
       AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(it)
-    }
-    catch (ignore: IOException) {
+    } catch (ignore: IOException) {
       null
     }
   }
 }
 
-/**
- * Register this [ExternalAndroidLibrary] with the [ResourceClassRegistry].
- */
+/** Register this [ExternalAndroidLibrary] with the [ResourceClassRegistry]. */
 private fun ResourceClassRegistry.registerLibraryResources(
   externalLib: ExternalAndroidLibrary,
   idManager: ResourceIdManager,
-  repositoryManager: StudioResourceRepositoryManager) {
+  repositoryManager: StudioResourceRepositoryManager,
+) {
 
   // Choose which resources should be in the generated R class. This is described in the JavaDoc of ResourceClassGenerator.
   val (rClassContents: ResourceRepository, resourcesNamespace: ResourceNamespace, packageName: String?) =
-  if (repositoryManager.namespacing === ResourceNamespacing.DISABLED) {
-    val resolvedPackageName = externalLib.getResolvedPackageName() ?: return
-    Triple(repositoryManager.appResources, ResourceNamespace.RES_AUTO, resolvedPackageName)
-  }
-  else {
-    val aarResources = repositoryManager.findLibraryResources(externalLib) ?: return
-    Triple(aarResources, aarResources.namespace, aarResources.packageName)
-  }
+    if (repositoryManager.namespacing === ResourceNamespacing.DISABLED) {
+      val resolvedPackageName = externalLib.getResolvedPackageName() ?: return
+      Triple(repositoryManager.appResources, ResourceNamespace.RES_AUTO, resolvedPackageName)
+    } else {
+      val aarResources = repositoryManager.findLibraryResources(externalLib) ?: return
+      Triple(aarResources, aarResources.namespace, aarResources.packageName)
+    }
   this.addLibrary(rClassContents, idManager, packageName, resourcesNamespace)
 }
 
-/**
- * Register all the [Module] resources, including libraries and dependencies with the [ResourceClassRegistry].
- */
+/** Register all the [Module] resources, including libraries and dependencies with the [ResourceClassRegistry]. */
 private fun registerResources(module: Module) {
   val androidFacet: AndroidFacet = AndroidFacet.getInstance(module) ?: return
   val repositoryManager = StudioResourceRepositoryManager.getInstance(androidFacet)
@@ -85,42 +78,33 @@ private fun registerResources(module: Module) {
   // If final ids are used, we will read the real class from disk later (in loadAndParseRClass), using this class loader. So we
   // can't treat it specially here, or we will read the wrong bytecode later.
   if (!idManager.finalIdsUsed) {
-    val resourcePackageNames = runReadAction {
-      androidFacet.getModuleSystem().moduleDependencies.getResourcePackageNames(false)
-    }
+    val resourcePackageNames = runReadAction { androidFacet.getModuleSystem().moduleDependencies.getResourcePackageNames(false) }
     for (resourcePackageName in resourcePackageNames) {
-      classRegistry.addLibrary(repositoryManager.appResources,
-                               idManager,
-                               resourcePackageName,
-                               repositoryManager.namespace)
+      classRegistry.addLibrary(repositoryManager.appResources, idManager, resourcePackageName, repositoryManager.namespace)
     }
   }
-  module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN)
+  module
+    .getModuleSystem()
+    .getAndroidLibraryDependencies(DependencyScopeType.MAIN)
     .filter { it.hasResources }
     .forEach { classRegistry.registerLibraryResources(it, idManager, repositoryManager) }
 }
 
 // matches foo.bar.R or foo.bar.R$baz
 private val RESOURCE_CLASS_NAME = Pattern.compile(".+\\.R(\\$[^.]+)?$")
+
 private fun isResourceClassName(className: String): Boolean = RESOURCE_CLASS_NAME.matcher(className).matches()
 
-/**
- * [ClassLoader] responsible for loading the `R` class from libraries and dependencies of the given module.
- */
-class LibraryResourceClassLoader(
-  parent: ClassLoader?,
-  module: Module?,
-  private val childLoader: DelegatingClassLoader.Loader
-) : ClassLoader(parent) {
+/** [ClassLoader] responsible for loading the `R` class from libraries and dependencies of the given module. */
+class LibraryResourceClassLoader(parent: ClassLoader?, module: Module?, private val childLoader: DelegatingClassLoader.Loader) :
+  ClassLoader(parent) {
   private val moduleRef = WeakReference(module)
 
   init {
     getModule()?.let { registerResources(it) }
   }
 
-  /**
-   * Returns the [Module] to be used for the library class loading if it still exists and is not disposed.
-   */
+  /** Returns the [Module] to be used for the library class loading if it still exists and is not disposed. */
   private fun getModule(): Module? {
     val module = moduleRef.get() ?: return null
     if (module.isDisposed) return null
@@ -159,8 +143,7 @@ class LibraryResourceClassLoader(
   override fun findClass(name: String): Class<*> =
     try {
       super.findClass(name)
-    }
-    catch (e: ClassNotFoundException) {
+    } catch (e: ClassNotFoundException) {
       findResourceClass(name)
     }
 }

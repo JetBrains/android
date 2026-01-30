@@ -16,15 +16,15 @@
 package com.android.tools.rendering.imagepool
 
 import com.android.tools.rendering.imagepool.ImagePoolImageDisposer.runWithDisposeLock
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Test
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.GraphicsConfiguration
 import java.awt.image.BufferedImage
 import java.util.concurrent.CountDownLatch
 import java.util.function.Consumer
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
 
 private class TestDisposableImage : ImagePool.Image, DisposableImage {
   private var isDisposed = false
@@ -37,22 +37,11 @@ private class TestDisposableImage : ImagePool.Image, DisposableImage {
 
   override fun getHeight(): Int = 0
 
-  override fun drawImageTo(
-    g: Graphics,
-    dx1: Int,
-    dy1: Int,
-    dx2: Int,
-    dy2: Int,
-    sx1: Int,
-    sy1: Int,
-    sx2: Int,
-    sy2: Int,
-  ) {}
+  override fun drawImageTo(g: Graphics, dx1: Int, dy1: Int, dx2: Int, dy2: Int, sx1: Int, sy1: Int, sx2: Int, sy2: Int) {}
 
   override fun paint(command: Consumer<Graphics2D>?) {}
 
-  override fun getCopy(gc: GraphicsConfiguration?, x: Int, y: Int, w: Int, h: Int): BufferedImage? =
-    null
+  override fun getCopy(gc: GraphicsConfiguration?, x: Int, y: Int, w: Int, h: Int): BufferedImage? = null
 
   override fun isValid(): Boolean = !isDisposed
 }

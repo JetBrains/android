@@ -32,7 +32,7 @@ import org.jetbrains.android.augment.AndroidLightClassBase
 class AndroidLightOrGeneratedClassIntentionActionFilter : IntentionActionFilter {
 
   override fun accept(intentionAction: IntentionAction, file: PsiFile?): Boolean {
-   val targetPsiClass = file?.let(intentionAction::getElementToMakeWritable) as? PsiClass ?: return true
+    val targetPsiClass = file?.let(intentionAction::getElementToMakeWritable) as? PsiClass ?: return true
 
     return when {
       targetPsiClass is AndroidLightClassBase -> false

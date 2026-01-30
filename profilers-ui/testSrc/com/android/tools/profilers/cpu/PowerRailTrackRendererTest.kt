@@ -29,28 +29,27 @@ import org.junit.Test
 class PowerRailTrackRendererTest {
   @Test
   fun render() {
-    val powerRailTrackModel = TrackModel.newBuilder(
-      PowerRailTrackModel(PowerCounterData(POWER_RAIL_DELTA_VALUES, POWER_RAIL_CUMULATIVE_VALUES), Range(), PowerProfilerDisplayMode.DELTA),
-      ProfilerTrackRendererType.ANDROID_POWER_RAIL, "Power Rails"
-    ).build()
+    val powerRailTrackModel =
+      TrackModel.newBuilder(
+          PowerRailTrackModel(
+            PowerCounterData(POWER_RAIL_DELTA_VALUES, POWER_RAIL_CUMULATIVE_VALUES),
+            Range(),
+            PowerProfilerDisplayMode.DELTA,
+          ),
+          ProfilerTrackRendererType.ANDROID_POWER_RAIL,
+          "Power Rails",
+        )
+        .build()
     val component = PowerRailTrackRenderer().render(powerRailTrackModel)
     assertThat(component.componentCount).isEqualTo(1)
     assertThat(component.components[0]).isInstanceOf(LineChart::class.java)
   }
 
   companion object {
-    private val POWER_RAIL_CUMULATIVE_VALUES = listOf(
-      SeriesData(0L, 1000L),
-      SeriesData(1000L, 2000L),
-      SeriesData(2000L, 3000L),
-      SeriesData(3000L, 5000L)
-    )
+    private val POWER_RAIL_CUMULATIVE_VALUES =
+      listOf(SeriesData(0L, 1000L), SeriesData(1000L, 2000L), SeriesData(2000L, 3000L), SeriesData(3000L, 5000L))
 
-    private val POWER_RAIL_DELTA_VALUES = listOf(
-      SeriesData(0L, 1000L),
-      SeriesData(1000L, 1000L),
-      SeriesData(2000L, 1000L),
-      SeriesData(3000L, 2000L)
-    )
+    private val POWER_RAIL_DELTA_VALUES =
+      listOf(SeriesData(0L, 1000L), SeriesData(1000L, 1000L), SeriesData(2000L, 1000L), SeriesData(3000L, 2000L))
   }
 }

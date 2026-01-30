@@ -20,11 +20,7 @@ import org.jetbrains.android.dom.SingleRootResourceDomFileDescription
 
 /** DomFileDescription for res/xml app restriction files, that start with the <restrictions> tag. */
 class AppRestrictionsDomFileDescription :
-  SingleRootResourceDomFileDescription<Restrictions>(
-    Restrictions::class.java,
-    ROOT_TAG_NAME,
-    ResourceFolderType.XML,
-  ) {
+  SingleRootResourceDomFileDescription<Restrictions>(Restrictions::class.java, ROOT_TAG_NAME, ResourceFolderType.XML) {
   companion object {
     const val ROOT_TAG_NAME = "restrictions"
   }

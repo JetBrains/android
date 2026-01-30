@@ -42,9 +42,7 @@ interface PropertyItem : PTableItem {
   val defaultValue: String?
     get() = null
 
-  /**
-   * If [value] is a reference then resolve the reference, otherwise this is the same as [value].
-   */
+  /** If [value] is a reference then resolve the reference, otherwise this is the same as [value]. */
   val resolvedValue: String?
     get() = value
 
@@ -55,8 +53,7 @@ interface PropertyItem : PTableItem {
   /**
    * An editor may display a button on the right
    *
-   * The use is implementation defined, but is usually used to provide a dialog where possible
-   * values can be selected.
+   * The use is implementation defined, but is usually used to provide a dialog where possible values can be selected.
    */
   val browseButton: ActionIconButton?
     get() = null
@@ -64,8 +61,8 @@ interface PropertyItem : PTableItem {
   /**
    * A color control may display an icon on the left
    *
-   * An implementation should use this to provide custom representation and editing color values.
-   * This value is used for [ControlType.COLOR_EDITOR] controls.
+   * An implementation should use this to provide custom representation and editing color values. This value is used for
+   * [ControlType.COLOR_EDITOR] controls.
    */
   val colorButton: ActionIconButton?
     get() = null

@@ -49,15 +49,11 @@ import org.junit.Test
 class FlameChartDetailsViewTest {
   private val timer = FakeTimer()
 
-  @JvmField
-  @Rule
-  val grpcChannel = FakeGrpcChannel("FlameChartDetailsViewTest", FakeTransportService(timer))
+  @JvmField @Rule val grpcChannel = FakeGrpcChannel("FlameChartDetailsViewTest", FakeTransportService(timer))
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var profilersView: StudioProfilersView
   private lateinit var capture: CpuCapture
@@ -66,20 +62,21 @@ class FlameChartDetailsViewTest {
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
     profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
-    capture =  CpuProfilerUITestUtils.validCapture(profilers)
+    capture = CpuProfilerUITestUtils.validCapture(profilers)
   }
 
   @Test
   fun showsNoDataForThreadMessageWhenNodeIsEmpty() {
-    val flameChart = CaptureDetails.Type.FLAME_CHART.build(ClockType.GLOBAL, Range(), emptyList(), capture, Utils::runOnUi)
-      as CaptureDetails.FlameChart
+    val flameChart =
+      CaptureDetails.Type.FLAME_CHART.build(ClockType.GLOBAL, Range(), emptyList(), capture, Utils::runOnUi) as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
 
-    val noDataInstructions = TreeWalker(flameChartView.component).descendants().filterIsInstance<InstructionsPanel>().first {
-      val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
+    val noDataInstructions =
+      TreeWalker(flameChartView.component).descendants().filterIsInstance<InstructionsPanel>().first {
+        val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
 
-      textInstruction.text == CaptureDetailsView.NO_DATA_FOR_THREAD_MESSAGE
-    }
+        textInstruction.text == CaptureDetailsView.NO_DATA_FOR_THREAD_MESSAGE
+      }
     assertThat(noDataInstructions.isVisible).isTrue()
   }
 
@@ -88,12 +85,26 @@ class FlameChartDetailsViewTest {
     val parser = CpuCaptureParser(profilersView.studioProfilers)
 
     val traceFile = resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_PID1_PATH).toFile()
-    val atraceCapture = parser.parse(traceFile, CpuProfilerTestUtils.FAKE_TRACE_ID, TraceType.ATRACE,
-                                     1, null /* processNameHint */, TaskTracker.createNullTaskTracker(profilersView.studioProfilers)).get()
+    val atraceCapture =
+      parser
+        .parse(
+          traceFile,
+          CpuProfilerTestUtils.FAKE_TRACE_ID,
+          TraceType.ATRACE,
+          1,
+          null /* processNameHint */,
+          TaskTracker.createNullTaskTracker(profilersView.studioProfilers),
+        )
+        .get()
 
-    val flameChart = CaptureDetails.Type.FLAME_CHART.build(ClockType.GLOBAL, Range(Double.MIN_VALUE, Double.MAX_VALUE),
-                                                           listOf(atraceCapture.getCaptureNode(atraceCapture.mainThreadId)!!),
-                                                           atraceCapture, Utils::runOnUi) as CaptureDetails.FlameChart
+    val flameChart =
+      CaptureDetails.Type.FLAME_CHART.build(
+        ClockType.GLOBAL,
+        Range(Double.MIN_VALUE, Double.MAX_VALUE),
+        listOf(atraceCapture.getCaptureNode(atraceCapture.mainThreadId)!!),
+        atraceCapture,
+        Utils::runOnUi,
+      ) as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
     val treeChart = TreeWalker(flameChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()
     assertThat(treeChart.mouseMotionListeners[2]).isInstanceOf(CpuTraceEventTooltipView::class.java)
@@ -101,16 +112,22 @@ class FlameChartDetailsViewTest {
 
   @Test
   fun showsContentWhenNodeIsNotNull() {
-    val flameChart = CaptureDetails.Type.FLAME_CHART.build(ClockType.GLOBAL, Range(Double.MIN_VALUE, Double.MAX_VALUE),
-                                                           listOf(capture.getCaptureNode(capture.mainThreadId)!!),
-                                                           capture, Utils::runOnUi) as CaptureDetails.FlameChart
+    val flameChart =
+      CaptureDetails.Type.FLAME_CHART.build(
+        ClockType.GLOBAL,
+        Range(Double.MIN_VALUE, Double.MAX_VALUE),
+        listOf(capture.getCaptureNode(capture.mainThreadId)!!),
+        capture,
+        Utils::runOnUi,
+      ) as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
 
-    val noDataInstructionsList = TreeWalker(flameChartView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
-      val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
+    val noDataInstructionsList =
+      TreeWalker(flameChartView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
+        val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
 
-      textInstruction.text == CaptureDetailsView.NO_DATA_FOR_THREAD_MESSAGE
-    }
+        textInstruction.text == CaptureDetailsView.NO_DATA_FOR_THREAD_MESSAGE
+      }
     assertThat(noDataInstructionsList).isEmpty()
 
     val chart = TreeWalker(flameChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()

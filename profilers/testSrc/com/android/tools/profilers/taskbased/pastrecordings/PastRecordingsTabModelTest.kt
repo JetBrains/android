@@ -40,8 +40,7 @@ class PastRecordingsTabModelTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("TaskHomeTabModelTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskHomeTabModelTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -55,7 +54,7 @@ class PastRecordingsTabModelTest {
     myManager = myProfilers.sessionsManager
     pastRecordingsTabModel = PastRecordingsTabModel(myProfilers)
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myManager)
-    taskHandlers.forEach{ (type, handler)  -> myProfilers.addTaskHandler(type, handler) }
+    taskHandlers.forEach { (type, handler) -> myProfilers.addTaskHandler(type, handler) }
     ideProfilerServices.enableTaskBasedUx(true)
   }
 
@@ -149,18 +148,19 @@ class PastRecordingsTabModelTest {
   fun `test onEnterTaskButtonClick calls openTaskTab only when unified preview is disabled`() {
     // 1. Create a specific Profilers instance to intercept methods.
     var openTaskTabCalled: Boolean
-    val testProfilers = object : StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer) {
-      override fun openTaskTab() {
-        openTaskTabCalled = true
-      }
+    val testProfilers =
+      object : StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer) {
+        override fun openTaskTab() {
+          openTaskTabCalled = true
+        }
 
-      // Override this to prevent the AssertionError in the base class when logic falls through.
-      // Returning null simulates no active task handler, prompting the code to try entering the task (doEnterTaskButton),
-      // which is fine for this test as we only care about openTaskTab NOT being called.
-      override fun getCurrentTaskHandler(): ProfilerTaskHandler? {
-        return null
+        // Override this to prevent the AssertionError in the base class when logic falls through.
+        // Returning null simulates no active task handler, prompting the code to try entering the task (doEnterTaskButton),
+        // which is fine for this test as we only care about openTaskTab NOT being called.
+        override fun getCurrentTaskHandler(): ProfilerTaskHandler? {
+          return null
+        }
       }
-    }
 
     // 2. Initialize task handlers for the test profiler
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(testProfilers.sessionsManager)
@@ -170,11 +170,13 @@ class PastRecordingsTabModelTest {
     val testModel = PastRecordingsTabModel(testProfilers)
 
     // 4. Create a session and an artifact
-    // We use default session to avoid assertion errors in SessionsManager.setSessionInternal because we don't register the session properly.
+    // We use default session to avoid assertion errors in SessionsManager.setSessionInternal because we don't register the session
+    // properly.
     val session = Common.Session.getDefaultInstance()
     val perfettoConfig = Trace.TraceConfiguration.newBuilder().setPerfettoOptions(TraceConfig.getDefaultInstance()).build()
     val systemTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(testProfilers, session, 1L, 1L, perfettoConfig)
-    val sessionItem = SessionArtifactUtils.createSessionItem(testProfilers, session, 1L, ProfilerTaskType.SYSTEM_TRACE, listOf(systemTraceArtifact))
+    val sessionItem =
+      SessionArtifactUtils.createSessionItem(testProfilers, session, 1L, ProfilerTaskType.SYSTEM_TRACE, listOf(systemTraceArtifact))
 
     // 5. Select the recording in the list
     testModel.recordingListModel.onRecordingSelection(sessionItem)

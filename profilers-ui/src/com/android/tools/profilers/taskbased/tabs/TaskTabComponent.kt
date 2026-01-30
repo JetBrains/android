@@ -26,11 +26,7 @@ import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 abstract class TaskTabComponent(tabContent: @Composable () -> Unit) : BorderLayoutPanel() {
   init {
     enableNewSwingCompositing()
-    val composePanel = JewelComposePanel {
-      StudioTheme {
-        tabContent()
-      }
-    }
+    val composePanel = JewelComposePanel { StudioTheme { tabContent() } }
     addToCenter(composePanel)
   }
 }

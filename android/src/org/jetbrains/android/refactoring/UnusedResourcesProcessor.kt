@@ -57,11 +57,8 @@ import com.intellij.usageView.UsageViewUtil
 import com.intellij.util.IncorrectOperationException
 import java.io.File
 
-class UnusedResourcesProcessor(
-  project: Project,
-  filter: Filter? = null,
-  private val includeIds: Boolean = false,
-) : BaseRefactoringProcessor(project, null) {
+class UnusedResourcesProcessor(project: Project, filter: Filter? = null, private val includeIds: Boolean = false) :
+  BaseRefactoringProcessor(project, null) {
 
   interface Filter {
     fun shouldProcessFile(psiFile: PsiFile): Boolean
@@ -75,9 +72,7 @@ class UnusedResourcesProcessor(
     override fun shouldProcessResource(resource: String?) = true
   }
 
-  class FileFilter
-  private constructor(private val files: Set<PsiFile>, private val directories: Set<PsiDirectory>) :
-    Filter {
+  class FileFilter private constructor(private val files: Set<PsiFile>, private val directories: Set<PsiDirectory>) : Filter {
 
     override fun shouldProcessFile(psiFile: PsiFile): Boolean {
       if (psiFile in files) return true
@@ -110,8 +105,7 @@ class UnusedResourcesProcessor(
   private val performerMap: MutableMap<PsiElement, UnusedResourcesPerformer> = mutableMapOf()
   private val filter = filter ?: AllFilter
 
-  override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor =
-    UnusedResourcesUsageViewDescriptor(elements)
+  override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor = UnusedResourcesUsageViewDescriptor(elements)
 
   protected override fun findUsages(): Array<UsageInfo> {
     elements = computeUnusedDeclarationElements()
@@ -133,10 +127,7 @@ class UnusedResourcesProcessor(
         .flatMap { value -> value.keys }
         .distinct()
         .associateWithNotNull { javaFile ->
-          localFileSystem
-            .findFileByIoFile(javaFile)
-            ?.takeUnless(VirtualFile::isDirectory)
-            ?.let(psiManager::findFile)
+          localFileSystem.findFileByIoFile(javaFile)?.takeUnless(VirtualFile::isDirectory)?.let(psiManager::findFile)
         }
 
     // TODO(b/223643511): This refactoring can break the project if it removes unused resources that
@@ -183,10 +174,7 @@ class UnusedResourcesProcessor(
         if (!CommonRefactoringUtil.checkReadOnlyStatus(myProject, psiFile)) continue
 
         val projectSystem = myProject.getProjectSystem()
-        val performer =
-          projectSystem
-            .getTokenOrNull(UnusedResourcesToken.EP_NAME)
-            ?.getPerformerFor(projectSystem, psiFile)
+        val performer = projectSystem.getTokenOrNull(UnusedResourcesToken.EP_NAME)?.getPerformerFor(projectSystem, psiFile)
         if (performer != null) {
           val problemNames = problems.mapNotNull { getResource(it) }.toSet()
           val elements = performer.computeUnusedElements(psiFile, problemNames)
@@ -216,7 +204,11 @@ class UnusedResourcesProcessor(
                   // also being deleted as unused.
                   // The `problems` list only contains unused ids. Get the other list containing
                   // resources, which could contain the layout/menu/etc. file containing this id.
-                  if (unusedMap[UnusedResourceDetector.ISSUE]?.get(file)?.any { problemData -> getResource(problemData) in includedResources } == true) {
+                  if (
+                    unusedMap[UnusedResourceDetector.ISSUE]?.get(file)?.any { problemData ->
+                      getResource(problemData) in includedResources
+                    } == true
+                  ) {
                     // Skip the current id since its containing file will be deleted.
                     continue
                   }
@@ -240,11 +232,7 @@ class UnusedResourcesProcessor(
     return unusedElements.toTypedArray()
   }
 
-  private fun getElementsInFile(
-    psiFile: PsiFile,
-    problems: List<LintProblemData>,
-    includedResources: Set<String>,
-  ): Sequence<PsiElement> {
+  private fun getElementsInFile(psiFile: PsiFile, problems: List<LintProblemData>, includedResources: Set<String>): Sequence<PsiElement> {
     if (psiFile !is XmlFile || !psiFile.isValid) return emptySequence()
 
     return problems
@@ -253,16 +241,9 @@ class UnusedResourcesProcessor(
       .map { problem -> problem.textRange.startOffset }
       .sortedDescending()
       .mapNotNull { startOffset ->
-        val attribute =
-          PsiTreeUtil.findElementOfClassAtOffset(
-            psiFile,
-            startOffset,
-            XmlAttribute::class.java,
-            false,
-          )
+        val attribute = PsiTreeUtil.findElementOfClassAtOffset(psiFile, startOffset, XmlAttribute::class.java, false)
         when {
-          attribute == null ->
-            PsiTreeUtil.findElementOfClassAtOffset(psiFile, startOffset, XmlTag::class.java, false)
+          attribute == null -> PsiTreeUtil.findElementOfClassAtOffset(psiFile, startOffset, XmlTag::class.java, false)
           SdkConstants.ATTR_ID != attribute.localName ->
             // If deleting a resource, delete the whole resource element, except for
             // attribute android:id="" declarations where we remove the attribute, not
@@ -276,8 +257,7 @@ class UnusedResourcesProcessor(
   private fun computeUnusedMap(): Map<Issue, Map<File, List<LintProblemData>>> {
     val map: MutableMap<Issue, Map<File, List<LintProblemData>>> = mutableMapOf()
     val enabledIssues =
-      if (includeIds) setOf(UnusedResourceDetector.ISSUE, UnusedResourceDetector.ISSUE_IDS)
-      else setOf(UnusedResourceDetector.ISSUE)
+      if (includeIds) setOf(UnusedResourceDetector.ISSUE, UnusedResourceDetector.ISSUE_IDS) else setOf(UnusedResourceDetector.ISSUE)
 
     val scope = AnalysisScope(myProject)
 
@@ -300,8 +280,7 @@ class UnusedResourcesProcessor(
     // So, we analyze all modules with lint, and then in computeUnusedDeclarationElements we filter
     // the matches down to only those included by "filter".
     val modules = ModuleManager.getInstance(myProject).modules.toList()
-    val request =
-      LintIdeRequest(client, myProject, null, modules, false).apply { setScope(Scope.ALL) }
+    val request = LintIdeRequest(client, myProject, null, modules, false).apply { setScope(Scope.ALL) }
 
     // Make sure we don't remove resources that are still referenced from
     // tests (though these should probably be in a test resource source
@@ -340,19 +319,14 @@ class UnusedResourcesProcessor(
   }
 
   private val lazyCommandName by
-    lazy(LazyThreadSafetyMode.NONE) {
-      "Deleting " + RefactoringUIUtil.calculatePsiElementDescriptionList(elements)
-    }
+    lazy(LazyThreadSafetyMode.NONE) { "Deleting " + RefactoringUIUtil.calculatePsiElementDescriptionList(elements) }
 
   override fun getCommandName() = lazyCommandName
 
   override fun skipNonCodeUsages() = true
 
   override fun isToBeChanged(usageInfo: UsageInfo): Boolean {
-    if (
-      ApplicationManager.getApplication().isUnitTestMode &&
-        usageInfo.element?.text?.contains("AUTO-EXCLUDE") == true
-    ) {
+    if (ApplicationManager.getApplication().isUnitTestMode && usageInfo.element?.text?.contains("AUTO-EXCLUDE") == true) {
       // Automatically exclude/deselect elements that contain the string "AUTO-EXCLUDE".
       // This is our simple way to unit test the UI operation of users deselecting certain
       // elements in the refactoring UI.
@@ -370,10 +344,7 @@ class UnusedResourcesProcessor(
 
 interface UnusedResourcesToken<P : AndroidProjectSystem> : Token {
   companion object {
-    val EP_NAME =
-      ExtensionPointName<UnusedResourcesToken<AndroidProjectSystem>>(
-        "org.jetbrains.android.refactoring.unusedResourcesToken"
-      )
+    val EP_NAME = ExtensionPointName<UnusedResourcesToken<AndroidProjectSystem>>("org.jetbrains.android.refactoring.unusedResourcesToken")
   }
 
   fun getPerformerFor(projectSystem: P, psiFile: PsiFile): UnusedResourcesPerformer?

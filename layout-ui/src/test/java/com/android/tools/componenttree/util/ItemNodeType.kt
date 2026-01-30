@@ -41,16 +41,9 @@ class ItemNodeType : ViewNodeType<Item>() {
 
   override fun isDeEmphasized(node: Item) = node.deEmphasized
 
-  override fun canInsert(node: Item, data: Transferable) =
-    node.canInsert ?: node.children.isNotEmpty()
+  override fun canInsert(node: Item, data: Transferable) = node.canInsert ?: node.children.isNotEmpty()
 
-  override fun insert(
-    node: Item,
-    data: Transferable,
-    before: Any?,
-    isMove: Boolean,
-    draggedFromTree: List<Any>,
-  ): Boolean {
+  override fun insert(node: Item, data: Transferable, before: Any?, isMove: Boolean, draggedFromTree: List<Any>): Boolean {
     if (!node.acceptInsert) {
       return false
     }
@@ -58,9 +51,7 @@ class ItemNodeType : ViewNodeType<Item>() {
     return true
   }
 
-  override fun createTransferable(node: Item): Transferable =
-    TextTransferable(StringBuffer(node.tagName))
+  override fun createTransferable(node: Item): Transferable = TextTransferable(StringBuffer(node.tagName))
 
-  override fun createDragImage(node: Item): Image =
-    iconToImage(StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK)
+  override fun createDragImage(node: Item): Image = iconToImage(StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK)
 }

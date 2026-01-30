@@ -42,10 +42,7 @@ class AndroidFindStyleApplicationsTest {
   @get:Rule var testName = TestName()
 
   private val myFixture by lazy {
-    androidProjectRule.fixture.apply {
-      testDataPath =
-        TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/testData").toString()
-    }
+    androidProjectRule.fixture.apply { testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/testData").toString() }
   }
 
   @Test
@@ -55,40 +52,24 @@ class AndroidFindStyleApplicationsTest {
 
   @Test
   fun basicStyleInlining_granular() {
-    myFixture.copyFileToProject(
-      BASE_PATH + "basicStyleInlining_layout.xml",
-      "res/layout/layout.xml",
-    )
-    val styleVirtualFile =
-      myFixture.copyFileToProject(
-        BASE_PATH + "basicStyleInlining_styles.xml",
-        "res/values/styles.xml",
-      )
+    myFixture.copyFileToProject(BASE_PATH + "basicStyleInlining_layout.xml", "res/layout/layout.xml")
+    val styleVirtualFile = myFixture.copyFileToProject(BASE_PATH + "basicStyleInlining_styles.xml", "res/values/styles.xml")
     myFixture.configureFromExistingVirtualFile(styleVirtualFile)
 
-    val tag = runReadAction {
-      PsiTreeUtil.getParentOfType(
-        myFixture.file.findElementAt(myFixture.caretOffset),
-        XmlTag::class.java,
-      )
-    }
+    val tag = runReadAction { PsiTreeUtil.getParentOfType(myFixture.file.findElementAt(myFixture.caretOffset), XmlTag::class.java) }
     assertThat(tag).isNotNull()
 
     val styleData = runReadAction { AndroidFindStyleApplicationsAction.getStyleData(tag!!) }
     assertThat(styleData).isNotNull()
 
-    val processor = runReadAction {
-      AndroidFindStyleApplicationsAction.createFindStyleApplicationsProcessor(tag, styleData, null)
-    }
+    val processor = runReadAction { AndroidFindStyleApplicationsAction.createFindStyleApplicationsProcessor(tag, styleData, null) }
     processor.configureScope(AndroidFindStyleApplicationsProcessor.MyScope.PROJECT, null)
 
     val files = runReadAction { processor.collectFilesToProcess() }
     assertThat(files).hasSize(1)
 
     val layoutFile = files.single() as XmlFile
-    val domFileDescription = runReadAction {
-      DomManager.getDomManager(myFixture.project).getDomFileDescription(layoutFile)
-    }
+    val domFileDescription = runReadAction { DomManager.getDomManager(myFixture.project).getDomFileDescription(layoutFile) }
     assertThat(domFileDescription).isInstanceOf(LayoutViewElementDomFileDescription::class.java)
 
     val usages: List<UsageInfo> = ArrayList()
@@ -123,44 +104,29 @@ class AndroidFindStyleApplicationsTest {
 
   @Test
   fun noStylesToInline() {
-    assertFailsWith<RuntimeException>(
-      "IDEA has not found any possible applications of style 'style1'"
-    ) {
-      doInlineAndroidStyleTest()
-    }
+    assertFailsWith<RuntimeException>("IDEA has not found any possible applications of style 'style1'") { doInlineAndroidStyleTest() }
   }
 
   private fun doInlineAndroidStyleTest(layoutFileNames: List<String> = listOf("layout")) {
     val testMethodName = testName.methodName
 
     for (layoutFileName in layoutFileNames) {
-      myFixture.copyFileToProject(
-        "$BASE_PATH${testMethodName}_layout.xml",
-        "res/layout/$layoutFileName.xml",
-      )
+      myFixture.copyFileToProject("$BASE_PATH${testMethodName}_layout.xml", "res/layout/$layoutFileName.xml")
     }
 
-    val stylesXmlVirtualFile =
-      myFixture.copyFileToProject("$BASE_PATH${testMethodName}_styles.xml", "res/values/styles.xml")
+    val stylesXmlVirtualFile = myFixture.copyFileToProject("$BASE_PATH${testMethodName}_styles.xml", "res/values/styles.xml")
     myFixture.configureFromExistingVirtualFile(stylesXmlVirtualFile)
 
     runFindStyleApplicationAction()
 
     myFixture.checkResultByFile("$BASE_PATH${testMethodName}_styles.xml")
     for (layoutFileName in layoutFileNames) {
-      myFixture.checkResultByFile(
-        "res/layout/$layoutFileName.xml",
-        "$BASE_PATH${testMethodName}_layout_after.xml",
-        true,
-      )
+      myFixture.checkResultByFile("res/layout/$layoutFileName.xml", "$BASE_PATH${testMethodName}_layout_after.xml", true)
     }
   }
 
   private fun runFindStyleApplicationAction() {
-    val myTestConfig =
-      AndroidFindStyleApplicationsAction.MyTestConfig(
-        AndroidFindStyleApplicationsProcessor.MyScope.PROJECT
-      )
+    val myTestConfig = AndroidFindStyleApplicationsAction.MyTestConfig(AndroidFindStyleApplicationsProcessor.MyScope.PROJECT)
     val action = AndroidFindStyleApplicationsAction(myTestConfig)
     ApplicationManager.getApplication().invokeAndWait { myFixture.testAction(action) }
   }

@@ -62,25 +62,9 @@ fun JComponent.registerAnActionKey(
       override fun actionPerformed(event: ActionEvent) {
         val dataContext = DataManager.getInstance().getDataContext(this@registerAnActionKey)
         val inputEvent =
-          KeyEvent(
-            this@registerAnActionKey,
-            KeyEvent.KEY_PRESSED,
-            event.`when`,
-            keyStroke.modifiers,
-            keyStroke.keyCode,
-            keyStroke.keyChar,
-          )
+          KeyEvent(this@registerAnActionKey, KeyEvent.KEY_PRESSED, event.`when`, keyStroke.modifiers, keyStroke.keyCode, keyStroke.keyChar)
         val action = getAction()
-        action?.actionPerformed(
-          createEvent(
-            action,
-            dataContext,
-            null,
-            ActionPlaces.TOOLWINDOW_POPUP,
-            ActionUiKind.NONE,
-            inputEvent,
-          )
-        )
+        action?.actionPerformed(createEvent(action, dataContext, null, ActionPlaces.TOOLWINDOW_POPUP, ActionUiKind.NONE, inputEvent))
       }
 
       override fun isEnabled(): Boolean {

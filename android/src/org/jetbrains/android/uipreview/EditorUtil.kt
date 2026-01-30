@@ -31,7 +31,7 @@ object EditorUtil {
    * Opens the specified file in the editor
    *
    * @param project The project which contains the given file.
-   * @param vFile   The file to open
+   * @param vFile The file to open
    */
   @JvmStatic
   fun openEditor(project: Project, vFile: VirtualFile) {
@@ -39,11 +39,10 @@ object EditorUtil {
   }
 
   /**
-   * Selects the specified file in the project view.
-   * **Note:** Must be called with read access.
+   * Selects the specified file in the project view. **Note:** Must be called with read access.
    *
    * @param project the project
-   * @param file    the file to select
+   * @param file the file to select
    */
   @JvmStatic
   fun selectEditor(project: Project, file: VirtualFile) {
@@ -52,8 +51,6 @@ object EditorUtil {
     val psiFile = PsiManager.getInstance(project).findFile(file) ?: return
     val currentPane = ProjectView.getInstance(project).currentProjectViewPane ?: return
 
-    SlowOperations.knownIssue("b/322952957").use {
-      ProjectViewSelectInPaneTarget(project, currentPane, true).select(psiFile, false)
-    }
+    SlowOperations.knownIssue("b/322952957").use { ProjectViewSelectInPaneTarget(project, currentPane, true).select(psiFile, false) }
   }
 }

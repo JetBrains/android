@@ -25,14 +25,14 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.AndroidProjectRule
-import org.junit.After
-import org.junit.Ignore
-import org.junit.Rule
-import org.junit.Test
 import java.io.File
 import java.io.FileInputStream
 import java.time.Duration
 import java.util.UUID
+import org.junit.After
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
 
 /*
  * Copyright (C) 2022 The Android Open Source Project
@@ -51,8 +51,7 @@ import java.util.UUID
  */
 @Ignore("Performance experiments, should be invoked manually only")
 class BuildAnalyzerStorageMetricsTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   @After
   fun cleanup() {
@@ -67,10 +66,10 @@ class BuildAnalyzerStorageMetricsTest {
     println("larger amount of data: ${storeBuildResultsPlaceholderData(10000)!!.length()/1000} kilobytes")
   }
 
-  //Divide each of these by 11
+  // Divide each of these by 11
   @Test
   fun smallDataStorageTime() {
-    for(i in 0..10) {
+    for (i in 0..10) {
       val startTime = System.currentTimeMillis()
       storeBuildResultsPlaceholderData(10)
       val finishTime = System.currentTimeMillis()
@@ -80,7 +79,7 @@ class BuildAnalyzerStorageMetricsTest {
 
   @Test
   fun mediumDataStorageTime() {
-    for(i in 0..10) {
+    for (i in 0..10) {
       val startTime = System.currentTimeMillis()
       storeBuildResultsPlaceholderData(100)
       val finishTime = System.currentTimeMillis()
@@ -90,7 +89,7 @@ class BuildAnalyzerStorageMetricsTest {
 
   @Test
   fun largeDataStorageTime() {
-    for(i in 0..10) {
+    for (i in 0..10) {
       val startTime = System.currentTimeMillis()
       storeBuildResultsPlaceholderData(1000)
       val finishTime = System.currentTimeMillis()
@@ -100,7 +99,7 @@ class BuildAnalyzerStorageMetricsTest {
 
   @Test
   fun largerDataStorageTime() {
-    for(i in 0..10) {
+    for (i in 0..10) {
       val startTime = System.currentTimeMillis()
       storeBuildResultsPlaceholderData(10000)
       val finishTime = System.currentTimeMillis()
@@ -110,7 +109,7 @@ class BuildAnalyzerStorageMetricsTest {
 
   @Test
   fun smallDataRetrievalTime() {
-    for(i in 0..10) {
+    for (i in 0..10) {
       val file = storeBuildResultsPlaceholderData(10)
       val startTime = System.currentTimeMillis()
       getHistoricBuildResultsFromFile(file!!)
@@ -121,7 +120,7 @@ class BuildAnalyzerStorageMetricsTest {
 
   @Test
   fun mediumDataRetrievalTime() {
-    for(i in 0..10) {
+    for (i in 0..10) {
       val file = storeBuildResultsPlaceholderData(100)
       val startTime = System.currentTimeMillis()
       getHistoricBuildResultsFromFile(file!!)
@@ -132,7 +131,7 @@ class BuildAnalyzerStorageMetricsTest {
 
   @Test
   fun largeDataRetrievalTime() {
-    for(i in 0..10) {
+    for (i in 0..10) {
       val file = storeBuildResultsPlaceholderData(1000)
       val startTime = System.currentTimeMillis()
       getHistoricBuildResultsFromFile(file!!)
@@ -143,7 +142,7 @@ class BuildAnalyzerStorageMetricsTest {
 
   @Test
   fun largerDataRetrievalTime() {
-    for(i in 0..10) {
+    for (i in 0..10) {
       val file = storeBuildResultsPlaceholderData(10000)
       val startTime = System.currentTimeMillis()
       getHistoricBuildResultsFromFile(file!!)
@@ -167,10 +166,8 @@ class BuildAnalyzerStorageMetricsTest {
     for (i in 0 until listSize) {
       nonIncrementalAnnotationProcessorData.add(AnnotationProcessorData("annotationProcessorClass$i", Duration.ofMillis(i.toLong())))
     }
-    val annotationProcessorsAnalyzerResult = AnnotationProcessorsAnalyzer.Result(
-      annotationProcessorData,
-      nonIncrementalAnnotationProcessorData
-    )
+    val annotationProcessorsAnalyzerResult =
+      AnnotationProcessorsAnalyzer.Result(annotationProcessorData, nonIncrementalAnnotationProcessorData)
 
     // create and populate plugins cache
     val pluginCache = mutableMapOf<String, PluginData>()
@@ -182,22 +179,24 @@ class BuildAnalyzerStorageMetricsTest {
     val taskCache = mutableMapOf<String, TaskData>()
     for (i in 0 until listSize) {
       val plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "plugin.name.$i")
-      val task = TaskData(
-        taskName = "taskName$i",
-        projectPath = ":project$i",
-        originPlugin = plugin,
-        executionStartTime = (i + 1234567).toLong(),
-        executionEndTime = (i + 1234567).toLong(),
-        executionMode = TaskData.TaskExecutionMode.FULL,
-        executionReasons = listOf(i.toString(), (i + 1).toString(), (i + 2).toString())
-      )
+      val task =
+        TaskData(
+          taskName = "taskName$i",
+          projectPath = ":project$i",
+          originPlugin = plugin,
+          executionStartTime = (i + 1234567).toLong(),
+          executionEndTime = (i + 1234567).toLong(),
+          executionMode = TaskData.TaskExecutionMode.FULL,
+          executionReasons = listOf(i.toString(), (i + 1).toString(), (i + 2).toString()),
+        )
       taskCache[task.getTaskPath()] = task
     }
 
     val alwaysRunTaskData = mutableListOf<AlwaysRunTaskData>()
     for (i in 0 until listSize) {
       alwaysRunTaskData.add(
-        AlwaysRunTaskData(taskCache.values.asSequence().drop(i).first(), AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS))
+        AlwaysRunTaskData(taskCache.values.asSequence().drop(i).first(), AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)
+      )
     }
     val alwaysRunTaskDataResult = AlwaysRunTasksAnalyzer.Result(alwaysRunTaskData)
 
@@ -207,12 +206,7 @@ class BuildAnalyzerStorageMetricsTest {
       criticalPathData.add(taskCache.values.asSequence().drop(i).first())
       criticalPathPluginData.add(PluginBuildData(pluginCache.values.asSequence().drop(i).first(), i.toLong()))
     }
-    val criticalPathAnalyzerResult = CriticalPathAnalyzer.Result(
-      criticalPathData,
-      criticalPathPluginData,
-      12345,
-      67891
-    )
+    val criticalPathAnalyzerResult = CriticalPathAnalyzer.Result(criticalPathData, criticalPathPluginData, 12345, 67891)
     val garbageCollectionDataList = mutableListOf<GarbageCollectionData>()
     // This will never be more than 10
     for (i in 0 until 10) {
@@ -229,11 +223,8 @@ class BuildAnalyzerStorageMetricsTest {
       projectConfigurationData.add(ProjectConfigurationData(projectPath, 12345, listOf(), listOf()))
       allAppliedPlugins[projectPath] = listOf(plugin)
     }
-    val projectConfigurationAnalyzerResult = ProjectConfigurationAnalyzer.Result(
-      pluginsConfigurationDataMap,
-      projectConfigurationData,
-      allAppliedPlugins
-    )
+    val projectConfigurationAnalyzerResult =
+      ProjectConfigurationAnalyzer.Result(pluginsConfigurationDataMap, projectConfigurationData, allAppliedPlugins)
     val taskConfigurationData = mutableListOf<TaskData>()
     for (i in 0 until listSize) {
       taskConfigurationData.add(taskCache.values.asSequence().drop(i).first())
@@ -243,37 +234,38 @@ class BuildAnalyzerStorageMetricsTest {
     val configurationCachingCompatibilityAnalyzerResult = NoDataFromSavedResult
     val jetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(AnalyzerNotRun)
     val downloadAnalyzerResult = DownloadsAnalyzer.AnalyzerIsDisabled
-    val results = BuildAnalysisResults(
-      GradleBuildInvoker.Request.RequestData(
-        BuildMode.DEFAULT_BUILD_MODE,
-        File("/home/user/path/to/the/project/root"),
-        listOf("task1", "task2"),
-        listOf("e1", "e2"),
-        listOf("c1", "c2"),
-        mapOf(Pair("a", "b"), Pair("c", "d")),
-        false
-      ),
-      annotationProcessorsAnalyzerResult,
-      alwaysRunTaskDataResult,
-      criticalPathAnalyzerResult,
-      garbageCollectionAnalyzerResult,
-      projectConfigurationAnalyzerResult,
-      taskConfigurationAnalyzerResult,
-      configurationCachingCompatibilityAnalyzerResult,
-      jetifierUsageAnalyzerResult,
-      downloadAnalyzerResult,
-      TaskCategoryWarningsAnalyzer.IssuesResult(listOf()),
-      UUID.randomUUID().toString(),
-      taskCache as HashMap<String, TaskData>,
-      pluginCache as HashMap<String, PluginData>
-    )
-     //Uncomment to see the nicely printed result:
-    //val resultsMessage = BuildResultsProtoMessageConverter.convertBuildAnalysisResultsFromObjectToBytes(
+    val results =
+      BuildAnalysisResults(
+        GradleBuildInvoker.Request.RequestData(
+          BuildMode.DEFAULT_BUILD_MODE,
+          File("/home/user/path/to/the/project/root"),
+          listOf("task1", "task2"),
+          listOf("e1", "e2"),
+          listOf("c1", "c2"),
+          mapOf(Pair("a", "b"), Pair("c", "d")),
+          false,
+        ),
+        annotationProcessorsAnalyzerResult,
+        alwaysRunTaskDataResult,
+        criticalPathAnalyzerResult,
+        garbageCollectionAnalyzerResult,
+        projectConfigurationAnalyzerResult,
+        taskConfigurationAnalyzerResult,
+        configurationCachingCompatibilityAnalyzerResult,
+        jetifierUsageAnalyzerResult,
+        downloadAnalyzerResult,
+        TaskCategoryWarningsAnalyzer.IssuesResult(listOf()),
+        UUID.randomUUID().toString(),
+        taskCache as HashMap<String, TaskData>,
+        pluginCache as HashMap<String, PluginData>,
+      )
+    // Uncomment to see the nicely printed result:
+    // val resultsMessage = BuildResultsProtoMessageConverter.convertBuildAnalysisResultsFromObjectToBytes(
     //      results,
     //      results.getPluginMap(),
     //      results.getTaskMap()
     //    )
-    //println(TextFormat.printer().printToString(resultsMessage))
+    // println(TextFormat.printer().printToString(resultsMessage))
     BuildAnalyzerStorageManagerImpl(projectRule.project).fileManager.storeBuildResultsInFile(results)
     return BuildAnalyzerStorageManagerImpl(projectRule.project).fileManager.getFileFromBuildID(results.getBuildSessionID())
   }

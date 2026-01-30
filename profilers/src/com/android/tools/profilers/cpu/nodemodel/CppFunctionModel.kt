@@ -15,9 +15,7 @@
  */
 package com.android.tools.profilers.cpu.nodemodel
 
-/**
- * Represents characteristics of C/C++ functions.
- */
+/** Represents characteristics of C/C++ functions. */
 class CppFunctionModel private constructor(builder: Builder) : NativeNodeModel() {
   /**
    * Function's full class name (e.g. art::interpreter::SomeClass). For functions that don't belong to a particular class (e.g.
@@ -25,24 +23,16 @@ class CppFunctionModel private constructor(builder: Builder) : NativeNodeModel()
    */
   val classOrNamespace = builder.classOrNamespace
 
-  /**
-   * List of the method's parameters (e.g. ["int", "float"]).
-   */
+  /** List of the method's parameters (e.g. ["int", "float"]). */
   val parameters = builder.parameters.split(", ").filter { it.isNotEmpty() }
 
-  /**
-   * Whether the function is part of user-written code.
-   */
+  /** Whether the function is part of user-written code. */
   val isUserCode = builder.isUserCode
 
-  /**
-   * Name of the ELF file containing the instruction corresponding to the function.
-   */
+  /** Name of the ELF file containing the instruction corresponding to the function. */
   val fileName = builder.fileName
 
-  /**
-   * Virtual address of the instruction in [.myFileName].
-   */
+  /** Virtual address of the instruction in [.myFileName]. */
   val vAddress = builder.vAddress
 
   // The separator is only needed when we have a class name or namespace, otherwise we're going to end up with a leading separator. We
@@ -59,37 +49,35 @@ class CppFunctionModel private constructor(builder: Builder) : NativeNodeModel()
     myName = builder.name
   }
 
-  override fun getTag(): String? { return tag }
+  override fun getTag(): String? {
+    return tag
+  }
 
-  override fun getFullName(): String { return fullName }
+  override fun getFullName(): String {
+    return fullName
+  }
 
-  override fun getId(): String { return id.value }
+  override fun getId(): String {
+    return id.value
+  }
 
   // TODO: Remove the set*() methods once all uses have been converted to Kotlin.
   class Builder(val name: String) {
     // All fields in the build need to have @JvmField on them to stop Kotlin from creating get/set methods for them. If it was to create
     // set methods, they would conflict with our chaining set methods.
 
-    @JvmField
-    var classOrNamespace = ""
+    @JvmField var classOrNamespace = ""
 
-    @JvmField
-    var isUserCode = false
+    @JvmField var isUserCode = false
 
-    /**
-     * A comma separated lust if method parameters (e.g. "int, float").
-     */
-    @JvmField
-    var parameters = ""
+    /** A comma separated lust if method parameters (e.g. "int, float"). */
+    @JvmField var parameters = ""
 
-    @JvmField
-    var fileName: String? = null
+    @JvmField var fileName: String? = null
 
-    @JvmField
-    var vAddress: Long = 0
+    @JvmField var vAddress: Long = 0
 
-    @JvmField
-    var tag: String? = null
+    @JvmField var tag: String? = null
 
     fun setClassOrNamespace(value: String): Builder {
       classOrNamespace = value

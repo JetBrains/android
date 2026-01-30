@@ -36,23 +36,18 @@ class ApkResourceRepositoryTest {
     val idManager = ApkResourceIdManager().apply { this.loadApkResources(path.toString()) }
     val apkRes = ApkResourceRepository(path.toString()) { idManager.findById(it) }
 
-    val animRes = apkRes.getResources(
-      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ANIM, "fragment_fast_out_extra_slow_in")
-    )[0]
+    val animRes =
+      apkRes.getResources(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ANIM, "fragment_fast_out_extra_slow_in"))[0]
 
-    assertTrue(
-      animRes.resourceValue?.value?.endsWith("res/anim-v21/fragment_fast_out_extra_slow_in.xml") == true
-    )
+    assertTrue(animRes.resourceValue?.value?.endsWith("res/anim-v21/fragment_fast_out_extra_slow_in.xml") == true)
 
-    val dimenRes = apkRes.getResources(
-      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.DIMEN, "compat_control_corner_material")
-    )[0]
+    val dimenRes =
+      apkRes.getResources(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.DIMEN, "compat_control_corner_material"))[0]
 
     assertEquals("2dp", dimenRes.resourceValue?.value)
 
-    val strRes = apkRes.getResources(
-      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "news_notification_channel_description")
-    )[0]
+    val strRes =
+      apkRes.getResources(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "news_notification_channel_description"))[0]
 
     assertEquals("The latest updates on what's new in Android", strRes.resourceValue?.value)
   }
@@ -63,20 +58,19 @@ class ApkResourceRepositoryTest {
     val idManager = ApkResourceIdManager().apply { this.loadApkResources(path.toString()) }
     val apkRes = ApkResourceRepository(path.toString()) { idManager.findById(it) }
 
-    val attrRes = apkRes.getResources(
-      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "buttonSize")
-    )[0]
+    val attrRes = apkRes.getResources(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "buttonSize"))[0]
 
     val attrVals = (attrRes.resourceValue as AttrResourceValue).attributeValues
     assertEquals(3, attrVals.size)
     assertEquals(
       """
-        icon_only
-        standard
-        wide
-      """.trimIndent(),
-      attrVals.keys.sorted().joinToString("\n")
-      )
+      icon_only
+      standard
+      wide
+      """
+        .trimIndent(),
+      attrVals.keys.sorted().joinToString("\n"),
+    )
     assertEquals(0, attrVals["standard"])
     assertEquals(1, attrVals["wide"])
     assertEquals(2, attrVals["icon_only"])
@@ -88,10 +82,7 @@ class ApkResourceRepositoryTest {
     val idManager = ApkResourceIdManager().apply { this.loadApkResources(path.toString()) }
     val apkRes = ApkResourceRepository(path.toString()) { idManager.findById(it) }
 
-    val styleRes = apkRes.getResources(
-      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "DialogWindowTheme")
-    )[0]
-
+    val styleRes = apkRes.getResources(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "DialogWindowTheme"))[0]
 
     val styleItems = (styleRes.resourceValue as StyleResourceValue).definedItems.toList()
     assertEquals(1, styleItems.size)
@@ -105,10 +96,8 @@ class ApkResourceRepositoryTest {
     val idManager = ApkResourceIdManager().apply { this.loadApkResources(path.toString()) }
     val apkRes = ApkResourceRepository(path.toString()) { idManager.findById(it) }
 
-    val pluralsRes = apkRes.getResources(
-      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.PLURALS, "mtrl_badge_content_description")
-    )[0]
-
+    val pluralsRes =
+      apkRes.getResources(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.PLURALS, "mtrl_badge_content_description"))[0]
 
     val pluralsItem = pluralsRes.resourceValue as PluralsResourceValue
     assertEquals(2, pluralsItem.pluralsCount)
@@ -124,9 +113,7 @@ class ApkResourceRepositoryTest {
     val idManager = ApkResourceIdManager().apply { this.loadApkResources(path.toString()) }
     val apkRes = ApkResourceRepository(path.toString()) { idManager.findById(it) }
 
-    val pluralsRes = apkRes.getResources(
-      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.PLURALS, "numberOfSongsAvailable")
-    )[0]
+    val pluralsRes = apkRes.getResources(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.PLURALS, "numberOfSongsAvailable"))[0]
 
     val pluralsItem = pluralsRes.resourceValue as PluralsResourceValue
     assertEquals(2, pluralsItem.pluralsCount)
@@ -135,9 +122,7 @@ class ApkResourceRepositoryTest {
     assertEquals("%d songs found.", pluralsItem.getValue(1))
     assertEquals("other", pluralsItem.getQuantity(1))
 
-    val planetsArrayRes = apkRes.getResources(
-      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ARRAY, "planets_array")
-    )[0]
+    val planetsArrayRes = apkRes.getResources(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ARRAY, "planets_array"))[0]
 
     val planetsArrayItem = planetsArrayRes.resourceValue as ArrayResourceValue
     assertEquals(4, planetsArrayItem.elementCount)
@@ -146,9 +131,7 @@ class ApkResourceRepositoryTest {
     assertEquals("Earth", planetsArrayItem.getElement(2))
     assertEquals("Mars", planetsArrayItem.getElement(3))
 
-    val colorsArrayRes = apkRes.getResources(
-      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ARRAY, "colors")
-    )[0]
+    val colorsArrayRes = apkRes.getResources(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ARRAY, "colors"))[0]
 
     val colorsArrayItem = colorsArrayRes.resourceValue as ArrayResourceValue
     assertEquals(3, colorsArrayItem.elementCount)

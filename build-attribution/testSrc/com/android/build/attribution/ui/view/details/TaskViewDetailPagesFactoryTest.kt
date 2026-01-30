@@ -32,19 +32,18 @@ import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito
 import java.awt.Dimension
 import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.text.Document
+import org.junit.After
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mockito
 
 class TaskViewDetailPagesFactoryTest {
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
 
@@ -75,25 +74,34 @@ class TaskViewDetailPagesFactoryTest {
     val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as EntryDetailsNodeDescriptor
 
     val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
-    assertThat(htmlBody).isEqualTo("""
-      <B>myPlugin</B><BR/>
-      Total duration: 0.1s<BR/>
-      Number of tasks: 1 task<BR/>
-      <BR/>
-      <B>Warnings</B><BR/>
-      No warnings detected for this plugin.
-    """.trimIndent())
+    assertThat(htmlBody)
+      .isEqualTo(
+        """
+        <B>myPlugin</B><BR/>
+        Total duration: 0.1s<BR/>
+        Number of tasks: 1 task<BR/>
+        <BR/>
+        <B>Warnings</B><BR/>
+        No warnings detected for this plugin.
+        """
+          .trimIndent()
+      )
   }
 
   @Test
   fun testCreatePluginPageWithThreeWarnings() {
-    val data = MockUiData(tasksList = "myPlugin".let { pluginName ->
-      (1..3).map {
-        mockTask(":module$it", "task1", pluginName, 100L).apply {
-          issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-        }
-      }
-    })
+    val data =
+      MockUiData(
+        tasksList =
+          "myPlugin"
+            .let { pluginName ->
+              (1..3).map {
+                mockTask(":module$it", "task1", pluginName, 100L).apply {
+                  issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
+                }
+              }
+            }
+      )
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
@@ -102,7 +110,9 @@ class TaskViewDetailPagesFactoryTest {
 
     val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
 
-    assertThat(htmlBody).isEqualTo("""
+    assertThat(htmlBody)
+      .isEqualTo(
+        """
 <B>myPlugin</B><BR/>
 Total duration: 0.3s<BR/>
 Number of tasks: 3 tasks<BR/>
@@ -115,16 +125,22 @@ ${expectedTaskSection(":module1:task1")}
 ${expectedTaskSection(":module2:task1")}
 
 ${expectedTaskSection(":module3:task1")}
-    """.trim())
+    """
+          .trim()
+      )
   }
 
   @Test
   fun testCreatePluginPageWith20Warnings() {
-    val data = MockUiData(tasksList = (1..20).map {
-      mockTask(":module$it", "task1", "myPlugin", 100L).apply {
-        issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-      }
-    })
+    val data =
+      MockUiData(
+        tasksList =
+          (1..20).map {
+            mockTask(":module$it", "task1", "myPlugin", 100L).apply {
+              issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
+            }
+          }
+      )
 
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
@@ -133,7 +149,9 @@ ${expectedTaskSection(":module3:task1")}
     val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as EntryDetailsNodeDescriptor
 
     val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
-    assertThat(htmlBody).isEqualTo("""
+    assertThat(htmlBody)
+      .isEqualTo(
+        """
 <B>myPlugin</B><BR/>
 Total duration: 2.0s<BR/>
 Number of tasks: 20 tasks<BR/>
@@ -161,10 +179,13 @@ ${expectedTaskSection(":module8:task1")}
 ${expectedTaskSection(":module9:task1")}
 
 ${expectedTaskSection(":module10:task1")}
-    """.trim())
+    """
+          .trim()
+      )
   }
 
-  private fun expectedTaskSection(taskPath: String) = """
+  private fun expectedTaskSection(taskPath: String) =
+    """
 <table><tr><td><icon alt='Warning' src='AllIcons.General.BalloonWarning'></td><td><a href='$taskPath'>$taskPath</a></td></tr>
 <tr><td></td><td>Type: CompilationType<BR/>
 Duration: 0.1s</td></tr>
@@ -172,16 +193,24 @@ Duration: 0.1s</td></tr>
 This task runs on every build because it declares no outputs,<BR/>
 which it must do in order to support incremental builds.<BR/>
 <a href='NO_OUTPUTS_DECLARED_ISSUE'>Learn more</a><icon src='AllIcons.Ide.External_link_arrow'><BR/>
-    """.trim()
+    """
+      .trim()
 
   @Test
   @RunsInEdt
   fun testTaskNavigationLinkClicked() {
-    val data = MockUiData(tasksList = "myPlugin".let { pluginName ->
-      listOf(mockTask(":module1", "task1", pluginName, 100L).apply {
-        issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-      })
-    })
+    val data =
+      MockUiData(
+        tasksList =
+          "myPlugin"
+            .let { pluginName ->
+              listOf(
+                mockTask(":module1", "task1", pluginName, 100L).apply {
+                  issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
+                }
+              )
+            }
+      )
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
@@ -209,11 +238,18 @@ which it must do in order to support incremental builds.<BR/>
   @Test
   @RunsInEdt
   fun testLearnMoreLinkClicked() {
-    val data = MockUiData(tasksList = "myPlugin".let { pluginName ->
-      listOf(mockTask(":module1", "task1", pluginName, 100L).apply {
-          issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-        })
-    })
+    val data =
+      MockUiData(
+        tasksList =
+          "myPlugin"
+            .let { pluginName ->
+              listOf(
+                mockTask(":module1", "task1", pluginName, 100L).apply {
+                  issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
+                }
+              )
+            }
+      )
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
@@ -256,55 +292,67 @@ which it must do in order to support incremental builds.<BR/>
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
-    val taskCategoryData = data.criticalPathTaskCategories!!.entries.first{ it.name == "Android Resources" }
+    val taskCategoryData = data.criticalPathTaskCategories!!.entries.first { it.name == "Android Resources" }
     val descriptor = model.getNodeDescriptorById(TasksPageId.taskCategory(taskCategoryData.taskCategory)) as EntryDetailsNodeDescriptor
 
     val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
-    assertThat(htmlBody).isEqualTo("""
-      <B>Android Resources</B><BR/>
-      Tasks related to Android resources compilation, processing, linking and merging.<BR/>
-      <BR/>
-      Total duration: 0.1s<BR/>
-      Number of tasks: 1 task<BR/>
-      <BR/>
-      <B>Warnings</B><BR/>
-      No warnings detected for Android Resources category.
-    """.trimIndent())
+    assertThat(htmlBody)
+      .isEqualTo(
+        """
+        <B>Android Resources</B><BR/>
+        Tasks related to Android resources compilation, processing, linking and merging.<BR/>
+        <BR/>
+        Total duration: 0.1s<BR/>
+        Number of tasks: 1 task<BR/>
+        <BR/>
+        <B>Warnings</B><BR/>
+        No warnings detected for Android Resources category.
+        """
+          .trimIndent()
+      )
   }
 
   @Test
   fun testCreateTaskCategoryPageWithWarning() {
     StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.override(true)
-    val data = MockUiData(tasksList = listOf(mockTask(":module1", "task1", "myPlugin", 100, taskCategory = TaskCategory.ANDROID_RESOURCES)),
-                          createTaskCategoryWarning = true)
+    val data =
+      MockUiData(
+        tasksList = listOf(mockTask(":module1", "task1", "myPlugin", 100, taskCategory = TaskCategory.ANDROID_RESOURCES)),
+        createTaskCategoryWarning = true,
+      )
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
-    val taskCategoryData = data.criticalPathTaskCategories!!.entries.first{ it.name == "Android Resources" }
+    val taskCategoryData = data.criticalPathTaskCategories!!.entries.first { it.name == "Android Resources" }
     val descriptor = model.getNodeDescriptorById(TasksPageId.taskCategory(taskCategoryData.taskCategory)) as EntryDetailsNodeDescriptor
 
     val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
-    assertThat(htmlBody).isEqualTo("""
-      <B>Android Resources</B><BR/>
-      Tasks related to Android resources compilation, processing, linking and merging.<BR/>
-      <BR/>
-      Total duration: 0.1s<BR/>
-      Number of tasks: 1 task<BR/>
-      <BR/>
-      <B>Warnings</B><BR/>
-      1 warning associated with Android Resources category.<BR/>
+    assertThat(htmlBody)
+      .isEqualTo(
+        """
+        <B>Android Resources</B><BR/>
+        Tasks related to Android resources compilation, processing, linking and merging.<BR/>
+        <BR/>
+        Total duration: 0.1s<BR/>
+        Number of tasks: 1 task<BR/>
+        <BR/>
+        <B>Warnings</B><BR/>
+        1 warning associated with Android Resources category.<BR/>
 
-      <table><tr><td VALIGN=TOP><icon alt='Warning' src='AllIcons.General.BalloonWarning'></td><td VALIGN=TOP>Non-transitive R classes are currently disabled.<BR/>
-      Enable non-transitive R classes for faster incremental compilation.<BR/>
-      <a href='AndroidMigrateToNonTransitiveRClassesAction'>Click here to migrate your project to use non-transitive R classes</a>, or <a href='NON_TRANSITIVE_R_CLASS'>Learn more</a><icon src='AllIcons.Ide.External_link_arrow'></td></tr>
-      </table>
-    """.trimIndent())
+        <table><tr><td VALIGN=TOP><icon alt='Warning' src='AllIcons.General.BalloonWarning'></td><td VALIGN=TOP>Non-transitive R classes are currently disabled.<BR/>
+        Enable non-transitive R classes for faster incremental compilation.<BR/>
+        <a href='AndroidMigrateToNonTransitiveRClassesAction'>Click here to migrate your project to use non-transitive R classes</a>, or <a href='NON_TRANSITIVE_R_CLASS'>Learn more</a><icon src='AllIcons.Ide.External_link_arrow'></td></tr>
+        </table>
+        """
+          .trimIndent()
+      )
   }
 
-  private fun String.clearHtml(): String = trimIndent()
-    .replace("<BR/>", "<BR/>\n")
-    .replace("<table>", "\n<table>")
-    .replace("</table>", "</table>\n")
-    .replace("</tr>", "</tr>\n")
-    .trim()
+  private fun String.clearHtml(): String =
+    trimIndent()
+      .replace("<BR/>", "<BR/>\n")
+      .replace("<table>", "\n<table>")
+      .replace("</table>", "</table>\n")
+      .replace("</tr>", "</tr>\n")
+      .trim()
 }

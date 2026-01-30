@@ -31,14 +31,14 @@ internal class ComposeUnwrapActionTest : JavaCodeInsightFixtureAdtTestCase() {
       "src/androidx/compose/foundation/layout/ColumnAndRow.kt",
       // language=kotlin
       """
-    package androidx.compose.foundation.layout
+      package androidx.compose.foundation.layout
 
-    import androidx.compose.runtime.Composable
+      import androidx.compose.runtime.Composable
 
-    inline fun Row(content: @Composable () -> Unit) {}
-    inline fun Column(content: @Composable () -> Unit) {}
-    inline fun Box(content: @Composable () -> Unit) {}
-    """
+      inline fun Row(content: @Composable () -> Unit) {}
+      inline fun Column(content: @Composable () -> Unit) {}
+      inline fun Box(content: @Composable () -> Unit) {}
+      """
         .trimIndent(),
     )
   }
@@ -61,16 +61,14 @@ internal class ComposeUnwrapActionTest : JavaCodeInsightFixtureAdtTestCase() {
               Text("December 2018")
           }
       }
-    """
+      """
         .trimIndent(),
     )
 
     val action = myFixture.availableIntentions.find { it.text == "Remove wrapper" }
     Truth.assertThat(action).isNotNull()
 
-    WriteCommandAction.runWriteCommandAction(myFixture.project) {
-      action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
-    }
+    WriteCommandAction.runWriteCommandAction(myFixture.project) { action!!.invoke(myFixture.project, myFixture.editor, myFixture.file) }
 
     myFixture.checkResult(
       // language=kotlin

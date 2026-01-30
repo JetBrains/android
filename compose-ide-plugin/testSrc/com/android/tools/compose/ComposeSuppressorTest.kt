@@ -38,18 +38,14 @@ class ComposeSuppressorTest {
 
   @Before
   fun setup() {
-    fixture.enableInspections(
-      FunctionNameInspection::class.java
-    )
+    fixture.enableInspections(FunctionNameInspection::class.java)
     fixture.enableInspections(TestFunctionNameInspection::class.java)
     fixture.stubComposableAnnotation()
 
     val module = projectRule.project.modules.single()
     val androidTestSourceRoot = fixture.tempDirFixture.findOrCreateDir("src/androidTest")
     runInEdt {
-      ApplicationManager.getApplication().runWriteAction<SourceFolder> {
-        PsiTestUtil.addSourceRoot(module, androidTestSourceRoot, true)
-      }
+      ApplicationManager.getApplication().runWriteAction<SourceFolder> { PsiTestUtil.addSourceRoot(module, androidTestSourceRoot, true) }
     }
   }
 
@@ -59,15 +55,15 @@ class ComposeSuppressorTest {
       fixture.addFileToProject(
         "src/main/com/example/views.kt",
         """
-      package com.example
+        package com.example
 
-      import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      fun MyView() {}
+        @Composable
+        fun MyView() {}
 
-      fun <weak_warning descr="Function name 'NormalFunction' should start with a lowercase letter">NormalFunction</weak_warning>() {}
-      """
+        fun <weak_warning descr="Function name 'NormalFunction' should start with a lowercase letter">NormalFunction</weak_warning>() {}
+        """
           .trimIndent(),
       )
 
@@ -81,15 +77,15 @@ class ComposeSuppressorTest {
       fixture.addFileToProject(
         "src/androidTest/com/example/views.kt",
         """
-      package com.example
+        package com.example
 
-      import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      fun MyView() {}
+        @Composable
+        fun MyView() {}
 
-      fun <weak_warning descr="Test function name 'NormalFunction' should start with a lowercase letter">NormalFunction</weak_warning>() {}
-      """
+        fun <weak_warning descr="Test function name 'NormalFunction' should start with a lowercase letter">NormalFunction</weak_warning>() {}
+        """
           .trimIndent(),
       )
 

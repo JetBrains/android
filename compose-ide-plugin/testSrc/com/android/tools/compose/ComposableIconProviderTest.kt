@@ -113,9 +113,7 @@ class ComposableIconProviderTest {
     // Find the "normal" public icon from the Kotlin plugin.
     val expectedPublicIcon = runReadAction {
       val normalPublicFunctionElement = projectRule.fixture.elementAtCaret
-      val normalIcon =
-        PsiIconUtil.getProvidersIcon(normalPublicFunctionElement, Iconable.ICON_FLAG_VISIBILITY)
-          as RowIcon
+      val normalIcon = PsiIconUtil.getProvidersIcon(normalPublicFunctionElement, Iconable.ICON_FLAG_VISIBILITY) as RowIcon
       assertThat(normalIcon.iconCount).isEqualTo(2)
 
       normalIcon.getIcon(1)

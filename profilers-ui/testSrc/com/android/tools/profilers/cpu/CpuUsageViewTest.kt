@@ -34,9 +34,7 @@ import org.junit.Test
 class CpuUsageViewTest {
   private val timer = FakeTimer()
 
-  @Rule
-  @JvmField
-  var grpcChannel = FakeGrpcChannel("CpuUsageNormalModeViewTest", FakeTransportService(timer))
+  @Rule @JvmField var grpcChannel = FakeGrpcChannel("CpuUsageNormalModeViewTest", FakeTransportService(timer))
 
   private lateinit var stage: CpuProfilerStage
   private lateinit var ideServices: FakeIdeProfilerServices

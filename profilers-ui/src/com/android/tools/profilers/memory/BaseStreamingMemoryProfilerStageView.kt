@@ -27,15 +27,15 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 
-abstract class BaseStreamingMemoryProfilerStageView<T: BaseStreamingMemoryProfilerStage>(profilersView: StudioProfilersView,
-                                                                                         stage: T)
-      : BaseMemoryProfilerStageView<T>(profilersView, stage) {
+abstract class BaseStreamingMemoryProfilerStageView<T : BaseStreamingMemoryProfilerStage>(profilersView: StudioProfilersView, stage: T) :
+  BaseMemoryProfilerStageView<T>(profilersView, stage) {
 
-  val captureElapsedTimeLabel = JBLabel("").apply {
-    font = ProfilerFonts.STANDARD_FONT
-    border = JBUI.Borders.emptyLeft(5)
-    foreground = ProfilerColors.CPU_CAPTURE_STATUS
-  }
+  val captureElapsedTimeLabel =
+    JBLabel("").apply {
+      font = ProfilerFonts.STANDARD_FONT
+      border = JBUI.Borders.emptyLeft(5)
+      foreground = ProfilerColors.CPU_CAPTURE_STATUS
+    }
 
   init {
     // Turns on the auto-capture selection functionality - this will select the latest user-triggered heap dump/allocation tracking

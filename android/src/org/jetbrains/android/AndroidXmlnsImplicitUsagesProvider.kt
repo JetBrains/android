@@ -38,6 +38,7 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 class AndroidXmlnsImplicitUsagesProvider : ImplicitUsageProvider {
   override fun isImplicitRead(element: PsiElement) = false
+
   override fun isImplicitWrite(element: PsiElement) = false
 
   override fun isImplicitUsage(element: PsiElement): Boolean {

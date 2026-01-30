@@ -28,31 +28,23 @@ const val RECOMPOSER_COMPANION_CLASS = "$RECOMPOSER_CLASS\$$COMPANION_FIELD"
 internal object RenderTaskPatcher {
   private fun getRecomposerCompanion(moduleClassLoader: ModuleClassLoader): Pair<Any, Class<*>> {
     val recomposerClass = moduleClassLoader.loadClass(RECOMPOSER_CLASS)
-    return Pair(
-      recomposerClass.getField(COMPANION_FIELD).get(null),
-      moduleClassLoader.loadClass(RECOMPOSER_COMPANION_CLASS),
-    )
+    return Pair(recomposerClass.getField(COMPANION_FIELD).get(null), moduleClassLoader.loadClass(RECOMPOSER_COMPANION_CLASS))
   }
 
   /**
-   * This method checks if the given [ModuleClassLoader] is using Compose and, if it is it will
-   * enable the Hot-Reload mode.
+   * This method checks if the given [ModuleClassLoader] is using Compose and, if it is it will enable the Hot-Reload mode.
    *
-   * Hot-Reload mode does not have much use for the preview but will add some extra behaviour on the
-   * Compose Runtime that will improve the handling of exceptions during recomposition. This is
-   * important since exceptions are usually not expected to happen during recomposition. When
-   * Hot-Reload mode is enabled, the runtime will have special handling of exceptions and will run
-   * additional clean-up code. This ensures that the runtime will not leak recompositions.
+   * Hot-Reload mode does not have much use for the preview but will add some extra behaviour on the Compose Runtime that will improve the
+   * handling of exceptions during recomposition. This is important since exceptions are usually not expected to happen during
+   * recomposition. When Hot-Reload mode is enabled, the runtime will have special handling of exceptions and will run additional clean-up
+   * code. This ensures that the runtime will not leak recompositions.
    */
   @JvmStatic
   fun enableComposeHotReloadMode(moduleClassLoader: ModuleClassLoader) {
     if (!moduleClassLoader.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) return
     try {
-      val (recomposerCompanion, recomposerCompanionClass) =
-        getRecomposerCompanion(moduleClassLoader)
-      recomposerCompanionClass.methods
-        .singleOrNull { it.name.contains("setHotReloadEnabled") }
-        ?.apply { invoke(recomposerCompanion, true) }
+      val (recomposerCompanion, recomposerCompanionClass) = getRecomposerCompanion(moduleClassLoader)
+      recomposerCompanionClass.methods.singleOrNull { it.name.contains("setHotReloadEnabled") }?.apply { invoke(recomposerCompanion, true) }
     } catch (e: ReflectiveOperationException) {
       Logger.getInstance(RenderTaskPatcher::class.java).warn(e)
     }
@@ -62,21 +54,16 @@ internal object RenderTaskPatcher {
   fun collectHotReloadErrors(moduleClassLoader: ModuleClassLoader): List<Throwable> {
     if (!moduleClassLoader.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) return emptyList()
     try {
-      val (recomposerCompanion, recomposerCompanionClass) =
-        getRecomposerCompanion(moduleClassLoader)
+      val (recomposerCompanion, recomposerCompanionClass) = getRecomposerCompanion(moduleClassLoader)
       @Suppress("UNCHECKED_CAST")
       val result: List<Any> =
-        recomposerCompanionClass.methods
-          .singleOrNull { it.name.contains("getCurrentErrors") }
-          ?.invoke(recomposerCompanion) as? List<Any> ?: listOf()
+        recomposerCompanionClass.methods.singleOrNull { it.name.contains("getCurrentErrors") }?.invoke(recomposerCompanion) as? List<Any>
+          ?: listOf()
       if (result.isNotEmpty()) {
         // Clear the existing errors
-        recomposerCompanionClass.methods
-          .singleOrNull { it.name.contains("clearErrors") }
-          ?.invoke(recomposerCompanion)
+        recomposerCompanionClass.methods.singleOrNull { it.name.contains("clearErrors") }?.invoke(recomposerCompanion)
         val renderErrorStateClass = result.first().javaClass
-        val getThrowableMethod =
-          renderErrorStateClass.getMethod("getCause").apply { isAccessible = true }
+        val getThrowableMethod = renderErrorStateClass.getMethod("getCause").apply { isAccessible = true }
         return result.map { getThrowableMethod.invoke(it) as Throwable }
       }
     } catch (e: ReflectiveOperationException) {

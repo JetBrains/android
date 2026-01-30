@@ -19,15 +19,15 @@ import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import javax.swing.JList
 
-/**
- * Cell renderer to display **SourceSets** with an specific **res** directory on a ComboBox.
- */
+/** Cell renderer to display **SourceSets** with an specific **res** directory on a ComboBox. */
 class SourceSetCellRenderer : ColoredListCellRenderer<SourceSetItem>() {
-  override fun customizeCellRenderer(list: JList<out SourceSetItem>,
-                                     value: SourceSetItem,
-                                     index: Int,
-                                     selected: Boolean,
-                                     hasFocus: Boolean) {
+  override fun customizeCellRenderer(
+    list: JList<out SourceSetItem>,
+    value: SourceSetItem,
+    index: Int,
+    selected: Boolean,
+    hasFocus: Boolean,
+  ) {
     append(value.sourceSetName)
     append(" ")
     append(value.displayableResDir, SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES, false)

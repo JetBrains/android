@@ -17,9 +17,8 @@
 package com.android.tools.preview
 
 /**
- * Provides information about annotated method sufficient for constructing corresponding
- * [ComposePreviewElement]. [T] represents a generic type specifying the location of the code. See
- * [PreviewElement] for more details.
+ * Provides information about annotated method sufficient for constructing corresponding [ComposePreviewElement]. [T] represents a generic
+ * type specifying the location of the code. See [PreviewElement] for more details.
  */
 interface AnnotatedMethod<T> {
   val name: String

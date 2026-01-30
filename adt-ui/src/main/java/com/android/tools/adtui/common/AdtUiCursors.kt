@@ -28,14 +28,8 @@ import java.awt.image.BufferedImage
 import javax.swing.Icon
 import javax.swing.JPanel
 
-/**
- * The types of custom cursor in Studio. This is used by [AdtUiCursorsProvider.getCursor] to get the
- * proper cursors.
- */
-enum class AdtUiCursorType(
-  val icon: Icon,
-  internal val hotSpotMapFun: (BufferedImage) -> Point = { Point(it.width / 2, it.height / 2) },
-) {
+/** The types of custom cursor in Studio. This is used by [AdtUiCursorsProvider.getCursor] to get the proper cursors. */
+enum class AdtUiCursorType(val icon: Icon, internal val hotSpotMapFun: (BufferedImage) -> Point = { Point(it.width / 2, it.height / 2) }) {
   GRAB(StudioIcons.Cursors.GRAB),
   MOVE(StudioIcons.Cursors.MOVE),
   GRABBING(StudioIcons.Cursors.GRABBING),
@@ -83,8 +77,7 @@ internal class AdtUiCursorProviderImpl : AdtUiCursorsProvider {
     // sized icon so we scale it down.
     val scaleFactor = if (UIUtil.isRetina()) 0.5f else 1.0f
     val scaledIcon = (icon as CachedImageIcon).scale(scaleFactor)
-    val image =
-      UIUtil.createImage(scaledIcon.iconWidth, scaledIcon.iconHeight, BufferedImage.TYPE_INT_ARGB)
+    val image = UIUtil.createImage(scaledIcon.iconWidth, scaledIcon.iconHeight, BufferedImage.TYPE_INT_ARGB)
     scaledIcon.paintIcon(JPanel(), image.graphics, 0, 0)
     // We offset the icon center from the upper left to the center for a more natural placement with
     // existing cursors.

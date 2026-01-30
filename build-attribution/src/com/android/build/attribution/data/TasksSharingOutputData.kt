@@ -15,7 +15,5 @@
  */
 package com.android.build.attribution.data
 
-/**
- * Represents mis-configured tasks that declare the same output file or directory.
- */
+/** Represents mis-configured tasks that declare the same output file or directory. */
 data class TasksSharingOutputData(val outputFilePath: String, val taskList: List<TaskData>)

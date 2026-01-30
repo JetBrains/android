@@ -45,6 +45,7 @@ import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.xml.util.XmlTagUtil
+import javax.swing.Icon
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.manifest.Manifest
@@ -61,7 +62,6 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
-import javax.swing.Icon
 
 /**
  * Implementation of [RelatedItemLineMarkerProvider] for Android.
@@ -90,11 +90,9 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
         val rootTag = element.rootTag ?: return
         val anchor = XmlTagUtil.getStartTagNameElement(rootTag) ?: return
         if (gotoList.any { it.element?.language == KotlinLanguage.INSTANCE }) {
-          result.add(
-            createRelatedItemLineMarkerInfo(anchor as PsiElement, gotoList, KotlinIcons.CLASS, "Related Kotlin class"))
+          result.add(createRelatedItemLineMarkerInfo(anchor as PsiElement, gotoList, KotlinIcons.CLASS, "Related Kotlin class"))
         } else {
-          result.add(
-            createRelatedItemLineMarkerInfo(anchor as PsiElement, gotoList, AllIcons.Nodes.Class, "Related Java class"))
+          result.add(createRelatedItemLineMarkerInfo(anchor as PsiElement, gotoList, AllIcons.Nodes.Class, "Related Java class"))
         }
       }
     }
@@ -104,7 +102,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
     anchor: PsiElement,
     gotoList: List<GotoRelatedItem>,
     icon: Icon,
-    tooltip: String
+    tooltip: String,
   ): RelatedItemLineMarkerInfo<PsiElement> {
     return RelatedItemLineMarkerInfo(
       anchor,
@@ -114,27 +112,28 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
       { mouseEvent, _ ->
         if (gotoList.size == 1) {
           gotoList.first().navigate()
-        }
-        else {
+        } else {
           getRelatedItemsPopup(gotoList, "Go to Related Files").show(RelativePoint(mouseEvent))
         }
       },
       GutterIconRenderer.Alignment.RIGHT,
-      { gotoList })
+      { gotoList },
+    )
   }
 
   internal object Handler {
 
     private val REQUIRED_RESOURCE_TYPES = listOf(ResourceType.LAYOUT, ResourceType.MENU)
 
-    /**
-     * Related classes and fragments must inherit from one of the following classes.
-     */
-    private val CONTEXT_CLASSES = listOf(SdkConstants.CLASS_ACTIVITY,
-                                         SdkConstants.CLASS_FRAGMENT,
-                                         AndroidXConstants.CLASS_V4_FRAGMENT.oldName(),
-                                         AndroidXConstants.CLASS_V4_FRAGMENT.newName(),
-                                         SdkConstants.CLASS_ADAPTER)
+    /** Related classes and fragments must inherit from one of the following classes. */
+    private val CONTEXT_CLASSES =
+      listOf(
+        SdkConstants.CLASS_ACTIVITY,
+        SdkConstants.CLASS_FRAGMENT,
+        AndroidXConstants.CLASS_V4_FRAGMENT.oldName(),
+        AndroidXConstants.CLASS_V4_FRAGMENT.newName(),
+        SdkConstants.CLASS_ADAPTER,
+      )
 
     private fun PsiClass.findComponentDeclarationInManifest(): AndroidAttributeValue<PsiClass>? {
       val manifest = Manifest.getMainManifest(androidFacet) ?: return null
@@ -182,43 +181,45 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
     private fun collectRelatedResourceFilesForJavaClass(psiClass: PsiClass): List<GotoRelatedItem> {
       val gotoRelatedItems = mutableListOf<GotoRelatedItem>()
-      psiClass.accept(object : JavaRecursiveElementWalkingVisitor() {
-        override fun visitReferenceExpression(expression: PsiReferenceExpression) {
-          super.visitReferenceExpression(expression)
-          val resolvedElement = expression.resolve() ?: return
-          if (resolvedElement is ResourceLightField && resolvedElement.resourceType in REQUIRED_RESOURCE_TYPES) {
-            gotoRelatedItems.addAll(getGotoRelatedFilesForResourceField(resolvedElement, expression))
+      psiClass.accept(
+        object : JavaRecursiveElementWalkingVisitor() {
+          override fun visitReferenceExpression(expression: PsiReferenceExpression) {
+            super.visitReferenceExpression(expression)
+            val resolvedElement = expression.resolve() ?: return
+            if (resolvedElement is ResourceLightField && resolvedElement.resourceType in REQUIRED_RESOURCE_TYPES) {
+              gotoRelatedItems.addAll(getGotoRelatedFilesForResourceField(resolvedElement, expression))
+            }
           }
         }
-      })
+      )
       return gotoRelatedItems
     }
 
     private fun collectRelatedResourceFilesForKotlinClass(ktClass: KtClass): List<GotoRelatedItem> {
       val gotoRelatedItems = mutableListOf<GotoRelatedItem>()
-      ktClass.accept(object : KtTreeVisitorVoid() {
-        override fun visitReferenceExpression(expression: KtReferenceExpression) {
-          super.visitReferenceExpression(expression)
-          val resolvedElement: PsiElement = expression.mainReference.resolve() ?: return
-          if (resolvedElement is ResourceLightField && resolvedElement.resourceType in REQUIRED_RESOURCE_TYPES) {
-            gotoRelatedItems.addAll(getGotoRelatedFilesForResourceField(resolvedElement, expression))
+      ktClass.accept(
+        object : KtTreeVisitorVoid() {
+          override fun visitReferenceExpression(expression: KtReferenceExpression) {
+            super.visitReferenceExpression(expression)
+            val resolvedElement: PsiElement = expression.mainReference.resolve() ?: return
+            if (resolvedElement is ResourceLightField && resolvedElement.resourceType in REQUIRED_RESOURCE_TYPES) {
+              gotoRelatedItems.addAll(getGotoRelatedFilesForResourceField(resolvedElement, expression))
+            }
           }
         }
-      })
+      )
       return gotoRelatedItems
     }
 
     private fun getGotoRelatedFilesForResourceField(field: ResourceLightField, context: PsiElement): List<GotoRelatedItem> {
       val resourceReferencePsiElement = ResourceReferencePsiElement.create(field) ?: return emptyList()
       val resourceReference = resourceReferencePsiElement.resourceReference
-      val gotoDeclarationTargets = AndroidResourceToPsiResolver.getInstance()
-        .getGotoDeclarationTargets(resourceReference, context).filterIsInstance<PsiFile>().toSet()
+      val gotoDeclarationTargets =
+        AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargets(resourceReference, context).filterIsInstance<PsiFile>().toSet()
       return gotoDeclarationTargets.map { MyGotoRelatedItem(it, resourceReference.resourceType) }.toList()
     }
 
-    private fun collectRelatedClasses(file: XmlFile,
-                                      facet: AndroidFacet,
-                                      resourceType: ResourceType): List<GotoRelatedItem>? {
+    private fun collectRelatedClasses(file: XmlFile, facet: AndroidFacet, resourceType: ResourceType): List<GotoRelatedItem>? {
       val resourceName = SdkUtils.fileNameToResourceName(file.name)
       val fields = findResourceFields(facet, resourceType.getName(), resourceName)
       val field = fields.firstOrNull() ?: return null
@@ -229,14 +230,18 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
         return listOf(GotoRelatedItem(declared))
       }
 
-      return ReferencesSearch.search(field, module.getModuleScope(false)).findAll().mapNotNull { reference ->
-        val element = reference.element
-        when (element.language) {
-          KotlinLanguage.INSTANCE -> checkKotlinReference(element)
-          JavaLanguage.INSTANCE -> checkJavaReference(element)
-          else -> null
+      return ReferencesSearch.search(field, module.getModuleScope(false))
+        .findAll()
+        .mapNotNull { reference ->
+          val element = reference.element
+          when (element.language) {
+            KotlinLanguage.INSTANCE -> checkKotlinReference(element)
+            JavaLanguage.INSTANCE -> checkJavaReference(element)
+            else -> null
+          }
         }
-      }.toList().ifEmpty { null }
+        .toList()
+        .ifEmpty { null }
     }
 
     /**
@@ -267,7 +272,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
       if (SdkConstants.SET_CONTENT_VIEW_METHOD == methodName || SdkConstants.INFLATE_METHOD == methodName) {
         val relatedClass = callExpression.containingClass() ?: return null
         val lightClass = relatedClass.toLightClass() ?: return null
-        //TODO(lukeegan): Replace use of isInheritorOfOne with a implementation using ClassDescriptors to avoid KotlinLight layer.
+        // TODO(lukeegan): Replace use of isInheritorOfOne with a implementation using ClassDescriptors to avoid KotlinLight layer.
         if (lightClass.isInheritorOfOne(CONTEXT_CLASSES)) {
           return GotoRelatedItem(relatedClass)
         }
@@ -276,21 +281,17 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
     }
 
     /**
-     * @param possibleBaseClasses List of fully qualified class names
-     * Checks whether the PsiClass inherits from one of the possibleBaseClasses if they are available in the PsiClass scope.
+     * @param possibleBaseClasses List of fully qualified class names Checks whether the PsiClass inherits from one of the
+     *   possibleBaseClasses if they are available in the PsiClass scope.
      */
     private fun PsiClass.isInheritorOfOne(possibleBaseClasses: Collection<String>): Boolean {
       return possibleBaseClasses.any { InheritanceUtil.isInheritor(this, it) }
     }
   }
 
-  /**
-   * Subclass of [GotoRelatedItem] specifically for showing links to Layout files.
-   */
-  private class MyGotoRelatedItem(
-    private val myFile: PsiFile,
-    resourceType: ResourceType
-  ): GotoRelatedItem(myFile, "${resourceType.displayName} Files") {
+  /** Subclass of [GotoRelatedItem] specifically for showing links to Layout files. */
+  private class MyGotoRelatedItem(private val myFile: PsiFile, resourceType: ResourceType) :
+    GotoRelatedItem(myFile, "${resourceType.displayName} Files") {
 
     override fun getCustomContainerName(): String? {
       val directory = myFile.containingDirectory
@@ -298,9 +299,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
     }
   }
 
-  /**
-   * Subclass of [GotoRelatedItem] specifically for showing links to manifest.xml files.
-   */
+  /** Subclass of [GotoRelatedItem] specifically for showing links to manifest.xml files. */
   private class MyGotoManifestItem(attributeValue: XmlAttributeValue) : GotoRelatedItem(attributeValue) {
 
     override fun getCustomName(): String {

@@ -31,13 +31,10 @@ import javax.swing.JPanel
 /**
  * A standard class for implementing a browse button for an editor.
  *
- * The editor component is wrapped in panel with a possible icon to the right displaying of the
- * editor.
+ * The editor component is wrapped in panel with a possible icon to the right displaying of the editor.
  */
-class ActionButtonBinding(
-  private val model: BasePropertyEditorModel,
-  private val editor: JComponent,
-) : JPanel(BorderLayout()), UiDataProvider {
+class ActionButtonBinding(private val model: BasePropertyEditorModel, private val editor: JComponent) :
+  JPanel(BorderLayout()), UiDataProvider {
 
   private val actionButtonModel
     get() = model.property.browseButton
@@ -80,17 +77,13 @@ class ActionButtonBinding(
     }
   }
 
-  private inner class ButtonWithCustomTooltip(action: AnAction?) :
-    IconWithFocusBorder(activateAction = { action }) {
+  private inner class ButtonWithCustomTooltip(action: AnAction?) : IconWithFocusBorder(activateAction = { action }) {
 
     override fun getToolTipText(event: MouseEvent): String? {
       // Trick: Use the component from the event.source for tooltip in tables. See
       // TableEditor.getToolTip().
       val component = event.source as? JComponent ?: this
-      PropertyTooltip.setToolTip(
-        component,
-        actionButtonModel?.action?.templatePresentation?.description,
-      )
+      PropertyTooltip.setToolTip(component, actionButtonModel?.action?.templatePresentation?.description)
       return null
     }
   }

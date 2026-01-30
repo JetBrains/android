@@ -24,9 +24,7 @@ import org.jetbrains.kotlin.idea.base.psi.getLineNumber
 import org.junit.Before
 import org.junit.Test
 
-/**
- * This test covers search logic works as expected on different options of dependency declarations.
- */
+/** This test covers search logic works as expected on different options of dependency declarations. */
 @RunsInEdt
 class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase() {
 
@@ -35,11 +33,12 @@ class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase() {
     testDataPath = AndroidTestBase.getModulePath("build-attribution") + "/testData/buildFiles"
   }
 
-  private val selectedDependency = JetifierWarningDetailsView.DirectDependencyDescriptor(
-    fullName = "org.jetbrains.kotlin:kotlin-stdlib:1.5.31",
-    projects = listOf(":"),
-    pathToSupportLibrary = listOf() // Does not get involved here.
-  )
+  private val selectedDependency =
+    JetifierWarningDetailsView.DirectDependencyDescriptor(
+      fullName = "org.jetbrains.kotlin:kotlin-stdlib:1.5.31",
+      projects = listOf(":"),
+      pathToSupportLibrary = listOf(), // Does not get involved here.
+    )
 
   @Test
   fun testVersionInLiteral() {

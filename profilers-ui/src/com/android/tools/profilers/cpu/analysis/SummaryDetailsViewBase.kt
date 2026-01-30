@@ -30,24 +30,20 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 
 /**
- * Base view class for summary tab details.
- * This class inherits `JPanel` instead of containing its instance so that its `observer` has the same lifetime
- * as the displayed JPanel.
+ * Base view class for summary tab details. This class inherits `JPanel` instead of containing its instance so that its `observer` has the
+ * same lifetime as the displayed JPanel.
  *
- * Includes a common section table. Subclasses can use [#addRowToCommonSection] to add a row to the common section. Or
- * add more components to [#component].
+ * Includes a common section table. Subclasses can use [#addRowToCommonSection] to add a row to the common section. Or add more components
+ * to [#component].
  *
  * @param <T>analysis tab model type, e.g. [CaptureNodeAnalysisSummaryTabModel]</T>
  */
 open class SummaryDetailsViewBase<T : CpuAnalysisSummaryTabModel<*>>(val profilersView: StudioProfilersView, val tabModel: T) : JPanel() {
   val observer = AspectObserver()
-  @VisibleForTesting
-  val commonSection: JPanel
+  @VisibleForTesting val commonSection: JPanel
 
   init {
-    commonSection = JPanel(TabularLayout("30*,70*", "Fit-").setVGap(COMMON_SECTION_ROW_PADDING_PX)).apply {
-      isOpaque = false
-    }
+    commonSection = JPanel(TabularLayout("30*,70*", "Fit-").setVGap(COMMON_SECTION_ROW_PADDING_PX)).apply { isOpaque = false }
     layout = TabularLayout("*", "Fit").setVGap(SECTION_PADDING_PX)
     background = primaryContentBackground
     border = JBUI.Borders.empty(8, 12)
@@ -57,11 +53,7 @@ open class SummaryDetailsViewBase<T : CpuAnalysisSummaryTabModel<*>>(val profile
   /**
    * Add a row to the common section. The common section is the first section of the Summary Tab that looks like this:
    *
-   * +---------+----------+
-   * |Range    | 1:00-2:00|
-   * |Duration |       1 m|
-   * |Data Type|    Thread|
-   * +---------+----------+
+   * +---------+----------+ |Range | 1:00-2:00| |Duration | 1 m| |Data Type| Thread| +---------+----------+
    */
   protected fun addRowToCommonSection(name: String, value: JComponent) {
     val rows = commonSection.componentCount / 2
@@ -80,23 +72,21 @@ open class SummaryDetailsViewBase<T : CpuAnalysisSummaryTabModel<*>>(val profile
     commonSection.add(value, TabularLayout.Constraint(rows, 1))
   }
 
-  /**
-   * Add a section to the Summary Tab.
-   */
+  /** Add a section to the Summary Tab. */
   protected fun addSection(section: JComponent) {
     add(section, TabularLayout.Constraint(componentCount, 0))
   }
 
   companion object {
 
-    /**
-     * @return string representation of the time range, relative to capture range.
-     */
+    /** @return string representation of the time range, relative to capture range. */
     @JvmStatic
     fun formatTimeRangeAsString(selectionRange: Range, relativeZeroPoint: Long, separator: Char = '-'): String {
-      return String.format("%s $separator %s",
-                           TimeFormatter.getSemiSimplifiedClockString(selectionRange.min.toLong() - relativeZeroPoint),
-                           TimeFormatter.getSemiSimplifiedClockString(selectionRange.max.toLong() - relativeZeroPoint))
+      return String.format(
+        "%s $separator %s",
+        TimeFormatter.getSemiSimplifiedClockString(selectionRange.min.toLong() - relativeZeroPoint),
+        TimeFormatter.getSemiSimplifiedClockString(selectionRange.max.toLong() - relativeZeroPoint),
+      )
     }
 
     const val SECTION_PADDING_PX = 24

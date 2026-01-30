@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails
+
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -73,58 +74,52 @@ import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizonta
 import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.notifications.NotificationWithTooltip
 import icons.StudioIconsCompose
+import java.util.concurrent.CompletableFuture
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Link
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
-import java.util.concurrent.CompletableFuture
 
 /**
- * Composable function that renders the leak details panel.
- * It displays either a placeholder message when no leak is selected or the leak trace details with a scrollbar when a leak is available.
+ * Composable function that renders the leak details panel. It displays either a placeholder message when no leak is selected or the leak
+ * trace details with a scrollbar when a leak is available.
  *
  * @param selectedLeak The currently selected leak, if any.
  * @param gotoDeclaration GotoDeclaration action for the given node.
  */
 @Composable
-fun LeakDetailsPanel(selectedLeak: Leak?,
-                     gotoDeclaration: (Node) -> Unit,
-                     isRecording: Boolean,
-                     isLeakCanaryPresent: Boolean,
-                     isDeclarationAvailableAsync: (Node) -> CompletableFuture<Boolean>,
-                     openStates: List<Boolean>,
-                     onOpenStatesChange: (List<Boolean>) -> Unit) {
+fun LeakDetailsPanel(
+  selectedLeak: Leak?,
+  gotoDeclaration: (Node) -> Unit,
+  isRecording: Boolean,
+  isLeakCanaryPresent: Boolean,
+  isDeclarationAvailableAsync: (Node) -> CompletableFuture<Boolean>,
+  openStates: List<Boolean>,
+  onOpenStatesChange: (List<Boolean>) -> Unit,
+) {
   val emptyLeakMessage = if (isRecording) LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE else LEAKCANARY_NO_LEAK_FOUND_MESSAGE
   val traceNodes = selectedLeak?.displayedLeakTrace?.firstOrNull()?.nodes ?: emptyList()
-  val onExpandAll = { onOpenStatesChange(List(traceNodes.size) { true })}
-  val onCollapseAll = { onOpenStatesChange(List(traceNodes.size) { false })}
+  val onExpandAll = { onOpenStatesChange(List(traceNodes.size) { true }) }
+  val onCollapseAll = { onOpenStatesChange(List(traceNodes.size) { false }) }
 
   if (!isLeakCanaryPresent) {
     Box(modifier = Modifier.fillMaxSize().padding(horizontal = 15.dp), contentAlignment = Alignment.Center) {
-      SelectionContainer {
-        EllipsisText(text = LEAKCANARY_MISSING_MESSAGE, maxLines = 3)
-      }
+      SelectionContainer { EllipsisText(text = LEAKCANARY_MISSING_MESSAGE, maxLines = 3) }
     }
-  }
-  else if (selectedLeak == null) {
+  } else if (selectedLeak == null) {
     Box(modifier = Modifier.fillMaxSize().padding(horizontal = 15.dp), contentAlignment = Alignment.Center) {
       EllipsisText(text = emptyLeakMessage, maxLines = 3)
     }
-  }
-  else {
+  } else {
     val scrollState = rememberScrollState()
     Column(modifier = Modifier.fillMaxSize()) {
-      LeakActionToolbar(
-        selectedLeak = selectedLeak,
-        onExpandAll = onExpandAll,
-        onCollapseAll = onCollapseAll
-      )
+      LeakActionToolbar(selectedLeak = selectedLeak, onExpandAll = onExpandAll, onCollapseAll = onCollapseAll)
       ToolWindowHorizontalDivider()
       Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(10.dp)) {
           // If displayedLeakTrace is empty, use empty list for the leak nodes.
           val traceNodes = if (selectedLeak.displayedLeakTrace.isNotEmpty()) selectedLeak.displayedLeakTrace[0].nodes else listOf()
-          if(traceNodes.isNotEmpty()){
+          if (traceNodes.isNotEmpty()) {
             GcRootNodeView(selectedLeak.displayedLeakTrace[0])
           }
           traceNodes.forEachIndexed { index, currNode ->
@@ -138,14 +133,11 @@ fun LeakDetailsPanel(selectedLeak: Leak?,
                 val newStates = openStates.toMutableList().apply { this[index] = !this[index] }
                 onOpenStatesChange(newStates)
               },
-              isDeclarationAvailableAsync = isDeclarationAvailableAsync
+              isDeclarationAvailableAsync = isDeclarationAvailableAsync,
             )
           }
         }
-        VerticalScrollbar(
-          adapter = rememberScrollbarAdapter(scrollState),
-          modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd)
-        )
+        VerticalScrollbar(adapter = rememberScrollbarAdapter(scrollState), modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd))
       }
     }
   }
@@ -154,8 +146,8 @@ fun LeakDetailsPanel(selectedLeak: Leak?,
 /**
  * Renders the special "GC Root" node at the top of the leak trace.
  *
- * This composable displays the GC root type in a bordered box and draws a vertical line
- * to connect it visually to the first element of the leak trace below it.
+ * This composable displays the GC root type in a bordered box and draws a vertical line to connect it visually to the first element of the
+ * leak trace below it.
  *
  * @param leakTrace The LeakTrace object, used to get the GC root description and the status of the first node.
  */
@@ -163,19 +155,13 @@ fun LeakDetailsPanel(selectedLeak: Leak?,
 fun GcRootNodeView(leakTrace: LeakTrace) {
   Column(modifier = Modifier.padding(start = 10.dp)) {
     Text(
-      text = buildAnnotatedString {
-        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-          append(LEAKCANARY_GC_ROOT)
-        }
-        append(" (${leakTrace.gcRootType.description})")
-      },
-      modifier = Modifier
-        .border(
-          width = 1.dp,
-          color = Color.Gray,
-          shape = RoundedCornerShape(4.dp)
-        )
-        .padding(horizontal = 8.dp, vertical = 4.dp)
+      text =
+        buildAnnotatedString {
+          withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append(LEAKCANARY_GC_ROOT) }
+          append(" (${leakTrace.gcRootType.description})")
+        },
+      modifier =
+        Modifier.border(width = 1.dp, color = Color.Gray, shape = RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 4.dp),
     )
     Row(modifier = Modifier.height(16.dp)) {
       Spacer(Modifier.padding(12.dp))
@@ -194,38 +180,40 @@ fun GcRootNodeView(leakTrace: LeakTrace) {
  * @param nextNode The next node in the trace, if any.
  */
 @Composable
-fun LeakTraceNodeView(node: Node,
-                      previousNode: Node?,
-                      gotoDeclaration: (Node) -> Unit,
-                      nextNode: Node?,
-                      isOpen: Boolean = false,
-                      onClickNode: () -> Unit,
-                      isDeclarationAvailableAsync: (Node) -> CompletableFuture<Boolean>) {
+fun LeakTraceNodeView(
+  node: Node,
+  previousNode: Node?,
+  gotoDeclaration: (Node) -> Unit,
+  nextNode: Node?,
+  isOpen: Boolean = false,
+  onClickNode: () -> Unit,
+  isDeclarationAvailableAsync: (Node) -> CompletableFuture<Boolean>,
+) {
   val interactionSource = remember { MutableInteractionSource() }
   val isFocused by interactionSource.collectIsFocusedAsState()
   val focusRequester = remember { FocusRequester() }
 
-  val rowClickableModifier = Modifier
-    .focusRequester(focusRequester)
-    .clickable(onClick = { onClickNode() }, interactionSource = interactionSource)
-    .pointerHoverIcon(PointerIcon.Hand)
+  val rowClickableModifier =
+    Modifier.focusRequester(focusRequester)
+      .clickable(onClick = { onClickNode() }, interactionSource = interactionSource)
+      .pointerHoverIcon(PointerIcon.Hand)
   var isDeclarationFound by remember(node) { mutableStateOf(true) }
 
-  LaunchedEffect(node) {
-    isDeclarationAvailableAsync(node).thenAccept { isAvailable ->
-      isDeclarationFound = isAvailable
-    }
-  }
-  Column(modifier = Modifier.height(IntrinsicSize.Min)
-    .background(if (isFocused) TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR else Color.Transparent, shape = RoundedCornerShape(4.dp))
-    .padding(horizontal = 5.dp)
+  LaunchedEffect(node) { isDeclarationAvailableAsync(node).thenAccept { isAvailable -> isDeclarationFound = isAvailable } }
+  Column(
+    modifier =
+      Modifier.height(IntrinsicSize.Min)
+        .background(
+          if (isFocused) TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR else Color.Transparent,
+          shape = RoundedCornerShape(4.dp),
+        )
+        .padding(horizontal = 5.dp)
   ) {
     Row {
       Row(modifier = rowClickableModifier.testTag(node.className)) {
         if (isOpen) {
           Icon(AllIconsKeys.General.ArrowDown, LEAKCANARY_OPEN, modifier = Modifier.padding(top = 2.dp))
-        }
-        else {
+        } else {
           Icon(AllIconsKeys.General.ArrowRight, LEAKCANARY_CLOSE, modifier = Modifier.padding(top = 2.dp))
         }
         Spacer(Modifier.padding(2.5.dp))
@@ -240,22 +228,21 @@ fun LeakTraceNodeView(node: Node,
       Column(horizontalAlignment = Alignment.Start) {
         Row(modifier = rowClickableModifier.padding(top = 3.dp, end = 5.dp)) {
           Text(
-            text = buildAnnotatedString {
-              appendClassAndStatusText(previousNode, node)
-            },
+            text = buildAnnotatedString { appendClassAndStatusText(previousNode, node) },
             modifier = Modifier.weight(1f),
-            overflow = TextOverflow.Visible
+            overflow = TextOverflow.Visible,
           )
           if (isOpen) {
             if (isDeclarationFound) {
               Link(text = LEAKCANARY_GO_TO_DECLARATION, onClick = { gotoDeclaration(node) }, modifier = Modifier.padding(top = 2.dp))
-            }
-            else {
-              NotificationWithTooltip(notificationText = LEAKCANARY_NO_DECLARATION_FOUND,
-                                      tooltipMainText = LEAKCANARY_NO_DECLARATION_FOUND_TOOLTIP,
-                                      tooltipSubText = null,
-                                      iconKey = StudioIconsCompose.AppQualityInsights.NonFatal,
-                                      iconDescription = START_TASK_SELECTION_ERROR_ICON_DESC)
+            } else {
+              NotificationWithTooltip(
+                notificationText = LEAKCANARY_NO_DECLARATION_FOUND,
+                tooltipMainText = LEAKCANARY_NO_DECLARATION_FOUND_TOOLTIP,
+                tooltipSubText = null,
+                iconKey = StudioIconsCompose.AppQualityInsights.NonFatal,
+                iconDescription = START_TASK_SELECTION_ERROR_ICON_DESC,
+              )
             }
           }
         }
@@ -266,9 +253,10 @@ fun LeakTraceNodeView(node: Node,
     }
   }
 }
+
 /**
- * Helper function to get the display name of the referring object.
- * It extracts and formats the relevant information from the previous node's referencing field.
+ * Helper function to get the display name of the referring object. It extracts and formats the relevant information from the previous
+ * node's referencing field.
  *
  * @param previousNode The previous node in the trace, if any.
  * @param node The current node.
@@ -276,15 +264,11 @@ fun LeakTraceNodeView(node: Node,
  */
 private fun getReferringDisplayName(previousNode: Node?, node: Node): String {
   val referringField = previousNode?.referencingField ?: return ""
-  val cleanedField = referringField.toString()
-    .replace("│", "")
-    .replace("↓", "")
-    .trim()
-    .split("\n")[0]
-    .trim()
+  val cleanedField = referringField.toString().replace("│", "").replace("↓", "").trim().split("\n")[0].trim()
   val className = node.className.split(".").last()
   return "($cleanedField:$className)"
 }
+
 /**
  * Extension function on AnnotatedString.Builder to append class name and status text with formatting.
  *
@@ -294,11 +278,11 @@ private fun getReferringDisplayName(previousNode: Node?, node: Node): String {
 private fun AnnotatedString.Builder.appendClassAndStatusText(previousNode: Node?, node: Node) {
   val referringDisplayName = getReferringDisplayName(previousNode, node)
   val referenceDisplaySplitIndex = referringDisplayName.lastIndexOf(":")
-  val firstSection = if (referenceDisplaySplitIndex > 0)
-    referringDisplayName.substring(0, referenceDisplaySplitIndex) else referringDisplayName
-  val lastSection = if (referenceDisplaySplitIndex > 0) "$"+
-                                                        referringDisplayName.substring(referenceDisplaySplitIndex+1,
-                                                                                       referringDisplayName.length) else ""
+  val firstSection =
+    if (referenceDisplaySplitIndex > 0) referringDisplayName.substring(0, referenceDisplaySplitIndex) else referringDisplayName
+  val lastSection =
+    if (referenceDisplaySplitIndex > 0) "$" + referringDisplayName.substring(referenceDisplaySplitIndex + 1, referringDisplayName.length)
+    else ""
   append(AnnotatedString(text = node.className))
   append(AnnotatedString(" ${node.nodeType} \n"))
   append(AnnotatedString(firstSection))

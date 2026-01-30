@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -28,8 +29,6 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.util.concurrent.CountDownLatch
-
 
 @RunWith(Parameterized::class)
 class ResourceIdManagerBaseTest(private val useRBytecodeParsing: Boolean) {
@@ -148,9 +147,9 @@ class ResourceIdManagerBaseTest(private val useRBytecodeParsing: Boolean) {
   /**
    * Regression test for b/397431390.
    *
-   * When multiple [ResourceIdManagerBase] initialize in parallel, several framework ids initialization could
-   * happen concurrently and cause a crash (since the collections used are not thread safe).
-   * A fix was put in place to avoid the parallel initializations happening in parallel.
+   * When multiple [ResourceIdManagerBase] initialize in parallel, several framework ids initialization could happen concurrently and cause
+   * a crash (since the collections used are not thread safe). A fix was put in place to avoid the parallel initializations happening in
+   * parallel.
    */
   @Test
   fun testParallelInitialization() {
@@ -165,14 +164,7 @@ class ResourceIdManagerBaseTest(private val useRBytecodeParsing: Boolean) {
           startLatch.await()
           val idManager = StubbedResourceIdManager(useRBytecodeParsing, frameworkResourceIdsProviderInstance)
 
-          repeat(100) {
-            assertEquals(
-              0x1030005,
-              idManager.getOrGenerateId(
-                ResourceReference.style(ResourceNamespace.ANDROID, "Theme")
-              )
-            )
-          }
+          repeat(100) { assertEquals(0x1030005, idManager.getOrGenerateId(ResourceReference.style(ResourceNamespace.ANDROID, "Theme"))) }
         }
       }
 
@@ -191,10 +183,12 @@ class ResourceIdManagerBaseTest(private val useRBytecodeParsing: Boolean) {
 
     assertEquals("The framework resources should have been loaded only once", 1, frameworkResourceIdsProviderInstance.modificationCount)
     StubbedResourceIdManager(!useRBytecodeParsing, frameworkResourceIdsProviderInstance)
-    assertEquals("The framework resources should have been invalidated after the change in R class parsing mode", 2,
-                 frameworkResourceIdsProviderInstance.modificationCount)
+    assertEquals(
+      "The framework resources should have been invalidated after the change in R class parsing mode",
+      2,
+      frameworkResourceIdsProviderInstance.modificationCount,
+    )
   }
-
 
   class R {
     class string {
@@ -202,6 +196,7 @@ class ResourceIdManagerBaseTest(private val useRBytecodeParsing: Boolean) {
         const val string: Int = 0x7f000001
       }
     }
+
     class style {
       companion object {
         const val style: Int = 0x7f010001
@@ -216,8 +211,6 @@ class ResourceIdManagerBaseTest(private val useRBytecodeParsing: Boolean) {
   }
 
   companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "useRBytecodeParsing={0}")
-    fun userRBytecodeParsing() = listOf(false, true)
+    @JvmStatic @Parameterized.Parameters(name = "useRBytecodeParsing={0}") fun userRBytecodeParsing() = listOf(false, true)
   }
 }

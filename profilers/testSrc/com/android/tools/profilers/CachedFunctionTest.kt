@@ -16,8 +16,8 @@
 package com.android.tools.profilers
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import kotlin.math.sin
+import org.junit.Test
 
 class CachedFunctionTest {
 
@@ -26,9 +26,7 @@ class CachedFunctionTest {
     val countedSin = CountedFunction(::sin)
     val cachedSin = CachedFunction(countedSin)
     val x = Math.random()
-    repeat(5) {
-      assertThat(cachedSin(x)).isEqualTo(sin(x))
-    }
+    repeat(5) { assertThat(cachedSin(x)).isEqualTo(sin(x)) }
     assertThat(countedSin.invocationCount).isEqualTo(1)
   }
 

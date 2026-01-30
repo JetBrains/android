@@ -18,6 +18,4 @@ package org.jetbrains.android.dom.manifest
 import com.intellij.util.xml.DefinesXml
 import org.jetbrains.android.dom.Styleable
 
-@DefinesXml
-@Styleable("AndroidManifestGrantUriPermission")
-interface GrantUriPermission : ManifestElement
+@DefinesXml @Styleable("AndroidManifestGrantUriPermission") interface GrantUriPermission : ManifestElement

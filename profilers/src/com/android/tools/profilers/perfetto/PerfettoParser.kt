@@ -24,13 +24,13 @@ import com.android.tools.profilers.cpu.systemtrace.ProcessListSorter
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCaptureBuilder
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceSurfaceflingerManager
 import com.intellij.openapi.diagnostic.Logger
-import perfetto.protos.PerfettoTrace
 import java.io.File
 import java.util.Base64
 import java.util.concurrent.TimeUnit
+import perfetto.protos.PerfettoTrace
 
-class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
-                     private val ideProfilerServices: IdeProfilerServices) : TraceParser {
+class PerfettoParser(private val mainProcessSelector: MainProcessSelector, private val ideProfilerServices: IdeProfilerServices) :
+  TraceParser {
 
   companion object {
     private val LOGGER = Logger.getInstance(PerfettoParser::class.java)
@@ -68,11 +68,12 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
             processHint = uiState.highlightProcess.cmdline
           }
           if (uiState.timelineStartTs != 0L && uiState.timelineEndTs != 0L) {
-            initialViewRange.set(TimeUnit.NANOSECONDS.toMicros(uiState.timelineStartTs).toDouble(),
-                                 TimeUnit.NANOSECONDS.toMicros(uiState.timelineEndTs).toDouble());
+            initialViewRange.set(
+              TimeUnit.NANOSECONDS.toMicros(uiState.timelineStartTs).toDouble(),
+              TimeUnit.NANOSECONDS.toMicros(uiState.timelineEndTs).toDouble(),
+            )
           }
-        }
-        catch (throwable:Throwable) {
+        } catch (throwable: Throwable) {
           // Failed to parse / decode ui metadata log and continue.
           LOGGER.warn("Trace contained ui-state, however it failed to parse correctly. Ui state will not be loaded", throwable)
         }
@@ -82,9 +83,12 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
       val userSelectedProcess = mainProcessSelector.apply(processListSorter.sort(processList))
       checkNotNull(userSelectedProcess) { "It was not possible to select a process for this trace." }
       val selectedProcess = processList.first { processModel -> processModel.id == userSelectedProcess }
-      val processesToQuery = (listOf(selectedProcess) + listOfNotNull(processList.find {
-        it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME)
-      })).distinct()
+      val processesToQuery =
+        (listOf(selectedProcess) +
+            listOfNotNull(
+              processList.find { it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME) }
+            ))
+          .distinct()
       val model = traceProcessor.loadCpuData(traceId, processesToQuery, selectedProcess, ideProfilerServices)
 
       // Track the power rail and battery counter count for power profiler usage metrics.

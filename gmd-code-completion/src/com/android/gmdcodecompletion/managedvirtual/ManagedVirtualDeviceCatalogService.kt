@@ -35,10 +35,10 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.Calendar
 import java.util.EnumSet
 import kotlin.concurrent.withLock
+import org.jetbrains.annotations.VisibleForTesting
 
 // Fix b/272562190 to enable Android TV images
 private const val ANDROID_TV_IMAGE = "tv"
@@ -58,12 +58,10 @@ private val LOGGER = Logger.getInstance(ManagedVirtualDeviceCatalogService::clas
   storages = [Storage(value = "ManagedVirtualDeviceCatalogService.xml", roamingType = RoamingType.DISABLED)],
 )
 @Service(Service.Level.APP)
-class ManagedVirtualDeviceCatalogService
-  : GmdDeviceCatalogService<ManagedVirtualDeviceCatalogState>(ManagedVirtualDeviceCatalogState(), "ManagedVirtualDeviceCatalogService") {
+class ManagedVirtualDeviceCatalogService :
+  GmdDeviceCatalogService<ManagedVirtualDeviceCatalogState>(ManagedVirtualDeviceCatalogState(), "ManagedVirtualDeviceCatalogService") {
   companion object {
-    @JvmStatic
-    fun getInstance(): ManagedVirtualDeviceCatalogService =
-      service<ManagedVirtualDeviceCatalogService>()
+    @JvmStatic fun getInstance(): ManagedVirtualDeviceCatalogService = service<ManagedVirtualDeviceCatalogService>()
 
     @VisibleForTesting
     fun syncDeviceCatalog(): ManagedVirtualDeviceCatalog {
@@ -79,35 +77,35 @@ class ManagedVirtualDeviceCatalogService
           repoManager.loadRemotePackages(cancellableProgress, StudioDownloader(), StudioSettingsController.getInstance())
         }
         val systemImages = repoManager.packages.consolidatedPkgs
-        systemImages.filter {
-          it.key.contains("system-images") &&
-          !it.key.contains(ANDROID_TV_IMAGE) &&
-          !it.key.contains(ANDROID_AUTO_IMAGE)
-        }.forEach { (installId, updatablePackage) ->
-          val typeDetails = updatablePackage.representative.typeDetails as? DetailsTypes.SysImgDetailsType
-          if (typeDetails == null) {
-            LOGGER.warn("Could not get typeDetails for $installId. Skipping.")
-            return@forEach
-          }
-          val apiLevel = typeDetails.apiLevel
-          val apiPreview = typeDetails.androidVersion.codename ?: ""
-          val abiInfo = typeDetails.abis.firstOrNull() ?: ""
+        systemImages
+          .filter { it.key.contains("system-images") && !it.key.contains(ANDROID_TV_IMAGE) && !it.key.contains(ANDROID_AUTO_IMAGE) }
+          .forEach { (installId, updatablePackage) ->
+            val typeDetails = updatablePackage.representative.typeDetails as? DetailsTypes.SysImgDetailsType
+            if (typeDetails == null) {
+              LOGGER.warn("Could not get typeDetails for $installId. Skipping.")
+              return@forEach
+            }
+            val apiLevel = typeDetails.apiLevel
+            val apiPreview = typeDetails.androidVersion.codename ?: ""
+            val abiInfo = typeDetails.abis.firstOrNull() ?: ""
 
-          val propertyList = installId.split(";")
-          if (propertyList.size != 4) {
-            LOGGER.warn("Could not get imageSource for $installId. Skipping.")
-            return@forEach
+            val propertyList = installId.split(";")
+            if (propertyList.size != 4) {
+              LOGGER.warn("Could not get imageSource for $installId. Skipping.")
+              return@forEach
+            }
+            val imageSource = propertyList[2].let { if (it == "default") "google" else it }
+            if (apiLevel > 0) {
+              deviceCatalog.apiLevels.add(
+                ManagedVirtualDeviceCatalog.ApiVersionInfo(
+                  apiLevel = apiLevel,
+                  apiPreview = apiPreview,
+                  imageSource = imageSource,
+                  require64Bit = (!abiInfo.contains("arm") && abiInfo.contains("64")),
+                )
+              )
+            }
           }
-          val imageSource = propertyList[2].let { if (it == "default") "google" else it }
-          if (apiLevel > 0) {
-            deviceCatalog.apiLevels.add(ManagedVirtualDeviceCatalog.ApiVersionInfo(
-              apiLevel = apiLevel,
-              apiPreview = apiPreview,
-              imageSource = imageSource,
-              require64Bit = (!abiInfo.contains("arm") && abiInfo.contains("64")),
-            ))
-          }
-        }
 
         val availableApis = deviceCatalog.apiLevels.map { it.apiLevel }
 
@@ -115,16 +113,12 @@ class ManagedVirtualDeviceCatalogService
         val categories = EnumSet.of(DeviceManager.DeviceCategory.DEFAULT, DeviceManager.DeviceCategory.VENDOR)
         for (device in DeviceManagers.getDeviceManager(sdkHandler).getDevices(categories)) {
           if (!device.isDeprecated) {
-            deviceCatalog.devices[device.displayName] = AndroidDeviceInfo(
-              deviceName = "",
-              supportedApis = availableApis,
-              brand = device.manufacturer
-            )
+            deviceCatalog.devices[device.displayName] =
+              AndroidDeviceInfo(deviceName = "", supportedApis = availableApis, brand = device.manufacturer)
           }
         }
         deviceCatalog.isEmptyCatalog = deviceCatalog.devices.isEmpty() && deviceCatalog.apiLevels.isEmpty()
-      }
-      catch (e: Exception) {
+      } catch (e: Exception) {
         LOGGER.warn("ManagedVirtualDeviceCatalog failed to syncDeviceCatalog", e)
       }
       return deviceCatalog

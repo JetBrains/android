@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("AdditionalDevices")
+
 package com.android.tools.configurations
 
 const val DEVICE_CLASS_PHONE_ID = "_device_class_phone"

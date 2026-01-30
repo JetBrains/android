@@ -19,11 +19,12 @@ import java.sql.SQLException
 import java.sql.Statement
 
 /**
- * This version of statement throws an exception anytime execute is called.
- * This is used to validate all queries to the database handle errors properly.
+ * This version of statement throws an exception anytime execute is called. This is used to validate all queries to the database handle
+ * errors properly.
  */
 class DatabaseTestStatement(stmt: Statement) : Statement by stmt {
   private val exceptionToThrow = SQLException("Test Statement throws exception on execute.")
+
   override fun execute(sql: String?): Boolean {
     throw exceptionToThrow
   }

@@ -41,22 +41,22 @@ class HeapDumpTaskTest : ProfilersTaskTestBase() {
   override fun stopCurrentTask(studio: AndroidStudio) {
     studio.waitForComponentByClass("CapturePanelUi")
   }
+
   /**
    * Validate heap dump task workflow is working.
    *
    * Test Steps:
-   *  1. Import "minApp" in the testData directory of this module.
-   *  2. Deploy App and open profiler tool window, set to debuggable mode.
-   *  3. Select device -> process -> task-> starting point.
-   *  4. Start the task
+   * 1. Import "minApp" in the testData directory of this module.
+   * 2. Deploy App and open profiler tool window, set to debuggable mode.
+   * 3. Select device -> process -> task-> starting point.
+   * 4. Start the task
    *
    * Test Verifications:
-   *  1. Verify if the profiler tool window is opened.
-   *  2. Verify if Transport proxy is created for the device.
-   *  3. Verify task start succeeded.
-   *  4. Verify if the capture is parsed successfully.
-   *  5. Verify UI components after capture is parsed.
+   * 1. Verify if the profiler tool window is opened.
+   * 2. Verify if Transport proxy is created for the device.
+   * 3. Verify task start succeeded.
+   * 4. Verify if the capture is parsed successfully.
+   * 5. Verify UI components after capture is parsed.
    */
-  @Test
-  fun test() = testTask()
+  @Test fun test() = testTask()
 }

@@ -34,40 +34,57 @@ object TaskModelTestUtils {
 
   fun createDevice(deviceName: String, deviceState: Common.Device.State): Common.Device = createDevice(deviceName, deviceState, deviceName)
 
-  fun createDevice(deviceName: String,
-                   deviceState: Common.Device.State,
-                   serial: String): Common.Device = Common.Device.newBuilder().setDeviceId(deviceName.hashCode().toLong()).setSerial(
-    serial).setState(deviceState).build()
+  fun createDevice(deviceName: String, deviceState: Common.Device.State, serial: String): Common.Device =
+    Common.Device.newBuilder().setDeviceId(deviceName.hashCode().toLong()).setSerial(serial).setState(deviceState).build()
 
-  fun createDevice(deviceName: String, deviceState: Common.Device.State, version: String, apiLevel: Int): Common.Device = createDevice(
-    deviceName, deviceName, deviceName.hashCode().toLong(), deviceState, version, apiLevel)
+  fun createDevice(deviceName: String, deviceState: Common.Device.State, version: String, apiLevel: Int): Common.Device =
+    createDevice(deviceName, deviceName, deviceName.hashCode().toLong(), deviceState, version, apiLevel)
 
-  fun createDevice(deviceName: String,
-                   serial: String,
-                   deviceId: Long,
-                   deviceState: Common.Device.State,
-                   version: String,
-                   apiLevel: Int): Common.Device = Common.Device.newBuilder().setDeviceId(deviceId).setSerial(serial).setState(
-    deviceState).setModel(deviceName).setVersion(version).setApiLevel(apiLevel).setFeatureLevel(apiLevel).build()
+  fun createDevice(
+    deviceName: String,
+    serial: String,
+    deviceId: Long,
+    deviceState: Common.Device.State,
+    version: String,
+    apiLevel: Int,
+  ): Common.Device =
+    Common.Device.newBuilder()
+      .setDeviceId(deviceId)
+      .setSerial(serial)
+      .setState(deviceState)
+      .setModel(deviceName)
+      .setVersion(version)
+      .setApiLevel(apiLevel)
+      .setFeatureLevel(apiLevel)
+      .build()
 
-  fun createProcess(pid: Int,
-                    processName: String,
-                    processState: Common.Process.State,
-                    deviceId: Long): Common.Process = createProcess(pid, processName, processState, deviceId,
-                                                                    Common.Process.ExposureLevel.DEBUGGABLE)
+  fun createProcess(pid: Int, processName: String, processState: Common.Process.State, deviceId: Long): Common.Process =
+    createProcess(pid, processName, processState, deviceId, Common.Process.ExposureLevel.DEBUGGABLE)
 
-  fun createProcess(pid: Int,
-                    processName: String,
-                    processState: Common.Process.State,
-                    deviceId: Long,
-                    exposureLevel: Common.Process.ExposureLevel): Common.Process =
-    Common.Process.newBuilder().setDeviceId(deviceId).setPid(pid).setName(processName).setState(processState).setExposureLevel(
-      exposureLevel).build()
+  fun createProcess(
+    pid: Int,
+    processName: String,
+    processState: Common.Process.State,
+    deviceId: Long,
+    exposureLevel: Common.Process.ExposureLevel,
+  ): Common.Process =
+    Common.Process.newBuilder()
+      .setDeviceId(deviceId)
+      .setPid(pid)
+      .setName(processName)
+      .setState(processState)
+      .setExposureLevel(exposureLevel)
+      .build()
 
   fun createProfilerDeviceSelection(featureLevel: Int, isRunning: Boolean) =
-    ProfilerDeviceSelection("FakeDevice", featureLevel, isRunning, false,
-                            if (isRunning) Common.Device.newBuilder().setModel("FakeDevice").setFeatureLevel(featureLevel).build()
-                            else Common.Device.getDefaultInstance())
+    ProfilerDeviceSelection(
+      "FakeDevice",
+      featureLevel,
+      isRunning,
+      false,
+      if (isRunning) Common.Device.newBuilder().setModel("FakeDevice").setFeatureLevel(featureLevel).build()
+      else Common.Device.getDefaultInstance(),
+    )
 
   fun updateDeviceState(deviceName: String, deviceState: Common.Device.State, transportService: FakeTransportService, timer: FakeTimer) {
     val newDevice = createDevice(deviceName, deviceState)

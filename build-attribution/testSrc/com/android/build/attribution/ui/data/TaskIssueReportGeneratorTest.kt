@@ -28,68 +28,65 @@ import com.intellij.util.LineSeparator
 import com.intellij.util.text.DateFormatUtil
 import org.junit.Test
 
-private const val PLATFORM_INFORMATION_DATA_MOCK = "AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s.r.o, OS Linux(amd64) v4.19.67-2rodete2-amd64, screens 2560x1440, 1440x2560"
+private const val PLATFORM_INFORMATION_DATA_MOCK =
+  "AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s.r.o, OS Linux(amd64) v4.19.67-2rodete2-amd64, screens 2560x1440, 1440x2560"
 
 class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest() {
 
   val task1androidPlugin =
-    TaskData("compileDebugJavaWithJavac", ":module1", applicationPlugin, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList())
-      .apply {
-        setTaskType("org.gradle.api.tasks.compile.JavaCompile")
-        isOnTheCriticalPath = true
-      }
+    TaskData("compileDebugJavaWithJavac", ":module1", applicationPlugin, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
+      setTaskType("org.gradle.api.tasks.compile.JavaCompile")
+      isOnTheCriticalPath = true
+    }
 
   val taskAmodule1 = TaskData("taskA", ":module1", pluginA, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList())
 
-  val taskBmodule1 = TaskData("taskB", ":module1", pluginB, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList())
-    .apply { isOnTheCriticalPath = true }
+  val taskBmodule1 =
+    TaskData("taskB", ":module1", pluginB, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList()).apply { isOnTheCriticalPath = true }
   val taskBmodule2 = TaskData("taskB", ":module2", pluginB, 0, 100, TaskData.TaskExecutionMode.INCREMENTAL, emptyList())
   val taskBmodule3OtherPlugin = TaskData("taskB", ":module3", pluginC, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList())
 
-  val taskCmodule1 = TaskData("taskC", ":module1", pluginC, 0, 7300, TaskData.TaskExecutionMode.FULL, emptyList())
-    .apply { isOnTheCriticalPath = true }
+  val taskCmodule1 =
+    TaskData("taskC", ":module1", pluginC, 0, 7300, TaskData.TaskExecutionMode.FULL, emptyList()).apply { isOnTheCriticalPath = true }
 
   // 2019-11-19 17:12:13
   private val buildFinishedTimestamp = 1574183533000
   private val buildFinishedTimeString = DateFormatUtil.formatDateTime(buildFinishedTimestamp)
-  private val mockAnalysisResult = object : AbstractBuildAttributionReportBuilderTest.MockResultsProvider() {
-    override fun getBuildFinishedTimestamp(): Long = buildFinishedTimestamp
-    override fun getTotalBuildTimeMs(): Long = 10000
-    override fun getConfigurationPhaseTimeMs(): Long = 1000
-    override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(task1androidPlugin, taskBmodule1, taskCmodule1)
-    override fun getProjectsConfigurationData(): List<ProjectConfigurationData> = listOf(
-      project(":module1", 1000, listOf(
-        plugin(pluginA, 200),
-        plugin(pluginB, 100),
-        plugin(pluginC, 600)
-      ))
-    )
+  private val mockAnalysisResult =
+    object : AbstractBuildAttributionReportBuilderTest.MockResultsProvider() {
+      override fun getBuildFinishedTimestamp(): Long = buildFinishedTimestamp
 
-    override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = listOf(
-      AlwaysRunTaskData(task1androidPlugin, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
+      override fun getTotalBuildTimeMs(): Long = 10000
 
-      AlwaysRunTaskData(taskAmodule1, AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE),
-      AlwaysRunTaskData(taskBmodule1, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
-      AlwaysRunTaskData(taskBmodule2, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
-      AlwaysRunTaskData(taskBmodule3OtherPlugin, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)
-    )
+      override fun getConfigurationPhaseTimeMs(): Long = 1000
 
-    override fun getTasksSharingOutput(): List<TasksSharingOutputData> = listOf(
-      TasksSharingOutputData("/tmp/tasks_sharing_output/test/path", listOf(taskAmodule1, taskBmodule1))
-    )
-  }
+      override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(task1androidPlugin, taskBmodule1, taskCmodule1)
+
+      override fun getProjectsConfigurationData(): List<ProjectConfigurationData> =
+        listOf(project(":module1", 1000, listOf(plugin(pluginA, 200), plugin(pluginB, 100), plugin(pluginC, 600))))
+
+      override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> =
+        listOf(
+          AlwaysRunTaskData(task1androidPlugin, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
+          AlwaysRunTaskData(taskAmodule1, AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE),
+          AlwaysRunTaskData(taskBmodule1, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
+          AlwaysRunTaskData(taskBmodule2, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
+          AlwaysRunTaskData(taskBmodule3OtherPlugin, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
+        )
+
+      override fun getTasksSharingOutput(): List<TasksSharingOutputData> =
+        listOf(TasksSharingOutputData("/tmp/tasks_sharing_output/test/path", listOf(taskAmodule1, taskBmodule1)))
+    }
 
   private val buildReportData = BuildAttributionReportBuilder(mockAnalysisResult).build()
 
-  private val reporter = TaskIssueReportGenerator(
-    buildReportData,
-    { PLATFORM_INFORMATION_DATA_MOCK },
-    { listOf(AgpVersion.parse("4.0.0-dev")) }
-  )
+  private val reporter =
+    TaskIssueReportGenerator(buildReportData, { PLATFORM_INFORMATION_DATA_MOCK }, { listOf(AgpVersion.parse("4.0.0-dev")) })
 
   @Test
   fun testAlwaysRunSingleTaskReported() {
-    val expectedText = """
+    val expectedText =
+      """
 At 17:12, Nov 19, 2019, Android Studio detected the following issue(s) with Gradle plugin com.android.application
 
 Always-Run Tasks
@@ -110,7 +107,8 @@ Critical path tasks size: 3
 AGP versions: 4.0.0-dev
 ====Platform information:====
 ${PLATFORM_INFORMATION_DATA_MOCK}
-""".trimIndent()
+"""
+        .trimIndent()
 
     val task = buildReportData.findTaskUiDataFor(task1androidPlugin)
     Truth.assertThat(reporter.generateReportText(task))
@@ -119,7 +117,8 @@ ${PLATFORM_INFORMATION_DATA_MOCK}
 
   @Test
   fun testTaskWithTwoIssues() {
-    val expectedText = """
+    val expectedText =
+      """
 At 17:12, Nov 19, 2019, Android Studio detected the following issue(s) with Gradle plugin pluginA
 
 Always-Run Tasks
@@ -143,8 +142,8 @@ Critical path tasks size: 3
 AGP versions: 4.0.0-dev
 ====Platform information:====
 ${PLATFORM_INFORMATION_DATA_MOCK}
-""".trim()
-
+"""
+        .trim()
 
     val task = buildReportData.findTaskUiDataFor(taskAmodule1)
     Truth.assertThat(reporter.generateReportText(task))
@@ -153,11 +152,12 @@ ${PLATFORM_INFORMATION_DATA_MOCK}
 
   @Test
   fun testSeveralVersionsOfAgpInProjects() {
-    val reporter = TaskIssueReportGenerator(
-      buildReportData,
-      { "" },
-      { listOf(AgpVersion.parse("4.0.0-dev"), AgpVersion.parse("4.0.0-dev"), AgpVersion.parse("3.0.0-dev")) }
-    )
+    val reporter =
+      TaskIssueReportGenerator(
+        buildReportData,
+        { "" },
+        { listOf(AgpVersion.parse("4.0.0-dev"), AgpVersion.parse("4.0.0-dev"), AgpVersion.parse("3.0.0-dev")) },
+      )
 
     val task = buildReportData.findTaskUiDataFor(task1androidPlugin)
     val agpVersionsLine = reporter.generateReportText(task).lines().find { it.startsWith("AGP versions: ") }
@@ -166,7 +166,8 @@ ${PLATFORM_INFORMATION_DATA_MOCK}
 
   @Test
   fun testSameIssueInSeveralModules() {
-    val expectedText = """
+    val expectedText =
+      """
 At 17:12, Nov 19, 2019, Android Studio detected the following issue(s) with Gradle plugin pluginB
 
 Always-Run Tasks
@@ -188,7 +189,8 @@ Critical path tasks size: 3
 AGP versions: 4.0.0-dev
 ====Platform information:====
 ${PLATFORM_INFORMATION_DATA_MOCK}
-""".trim()
+"""
+        .trim()
 
     val task = buildReportData.findTaskUiDataFor(taskBmodule2)
     Truth.assertThat(reporter.generateReportText(task))
@@ -197,8 +199,5 @@ ${PLATFORM_INFORMATION_DATA_MOCK}
 }
 
 fun BuildAttributionReportUiData.findTaskUiDataFor(task: TaskData): TaskUiData {
-  return issues
-    .flatMap { it.issues }
-    .map { it.task }
-    .find { it.taskPath == task.getTaskPath() }!!
+  return issues.flatMap { it.issues }.map { it.task }.find { it.taskPath == task.getTaskPath() }!!
 }

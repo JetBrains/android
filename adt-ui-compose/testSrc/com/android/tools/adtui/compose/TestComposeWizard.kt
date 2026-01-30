@@ -28,15 +28,13 @@ import javax.swing.JPanel
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) :
-  InternalWizardDialogScope, WizardPageScope() {
+class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) : InternalWizardDialogScope, WizardPageScope() {
 
   private val pageStack = mutableStateListOf<@Composable WizardPageScope.() -> Unit>(initialPage)
 
   @Composable
   fun Content() {
-    prevAction =
-      if (pageStack.size > 1) WizardAction { pageStack.removeLast() } else WizardAction.Disabled
+    prevAction = if (pageStack.size > 1) WizardAction { pageStack.removeLast() } else WizardAction.Disabled
     WizardPageScaffold(this, pageStack.last())
   }
 

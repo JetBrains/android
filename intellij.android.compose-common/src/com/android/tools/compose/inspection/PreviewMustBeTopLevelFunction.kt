@@ -24,34 +24,21 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
 /**
- * Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, is a
- * top level function. This is to avoid `@Preview` methods to be instance methods of classes that we
- * can not instantiate.
+ * Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, is a top level function. This is to avoid
+ * `@Preview` methods to be instance methods of classes that we can not instantiate.
  */
 open class PreviewMustBeTopLevelFunction(
   private val description: String,
   groupDisplayName: String,
   previewAnnotationChecker: PreviewAnnotationChecker,
 ) : BasePreviewAnnotationInspection(groupDisplayName, previewAnnotationChecker) {
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, function: KtNamedFunction, previewAnnotation: KtAnnotationEntry) {
     if (function.isValidPreviewLocation()) return
 
-    holder.registerProblem(
-      previewAnnotation.psiOrParent as PsiElement,
-      description,
-      ProblemHighlightType.ERROR,
-    )
+    holder.registerProblem(previewAnnotation.psiOrParent as PsiElement, description, ProblemHighlightType.ERROR)
   }
 
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, annotationClass: KtClass, previewAnnotation: KtAnnotationEntry) {
     // This inspection only applies for functions, not for Annotation classes
     return
   }

@@ -19,14 +19,13 @@ package com.android.ide.gradle.model.builder
 import com.android.ide.gradle.model.artifacts.builder.AdditionalClassifierArtifactsModelBuilder
 import com.android.ide.gradle.model.composites.BuildMapModelBuilder
 import com.android.ide.gradle.model.dependencies.DeclaredDependenciesModelBuilder
+import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.util.GradleVersion
-import javax.inject.Inject
 
-class AndroidStudioToolingPlugin @Inject
-internal constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Project> {
+class AndroidStudioToolingPlugin @Inject internal constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Project> {
 
   override fun apply(project: Project) {
     registry.register(GradlePluginModelBuilder())

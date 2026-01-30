@@ -30,31 +30,34 @@ import org.junit.Test
 // Checks that we have a basic editor support in res folders in all variant regardless chosen one.
 @RunsInEdt
 class SupportMultiVariantEditingForResourceFilesTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
   val project by lazy { projectRule.project }
   val fixture by lazy { projectRule.fixture }
 
   @Test
   fun testResolveToolNamespace() {
     projectRule.loadProject(TestProjectPaths.PROJECT_WITH_APPAND_LIB)
-    val debugRes = VfsTestUtil.createFile(
-      project.guessProjectDir()!!,
-      "app/src/debug/res/values/strings.xml",
-      """
+    val debugRes =
+      VfsTestUtil.createFile(
+        project.guessProjectDir()!!,
+        "app/src/debug/res/values/strings.xml",
+        """
           <resources xmlns:tools="http://schemas.android.com/tools">
               <string name="server_url">https://...</string>
           </resources>
-          """)
+          """,
+      )
 
-    val releaseRes = VfsTestUtil.createFile(
-      project.guessProjectDir()!!,
-      "app/src/release/res/values/strings.xml",
-      """
+    val releaseRes =
+      VfsTestUtil.createFile(
+        project.guessProjectDir()!!,
+        "app/src/release/res/values/strings.xml",
+        """
           <resources xmlns:tools="http://schemas.android.com/tools">
               <string name="server_url">https://...</string>
           </resources>
-          """)
+          """,
+      )
 
     IndexingTestUtil.waitUntilIndexesAreReady(project)
 

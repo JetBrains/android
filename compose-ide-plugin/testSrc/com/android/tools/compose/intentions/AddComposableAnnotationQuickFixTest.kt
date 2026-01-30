@@ -54,31 +54,27 @@ class AddComposableAnnotationQuickFixTest {
         "MyFunctionWithLambda.kt",
         // language=kotlin
         """
-       fun MyFunctionWithLambda(content: () -> Unit) {
-         content()
-       }
-       """
+        fun MyFunctionWithLambda(content: () -> Unit) {
+          content()
+        }
+        """
           .trimIndent(),
       )
-      .also {
-        invokeAndWaitIfNeeded {
-          runUndoTransparentWriteAction { it.virtualFile.isWritable = false }
-        }
-      }
+      .also { invokeAndWaitIfNeeded { runUndoTransparentWriteAction { it.virtualFile.isWritable = false } } }
 
     myFixture.loadNewFile(
       "Test.kt",
       // language=kotlin
       """
-       import androidx.compose.runtime.Composable
-       @Composable
-       fun ComposableFunction() {}
-       fun NonComposableFunction() {
-         MyFunctionWithLambda {
-           ComposableFunction()  // invocation
-         }
-       }
-       """
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun ComposableFunction() {}
+      fun NonComposableFunction() {
+        MyFunctionWithLambda {
+          ComposableFunction()  // invocation
+        }
+      }
+      """
         .trimIndent(),
     )
 
@@ -778,29 +774,22 @@ class AddComposableAnnotationQuickFixTest {
     ApplicationManager.getApplication().invokeAndWait { myFixture.moveCaret(window) }
     val fixFilter: (IntentionAction) -> Boolean =
       if (expectedFunctionName != null) {
-        { action ->
-          action.text ==
-            ComposeBundle.message("add.composable.to.element.with.name", expectedFunctionName)
-        }
+        { action -> action.text == ComposeBundle.message("add.composable.to.element.with.name", expectedFunctionName) }
       } else {
         { action -> action.text.startsWith("Add '@Composable' to ") }
       }
 
     val action = myFixture.availableIntentions.singleOrNull(fixFilter)
     if (action == null) {
-      val intentionTexts =
-        myFixture.availableIntentions.joinToString(transform = IntentionAction::getText)
+      val intentionTexts = myFixture.availableIntentions.joinToString(transform = IntentionAction::getText)
       fail("Could not find expected quick fix. Available intentions: $intentionTexts")
     } else {
-      WriteCommandAction.runWriteCommandAction(myProject) {
-        action.invoke(myProject, myFixture.editor, myFixture.file)
-      }
+      WriteCommandAction.runWriteCommandAction(myProject) { action.invoke(myProject, myFixture.editor, myFixture.file) }
     }
   }
 
   private fun assertQuickFixNotAvailable(window: String) {
     ApplicationManager.getApplication().invokeAndWait { myFixture.moveCaret(window) }
-    assertThat(myFixture.availableIntentions.filter { it.text.startsWith("Add '@Composable' to ") })
-      .isEmpty()
+    assertThat(myFixture.availableIntentions.filter { it.text.startsWith("Add '@Composable' to ") }).isEmpty()
   }
 }

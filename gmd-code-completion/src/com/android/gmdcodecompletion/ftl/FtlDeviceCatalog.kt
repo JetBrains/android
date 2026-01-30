@@ -19,7 +19,7 @@ import com.android.gmdcodecompletion.AndroidDeviceInfo
 import com.android.gmdcodecompletion.GmdDeviceCatalog
 
 /** This class fetches and stores information from FTL android device catalog */
-data class FtlDeviceCatalog (
+data class FtlDeviceCatalog(
   // Map of <device id, per Android device information>
   val devices: HashMap<String, AndroidDeviceInfo> = HashMap(),
   val apiLevels: ArrayList<Int> = ArrayList(),

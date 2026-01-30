@@ -16,10 +16,10 @@
 package com.android.tools.rendering.classloading
 
 import com.intellij.openapi.diagnostic.Logger
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.PriorityQueue
 import java.util.Stack
 import java.util.concurrent.atomic.LongAdder
+import org.jetbrains.annotations.VisibleForTesting
 
 /** Interface for reading [ModuleClassLoader] stats. */
 interface ModuleClassLoaderDiagnosticsRead {
@@ -87,10 +87,9 @@ object NopModuleClassLoadedDiagnostics : ModuleClassLoaderDiagnosticsWrite {
 }
 
 /**
- * A counter that allows accounting for self time and total time. Self time is the time spent
- * running the operation excluding the time used by the children. Total time is self time + total
- * time of all children. The counters do not have units so it's up to the client to make sure the
- * units are consistent.
+ * A counter that allows accounting for self time and total time. Self time is the time spent running the operation excluding the time used
+ * by the children. Total time is self time + total time of all children. The counters do not have units so it's up to the client to make
+ * sure the units are consistent.
  */
 class HierarchicalTimeCounter {
   private var childrenTime = 0L
@@ -113,8 +112,7 @@ class HierarchicalTimeCounter {
       childrenTime = totalTime + siblingsTotalTime
       selfTime
     } else {
-      Logger.getInstance(HierarchicalTimeCounter::class.java)
-        .warn("Unbalanced start/end calls. Received $key (expected $poppedKey)")
+      Logger.getInstance(HierarchicalTimeCounter::class.java).warn("Unbalanced start/end calls. Received $key (expected $poppedKey)")
       throw IllegalStateException()
     }
   }
@@ -140,8 +138,7 @@ class ModuleClassLoadedDiagnosticsImpl : ModuleClassLoaderDiagnosticsWrite {
   /** Counts the total time spent rewriting classes in this class loader. */
   private val totalRewriteTimeMs = LongAdder()
   /** Keeps the slowest classes by [ModuleClassLoader#loadClass] found time. */
-  private val foundClasses =
-    PriorityQueue<ClassFoundReport>(100, Comparator.comparing { it.timeMs })
+  private val foundClasses = PriorityQueue<ClassFoundReport>(100, Comparator.comparing { it.timeMs })
 
   override fun classLoadStart(fqn: String) {
     totalLoadTimeCounterMs.start(fqn)

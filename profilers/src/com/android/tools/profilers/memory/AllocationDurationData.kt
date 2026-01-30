@@ -20,27 +20,29 @@ import com.android.tools.adtui.model.DurationDataModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.SeriesData
-import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.Companion.getModeFromFrequency
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.*
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.Companion.getModeFromFrequency
 import com.android.tools.profilers.memory.adapters.CaptureObject
 
-/**
- * This class implements duration data for a finished live allocation recording
- */
-class AllocationDurationData<T: CaptureObject>(duration: Long, captureEntry: CaptureEntry<T>, val start: Double, val end: Double)
-  : CaptureDurationData<T>(duration, true, false, captureEntry) {
+/** This class implements duration data for a finished live allocation recording */
+class AllocationDurationData<T : CaptureObject>(duration: Long, captureEntry: CaptureEntry<T>, val start: Double, val end: Double) :
+  CaptureDurationData<T>(duration, true, false, captureEntry) {
 
   companion object {
 
     @JvmStatic
-    fun makeModel(viewRange: Range, dataRange: Range,
-                  allocSeries: DataSeries<CaptureDurationData<out CaptureObject>>,
-                  samplingSeries: DataSeries<AllocationSamplingRateDurationData>) =
-      DurationDataModel(RangedSeries(viewRange, makeDurationData(dataRange, allocSeries, samplingSeries)))
+    fun makeModel(
+      viewRange: Range,
+      dataRange: Range,
+      allocSeries: DataSeries<CaptureDurationData<out CaptureObject>>,
+      samplingSeries: DataSeries<AllocationSamplingRateDurationData>,
+    ) = DurationDataModel(RangedSeries(viewRange, makeDurationData(dataRange, allocSeries, samplingSeries)))
 
-    private fun makeDurationData(dataRange: Range,
-                                 allocSeries: DataSeries<CaptureDurationData<out CaptureObject>>,
-                                 samplingSeries: DataSeries<AllocationSamplingRateDurationData>) =
+    private fun makeDurationData(
+      dataRange: Range,
+      allocSeries: DataSeries<CaptureDurationData<out CaptureObject>>,
+      samplingSeries: DataSeries<AllocationSamplingRateDurationData>,
+    ) =
       DataSeries.using { _ ->
         samplingSeries.getDataForRange(dataRange).consecutiveAllocRanges().mapNotNull {
           val startTime = it.min.toLong()
@@ -55,22 +57,24 @@ class AllocationDurationData<T: CaptureObject>(duration: Long, captureEntry: Cap
         }
       }
 
-    /**
-     * Each group of consecutive sampling rates of `FULL` or `SAMPLED` makes an allocation session
-     */
-    internal fun List<SeriesData<AllocationSamplingRateDurationData>>.consecutiveAllocRanges() = mutableListOf<Range>().also { ranges ->
-      var lo = Double.NaN
-      forEach {
-        when (getModeFromFrequency(it.value.currentRate.samplingNumInterval)) {
-          NONE -> if (!lo.isNaN()) {
-            ranges.add(Range(lo, it.x.toDouble()))
-            lo = Double.NaN
-          }
-          SAMPLED, FULL -> if (lo.isNaN()) {
-            lo = it.x.toDouble()
+    /** Each group of consecutive sampling rates of `FULL` or `SAMPLED` makes an allocation session */
+    internal fun List<SeriesData<AllocationSamplingRateDurationData>>.consecutiveAllocRanges() =
+      mutableListOf<Range>().also { ranges ->
+        var lo = Double.NaN
+        forEach {
+          when (getModeFromFrequency(it.value.currentRate.samplingNumInterval)) {
+            NONE ->
+              if (!lo.isNaN()) {
+                ranges.add(Range(lo, it.x.toDouble()))
+                lo = Double.NaN
+              }
+            SAMPLED,
+            FULL ->
+              if (lo.isNaN()) {
+                lo = it.x.toDouble()
+              }
           }
         }
       }
-    }
   }
 }

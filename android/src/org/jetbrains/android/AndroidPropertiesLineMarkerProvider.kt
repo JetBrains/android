@@ -35,51 +35,44 @@ import org.jetbrains.android.util.AndroidBundle
 /**
  * Implementation of [RelatedItemLineMarkerProvider] for Android local.properties.
  *
- * This class provides related items for supported properties allowing users to easily open the settings UI to modify them.
- * These items are displayed as line markers in the gutter of the local.properties file for sdk.dir and ndk.dir.
+ * This class provides related items for supported properties allowing users to easily open the settings UI to modify them. These items are
+ * displayed as line markers in the gutter of the local.properties file for sdk.dir and ndk.dir.
  */
 class AndroidPropertiesLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
   override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<*>>) {
     if (element.containingFile.name == FN_LOCAL_PROPERTIES) {
-      createMarkerInfoForLocalProperties(element)?.let {
-        result.add(it)
-      }
+      createMarkerInfoForLocalProperties(element)?.let { result.add(it) }
     }
   }
 
   private fun createMarkerInfoForLocalProperties(element: PsiElement) =
     (element as? PropertyKeyImpl)?.let { property ->
       when (property.text) {
-        SDK_DIR_PROPERTY, NDK_DIR_PROPERTY -> createRelatedItemLineMarkerInfo(property) { openSdkSettings() }
+        SDK_DIR_PROPERTY,
+        NDK_DIR_PROPERTY -> createRelatedItemLineMarkerInfo(property) { openSdkSettings() }
         else -> null
       }
     }
 
-  private fun createRelatedItemLineMarkerInfo(
-    property: PropertyKeyImpl,
-    onMarkerClicked: AndroidProjectSettingsService.() -> Unit
-  ) = RelatedItemLineMarkerInfo(
-    property,
-    property.textRange,
-    AllIcons.General.Settings,
-    { AndroidBundle.message("android.local.properties.file.settings.tooltip") },
-    { _, _ ->
-      savePropertiesFile(property.containingFile.virtualFile)
-      val service = ProjectSettingsService.getInstance(property.project)
-      (service as? AndroidProjectSettingsService)?.let { androidService ->
-        onMarkerClicked(androidService)
-      }
-    },
-    GutterIconRenderer.Alignment.RIGHT,
-    { emptyList<GotoRelatedItem>() }
-  )
+  private fun createRelatedItemLineMarkerInfo(property: PropertyKeyImpl, onMarkerClicked: AndroidProjectSettingsService.() -> Unit) =
+    RelatedItemLineMarkerInfo(
+      property,
+      property.textRange,
+      AllIcons.General.Settings,
+      { AndroidBundle.message("android.local.properties.file.settings.tooltip") },
+      { _, _ ->
+        savePropertiesFile(property.containingFile.virtualFile)
+        val service = ProjectSettingsService.getInstance(property.project)
+        (service as? AndroidProjectSettingsService)?.let { androidService -> onMarkerClicked(androidService) }
+      },
+      GutterIconRenderer.Alignment.RIGHT,
+      { emptyList<GotoRelatedItem>() },
+    )
 
   private fun savePropertiesFile(virtualFile: VirtualFile) {
     WriteAction.computeAndWait<Unit, Throwable> {
-      FileDocumentManager.getInstance().getDocument(virtualFile)?.let {
-        FileDocumentManager.getInstance().saveDocument(it)
-      }
+      FileDocumentManager.getInstance().getDocument(virtualFile)?.let { FileDocumentManager.getInstance().saveDocument(it) }
     }
   }
 }

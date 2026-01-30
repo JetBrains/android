@@ -48,22 +48,14 @@ private const val ACTION_BORDER_ALPHA = 0xBF
 private const val ACTION_BORDER_ARC_SIZE = 5
 private const val ACTION_BORDER_THICKNESS = 1
 
-val REFRESH_BUTTON =
-  ColoredIconGenerator.generateColoredIcon(
-    AllIcons.Actions.ForceRefresh,
-    JBColor(0x59A869, 0x499C54),
-  )
+val REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh, JBColor(0x59A869, 0x499C54))
 
 internal fun chipBorder(color: Color): Border =
-  RoundedLineBorder(
-    UIUtil.toAlpha(color, ACTION_BORDER_ALPHA),
-    ACTION_BORDER_ARC_SIZE,
-    ACTION_BORDER_THICKNESS,
-  )
+  RoundedLineBorder(UIUtil.toAlpha(color, ACTION_BORDER_ALPHA), ACTION_BORDER_ARC_SIZE, ACTION_BORDER_THICKNESS)
 
 /**
- * Represents the status of the IDE regarding states that are relevant to UI Previews and Live Edit,
- * e.g. code out-of-date or up-to-date, syntax errors, build needed, compiling, etc.
+ * Represents the status of the IDE regarding states that are relevant to UI Previews and Live Edit, e.g. code out-of-date or up-to-date,
+ * syntax errors, build needed, compiling, etc.
  */
 interface IdeStatus {
   val icon: Icon?
@@ -78,25 +70,19 @@ interface IdeStatus {
     val PRESENTATION = Key<Presentation>("IdeStatus.Presentation")
 
     /**
-     * When not null, this will define the text position in the notification chip. One of
-     * [SwingConstants.LEADING] or [SwingConstants.TRAILING].
+     * When not null, this will define the text position in the notification chip. One of [SwingConstants.LEADING] or
+     * [SwingConstants.TRAILING].
      */
     val TEXT_POSITION = Key<Int>("IdeStatus.TextPosition")
   }
 
-  /**
-   * Enum representing the different UI color states that the action might have for the border and
-   * background.
-   */
+  /** Enum representing the different UI color states that the action might have for the border and background. */
   enum class Presentation(baseColorLight: Int, baseColorDark: Int = baseColorLight) {
     Error(0xE53E4D),
     Warning(0xEDA200);
 
     val color =
-      JBColor(
-        UIUtil.toAlpha(Color(baseColorLight), ACTION_BACKGROUND_ALPHA),
-        UIUtil.toAlpha(Color(baseColorDark), ACTION_BACKGROUND_ALPHA),
-      )
+      JBColor(UIUtil.toAlpha(Color(baseColorLight), ACTION_BACKGROUND_ALPHA), UIUtil.toAlpha(Color(baseColorDark), ACTION_BACKGROUND_ALPHA))
     val border = chipBorder(color)
   }
 }
@@ -117,10 +103,7 @@ open class IssueNotificationAction(
   // shouldHide and shouldSimplify require running in the UI thread since they access UI state.
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-  /**
-   * Creates an [AnActionEvent] from a mouse event, it's a lambda because we can replace with our
-   * own fake [DataContext].
-   */
+  /** Creates an [AnActionEvent] from a mouse event, it's a lambda because we can replace with our own fake [DataContext]. */
   @VisibleForTesting
   var actionEventCreator: (MouseEvent, IssueNotificationAction) -> AnActionEvent = { me, action ->
     AnActionEvent.createEvent(
@@ -132,10 +115,7 @@ open class IssueNotificationAction(
     )
   }
 
-  /**
-   * Override this method to change the behavior of spacing between buttons (which includes the area
-   * around a button when hovered over).
-   */
+  /** Override this method to change the behavior of spacing between buttons (which includes the area around a button when hovered over). */
   open fun margins(): Insets {
     return JBUI.emptyInsets()
   }
@@ -149,10 +129,7 @@ open class IssueNotificationAction(
     return status.icon == null && StringUtil.isEmpty(status.title)
   }
 
-  /**
-   * Returns true if a minified version of the status should be displayed for places where screen
-   * real estate is limited.
-   */
+  /** Returns true if a minified version of the status should be displayed for places where screen real estate is limited. */
   open fun shouldSimplify(status: IdeStatus, dataContext: DataContext): Boolean = false
 
   override fun update(e: AnActionEvent) {
@@ -170,12 +147,8 @@ open class IssueNotificationAction(
         text = it.title
         description = it.description
         putClientProperty(IdeStatus.PRESENTATION, it.presentation)
-        val isErrorOrWarningIcon =
-          it.icon == AllIcons.General.Error || it.icon == AllIcons.General.Warning
-        putClientProperty(
-          IdeStatus.TEXT_POSITION,
-          if (isErrorOrWarningIcon) SwingConstants.TRAILING else SwingConstants.LEADING,
-        )
+        val isErrorOrWarningIcon = it.icon == AllIcons.General.Error || it.icon == AllIcons.General.Warning
+        putClientProperty(IdeStatus.TEXT_POSITION, if (isErrorOrWarningIcon) SwingConstants.TRAILING else SwingConstants.LEADING)
       }
     }
   }
@@ -185,10 +158,7 @@ open class IssueNotificationAction(
     val project = e.project ?: return
     popup =
       createInformationPopup(project, e.dataContext)?.also { newPopup ->
-        newPopup.showPopup(
-          getDisposableParentForPopup(e) ?: this,
-          e.inputEvent!!.component as JComponent,
-        )
+        newPopup.showPopup(getDisposableParentForPopup(e) ?: this, e.inputEvent!!.component as JComponent)
       }
   }
 

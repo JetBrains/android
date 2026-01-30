@@ -25,9 +25,7 @@ import org.jetbrains.kotlin.config.IrVerificationMode
 import org.jetbrains.kotlin.idea.fir.extensions.KotlinFirCompilerPluginConfigurationForIdeProvider
 
 class K2ComposeCompilerConfigurationProvider : KotlinFirCompilerPluginConfigurationForIdeProvider {
-  override fun provideCompilerConfigurationWithCustomOptions(
-    original: CompilerConfiguration
-  ): CompilerConfiguration {
+  override fun provideCompilerConfigurationWithCustomOptions(original: CompilerConfiguration): CompilerConfiguration {
     return original.copy().apply {
       /* We have to pass
          - generateFunctionKeyMetaClasses = true,
@@ -59,9 +57,7 @@ class K2ComposeCompilerConfigurationProvider : KotlinFirCompilerPluginConfigurat
   }
 
   @OptIn(ExperimentalCompilerApi::class)
-  override fun isConfigurationProviderForCompilerPlugin(
-    registrar: CompilerPluginRegistrar
-  ): Boolean {
+  override fun isConfigurationProviderForCompilerPlugin(registrar: CompilerPluginRegistrar): Boolean {
     return registrar.javaClass == ComposePluginRegistrar::class.java
   }
 }

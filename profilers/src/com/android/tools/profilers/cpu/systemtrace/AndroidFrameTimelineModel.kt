@@ -22,15 +22,18 @@ import com.android.tools.adtui.model.SeriesData
 import com.android.tools.adtui.model.StateChartModel
 import com.android.tools.profilers.cpu.LazyDataSeries
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
+import kotlin.math.max
 import perfetto.protos.PerfettoTrace.FrameTimelineEvent.JankType
 import perfetto.protos.PerfettoTrace.FrameTimelineEvent.PresentType
-import kotlin.math.max
 
-class AndroidFrameTimelineModel constructor(events: List<AndroidFrameTimelineEvent>,
-                                vsyncs: List<SeriesData<Long>>,
-                                val viewRange: Range,
-                                val multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
-                                val capture: SystemTraceCpuCapture) : StateChartModel<AndroidFrameTimelineEvent>() {
+class AndroidFrameTimelineModel
+constructor(
+  events: List<AndroidFrameTimelineEvent>,
+  vsyncs: List<SeriesData<Long>>,
+  val viewRange: Range,
+  val multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
+  val capture: SystemTraceCpuCapture,
+) : StateChartModel<AndroidFrameTimelineEvent>() {
   val vsyncSeries = RangedSeries(viewRange, LazyDataSeries { vsyncs })
 
   var activeSeriesIndex = -1
@@ -50,19 +53,21 @@ class AndroidFrameTimelineModel constructor(events: List<AndroidFrameTimelineEve
   }
 }
 
-fun JankType.getTitle() = when (this) {
-  JankType.JANK_APP_DEADLINE_MISSED -> "Deadline missed"
-  JankType.JANK_BUFFER_STUFFING -> "Buffer stuffing"
-  JankType.JANK_UNKNOWN -> "Unknown"
-  JankType.JANK_NONE -> "No jank"
-  else -> "Unspecified"
-}
+fun JankType.getTitle() =
+  when (this) {
+    JankType.JANK_APP_DEADLINE_MISSED -> "Deadline missed"
+    JankType.JANK_BUFFER_STUFFING -> "Buffer stuffing"
+    JankType.JANK_UNKNOWN -> "Unknown"
+    JankType.JANK_NONE -> "No jank"
+    else -> "Unspecified"
+  }
 
-fun PresentType.getTitle() = when (this) {
-  PresentType.PRESENT_DROPPED -> "Dropped"
-  PresentType.PRESENT_EARLY -> "Early"
-  PresentType.PRESENT_LATE -> "Late"
-  PresentType.PRESENT_ON_TIME -> "On time"
-  PresentType.PRESENT_UNKNOWN -> "Unknown"
-  PresentType.PRESENT_UNSPECIFIED -> "Unspecified"
-}
+fun PresentType.getTitle() =
+  when (this) {
+    PresentType.PRESENT_DROPPED -> "Dropped"
+    PresentType.PRESENT_EARLY -> "Early"
+    PresentType.PRESENT_LATE -> "Late"
+    PresentType.PRESENT_ON_TIME -> "On time"
+    PresentType.PRESENT_UNKNOWN -> "Unknown"
+    PresentType.PRESENT_UNSPECIFIED -> "Unspecified"
+  }

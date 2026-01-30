@@ -18,6 +18,4 @@ package org.jetbrains.android.dom.xml
 import com.intellij.util.xml.DefinesXml
 import org.jetbrains.android.dom.Styleable
 
-@DefinesXml
-@Styleable("AccessibilityService")
-interface AccessibilityService : XmlResourceElement {}
+@DefinesXml @Styleable("AccessibilityService") interface AccessibilityService : XmlResourceElement {}

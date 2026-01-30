@@ -19,8 +19,7 @@ import com.android.build.attribution.data.GarbageCollectionData
 import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 import com.intellij.util.lang.JavaVersion
 
-class GarbageCollectionAnalyzer :
-  BaseAnalyzer<GarbageCollectionAnalyzer.Result>(), BuildAttributionReportAnalyzer {
+class GarbageCollectionAnalyzer : BaseAnalyzer<GarbageCollectionAnalyzer.Result>(), BuildAttributionReportAnalyzer {
   private var garbageCollectionData: List<GarbageCollectionData> = emptyList()
   private var javaVersion: Int? = null
   private var isSettingSet: Boolean? = null
@@ -42,13 +41,9 @@ class GarbageCollectionAnalyzer :
 
   override fun calculateResult(): Result = Result(garbageCollectionData, javaVersion, isSettingSet)
 
-  data class Result(
-    val garbageCollectionData: List<GarbageCollectionData>,
-    val javaVersion: Int?,
-    val isSettingSet: Boolean?
-  ) : AnalyzerResult {
+  data class Result(val garbageCollectionData: List<GarbageCollectionData>, val javaVersion: Int?, val isSettingSet: Boolean?) :
+    AnalyzerResult {
     val totalGarbageCollectionTimeMs: Long
       get() = garbageCollectionData.sumOf { it.collectionTimeMs }
-
   }
 }

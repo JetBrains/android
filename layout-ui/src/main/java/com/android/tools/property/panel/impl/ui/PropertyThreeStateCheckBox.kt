@@ -29,10 +29,8 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ThreeStateCheckBox
 
 /** A standard control for editing a boolean property value with 3 states: on/off/unset. */
-class PropertyThreeStateCheckBox(
-  model: ThreeStateBooleanPropertyEditorModel,
-  context: EditorContext,
-) : PropertyTextFieldWithLeftButton(model, context, CustomThreeStateCheckBox(model)) {
+class PropertyThreeStateCheckBox(model: ThreeStateBooleanPropertyEditorModel, context: EditorContext) :
+  PropertyTextFieldWithLeftButton(model, context, CustomThreeStateCheckBox(model)) {
 
   init {
     border = JBUI.Borders.empty()
@@ -53,9 +51,8 @@ class PropertyThreeStateCheckBox(
   }
 }
 
-private class CustomThreeStateCheckBox(
-  private val propertyModel: ThreeStateBooleanPropertyEditorModel
-) : ThreeStateCheckBox(), UiDataProvider {
+private class CustomThreeStateCheckBox(private val propertyModel: ThreeStateBooleanPropertyEditorModel) :
+  ThreeStateCheckBox(), UiDataProvider {
 
   private var stateChangeFromModel = false
 

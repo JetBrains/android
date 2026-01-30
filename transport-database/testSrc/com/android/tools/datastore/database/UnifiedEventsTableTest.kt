@@ -20,8 +20,8 @@ import com.android.tools.profiler.proto.Transport.BytesRequest
 import com.android.tools.profiler.proto.Transport.FileResponse
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.util.function.Consumer
+import org.junit.Test
 
 class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   companion object {
@@ -40,18 +40,21 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   }
 
   // List of events to generate in the database. This list is broken up by event id to make things easier to validate.
-  val events = mutableListOf(eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 4, 1),
-                             eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 4, 2),
-                             eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 4, 3),
-                             eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 4, 4),
-                             eventBuilder(Common.Event.Kind.SESSION, false, 2, 1, 5, 5),
-                             eventBuilder(Common.Event.Kind.SESSION, true, 2, 1, 5, 6),
-                             eventBuilder(Common.Event.Kind.PROCESS, true, 2, 1, -1, 10),
-                             eventBuilder(Common.Event.Kind.SESSION, false, 1, 2, 6, 7),
-                             eventBuilder(Common.Event.Kind.SESSION, false, 2, 2, 7, 8),
-                             eventBuilder(Common.Event.Kind.SESSION, true, 2, 2, 7, 9),
-                             eventBuilder(Common.Event.Kind.SESSION, false, 3, 3, -1, 1),
-                             eventBuilder(Common.Event.Kind.SESSION, true, 3, 3, -1, 3))
+  val events =
+    mutableListOf(
+      eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 4, 1),
+      eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 4, 2),
+      eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 4, 3),
+      eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 4, 4),
+      eventBuilder(Common.Event.Kind.SESSION, false, 2, 1, 5, 5),
+      eventBuilder(Common.Event.Kind.SESSION, true, 2, 1, 5, 6),
+      eventBuilder(Common.Event.Kind.PROCESS, true, 2, 1, -1, 10),
+      eventBuilder(Common.Event.Kind.SESSION, false, 1, 2, 6, 7),
+      eventBuilder(Common.Event.Kind.SESSION, false, 2, 2, 7, 8),
+      eventBuilder(Common.Event.Kind.SESSION, true, 2, 2, 7, 9),
+      eventBuilder(Common.Event.Kind.SESSION, false, 3, 3, -1, 1),
+      eventBuilder(Common.Event.Kind.SESSION, true, 3, 3, -1, 3),
+    )
 
   override fun createTable(): UnifiedEventsTable {
     return UnifiedEventsTable()
@@ -64,23 +67,19 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
       (Consumer { it.deleteEvents(1, 1, 1, Common.Event.Kind.SESSION, 1, 1) }),
       (Consumer {
         it.queryUnifiedEventGroups(
-          GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setStreamId(1).setPid(1).setToTimestamp(
-            10).build())
+          GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setStreamId(1).setPid(1).setToTimestamp(10).build()
+        )
       }),
       (Consumer { it.queryUnifiedEvents() }),
       (Consumer { assertThat(it.getFile(BytesRequest.getDefaultInstance())).isEqualTo(null) }),
-      (Consumer { it.insertFile(0, "id", FileResponse.getDefaultInstance()) }))
+      (Consumer { it.insertFile(0, "id", FileResponse.getDefaultInstance()) }),
+    )
   }
 
   private fun insertData(count: Int, incrementGroupId: Boolean): List<Common.Event> {
     val events = mutableListOf<Common.Event>()
     for (i in 0 until count) {
-      val event = eventBuilder(Common.Event.Kind.SESSION,
-                               false,
-                               1,
-                               if (!incrementGroupId) 1L else i + 1L,
-                               1,
-                               i + 1L)
+      val event = eventBuilder(Common.Event.Kind.SESSION, false, 1, if (!incrementGroupId) 1L else i + 1L, 1, i + 1L)
       events.add(event)
       table.insertUnifiedEvent(1, event)
     }
@@ -90,18 +89,25 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   @Test
   fun insertDuplicatedData() {
     // This validates that sql should not throw an exception
-    val event = Common.Event.newBuilder().apply {
-      kind = Common.Event.Kind.SESSION
-      isEnded = false
-      pid = 1
-      groupId = 1
-      session = Common.SessionData.newBuilder().setSessionStarted(Common.SessionData.SessionStarted.newBuilder().setPid(1)).build()
-    }.build()
+    val event =
+      Common.Event.newBuilder()
+        .apply {
+          kind = Common.Event.Kind.SESSION
+          isEnded = false
+          pid = 1
+          groupId = 1
+          session = Common.SessionData.newBuilder().setSessionStarted(Common.SessionData.SessionStarted.newBuilder().setPid(1)).build()
+        }
+        .build()
     table.insertUnifiedEvent(1, event)
 
-    val updatedEvent = event.toBuilder().apply {
-      session = Common.SessionData.newBuilder().setSessionStarted(Common.SessionData.SessionStarted.newBuilder().setPid(2)).build()
-    }.build()
+    val updatedEvent =
+      event
+        .toBuilder()
+        .apply {
+          session = Common.SessionData.newBuilder().setSessionStarted(Common.SessionData.SessionStarted.newBuilder().setPid(2)).build()
+        }
+        .build()
 
     table.insertUnifiedEvent(1, updatedEvent)
 
@@ -153,152 +159,167 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   @Test
   fun filterNoKind() {
     insertData(5, true)
-    val result = table.queryUnifiedEventGroups(
-      GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.NONE).setStreamId(1).build())
+    val result = table.queryUnifiedEventGroups(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.NONE).setStreamId(1).build())
     assertThat(result).isEmpty()
   }
 
   @Test
   fun filterKind() {
-    validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.PROCESS).build(),
-                   PROCESS_2_1_10)
+    validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.PROCESS).build(), PROCESS_2_1_10)
   }
 
   @Test
   fun filterKindFromTimestamp() {
-    validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setFromTimestamp(4).build(),
-                   SESSION_1_1_3, // Expected due to -1
-                   SESSION_1_1_4,
-                   SESSION_1_2_7,
-                   SESSION_2_1_5,
-                   SESSION_2_1_6,
-                   SESSION_2_2_8,
-                   SESSION_2_2_9)
+    validateFilter(
+      GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setFromTimestamp(4).build(),
+      SESSION_1_1_3, // Expected due to -1
+      SESSION_1_1_4,
+      SESSION_1_2_7,
+      SESSION_2_1_5,
+      SESSION_2_1_6,
+      SESSION_2_2_8,
+      SESSION_2_2_9,
+    )
   }
 
   @Test
   fun filterKindToTimestamp() {
-    validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setToTimestamp(3).build(),
-                   SESSION_1_1_1,
-                   SESSION_1_1_2,
-                   SESSION_1_1_3,
-                   SESSION_1_1_4, // Expected due to +1
-                   SESSION_3_3_1,
-                   SESSION_3_3_3)
+    validateFilter(
+      GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setToTimestamp(3).build(),
+      SESSION_1_1_1,
+      SESSION_1_1_2,
+      SESSION_1_1_3,
+      SESSION_1_1_4, // Expected due to +1
+      SESSION_3_3_1,
+      SESSION_3_3_3,
+    )
     // SESSION_2_1_5 Groups that start after our to timestamp are also not expected.
   }
 
   @Test
   fun filterKindFromTimestampToTimestamp() {
-    validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setFromTimestamp(3)
-                     .setToTimestamp(6).build(),
-                   SESSION_1_1_2,
-                   SESSION_1_1_3,
-                   SESSION_1_1_4,
-                   SESSION_2_1_5,
-                   SESSION_2_1_6,
-                   SESSION_3_3_1,
-                   SESSION_3_3_3)
+    validateFilter(
+      GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setFromTimestamp(3).setToTimestamp(6).build(),
+      SESSION_1_1_2,
+      SESSION_1_1_3,
+      SESSION_1_1_4,
+      SESSION_2_1_5,
+      SESSION_2_1_6,
+      SESSION_3_3_1,
+      SESSION_3_3_3,
+    )
   }
 
   @Test
   fun filterKindSession() {
-    validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setPid(1).build(),
-                   SESSION_1_1_1,
-                   SESSION_1_1_2,
-                   SESSION_1_1_3,
-                   SESSION_1_1_4,
-                   SESSION_1_2_7)
+    validateFilter(
+      GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setPid(1).build(),
+      SESSION_1_1_1,
+      SESSION_1_1_2,
+      SESSION_1_1_3,
+      SESSION_1_1_4,
+      SESSION_1_2_7,
+    )
   }
 
   @Test
   fun filterKindSessionFromTimestamp() {
-    validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setPid(1)
-                     .setFromTimestamp(3).build(),
-                   SESSION_1_1_2, // Expected due to -1
-                   SESSION_1_1_3,
-                   SESSION_1_1_4,
-                   SESSION_1_2_7)
+    validateFilter(
+      GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setPid(1).setFromTimestamp(3).build(),
+      SESSION_1_1_2, // Expected due to -1
+      SESSION_1_1_3,
+      SESSION_1_1_4,
+      SESSION_1_2_7,
+    )
   }
 
   @Test
   fun filterKindSessionToTimestamp() {
-    validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setPid(1)
-                     .setToTimestamp(3).build(),
-                   SESSION_1_1_1,
-                   SESSION_1_1_2,
-                   SESSION_1_1_3,
-                   SESSION_1_1_4)
+    validateFilter(
+      GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setPid(1).setToTimestamp(3).build(),
+      SESSION_1_1_1,
+      SESSION_1_1_2,
+      SESSION_1_1_3,
+      SESSION_1_1_4,
+    )
   }
 
   @Test
   fun filterKindSessionFromTimestampToTimestamp() {
-    validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setPid(1)
-                     .setFromTimestamp(3)
-                     .setToTimestamp(4).build(),
-                   SESSION_1_1_2,
-                   SESSION_1_1_3,
-                   SESSION_1_1_4)
+    validateFilter(
+      GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setPid(1).setFromTimestamp(3).setToTimestamp(4).build(),
+      SESSION_1_1_2,
+      SESSION_1_1_3,
+      SESSION_1_1_4,
+    )
   }
 
   @Test
   fun filterKindGroupId() {
-    validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setPid(1).setGroupId(1).build(),
-                   SESSION_1_1_1,
-                   SESSION_1_1_2,
-                   SESSION_1_1_3,
-                   SESSION_1_1_4)
+    validateFilter(
+      GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setPid(1).setGroupId(1).build(),
+      SESSION_1_1_1,
+      SESSION_1_1_2,
+      SESSION_1_1_3,
+      SESSION_1_1_4,
+    )
   }
 
   @Test
   fun filterKindGroupIdSessionFromTimestamp() {
-    validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setStreamId(1)
-                     .setPid(1)
-                     .setGroupId(1)
-                     .setFromTimestamp(3).build(),
-                   SESSION_1_1_2, // Included from the -1.
-                   SESSION_1_1_3,
-                   SESSION_1_1_4)
+    validateFilter(
+      GetEventGroupsRequest.newBuilder()
+        .setKind(Common.Event.Kind.SESSION)
+        .setStreamId(1)
+        .setPid(1)
+        .setGroupId(1)
+        .setFromTimestamp(3)
+        .build(),
+      SESSION_1_1_2, // Included from the -1.
+      SESSION_1_1_3,
+      SESSION_1_1_4,
+    )
   }
 
   @Test
   fun filterKindGroupIdSessionToTimestamp() {
-    validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setStreamId(1)
-                     .setPid(1)
-                     .setGroupId(2)
-                     .setToTimestamp(8).build(),
-                   SESSION_1_2_7)
+    validateFilter(
+      GetEventGroupsRequest.newBuilder()
+        .setKind(Common.Event.Kind.SESSION)
+        .setStreamId(1)
+        .setPid(1)
+        .setGroupId(2)
+        .setToTimestamp(8)
+        .build(),
+      SESSION_1_2_7,
+    )
   }
 
   @Test
   fun filterKindGroupIdSessionFromTimestampToTimestamp() {
-    validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setPid(1)
-                     .setGroupId(1)
-                     .setFromTimestamp(3)
-                     .setToTimestamp(3).build(),
-                   SESSION_1_1_2,
-                   SESSION_1_1_3,
-                   SESSION_1_1_4)
+    validateFilter(
+      GetEventGroupsRequest.newBuilder()
+        .setKind(Common.Event.Kind.SESSION)
+        .setPid(1)
+        .setGroupId(1)
+        .setFromTimestamp(3)
+        .setToTimestamp(3)
+        .build(),
+      SESSION_1_1_2,
+      SESSION_1_1_3,
+      SESSION_1_1_4,
+    )
   }
 
   @Test
   fun filterKindCommandId() {
-    validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setCommandId(4).build(),
-                   SESSION_1_1_1,
-                   SESSION_1_1_2,
-                   SESSION_1_1_3,
-                   SESSION_1_1_4)
+    validateFilter(
+      GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setCommandId(4).build(),
+      SESSION_1_1_1,
+      SESSION_1_1_2,
+      SESSION_1_1_3,
+      SESSION_1_1_4,
+    )
   }
 
   @Test
@@ -331,12 +352,14 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
     assertThat(actualResults).containsExactlyElementsIn(expectedResults)
   }
 
-  private fun eventBuilder(kind: Common.Event.Kind,
-                           isEnded: Boolean,
-                           pid: Int,
-                           groupId: Long,
-                           commandId: Int,
-                           timestamp: Long): Common.Event {
+  private fun eventBuilder(
+    kind: Common.Event.Kind,
+    isEnded: Boolean,
+    pid: Int,
+    groupId: Long,
+    commandId: Int,
+    timestamp: Long,
+  ): Common.Event {
     return Common.Event.newBuilder()
       .setKind(kind)
       .setIsEnded(isEnded)

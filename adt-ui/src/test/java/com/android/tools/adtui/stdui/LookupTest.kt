@@ -43,8 +43,7 @@ class LookupTest {
     // The location is relative to the field...
     assertThat(ui.location.x).isEqualTo(0)
     assertThat(ui.location.y).isEqualTo(20) // The height of the field is 20
-    assertThat(ui.elements())
-      .containsExactly("a8", "@string/app_name8", "@string/app_name18", "@string/app_name28")
+    assertThat(ui.elements()).containsExactly("a8", "@string/app_name8", "@string/app_name18", "@string/app_name28")
   }
 
   @Test
@@ -59,8 +58,7 @@ class LookupTest {
     assertThat(ui.visible).isTrue()
     // The location is relative to the field...
     assertThat(ui.location.y).isEqualTo(-40) // Above: Popup height is 40, screen height is 480
-    assertThat(ui.elements())
-      .containsExactly("a7", "@string/app_name7", "@string/app_name17", "@string/app_name27")
+    assertThat(ui.elements()).containsExactly("a7", "@string/app_name7", "@string/app_name17", "@string/app_name27")
   }
 
   @Test
@@ -117,8 +115,7 @@ class LookupTest {
     field.text = "a8"
     lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
-    assertThat(ui.elements())
-      .containsExactly("a8", "@string/app_name8", "@string/app_name18", "@string/app_name28")
+    assertThat(ui.elements()).containsExactly("a8", "@string/app_name8", "@string/app_name18", "@string/app_name28")
 
     field.text = "a8z"
     lookup.showLookup(field.text)
@@ -135,9 +132,7 @@ class LookupTest {
     field.text = "@string/app_name"
     lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
-    assertThat(ui.elements().subList(0, 3))
-      .containsExactly("@string/app_name", "@string/app_firstName", "@string/app_name1")
-      .inOrder()
+    assertThat(ui.elements().subList(0, 3)).containsExactly("@string/app_name", "@string/app_firstName", "@string/app_name1").inOrder()
   }
 
   @Test
@@ -379,8 +374,7 @@ class LookupTest {
     val lookup = Lookup(field, ui)
     field.text = "a7"
     lookup.showLookup(field.text)
-    assertThat(ui.elements())
-      .containsExactly("@string/app_name7", "@string/app_name17", "@string/app_name27")
+    assertThat(ui.elements()).containsExactly("@string/app_name7", "@string/app_name17", "@string/app_name27")
     field.text = "a17"
     lookup.showLookup(field.text)
     assertThat(ui.elements()).containsExactly("@string/app_name17")

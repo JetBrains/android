@@ -18,6 +18,6 @@ package com.android.tools.profilers.tasks.args.singleartifact.leakcanary
 import com.android.tools.profilers.leakcanary.LeakCanarySessionArtifact
 import com.android.tools.profilers.tasks.args.singleartifact.SingleArtifactTaskArgs
 
-class LeakCanaryTaskArgs(override val isFromStartup: Boolean, val artifact: LeakCanarySessionArtifact?): SingleArtifactTaskArgs {
+class LeakCanaryTaskArgs(override val isFromStartup: Boolean, val artifact: LeakCanarySessionArtifact?) : SingleArtifactTaskArgs {
   fun getLeakCanaryArtifact() = artifact
 }

@@ -20,5 +20,4 @@ import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith
 
 // This class is necessary to run Idea test framework
-@RunWith(JarTestSuiteRunner::class)
-class GmdCodeCompletionTestSuite : IdeaTestSuiteBase()
+@RunWith(JarTestSuiteRunner::class) class GmdCodeCompletionTestSuite : IdeaTestSuiteBase()

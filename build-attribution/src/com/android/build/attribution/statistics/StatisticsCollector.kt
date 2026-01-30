@@ -24,21 +24,18 @@ abstract class SingleStatisticsCollector : Consumer<HistoricBuildAnalysisResults
 
 class StatisticsCollector(private val project: Project) {
 
-  /**
-   * Call [singleCollector] on each build result, in increasing build finished time order
-   */
+  /** Call [singleCollector] on each build result, in increasing build finished time order */
   fun collectStatistics(singleCollector: SingleStatisticsCollector): SingleStatisticsCollector {
-    BuildAnalyzerStorageManager.getInstance(project).getListOfHistoricBuildDescriptors().sortedBy { it.buildFinishedTimestamp }.forEach { resultDescriptor ->
-      var result: HistoricBuildAnalysisResults? = null
-      try {
-        result = BuildAnalyzerStorageManager.getInstance(project).getHistoricBuildResultByID(resultDescriptor.buildSessionID).get()
+    BuildAnalyzerStorageManager.getInstance(project)
+      .getListOfHistoricBuildDescriptors()
+      .sortedBy { it.buildFinishedTimestamp }
+      .forEach { resultDescriptor ->
+        var result: HistoricBuildAnalysisResults? = null
+        try {
+          result = BuildAnalyzerStorageManager.getInstance(project).getHistoricBuildResultByID(resultDescriptor.buildSessionID).get()
+        } catch (_: NoSuchElementException) {}
+        result?.let { singleCollector.accept(it) }
       }
-      catch (_: NoSuchElementException) {
-      }
-      result?.let {
-        singleCollector.accept(it)
-      }
-    }
     return singleCollector
   }
 }

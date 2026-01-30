@@ -55,12 +55,10 @@ const val DEPTH_INDENT = 8
 /**
  * Component used to display the name of a property in the properties panel.
  *
- * This component is used for both rendering and editing of group properties. A group property is
- * editable in the sense the user can expand and collapse the group using the expand icon shown to
- * the left of the property name. A custom icon can be shown for non group items.
+ * This component is used for both rendering and editing of group properties. A group property is editable in the sense the user can expand
+ * and collapse the group using the expand icon shown to the left of the property name. A custom icon can be shown for non group items.
  */
-class DefaultNameComponent(private val tableSupport: TableSupport? = null) :
-  JPanel(BorderLayout()) {
+class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPanel(BorderLayout()) {
   private val iconLabel = LabelWithFocusBorder()
   private val label = LabelWithTooltipFromParent()
   private var standardIndent = 0
@@ -129,11 +127,9 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) :
     expandedIcon = UIUtil.getTreeExpandedIcon()
     collapsedIcon = UIUtil.getTreeCollapsedIcon()
     expandedWhiteIcon =
-      if (ExperimentalUI.isNewUI()) UIUtil.getTreeExpandedIcon()
-      else ColoredIconGenerator.generateWhiteIcon(UIUtil.getTreeExpandedIcon())
+      if (ExperimentalUI.isNewUI()) UIUtil.getTreeExpandedIcon() else ColoredIconGenerator.generateWhiteIcon(UIUtil.getTreeExpandedIcon())
     collapsedWhiteIcon =
-      if (ExperimentalUI.isNewUI()) UIUtil.getTreeCollapsedIcon()
-      else ColoredIconGenerator.generateWhiteIcon(UIUtil.getTreeCollapsedIcon())
+      if (ExperimentalUI.isNewUI()) UIUtil.getTreeCollapsedIcon() else ColoredIconGenerator.generateWhiteIcon(UIUtil.getTreeCollapsedIcon())
     labelFont = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
   }
 
@@ -153,14 +149,7 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) :
   }
 
   /** Call this method to setup the component as a renderer or editor for a given property item. */
-  fun setUpItem(
-    table: PTable,
-    item: PTableItem,
-    depth: Int,
-    isSelected: Boolean,
-    hasFocus: Boolean,
-    isExpanded: Boolean,
-  ): JComponent {
+  fun setUpItem(table: PTable, item: PTableItem, depth: Int, isSelected: Boolean, hasFocus: Boolean, isExpanded: Boolean): JComponent {
     label.text = if (isExpanded) "<html><nobr>${item.name}</nobr></html>" else item.name
     label.font = labelFont
     background = UIUtil.getTableSelectionBackground(true)
@@ -174,8 +163,7 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) :
       item is PropertyItem && item.namespaceIcon != null -> {
         iconLabel.icon =
           item.namespaceIcon?.let {
-            if (isSelected && hasFocus && !ExperimentalUI.isNewUI()) ColoredIconGenerator.generateWhiteIcon(it)
-            else it
+            if (isSelected && hasFocus && !ExperimentalUI.isNewUI()) ColoredIconGenerator.generateWhiteIcon(it) else it
           }
       }
       else -> {
@@ -215,8 +203,7 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) :
     }
 
   /**
-   * Compute the top offset for making a small label appear vertical centered with a standard text
-   * editor.
+   * Compute the top offset for making a small label appear vertical centered with a standard text editor.
    *
    * A standard editor is using a normal size font and a DarculaTextBorder.
    */
@@ -239,15 +226,13 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) :
       ClientProperty.put(this, KEY_IS_VISUALLY_RESTRICTED) { width < preferredSize.width }
     }
 
-    override fun getToolTipText(event: MouseEvent): String? =
-      (parent as? JComponent)?.getToolTipText(event)
+    override fun getToolTipText(event: MouseEvent): String? = (parent as? JComponent)?.getToolTipText(event)
   }
 
   /**
    * Label which displays a focus border around the label.
    *
-   * This is used for the tree expansion icons. Notice that it is the parent panel
-   * [DefaultNameComponent] that has focus not the label.
+   * This is used for the tree expansion icons. Notice that it is the parent panel [DefaultNameComponent] that has focus not the label.
    */
   private class LabelWithFocusBorder : LabelWithTooltipFromParent() {
 
@@ -260,13 +245,7 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) :
         val g2 = g.create() as Graphics2D
         try {
           g2.translate(insets.left - indent, insets.top - indent)
-          DarculaUIUtil.paintFocusBorder(
-            g2,
-            icon.iconWidth + 2 * indent,
-            icon.iconHeight + 2 * indent,
-            0f,
-            true,
-          )
+          DarculaUIUtil.paintFocusBorder(g2, icon.iconWidth + 2 * indent, icon.iconHeight + 2 * indent, 0f, true)
         } finally {
           g2.dispose()
         }

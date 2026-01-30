@@ -68,22 +68,14 @@ class ComposableFunctionExtractableAnalyserTest {
       // initial descriptor, if we only copy the boolean value, we do not need `allowAnalysisOnEdt`.
       // To do so, we have to update `ExtractableCodeDescriptor`.
       allowAnalysisOnEdt {
-        val newDescriptor =
-          descriptorWithConflicts.descriptor.copy(
-            suggestedNames = Collections.singletonList("newComposableFunction")
-          )
-        doRefactor(
-          K2ExtractionGeneratorConfiguration(newDescriptor, ExtractionGeneratorOptions.DEFAULT),
-          onFinish,
-        )
+        val newDescriptor = descriptorWithConflicts.descriptor.copy(suggestedNames = Collections.singletonList("newComposableFunction"))
+        doRefactor(K2ExtractionGeneratorConfiguration(newDescriptor, ExtractionGeneratorOptions.DEFAULT), onFinish)
       }
     }
   }
 
   private class K2InteractiveExtractionHelper : K2ExtractionEngineHelper(INTRODUCE_CONSTANT) {
-    override fun validate(
-      descriptor: K2ExtractableCodeDescriptor
-    ): K2ExtractableCodeDescriptorWithConflicts =
+    override fun validate(descriptor: K2ExtractableCodeDescriptor): K2ExtractableCodeDescriptorWithConflicts =
       K2KotlinIntroduceConstantHandler.InteractiveExtractionHelper.validate(descriptor)
 
     override fun configureAndRun(
@@ -92,12 +84,7 @@ class ComposableFunctionExtractableAnalyserTest {
       descriptorWithConflicts: K2ExtractableCodeDescriptorWithConflicts,
       onFinish: (K2ExtractionResult) -> Unit,
     ) {
-      K2KotlinIntroduceConstantHandler.InteractiveExtractionHelper.configureAndRun(
-        project,
-        editor,
-        descriptorWithConflicts,
-        onFinish,
-      )
+      K2KotlinIntroduceConstantHandler.InteractiveExtractionHelper.configureAndRun(project, editor, descriptorWithConflicts, onFinish)
     }
   }
 
@@ -108,15 +95,15 @@ class ComposableFunctionExtractableAnalyserTest {
         "src/com/example/MyViews.kt",
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      fun sourceFunction() {
-        <selection>print(true)</selection>
-      }
-      """
+        @Composable
+        fun sourceFunction() {
+          <selection>print(true)</selection>
+        }
+        """
           .trimIndent(),
       )
 
@@ -156,19 +143,19 @@ class ComposableFunctionExtractableAnalyserTest {
         "src/com/example/MyViews.kt",
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      fun myWidget(context: @Composable () -> Unit) {}
+        @Composable
+        fun myWidget(context: @Composable () -> Unit) {}
 
-      fun setContent() {
-        myWidget {
-          <selection>print(true)</selection>
+        fun setContent() {
+          myWidget {
+            <selection>print(true)</selection>
+          }
         }
-      }
-      """
+        """
           .trimIndent(),
       )
 
@@ -214,15 +201,15 @@ class ComposableFunctionExtractableAnalyserTest {
         "src/com/example/MyViews.kt",
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      fun sourceFunction() {
-        print(<selection>"foo"</selection>)
-      }
-      """
+        @Composable
+        fun sourceFunction() {
+          print(<selection>"foo"</selection>)
+        }
+        """
           .trimIndent(),
       )
 

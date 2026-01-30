@@ -23,8 +23,7 @@ import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription
 import org.jetbrains.annotations.NonNls
 
 /**
- * Describes all files in [ResourceFolderType.XML], except for
- * [org.jetbrains.android.dom.motion.MotionScene] and for [PreferenceElement].
+ * Describes all files in [ResourceFolderType.XML], except for [org.jetbrains.android.dom.motion.MotionScene] and for [PreferenceElement].
  *
  * @see org.jetbrains.android.dom.motion.MotionDomFileDescription
  * @see PreferenceClassDomFileDescription
@@ -49,10 +48,7 @@ class XmlResourceDomFileDescription :
   }
 
   object Util {
-    @JvmStatic
-    fun isXmlResourceFile(file: XmlFile) = runReadAction {
-      XmlResourceDomFileDescription().isMyFile(file, null)
-    }
+    @JvmStatic fun isXmlResourceFile(file: XmlFile) = runReadAction { XmlResourceDomFileDescription().isMyFile(file, null) }
 
     @JvmField
     val SUPPORTED_TAGS =

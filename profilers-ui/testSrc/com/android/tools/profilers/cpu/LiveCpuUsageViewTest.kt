@@ -39,38 +39,33 @@ import com.android.tools.profilers.StageWithToolbarView
 import com.android.tools.profilers.StreamingStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.CpuUsageView
 import com.android.tools.profilers.event.FakeEventService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import java.awt.BorderLayout
+import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
-import java.awt.BorderLayout
-import javax.swing.JPanel
 
 class LiveCpuUsageViewTest {
 
   private val myTimer = FakeTimer()
   private val myComponents = FakeIdeProfilerComponents()
   private val myIdeServices = FakeIdeProfilerServices()
-  private val myTransportService = FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S,
-                                                        Common.Process.ExposureLevel.PROFILEABLE)
+  private val myTransportService =
+    FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
 
-  @get:Rule
-  val myGrpcChannel = FakeGrpcChannel("CpuProfilerLiveViewTestChannel", myTransportService, FakeEventService())
+  @get:Rule val myGrpcChannel = FakeGrpcChannel("CpuProfilerLiveViewTestChannel", myTransportService, FakeEventService())
 
-  @get:Rule
-  val myEdtRule = EdtRule()
+  @get:Rule val myEdtRule = EdtRule()
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var myProfilersView: StudioProfilersView
   private lateinit var myLiveAllocationModel: LiveCpuUsageModel
@@ -100,25 +95,16 @@ class LiveCpuUsageViewTest {
     // Check for tooltip presence in live view component
     assertThat(tooltipComponent.size).isEqualTo(1)
 
-    val topLevelPanel = TreeWalker(cpuProfilerLiveView.component)
-      .descendants()
-      .filterIsInstance<JPanel>()
-      .first()
+    val topLevelPanel = TreeWalker(cpuProfilerLiveView.component).descendants().filterIsInstance<JPanel>().first()
 
     // Top level component, has the main panel
     assertThat(topLevelPanel.getComponent(0)).isInstanceOf(JPanel::class.java)
 
-    val detailsPanel = TreeWalker(topLevelPanel)
-      .descendants()
-      .filterIsInstance<JPanel>()
-      .first()
+    val detailsPanel = TreeWalker(topLevelPanel).descendants().filterIsInstance<JPanel>().first()
 
     assertThat(detailsPanel.getComponent(0)).isInstanceOf(JPanel::class.java)
 
-    val rangeTooltipComponent = TreeWalker(detailsPanel)
-      .descendants()
-      .filterIsInstance<RangeTooltipComponent>()
-      .first()
+    val rangeTooltipComponent = TreeWalker(detailsPanel).descendants().filterIsInstance<RangeTooltipComponent>().first()
     // Range tooltip is present under DetailsPanel
     assertThat(rangeTooltipComponent).isInstanceOf(RangeTooltipComponent::class.java)
   }
@@ -135,31 +121,19 @@ class LiveCpuUsageViewTest {
     // Check for tooltip presence in live view component
     assertThat(tooltipComponent.size).isEqualTo(1)
 
-    val topLevelPanel = TreeWalker(cpuProfilerLiveView.component)
-      .descendants()
-      .filterIsInstance<JPanel>()
-      .first()
+    val topLevelPanel = TreeWalker(cpuProfilerLiveView.component).descendants().filterIsInstance<JPanel>().first()
 
     // Top level component, has the main panel
     assertThat(topLevelPanel.getComponent(0)).isInstanceOf(JPanel::class.java)
 
-    val detailsPanel = TreeWalker(topLevelPanel)
-      .descendants()
-      .filterIsInstance<JPanel>()
-      .first()
+    val detailsPanel = TreeWalker(topLevelPanel).descendants().filterIsInstance<JPanel>().first()
 
     assertThat(detailsPanel.getComponent(0)).isInstanceOf(JPanel::class.java)
 
-    val mainPanel = TreeWalker(detailsPanel)
-      .descendants()
-      .filterIsInstance<JPanel>()
-      .last()
+    val mainPanel = TreeWalker(detailsPanel).descendants().filterIsInstance<JPanel>().last()
     assertThat(mainPanel).isInstanceOf(JPanel::class.java)
 
-    val usagePanel = TreeWalker(detailsPanel)
-      .descendants()
-      .filterIsInstance<CpuUsageView>()
-      .first()
+    val usagePanel = TreeWalker(detailsPanel).descendants().filterIsInstance<CpuUsageView>().first()
     assertThat(usagePanel).isInstanceOf(CpuUsageView::class.java)
   }
 
@@ -175,38 +149,23 @@ class LiveCpuUsageViewTest {
     // Check for tooltip presence in live view component
     assertThat(tooltipComponent.size).isEqualTo(1)
 
-    val topLevelPanel = TreeWalker(cpuProfilerLiveView.component)
-      .descendants()
-      .filterIsInstance<JPanel>()
-      .first()
+    val topLevelPanel = TreeWalker(cpuProfilerLiveView.component).descendants().filterIsInstance<JPanel>().first()
 
     // Top level component, has the main panel
     assertThat(topLevelPanel.getComponent(0)).isInstanceOf(JPanel::class.java)
 
-    val detailsPanel = TreeWalker(topLevelPanel)
-      .descendants()
-      .filterIsInstance<JPanel>()
-      .first()
+    val detailsPanel = TreeWalker(topLevelPanel).descendants().filterIsInstance<JPanel>().first()
 
     // Details panel has 2 component
     assertThat(detailsPanel.getComponent(0)).isInstanceOf(JPanel::class.java)
 
-    val mainPanel = TreeWalker(detailsPanel)
-      .descendants()
-      .filterIsInstance<JPanel>()
-      .last()
+    val mainPanel = TreeWalker(detailsPanel).descendants().filterIsInstance<JPanel>().last()
     assertThat(mainPanel).isInstanceOf(JPanel::class.java)
 
-    val cpuState = TreeWalker(mainPanel)
-      .descendants()
-      .filterIsInstance<JPanel>()
-      .last()
+    val cpuState = TreeWalker(mainPanel).descendants().filterIsInstance<JPanel>().last()
     assertThat(cpuState).isInstanceOf(JPanel::class.java)
 
-    val cpuThread = TreeWalker(cpuState)
-      .descendants()
-      .filterIsInstance<JPanel>()
-      .first()
+    val cpuThread = TreeWalker(cpuState).descendants().filterIsInstance<JPanel>().first()
 
     assertThat(cpuThread).isInstanceOf(JPanel::class.java)
 
@@ -238,7 +197,7 @@ class LiveCpuUsageViewTest {
     val myContent = JPanel(BorderLayout())
     val rangeTooltipComponentFirst = RangeTooltipComponent(myTimeline, myContent)
     cpuProfilerLiveView.populateUi(rangeTooltipComponentFirst)
-    cpuProfilerLiveView.populateUi(rangeTooltipComponentFirst);
+    cpuProfilerLiveView.populateUi(rangeTooltipComponentFirst)
     val binder = ViewBinder<StageView<*>, TooltipModel, TooltipView>()
     val stage = mock<StreamingStage>()
     cpuProfilerLiveView.registerTooltip(binder, rangeTooltipComponentFirst, stage)
@@ -271,10 +230,7 @@ class LiveCpuUsageViewTest {
     assertThat(instructions.size).isEqualTo(0)
 
     val ui = FakeUi(cpuProfilerLiveView.component)
-    val topLevelPanel = TreeWalker(cpuProfilerLiveView.component)
-      .descendants()
-      .filterIsInstance<JPanel>()
-      .first()
+    val topLevelPanel = TreeWalker(cpuProfilerLiveView.component).descendants().filterIsInstance<JPanel>().first()
     val usageViewPosition = ui.getPosition(topLevelPanel)
 
     assertThat(usageViewPosition.y).isEqualTo(0)
@@ -282,10 +238,7 @@ class LiveCpuUsageViewTest {
     // Tooltip seek component is visible
     assertThat(ui.isShowing(topLevelPanel.getComponent(0))).isTrue()
 
-    val rangeTooltipComponent = TreeWalker(cpuProfilerLiveView.component)
-      .descendants()
-      .filterIsInstance<RangeTooltipComponent>()
-      .first()
+    val rangeTooltipComponent = TreeWalker(cpuProfilerLiveView.component).descendants().filterIsInstance<RangeTooltipComponent>().first()
 
     ui.targetMouseEvent(100, 100)
     // Graph is visible

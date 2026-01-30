@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 package com.android.tools.profilers
+
 import com.android.tools.adtui.model.DefaultTimeline
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 
-/**
- * Implementation of stage to be overwritten by stages serving as data models for a task.
- */
+/** Implementation of stage to be overwritten by stages serving as data models for a task. */
 open class ModelStage(profilers: StudioProfilers) : TaskStage, Stage<DefaultTimeline>(profilers) {
   override fun getTimeline() = DefaultTimeline()
+
   override fun onEnter() {}
+
   override fun onExit() {}
+
   override fun getStageType() = AndroidProfilerEvent.Stage.UNKNOWN_STAGE
 }

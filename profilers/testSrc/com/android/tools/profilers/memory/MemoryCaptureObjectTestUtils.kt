@@ -31,36 +31,62 @@ class MemoryCaptureObjectTestUtils {
 
     fun createAndSelectHeapSet(stage: MainMemoryProfilerStage): HeapSet {
       val captureObject = FakeCaptureObject.Builder().build()
-      val instanceObjects: Set<InstanceObject> = setOf(
-        FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo0").setDepth(
-        1).setShallowSize(200)
-        .setRetainedSize(300).build(),
-        FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo1").setDepth(
-        2).setShallowSize(200)
-        .setRetainedSize(300).build(),
-      FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo2").setDepth(
-        3).setShallowSize(200)
-        .setRetainedSize(300).build(),
-        FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_1).setName("instanceBar0").setDepth(
-        1).setShallowSize(200)
-        .setRetainedSize(400).build(),
-        FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz0").setDepth(
-        1).setShallowSize(200)
-        .setRetainedSize(500).build(),
-        FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz1").setDepth(
-        1).setShallowSize(200)
-        .setRetainedSize(500).build(),
-        FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz2").setDepth(
-        1).setShallowSize(200)
-        .setRetainedSize(500).build(),
-        FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz3").setDepth(
-        1).setShallowSize(200)
-        .setRetainedSize(500).build())
+      val instanceObjects: Set<InstanceObject> =
+        setOf(
+          FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0)
+            .setName("instanceFoo0")
+            .setDepth(1)
+            .setShallowSize(200)
+            .setRetainedSize(300)
+            .build(),
+          FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0)
+            .setName("instanceFoo1")
+            .setDepth(2)
+            .setShallowSize(200)
+            .setRetainedSize(300)
+            .build(),
+          FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0)
+            .setName("instanceFoo2")
+            .setDepth(3)
+            .setShallowSize(200)
+            .setRetainedSize(300)
+            .build(),
+          FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_1)
+            .setName("instanceBar0")
+            .setDepth(1)
+            .setShallowSize(200)
+            .setRetainedSize(400)
+            .build(),
+          FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2)
+            .setName("instanceBaz0")
+            .setDepth(1)
+            .setShallowSize(200)
+            .setRetainedSize(500)
+            .build(),
+          FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2)
+            .setName("instanceBaz1")
+            .setDepth(1)
+            .setShallowSize(200)
+            .setRetainedSize(500)
+            .build(),
+          FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2)
+            .setName("instanceBaz2")
+            .setDepth(1)
+            .setShallowSize(200)
+            .setRetainedSize(500)
+            .build(),
+          FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2)
+            .setName("instanceBaz3")
+            .setDepth(1)
+            .setShallowSize(200)
+            .setRetainedSize(500)
+            .build(),
+        )
       captureObject.addInstanceObjects(instanceObjects)
-      stage
-        .selectCaptureDuration(CaptureDurationData(1, false, false, CaptureEntry(Any(),
-                                                                                 Supplier<CaptureObject> { captureObject })),
-                               null)
+      stage.selectCaptureDuration(
+        CaptureDurationData(1, false, false, CaptureEntry(Any(), Supplier<CaptureObject> { captureObject })),
+        null,
+      )
       Truth.assertThat(captureObject.containsClass(0)).isTrue()
       Truth.assertThat(captureObject.containsClass(1)).isTrue()
       Truth.assertThat(captureObject.containsClass(2)).isTrue()

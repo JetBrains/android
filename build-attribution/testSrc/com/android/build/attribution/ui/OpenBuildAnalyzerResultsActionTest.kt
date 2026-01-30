@@ -34,12 +34,12 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
+import java.util.UUID
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.UUID
 
 @RunsInEdt
 class OpenBuildAnalyzerResultsActionTest {
@@ -49,8 +49,7 @@ class OpenBuildAnalyzerResultsActionTest {
   private val openBuildAnalyzerResultsAction = OpenBuildAnalyzerResultsAction()
   private lateinit var event: AnActionEvent
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(jbPopupRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(jbPopupRule)!!
 
   @Before
   fun setup() {
@@ -65,8 +64,7 @@ class OpenBuildAnalyzerResultsActionTest {
 
   @Test
   fun testActionIsRegistered() {
-    val action = ActionManager.getInstance()
-      .getAction("Android.OpenBuildAnalyzerResultsAction")
+    val action = ActionManager.getInstance().getAction("Android.OpenBuildAnalyzerResultsAction")
     Truth.assertThat(action).isNotNull()
   }
 
@@ -96,18 +94,19 @@ class OpenBuildAnalyzerResultsActionTest {
 
   @Test
   fun testActionPerformed() {
-    val buildSessionIDs = List(5) {
-      val buildSessionID = UUID.randomUUID().toString()
-      storeDefaultData(buildSessionID)
-      buildSessionID
-    }
+    val buildSessionIDs =
+      List(5) {
+        val buildSessionID = UUID.randomUUID().toString()
+        storeDefaultData(buildSessionID)
+        buildSessionID
+      }
     openBuildAnalyzerResultsAction.update(event)
     Truth.assertThat(event.presentation.isVisible).isTrue()
     Truth.assertThat(event.presentation.isEnabled).isTrue()
     openBuildAnalyzerResultsAction.actionPerformed(event)
     val popup = jbPopupRule.fakePopupFactory.getPopup<BuildDescriptor>(0)
     Truth.assertThat(popup.title).isEqualTo("Build Analysis Results")
-    Truth.assertThat(popup.items.map {it.buildSessionID}).containsExactlyElementsIn(buildSessionIDs)
+    Truth.assertThat(popup.items.map { it.buildSessionID }).containsExactlyElementsIn(buildSessionIDs)
   }
 
   private fun storeDefaultData(buildSessionID: String) {
@@ -115,8 +114,10 @@ class OpenBuildAnalyzerResultsActionTest {
       storage.storeNewBuildResults(
         BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer(), storage),
         buildSessionID,
-        BuildRequestHolder(GradleBuildInvoker.Request
-                             .builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()))
+        BuildRequestHolder(
+          GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+        ),
+      )
     }
   }
 }

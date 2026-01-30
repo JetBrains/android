@@ -24,20 +24,17 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
-/**
- * Tests for the GC duration data via the new data pipeline.
- */
+/** Tests for the GC duration data via the new data pipeline. */
 class GcStatsDataSeriesTest {
 
   private val myTimer = FakeTimer()
   private val myService = FakeTransportService(myTimer)
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("GcStatsDataSeriesTest", myService)
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("GcStatsDataSeriesTest", myService)
   private lateinit var myStage: MainMemoryProfilerStage
 
   @Before
@@ -48,13 +45,16 @@ class GcStatsDataSeriesTest {
 
     // insert gc data for new pipeline.
     for (i in 0..9) {
-      myService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId,
+      myService.addEventToStream(
+        ProfilersTestData.SESSION_DATA.streamId,
         // Space out the data by 1 second
-                                 ProfilersTestData.generateMemoryGcData(
-                                   ProfilersTestData.SESSION_DATA.pid,
-                                   TimeUnit.SECONDS.toMicros(i.toLong()),
-                                   Memory.MemoryGcData.newBuilder().setDuration(TimeUnit.MICROSECONDS.toNanos(i.toLong())).build())
-                                   .build())
+        ProfilersTestData.generateMemoryGcData(
+            ProfilersTestData.SESSION_DATA.pid,
+            TimeUnit.SECONDS.toMicros(i.toLong()),
+            Memory.MemoryGcData.newBuilder().setDuration(TimeUnit.MICROSECONDS.toNanos(i.toLong())).build(),
+          )
+          .build(),
+      )
     }
   }
 

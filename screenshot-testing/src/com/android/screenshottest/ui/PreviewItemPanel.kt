@@ -42,18 +42,17 @@ import javax.swing.JPanel
 
 // Limits the maximum dimension (width or height) of the preview thumbnail
 // to ensure it fits within the list item layout without distorting the UI.
-private val MAX_IMAGE_SIZE: Int get() = JBUIScale.scale(200)
+private val MAX_IMAGE_SIZE: Int
+  get() = JBUIScale.scale(200)
 
-/**
- * A UI panel that displays a single screenshot test preview image.
- */
+/** A UI panel that displays a single screenshot test preview image. */
 class PreviewItemPanel(
   var previewData: PreviewDetails,
   private val showDetails: Boolean = true,
   private val thumbnailCache: MutableMap<String, JBImageIcon>? = null,
   private val logger: Logger = Logger.getInstance(PreviewItemPanel::class.java),
   private val appExecutorService: ExecutorService = AppExecutorUtil.getAppExecutorService(),
-  private val createImageIcon: PreviewItemPanel.(String)->JBImageIcon? = PreviewItemPanel::createImageIconImpl,
+  private val createImageIcon: PreviewItemPanel.(String) -> JBImageIcon? = PreviewItemPanel::createImageIconImpl,
 ) : JPanel() {
   private var currentImagePath: String = ""
   private var currentTestId: String = previewData.testId
@@ -72,7 +71,7 @@ class PreviewItemPanel(
     val c = GridBagConstraints()
     c.gridx = 0
     c.anchor = GridBagConstraints.WEST // Pin components to the left.
-    c.fill = GridBagConstraints.NONE   // Do not allow components to stretch.
+    c.fill = GridBagConstraints.NONE // Do not allow components to stretch.
     c.weightx = 0.0
 
     imagePanel = ImagePanel()
@@ -87,11 +86,12 @@ class PreviewItemPanel(
           isOpaque = false
         }
 
-      matchLabelContainer = JPanel().apply {
-        layout = BoxLayout(this, BoxLayout.X_AXIS)
-        isOpaque = false
-        alignmentX = LEFT_ALIGNMENT
-      }
+      matchLabelContainer =
+        JPanel().apply {
+          layout = BoxLayout(this, BoxLayout.X_AXIS)
+          isOpaque = false
+          alignmentX = LEFT_ALIGNMENT
+        }
       previewNameLabel = JBLabel(previewData.previewName).apply { alignmentX = LEFT_ALIGNMENT }
 
       detailsPanel.add(matchLabelContainer)
@@ -125,11 +125,12 @@ class PreviewItemPanel(
     val matchPercentage = ScreenshotTestUtils.calculateMatchPercentage(diffDouble)
     val percentageText = matchPercentage ?: DEFAULT_MATCH_PERCENTAGE
 
-    val color = if (previewData.testResult == AndroidTestCaseResult.PASSED) {
-      JBColor.GREEN.darker()
-    } else {
-      JBColor.RED
-    }
+    val color =
+      if (previewData.testResult == AndroidTestCaseResult.PASSED) {
+        JBColor.GREEN.darker()
+      } else {
+        JBColor.RED
+      }
 
     return JPanel().apply {
       layout = BoxLayout(this, BoxLayout.X_AXIS)
@@ -137,10 +138,12 @@ class PreviewItemPanel(
       alignmentX = LEFT_ALIGNMENT
 
       add(JBLabel("Match: "))
-      add(JBLabel(percentageText).apply {
-        foreground = color
-        font = font.deriveFont(Font.BOLD)
-      })
+      add(
+        JBLabel(percentageText).apply {
+          foreground = color
+          font = font.deriveFont(Font.BOLD)
+        }
+      )
     }
   }
 
@@ -154,15 +157,12 @@ class PreviewItemPanel(
 
   private fun showPlaceholder(message: String, color: JBColor) {
     currentImagePath = ""
-    ApplicationManager.getApplication().invokeLater {
-      imagePanel.showText(message, color)
-    }
+    ApplicationManager.getApplication().invokeLater { imagePanel.showText(message, color) }
   }
 
   fun showImageForView(viewType: ScreenshotViewType, onImageLoaded: (() -> Unit)? = null) {
     when (viewType) {
-      ScreenshotViewType.ALL -> {
-      }
+      ScreenshotViewType.ALL -> {}
       ScreenshotViewType.NEW -> {
         previewData.srcImagePath?.let { loadImage(it, previewData.testId, onImageLoaded) } ?: showError(NO_NEW_IMAGE_TEXT)
       }
@@ -290,13 +290,12 @@ class PreviewItemPanel(
     }
   }
 
-  /**
-   * A self-contained panel that handles its own sizing and rendering to prevent distortion.
-   */
+  /** A self-contained panel that handles its own sizing and rendering to prevent distortion. */
   private class ImagePanel : JPanel(GridBagLayout()) {
     private var image: JBImageIcon? = null
     private val loadingIcon = AsyncProcessIcon(WAITING_FOR_IMAGE_TEXT)
-    private val initialSize: Dimension get() = Dimension(MAX_IMAGE_SIZE, MAX_IMAGE_SIZE)
+    private val initialSize: Dimension
+      get() = Dimension(MAX_IMAGE_SIZE, MAX_IMAGE_SIZE)
 
     init {
       // Set an initial fixed size for the loading state.

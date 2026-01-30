@@ -38,30 +38,22 @@ import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.kotlin.idea.base.util.module
 
 /**
- * PSI Reference to a resource namespace, created in the namespace part of an XML resource reference
- * (e.g. `@com.example:string/foo`).
+ * PSI Reference to a resource namespace, created in the namespace part of an XML resource reference (e.g. `@com.example:string/foo`).
  *
- * Resolves to the local xmlns declaration if present or a fake [ResourceNamespaceFakePsiElement]
- * object that represents an aapt namespace.
+ * Resolves to the local xmlns declaration if present or a fake [ResourceNamespaceFakePsiElement] object that represents an aapt namespace.
  */
-class ResourceNamespaceReference(
-  domValue: GenericDomValue<*>,
-  private val resourceValue: ResourceValue,
-) : PsiReferenceBase<XmlElement>(DomUtil.getValueElement(domValue)!!, null, true) {
+class ResourceNamespaceReference(domValue: GenericDomValue<*>, private val resourceValue: ResourceValue) :
+  PsiReferenceBase<XmlElement>(DomUtil.getValueElement(domValue)!!, null, true) {
 
   override fun getVariants(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
 
   override fun resolve(): PsiElement? {
     val prefix = rangeInElement.substring(element.text).nullize(nullizeSpaces = true) ?: return null
-    val prefixDeclaration =
-      XmlExtension.getExtensionByElement(element)
-        ?.getPrefixDeclaration(element.parentOfType<XmlTag>(), prefix)
+    val prefixDeclaration = XmlExtension.getExtensionByElement(element)?.getPrefixDeclaration(element.parentOfType<XmlTag>(), prefix)
 
     val repositoryManager = StudioResourceRepositoryManager.getInstance(element) ?: return null
 
-    if (
-      prefixDeclaration != null && repositoryManager.namespacing != ResourceNamespacing.DISABLED
-    ) {
+    if (prefixDeclaration != null && repositoryManager.namespacing != ResourceNamespacing.DISABLED) {
       // TODO(b/76409654): In non-namespaced projects, namespaced resource references cannot rely on
       // XML namespace definitions.
       return prefixDeclaration
@@ -70,8 +62,7 @@ class ResourceNamespaceReference(
     val resourceNamespace = element.resolveResourceNamespace(prefix) ?: return null
     return when (element.resolveResourceNamespace(prefix)) {
       ResourceNamespace.ANDROID -> ResourceNamespaceFakePsiElement(resourceNamespace, element)
-      in repositoryManager.appResources.namespaces ->
-        ResourceNamespaceFakePsiElement(resourceNamespace, element)
+      in repositoryManager.appResources.namespaces -> ResourceNamespaceFakePsiElement(resourceNamespace, element)
       else -> null
     }
   }
@@ -91,15 +82,13 @@ class ResourceNamespaceReference(
 /**
  * Fake PSI element that represents an aapt namespace.
  *
- * Provides a readable text description for [com.intellij.codeInsight.navigation.CtrlMouseHandler]
- * and handles navigation (for now rather naively).
+ * Provides a readable text description for [com.intellij.codeInsight.navigation.CtrlMouseHandler] and handles navigation (for now rather
+ * naively).
  *
  * TODO(namespaces): Create PSI references to these from XML namespace URIs.
  */
-class ResourceNamespaceFakePsiElement(
-  private val resourceNamespace: ResourceNamespace,
-  private val parent: XmlElement,
-) : FakePsiElement(), NavigatablePsiElement {
+class ResourceNamespaceFakePsiElement(private val resourceNamespace: ResourceNamespace, private val parent: XmlElement) :
+  FakePsiElement(), NavigatablePsiElement {
   override fun getParent(): PsiElement? = parent
 
   override fun canNavigate(): Boolean = true
@@ -108,9 +97,7 @@ class ResourceNamespaceFakePsiElement(
     val module = parent.module ?: return this
     val androidDependencies = AndroidDependenciesCache.getAllAndroidDependencies(module, true)
     val androidFacet =
-      androidDependencies.firstOrNull {
-        it.module.getModuleSystem().getPackageName() == resourceNamespace.packageName
-      } ?: return this
+      androidDependencies.firstOrNull { it.module.getModuleSystem().getPackageName() == resourceNamespace.packageName } ?: return this
     return Manifest.getMainManifest(androidFacet)?.`package`?.xmlAttribute ?: this
   }
 

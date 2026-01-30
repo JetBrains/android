@@ -56,12 +56,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.JBSplitter
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito
-import org.mockito.kotlin.whenever
-import perfetto.protos.PerfettoTrace
 import java.awt.Cursor
 import java.awt.HeadlessException
 import java.awt.Point
@@ -72,26 +66,26 @@ import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.KeyEvent.VK_W
 import javax.swing.JLabel
 import javax.swing.SwingUtilities
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.kotlin.whenever
+import perfetto.protos.PerfettoTrace
 
 @RunsInEdt
 class CpuCaptureStageViewTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("FramesTest", transportService)
+  @get:Rule val grpcChannel = FakeGrpcChannel("FramesTest", transportService)
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
-  /**
-   * For initializing [com.intellij.ide.HelpTooltip].
-   */
-  @get:Rule
-  val appRule = ApplicationRule()
+  /** For initializing [com.intellij.ide.HelpTooltip]. */
+  @get:Rule val appRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var stage: CpuCaptureStage
   private lateinit var profilersView: StudioProfilersView
@@ -103,8 +97,13 @@ class CpuCaptureStageViewTest {
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                   resolveWorkspacePath(CpuProfilerUITestUtils.VALID_TRACE_PATH).toFile(), 123L)
+    stage =
+      CpuCaptureStage.create(
+        profilers,
+        ProfilersTestData.DEFAULT_CONFIG,
+        resolveWorkspacePath(CpuProfilerUITestUtils.VALID_TRACE_PATH).toFile(),
+        123L,
+      )
 
     ApplicationManager.getApplication().registerServiceInstance(AdtUiCursorsProvider::class.java, TestAdtUiCursorsProvider())
     replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRAB, Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
@@ -148,8 +147,13 @@ class CpuCaptureStageViewTest {
 
   @Test
   fun emptyTraceShowsWarningMessage() {
-    val stage = CpuCaptureStage.create(profilersView.studioProfilers, ProfilersTestData.DEFAULT_CONFIG,
-                                       resolveWorkspacePath(CpuProfilerUITestUtils.EMPTY_SIMPLEPERF_PATH).toFile(), 123L)
+    val stage =
+      CpuCaptureStage.create(
+        profilersView.studioProfilers,
+        ProfilersTestData.DEFAULT_CONFIG,
+        resolveWorkspacePath(CpuProfilerUITestUtils.EMPTY_SIMPLEPERF_PATH).toFile(),
+        123L,
+      )
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
 
@@ -166,10 +170,11 @@ class CpuCaptureStageViewTest {
   fun axisComponentsAreInitialized() {
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
-    val axisComponents = TreeWalker(stageView.component)
-      // Traverse depth first to make sure the order is top -> bottom
-      .descendants(TreeWalker.DescendantOrder.DEPTH_FIRST)
-      .filterIsInstance<AxisComponent>()
+    val axisComponents =
+      TreeWalker(stageView.component)
+        // Traverse depth first to make sure the order is top -> bottom
+        .descendants(TreeWalker.DescendantOrder.DEPTH_FIRST)
+        .filterIsInstance<AxisComponent>()
 
     // Minimap axis and track group axis
     assertThat(axisComponents.size).isEqualTo(2)
@@ -213,8 +218,13 @@ class CpuCaptureStageViewTest {
   @Test
   fun showTrackGroupTooltip() {
     // Load Atrace
-    val stage = CpuCaptureStage.create(profilersView.studioProfilers, ProfilersTestData.DEFAULT_CONFIG,
-                                       resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_TRACE_PATH).toFile(), 123L)
+    val stage =
+      CpuCaptureStage.create(
+        profilersView.studioProfilers,
+        ProfilersTestData.DEFAULT_CONFIG,
+        resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_TRACE_PATH).toFile(),
+        123L,
+      )
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
     val trackGroups = stageView.trackGroupList.trackGroups
@@ -269,14 +279,25 @@ class CpuCaptureStageViewTest {
   @Test
   fun zoomToSelectionButtonForTimelineEvent() {
     profilersView.studioProfilers.stage = stage
-    val capture = Mockito.mock(SystemTraceCpuCapture::class.java).apply {
-      whenever(range).thenReturn(Range(0.0, 50.0))
-      whenever(frameRenderSequence).thenReturn { RenderSequence(null, null, null) }
-    }
-    val frame = AndroidFrameTimelineEvent(42, 42, 0, 20, 30, "",
-                                          PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
-                                          PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
-                                          false, false, 0)
+    val capture =
+      Mockito.mock(SystemTraceCpuCapture::class.java).apply {
+        whenever(range).thenReturn(Range(0.0, 50.0))
+        whenever(frameRenderSequence).thenReturn { RenderSequence(null, null, null) }
+      }
+    val frame =
+      AndroidFrameTimelineEvent(
+        42,
+        42,
+        0,
+        20,
+        30,
+        "",
+        PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
+        PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
+        false,
+        false,
+        0,
+      )
     val zoomToSelectionButton = profilersView.stageWithToolbarView.zoomToSelectionButton
     assertThat(zoomToSelectionButton.isEnabled).isFalse()
     stage.multiSelectionModel.setSelection(frame, setOf(JankAnalysisModel(frame, capture, Utils::runOnUi)))
@@ -382,8 +403,7 @@ class CpuCaptureStageViewTest {
     ui.mouse.dragDelta(10, 0)
     try {
       ui.keyboard.release(VK_SPACE)
-    }
-    catch (ignored: HeadlessException) {
+    } catch (ignored: HeadlessException) {
       // JList#setDragEnabled doesn't support headless mode but it doesn't matter for this test so we can safely ignore it.
     }
     assertThat(selectionRange.min).isLessThan(oldRange.min)

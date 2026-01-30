@@ -39,12 +39,8 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.Nls
 import org.jetbrains.kotlin.psi.KtPsiFactory
 
-class CreateMissingJavaClassQuickFix(
-  destinationPackage: PsiPackage,
-  className: String,
-  module: Module,
-  baseClassFqName: String?,
-) : CreateMissingClassQuickFix(destinationPackage, className, module, baseClassFqName) {
+class CreateMissingJavaClassQuickFix(destinationPackage: PsiPackage, className: String, module: Module, baseClassFqName: String?) :
+  CreateMissingClassQuickFix(destinationPackage, className, module, baseClassFqName) {
 
   override fun getName(): @Nls String = "Create Java class '$className'"
 
@@ -72,12 +68,8 @@ class CreateMissingJavaClassQuickFix(
   }
 }
 
-class CreateMissingKotlinClassQuickFix(
-  destinationPackage: PsiPackage,
-  className: String,
-  module: Module,
-  baseClassFqName: String?,
-) : CreateMissingClassQuickFix(destinationPackage, className, module, baseClassFqName) {
+class CreateMissingKotlinClassQuickFix(destinationPackage: PsiPackage, className: String, module: Module, baseClassFqName: String?) :
+  CreateMissingClassQuickFix(destinationPackage, className, module, baseClassFqName) {
 
   private val packageQualifiedName = destinationPackage.qualifiedName
 
@@ -111,10 +103,7 @@ class CreateMissingKotlinClassQuickFix(
   }
 }
 
-/**
- * A quick fix that creates non-existing class, used, e.g., for invalid android:name references in
- * AndroidManifest.xml file
- */
+/** A quick fix that creates non-existing class, used, e.g., for invalid android:name references in AndroidManifest.xml file */
 sealed class CreateMissingClassQuickFix
 protected constructor(
   destinationPackage: PsiPackage,
@@ -124,8 +113,7 @@ protected constructor(
 ) : LocalQuickFix {
 
   private val packagePointer: SmartPsiElementPointer<PsiPackage> =
-    SmartPointerManager.getInstance(destinationPackage.project)
-      .createSmartPsiElementPointer(destinationPackage)
+    SmartPointerManager.getInstance(destinationPackage.project).createSmartPsiElementPointer(destinationPackage)
 
   override fun startInWriteAction() = false
 
@@ -138,9 +126,7 @@ protected constructor(
 
     val filteredPackageDirectories =
       destinationPackage.directories.filter { packageDirectory ->
-        sourceDirs.any { sourceDir ->
-          VfsUtilCore.isAncestor(sourceDir, packageDirectory.virtualFile, true)
-        }
+        sourceDirs.any { sourceDir -> VfsUtilCore.isAncestor(sourceDir, packageDirectory.virtualFile, true) }
       }
 
     val directory =
@@ -159,11 +145,7 @@ protected constructor(
         }
       }
 
-    val createdFile =
-      WriteCommandAction.runWriteCommandAction(
-        project,
-        Computable { createClass(directory, project) },
-      )
+    val createdFile = WriteCommandAction.runWriteCommandAction(project, Computable { createClass(directory, project) })
 
     val fileDescriptor = OpenFileDescriptor(project, createdFile)
     FileEditorManager.getInstance(project).openEditor(fileDescriptor, true)

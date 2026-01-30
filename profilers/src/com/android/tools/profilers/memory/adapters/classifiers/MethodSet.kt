@@ -22,39 +22,51 @@ import com.android.tools.profilers.memory.adapters.classifiers.Classifier.Compan
 import com.google.common.base.Strings
 
 /**
- * Classifies [InstanceObject]s based on a particular stack trace line of its allocation stack. If the end of the stack is reached or
- * if there's no stack, then the instances are classified under [ClassSet.ClassClassifier]s.
+ * Classifies [InstanceObject]s based on a particular stack trace line of its allocation stack. If the end of the stack is reached or if
+ * there's no stack, then the instances are classified under [ClassSet.ClassClassifier]s.
  */
 class MethodSet(private val captureObject: CaptureObject, private val methodInfo: MethodSetInfo, private val callstackDepth: Int) :
   ClassifierSet({ methodInfo.name }) {
 
-  val className: String get() = methodInfo.className
-  val methodName: String get() = methodInfo.methodName
+  val className: String
+    get() = methodInfo.className
+
+  val methodName: String
+    get() = methodInfo.methodName
 
   public override fun createSubClassifier(): Classifier = methodClassifier(captureObject, callstackDepth)
 
   sealed class MethodSetInfo {
-    data class ByName(override val className: String, override val methodName: String): MethodSetInfo()
-    data class ById(private val captureObject: CaptureObject, private val methodId: Long): MethodSetInfo() {
-      override val className get() = classAndMethodName.first
-      override val methodName get() = classAndMethodName.second
+    data class ByName(override val className: String, override val methodName: String) : MethodSetInfo()
+
+    data class ById(private val captureObject: CaptureObject, private val methodId: Long) : MethodSetInfo() {
+      override val className
+        get() = classAndMethodName.first
+
+      override val methodName
+        get() = classAndMethodName.second
+
       private val classAndMethodName by lazy {
         val frameInfo = captureObject.getStackFrame(methodId)!!
         frameInfo.className to frameInfo.methodName
       }
     }
+
     abstract val className: String
     abstract val methodName: String
-    val name: String get() = "$methodName()${if (Strings.isNullOrEmpty(className)) "" else " ($className)"}"
+    val name: String
+      get() = "$methodName()${if (Strings.isNullOrEmpty(className)) "" else " ($className)"}"
   }
 
   companion object {
-    @JvmStatic
-    fun createDefaultClassifier(captureObject: CaptureObject): Classifier = methodClassifier(captureObject, 0)
+    @JvmStatic fun createDefaultClassifier(captureObject: CaptureObject): Classifier = methodClassifier(captureObject, 0)
 
     private fun methodClassifier(captureObject: CaptureObject, depth: Int) =
-      Classifier.Join(getMethodInfo(captureObject, depth), { MethodSet(captureObject, it, depth + 1) },
-                      of(InstanceObject::getClassEntry, ::ClassSet))
+      Classifier.Join(
+        getMethodInfo(captureObject, depth),
+        { MethodSet(captureObject, it, depth + 1) },
+        of(InstanceObject::getClassEntry, ::ClassSet),
+      )
 
     private fun getMethodInfo(captureObject: CaptureObject, depth: Int): (InstanceObject) -> MethodSetInfo? = { inst ->
       val stackDepth = inst.callStackDepth

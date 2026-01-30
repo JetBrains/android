@@ -21,10 +21,7 @@ import com.android.SdkConstants.ATTR_CONTEXT
 import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.rendering.parsers.RenderXmlFile
 
-/**
- * Looks up the declared associated context/activity for the given XML file and returns the resolved
- * fully qualified name if found.
- */
+/** Looks up the declared associated context/activity for the given XML file and returns the resolved fully qualified name if found. */
 fun getDeclaredContextFqcn(resourcePackage: String?, xmlFile: RenderXmlFile): String? {
   val context = xmlFile.getRootTagAttribute(ATTR_CONTEXT, TOOLS_URI)
   if (!context.isNullOrEmpty()) {

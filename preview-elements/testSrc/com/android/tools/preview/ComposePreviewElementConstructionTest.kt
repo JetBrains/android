@@ -21,8 +21,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Test
 
 class ComposePreviewElementConstructionTest {
-  private class BackgroundColorProvider<B>(private val backgroundColor: B?) :
-    AnnotationAttributesProvider {
+  private class BackgroundColorProvider<B>(private val backgroundColor: B?) : AnnotationAttributesProvider {
     override fun <T> getAttributeValue(attributeName: String): T? = null
 
     override fun getIntAttribute(attributeName: String): Int? = null
@@ -31,8 +30,7 @@ class ComposePreviewElementConstructionTest {
 
     override fun getFloatAttribute(attributeName: String): Float? = null
 
-    override fun getBooleanAttribute(attributeName: String): Boolean? =
-      if (attributeName == "showBackground") true else null
+    override fun getBooleanAttribute(attributeName: String): Boolean? = if (attributeName == "showBackground") true else null
 
     override fun <T> getDeclaredAttributeValue(attributeName: String): T? =
       when (attributeName) {
@@ -71,12 +69,7 @@ class ComposePreviewElementConstructionTest {
           annotatedMethod,
           null,
           { instance, params ->
-            ParametrizedComposePreviewElementTemplate(
-              basePreviewElement = instance,
-              parameterProviders = params,
-            ) {
-              null
-            }
+            ParametrizedComposePreviewElementTemplate(basePreviewElement = instance, parameterProviders = params) { null }
           },
           buildPreviewName = { annotatedMethod.name },
         )
@@ -119,8 +112,7 @@ class ComposePreviewElementConstructionTest {
         override val name = "Method"
         override val qualifiedName = "com.test.Method"
         override val methodBody = null
-        override val parameterAnnotations =
-          listOf<Pair<String, AnnotationAttributesProvider>>("param1" to PreviewParameterProvider())
+        override val parameterAnnotations = listOf<Pair<String, AnnotationAttributesProvider>>("param1" to PreviewParameterProvider())
       }
 
     val previewElement =
@@ -143,12 +135,7 @@ class ComposePreviewElementConstructionTest {
         annotatedMethod,
         null,
         { instance, params ->
-          ParametrizedComposePreviewElementTemplate(
-            basePreviewElement = instance,
-            parameterProviders = params,
-          ) {
-            null
-          }
+          ParametrizedComposePreviewElementTemplate(basePreviewElement = instance, parameterProviders = params) { null }
         },
         buildPreviewName = { annotatedMethod.name },
       )

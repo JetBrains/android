@@ -29,9 +29,8 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 /**
- * Measures and places composables in a Grid. Intrinsic sizes are used to allocate space between the
- * rows and columns before measurement to ensure that later rows / columns have their constraints
- * considered.
+ * Measures and places composables in a Grid. Intrinsic sizes are used to allocate space between the rows and columns before measurement to
+ * ensure that later rows / columns have their constraints considered.
  */
 internal data class GridMeasurePolicy(
   private val horizontalArrangement: Arrangement.Horizontal,
@@ -39,10 +38,7 @@ internal data class GridMeasurePolicy(
   private val horizontalAlignment: Alignment.Horizontal,
   private val verticalAlignment: Alignment.Vertical,
 ) : MultiContentMeasurePolicy {
-  override fun MeasureScope.measure(
-    measurables: List<List<Measurable>>,
-    constraints: Constraints,
-  ): MeasureResult {
+  override fun MeasureScope.measure(measurables: List<List<Measurable>>, constraints: Constraints): MeasureResult {
     val minWidth = constraints.minWidth
     val minHeight = constraints.minHeight
 
@@ -95,12 +91,7 @@ internal data class GridMeasurePolicy(
 
         val placeable =
           measurables[rowIndex][columnIndex].measure(
-            Constraints(
-              minWidth = 0,
-              maxWidth = columnSizes[columnIndex],
-              minHeight = 0,
-              maxHeight = rowSizes[rowIndex],
-            )
+            Constraints(minWidth = 0, maxWidth = columnSizes[columnIndex], minHeight = 0, maxHeight = rowSizes[rowIndex])
           )
         placeables[rowIndex][columnIndex] = placeable
       }
@@ -111,13 +102,9 @@ internal data class GridMeasurePolicy(
         for (placeable in placeables[rowIndex]) {
           placeable ?: continue
           val parentData = placeable.gridCellParentData ?: continue
-          val alignmentLinePosition =
-            parentData.verticalAlignment?.calculateAlignmentLinePosition(placeable) ?: continue
+          val alignmentLinePosition = parentData.verticalAlignment?.calculateAlignmentLinePosition(placeable) ?: continue
           beforeVerticalAlignmentLine[rowIndex] =
-            max(
-              beforeVerticalAlignmentLine[rowIndex],
-              if (alignmentLinePosition != AlignmentLine.Unspecified) alignmentLinePosition else 0,
-            )
+            max(beforeVerticalAlignmentLine[rowIndex], if (alignmentLinePosition != AlignmentLine.Unspecified) alignmentLinePosition else 0)
           afterVerticalAlignmentLine[rowIndex] =
             max(
               afterVerticalAlignmentLine[rowIndex],
@@ -132,8 +119,7 @@ internal data class GridMeasurePolicy(
         rowSizes[rowIndex] =
           max(
             rowSizes[rowIndex],
-            (beforeVerticalAlignmentLine[rowIndex] + afterVerticalAlignmentLine[rowIndex])
-              .coerceAtMost(remainingHeight),
+            (beforeVerticalAlignmentLine[rowIndex] + afterVerticalAlignmentLine[rowIndex]).coerceAtMost(remainingHeight),
           )
       }
 
@@ -146,29 +132,22 @@ internal data class GridMeasurePolicy(
     }
 
     // Compute the Row or Column size and position the children.
-    val horizontalSize =
-      max(columnSizes.sum() + horizontalArrangementSpacingPx * (columnCount - 1), minWidth)
+    val horizontalSize = max(columnSizes.sum() + horizontalArrangementSpacingPx * (columnCount - 1), minWidth)
     val verticalSize = max(rowSizes.sum() + totalVerticalSpacingPx, minHeight)
 
     val horizontalPositions = IntArray(columnCount)
     val verticalPositions = IntArray(rowCount)
 
-    with(horizontalArrangement) {
-      arrange(horizontalSize, columnSizes, layoutDirection, horizontalPositions)
-    }
+    with(horizontalArrangement) { arrange(horizontalSize, columnSizes, layoutDirection, horizontalPositions) }
     with(verticalArrangement) { arrange(verticalSize, rowSizes, verticalPositions) }
     return layout(horizontalSize, verticalSize) {
       placeables.forEachIndexed { y, row ->
         row.forEachIndexed { x, placeable ->
           placeable ?: return@forEachIndexed
-          val horizontalAlignment =
-            placeable.gridCellParentData?.horizontalAlignment ?: horizontalAlignment
-          val verticalAlignment =
-            placeable.gridCellParentData?.verticalAlignment
-              ?: VerticalGridCellAlignment(verticalAlignment)
+          val horizontalAlignment = placeable.gridCellParentData?.horizontalAlignment ?: horizontalAlignment
+          val verticalAlignment = placeable.gridCellParentData?.verticalAlignment ?: VerticalGridCellAlignment(verticalAlignment)
           val offsetX = horizontalAlignment.align(placeable.width, columnSizes[x], layoutDirection)
-          val offsetY =
-            verticalAlignment.align(rowSizes[y], placeable, beforeVerticalAlignmentLine[y])
+          val offsetY = verticalAlignment.align(rowSizes[y], placeable, beforeVerticalAlignmentLine[y])
           placeable.place(horizontalPositions[x] + offsetX, verticalPositions[y] + offsetY)
         }
       }
@@ -184,17 +163,16 @@ private enum class WhenOverconstrained {
 /**
  * Computes either the widths or heights of a grid of Measurables based on their intrinsic sizes.
  *
- * @param measurables the Measurables to measure, provided as a function from indices of
- *   [sizesOutput] to the collection of Measurables that make up the corresponding row or column
- * @param constraints a function from indices of [sizesOutput] to the max constraint for computing
- *   the intrinsic size of the corresponding row or column
+ * @param measurables the Measurables to measure, provided as a function from indices of [sizesOutput] to the collection of Measurables that
+ *   make up the corresponding row or column
+ * @param constraints a function from indices of [sizesOutput] to the max constraint for computing the intrinsic size of the corresponding
+ *   row or column
  * @param minIntrinsic a reference to the minIntrinsicWidth or minIntrinsicHeight function
  * @param maxIntrinsic a reference to the maxIntrinsicWidth or maxIntrinsicHeight function
  * @param spacing the spacing between elements
  * @param maxSize the maximum size available for all elements combined
  * @param sizesOutput an array to store the computed sizes
- * @param whenOverconstrained determines how to handle situations where the total intrinsic size
- *   exceeds the available [maxSize].
+ * @param whenOverconstrained determines how to handle situations where the total intrinsic size exceeds the available [maxSize].
  */
 private fun computeSizesFromIntrinsics(
   measurables: (Int) -> Iterable<Measurable>,
@@ -210,10 +188,8 @@ private fun computeSizesFromIntrinsics(
   val maxIntrinsicSizes = IntArray(sizesOutput.size)
 
   for (index in 0 until sizesOutput.size) {
-    minIntrinsicSizes[index] =
-      measurables(index).mapIndexed { i, m -> m.minIntrinsic(constraints(i)) }.maxOrNull() ?: 0
-    maxIntrinsicSizes[index] =
-      measurables(index).mapIndexed { i, m -> m.maxIntrinsic(constraints(i)) }.maxOrNull() ?: 0
+    minIntrinsicSizes[index] = measurables(index).mapIndexed { i, m -> m.minIntrinsic(constraints(i)) }.maxOrNull() ?: 0
+    maxIntrinsicSizes[index] = measurables(index).mapIndexed { i, m -> m.maxIntrinsic(constraints(i)) }.maxOrNull() ?: 0
   }
 
   val totalMinIntrinsic = minIntrinsicSizes.sum()
@@ -225,8 +201,7 @@ private fun computeSizesFromIntrinsics(
   val flex = totalMaxIntrinsic - totalMinIntrinsic
   // Determine what fraction of the flex we have space for; allocate space proportionally to
   // each component's flex.
-  val flexRatio =
-    if (flex > 0 && extraWidth > 0) (extraWidth / flex.toFloat()).coerceAtMost(1f) else 0f
+  val flexRatio = if (flex > 0 && extraWidth > 0) (extraWidth / flex.toFloat()).coerceAtMost(1f) else 0f
 
   val deficit =
     when (whenOverconstrained) {

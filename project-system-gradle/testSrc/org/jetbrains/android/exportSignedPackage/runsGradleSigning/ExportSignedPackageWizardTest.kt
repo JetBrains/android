@@ -27,8 +27,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class ExportSignedPackageWizardTest {
-  @get:Rule
-  var myRule = AndroidGradleProjectRule()
+  @get:Rule var myRule = AndroidGradleProjectRule()
 
   @Test
   fun testNoFlavors() {

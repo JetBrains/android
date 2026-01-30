@@ -23,11 +23,10 @@ import javax.swing.LayoutFocusTraversalPolicy
 /**
  * FocusTraversalPolicy for [PTableImpl].
  *
- * Setup focus traversal keys such that tab takes focus out of the table if the user is not editing.
- * When the user is editing the focus traversal keys will move to the next editable cell.
+ * Setup focus traversal keys such that tab takes focus out of the table if the user is not editing. When the user is editing the focus
+ * traversal keys will move to the next editable cell.
  */
-class PTableFocusTraversalPolicy(val table: JTable, private val acceptFocus: () -> Boolean) :
-  LayoutFocusTraversalPolicy() {
+class PTableFocusTraversalPolicy(val table: JTable, private val acceptFocus: () -> Boolean) : LayoutFocusTraversalPolicy() {
 
   override fun getComponentAfter(aContainer: Container, aComponent: Component): Component? {
     if (!table.isEditing) {

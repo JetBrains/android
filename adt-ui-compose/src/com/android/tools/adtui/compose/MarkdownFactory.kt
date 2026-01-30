@@ -47,12 +47,11 @@ import org.jetbrains.jewel.markdown.rendering.MarkdownStyling.Paragraph
 import org.jetbrains.jewel.markdown.rendering.MarkdownStyling.ThematicBreak
 
 /**
- * Provides access to factory functions used to create Jewel Markdown components, such as styling
- * and renderers, depending on the execution context.
+ * Provides access to factory functions used to create Jewel Markdown components, such as styling and renderers, depending on the execution
+ * context.
  *
- * This allows for different implementations of Markdown rendering depending on the environment. For
- * example, in production, it might delegate to `StudioMarkdownFactory`, while in tests, it could
- * use a test-specific implementation based on Standalone themes.
+ * This allows for different implementations of Markdown rendering depending on the environment. For example, in production, it might
+ * delegate to `StudioMarkdownFactory`, while in tests, it could use a test-specific implementation based on Standalone themes.
  *
  * To access the factory, use [`JewelTheme.markdownFactory`][JewelTheme.Companion.markdownFactory].
  */
@@ -103,12 +102,10 @@ interface MarkdownFactory {
   fun createDefaultStyling(defaultTextStyle: TextStyle, editorTextStyle: TextStyle): MarkdownStyling
 
   /**
-   * Creates a [MarkdownStyling.Code] for rendering code blocks that blend seamlessly with
-   * surrounding content.
+   * Creates a [MarkdownStyling.Code] for rendering code blocks that blend seamlessly with surrounding content.
    *
-   * This style is ideal for embedded code snippets, as it removes all decorations—such as borders,
-   * backgrounds, and horizontal scrolling. The resulting code block will inherit the styling of its
-   * container, making it appear as a natural part of the text flow.
+   * This style is ideal for embedded code snippets, as it removes all decorations—such as borders, backgrounds, and horizontal scrolling.
+   * The resulting code block will inherit the styling of its container, making it appear as a natural part of the text flow.
    *
    * @param editorTextStyle The text style for the code.
    * @param padding The padding to apply around the code block. Defaults to none.
@@ -122,8 +119,7 @@ interface MarkdownFactory {
   ): Code
 
   /**
-   * Creates a [MarkdownBlockRenderer] based on the provided styling, extensions, and inline
-   * renderer.
+   * Creates a [MarkdownBlockRenderer] based on the provided styling, extensions, and inline renderer.
    *
    * @param styling The [MarkdownStyling] to use for rendering blocks.
    * @param extensions A list of [MarkdownRendererExtension] to customize rendering.
@@ -132,8 +128,7 @@ interface MarkdownFactory {
    */
   fun createBlockRenderer(
     styling: MarkdownStyling,
-    extensions: kotlin.collections.List<MarkdownRendererExtension> =
-      getDefaultRenderExtensions(styling),
+    extensions: kotlin.collections.List<MarkdownRendererExtension> = getDefaultRenderExtensions(styling),
     inlineRenderer: InlineMarkdownRenderer = createInlineMarkdownRenderer(extensions),
   ): MarkdownBlockRenderer
 
@@ -143,19 +138,15 @@ interface MarkdownFactory {
    * @param extensions A list of [MarkdownRendererExtension] to customize rendering.
    * @return A new [InlineMarkdownRenderer] instance.
    */
-  fun createInlineMarkdownRenderer(
-    extensions: kotlin.collections.List<MarkdownRendererExtension> = emptyList()
-  ): InlineMarkdownRenderer = DefaultInlineMarkdownRenderer(extensions)
+  fun createInlineMarkdownRenderer(extensions: kotlin.collections.List<MarkdownRendererExtension> = emptyList()): InlineMarkdownRenderer =
+    DefaultInlineMarkdownRenderer(extensions)
 }
 
 /** Default Markdown processors to use for Markdown documents. */
-fun getDefaultMarkdownProcessors(): kotlin.collections.List<MarkdownProcessorExtension> =
-  listOf(GitHubTableProcessorExtension)
+fun getDefaultMarkdownProcessors(): kotlin.collections.List<MarkdownProcessorExtension> = listOf(GitHubTableProcessorExtension)
 
 /** Default Markdown render extensions to use for Markdown documents, for the given style */
-fun getDefaultRenderExtensions(
-  styling: MarkdownStyling
-): kotlin.collections.List<MarkdownRendererExtension> =
+fun getDefaultRenderExtensions(styling: MarkdownStyling): kotlin.collections.List<MarkdownRendererExtension> =
   listOf(GitHubTableRendererExtension(GfmTableStyling.create(), styling))
 
 /**
@@ -163,10 +154,7 @@ fun getDefaultRenderExtensions(
  *
  * Consumers should use [`JewelTheme.markdownFactory`][MarkdownFactory] to access the factory.
  */
-val LocalMarkdownFactory =
-  staticCompositionLocalOf<MarkdownFactory> {
-    error("No MarkdownFactory defined — check your theme!")
-  }
+val LocalMarkdownFactory = staticCompositionLocalOf<MarkdownFactory> { error("No MarkdownFactory defined — check your theme!") }
 
 /** The [MarkdownFactory] for the current [JewelTheme]. */
 val JewelTheme.Companion.markdownFactory: MarkdownFactory

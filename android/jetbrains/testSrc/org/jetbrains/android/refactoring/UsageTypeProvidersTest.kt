@@ -30,9 +30,7 @@ import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.usages.impl.rules.UsageTypeProviderEx
 import org.jetbrains.android.AndroidTestCase
 
-/**
- * Tests for custom [UsageTypeProvider]s from UsageTypeProviders.kt
- */
+/** Tests for custom [UsageTypeProvider]s from UsageTypeProviders.kt */
 class UsageTypeProvidersTest : AndroidTestCase() {
 
   override fun providesCustomManifest(): Boolean {
@@ -51,47 +49,48 @@ class UsageTypeProvidersTest : AndroidTestCase() {
           <application android:icon="@drawable/icon">
           </application>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
   }
 
-  /**
-   * Test for [AndroidPropertiesUsageType]
-   */
+  /** Test for [AndroidPropertiesUsageType] */
   fun testGradlePropertiesFile() {
     val psiFile = myFixture.addFileToProject("gradle.properties", "")
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     assertThat(getUsageType(psiFile).toString()).isEqualTo("Gradle properties file")
   }
 
-  /**
-   * Tests for [AndroidResourceReferenceInCodeUsageTypeProvider]
-   */
+  /** Tests for [AndroidResourceReferenceInCodeUsageTypeProvider] */
   fun testAndroidLightFieldResource() {
     myFixture.addFileToProject(
       "res/values/colors.xml",
-      //language=XML
-      """<resources><color name="colorPrimary">#008577</color></resources>"""
+      // language=XML
+      """<resources><color name="colorPrimary">#008577</color></resources>""",
     )
-    val file = myFixture.addFileToProject(
-      "/src/p1/p2/Foo.kt",
-      //language=kotlin
-      """
+    val file =
+      myFixture.addFileToProject(
+        "/src/p1/p2/Foo.kt",
+        // language=kotlin
+        """
        package p1.p2
        class Foo {
          fun example() {
            R.color.color${caret}Primary
          }
        }
-       """.trimIndent())
+       """
+          .trimIndent(),
+      )
     checkUsageTypeText(file.virtualFile, "Resource declaration in Android resources XML", "Resource reference in code")
   }
 
   fun testClsFieldImplManifest() {
-    val file = myFixture.addFileToProject(
-      "/src/p1/p2/Foo.kt",
-      //language=kotlin
-      """
+    val file =
+      myFixture.addFileToProject(
+        "/src/p1/p2/Foo.kt",
+        // language=kotlin
+        """
        package p1.p2
        import android.Manifest
        class Foo {
@@ -99,49 +98,53 @@ class UsageTypeProvidersTest : AndroidTestCase() {
            Manifest.permission.ACCESS_CHECKIN_P${caret}ROPERTIES
          }
        }
-       """.trimIndent())
+       """
+          .trimIndent(),
+      )
     checkUsageTypeText(file.virtualFile, "Permission reference in code")
   }
 
   fun testClsFieldImplResource() {
-    val file = myFixture.addFileToProject(
-      "/src/p1/p2/Foo.kt",
-      //language=kotlin
-      """
+    val file =
+      myFixture.addFileToProject(
+        "/src/p1/p2/Foo.kt",
+        // language=kotlin
+        """
        package p1.p2
        class Foo {
          fun example() {
            android.R.color.bl${caret}ack
          }
        }
-       """.trimIndent())
+       """
+          .trimIndent(),
+      )
     checkUsageTypeText(file.virtualFile, "Resource reference in code")
   }
 
-  /**
-   * Tests for [AndroidOldXmlUsageProvider]
-   */
+  /** Tests for [AndroidOldXmlUsageProvider] */
   fun testResourceDomElement() {
     myFixture.addFileToProject(
       "res/layout/layout.xml",
-      //language=XML
+      // language=XML
       """
-        <LinearLayout
-                xmlns:android="http://schemas.android.com/apk/res/android"
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:backgroundTint="@color/colorPrimary">
-        </LinearLayout>
-      """.trimIndent())
-    val colorsFile = myFixture.addFileToProject(
-      "res/values/colors.xml",
-      //language=XML
-      """<resources><color name="color${caret}Primary">#008577</color></resources>""")
-      checkUsageTypeText(
-        colorsFile.virtualFile,
-        "Resource declaration in Android resources XML",
-        "Resource reference Android resources XML")
+      <LinearLayout
+              xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:backgroundTint="@color/colorPrimary">
+      </LinearLayout>
+      """
+        .trimIndent(),
+    )
+    val colorsFile =
+      myFixture.addFileToProject(
+        "res/values/colors.xml",
+        // language=XML
+        """<resources><color name="color${caret}Primary">#008577</color></resources>""",
+      )
+    checkUsageTypeText(colorsFile.virtualFile, "Resource declaration in Android resources XML", "Resource reference Android resources XML")
   }
 
   fun testManifestDomElement() {
@@ -149,14 +152,13 @@ class UsageTypeProvidersTest : AndroidTestCase() {
     checkUsageTypeText(manifestFile, "In Android manifest")
   }
 
-  /**
-   * Test for no custom [UsageTypeProvider]
-   */
+  /** Test for no custom [UsageTypeProvider] */
   fun testDefaultMethod() {
-    val file = myFixture.addFileToProject(
-      "/src/p1/p2/Utils.java",
-      //language=Java
-      """
+    val file =
+      myFixture.addFileToProject(
+        "/src/p1/p2/Utils.java",
+        // language=Java
+        """
        package p1.p2;
        public class Utils {
          public static void testNothing() {
@@ -164,7 +166,9 @@ class UsageTypeProvidersTest : AndroidTestCase() {
          }
          public static void call${caret}TestNothing() {}
        }
-       """.trimIndent())
+       """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val usageInfo = findUsages().toList()
     val usageType = getUsageType(usageInfo[0].element!!)
@@ -181,7 +185,7 @@ class UsageTypeProvidersTest : AndroidTestCase() {
     return myFixture.findUsages((targets!![0] as PsiElementUsageTarget).element)
   }
 
-  private fun getUsageType(element: PsiElement) : UsageType? {
+  private fun getUsageType(element: PsiElement): UsageType? {
     val dataContext = (myFixture.editor as EditorEx).dataContext
     val editor = CommonDataKeys.EDITOR.getData(dataContext)
     val psiFile = CommonDataKeys.PSI_FILE.getData(dataContext)
@@ -190,8 +194,7 @@ class UsageTypeProvidersTest : AndroidTestCase() {
       return if (provider is UsageTypeProviderEx) {
         val targets = UsageTargetUtil.findUsageTargets(editor, psiFile, psiElement) ?: emptyArray()
         provider.getUsageType(element, targets) ?: continue
-      }
-      else {
+      } else {
         provider.getUsageType(element) ?: continue
       }
     }

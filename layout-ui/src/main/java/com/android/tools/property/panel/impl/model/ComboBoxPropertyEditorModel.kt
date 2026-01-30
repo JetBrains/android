@@ -34,19 +34,15 @@ import kotlin.properties.Delegates
 /**
  * Model of a ComboBox control for editing a property.
  *
- * The ComboBox editor may be used as a DropDown control by specifying `editable=false`. Values can
- * still be changed using the popup, but there will be no text field for typing a new value.
+ * The ComboBox editor may be used as a DropDown control by specifying `editable=false`. Values can still be changed using the popup, but
+ * there will be no text field for typing a new value.
  *
  * @property enumSupport The mechanism for controlling the items shown in the popup.
- * @property editable True if the value is editable with a text editor (ComboBox) or false
- *   (DropDown).
+ * @property editable True if the value is editable with a text editor (ComboBox) or false (DropDown).
  * @property isPopupVisible Controls the visibility of the popup in the ComboBox / DropDown.
  */
-class ComboBoxPropertyEditorModel(
-  property: PropertyItem,
-  private val enumSupport: EnumSupport,
-  override val editable: Boolean,
-) : BasePropertyEditorModel(property), CommonComboBoxModel<EnumValue> {
+class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSupport: EnumSupport, override val editable: Boolean) :
+  BasePropertyEditorModel(property), CommonComboBoxModel<EnumValue> {
   /** Object for synchronizing access to [newValues] */
   private val syncNewValues = Object()
   private val loading = mutableListOf(EnumValue.LOADING)
@@ -67,8 +63,8 @@ class ComboBoxPropertyEditorModel(
   /**
    * A property change is pending.
    *
-   * Indicates if a change to the property value was initiated, but the value wasn't immediately
-   * registered by the property. Use this value to omit change requests generated from [focusLost].
+   * Indicates if a change to the property value was initiated, but the value wasn't immediately registered by the property. Use this value
+   * to omit change requests generated from [focusLost].
    */
   private var pendingValueChange = false
   private var pendingValue: String? = null
@@ -81,8 +77,7 @@ class ComboBoxPropertyEditorModel(
       updateValueFromProperty()
     }
 
-  override var text by
-    Delegates.observable(property.value.orEmpty()) { _, _, _ -> resetPendingValue() }
+  override var text by Delegates.observable(property.value.orEmpty()) { _, _, _ -> resetPendingValue() }
 
   init {
     if (!editable) {
@@ -180,8 +175,7 @@ class ComboBoxPropertyEditorModel(
   /**
    * Indicates whether the current changed text should be committed.
    *
-   * Returns false if there are errors in the text, there's a pending update expected or the text is
-   * the same as the value.
+   * Returns false if there are errors in the text, there's a pending update expected or the text is the same as the value.
    */
   private fun canCommitChange(): Boolean {
     val (code, _) = editingSupport.validation(text)

@@ -18,9 +18,5 @@ package com.android.tools.property.panel.impl.model.util
 import com.android.tools.property.panel.api.LinkPropertyItem
 import com.intellij.openapi.actionSystem.AnAction
 
-class FakeLinkPropertyItem(
-  namespace: String,
-  name: String,
-  initialValue: String? = null,
-  override val link: AnAction,
-) : FakePropertyItem(namespace, name, initialValue), LinkPropertyItem
+class FakeLinkPropertyItem(namespace: String, name: String, initialValue: String? = null, override val link: AnAction) :
+  FakePropertyItem(namespace, name, initialValue), LinkPropertyItem

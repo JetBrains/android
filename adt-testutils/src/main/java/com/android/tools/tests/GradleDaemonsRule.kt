@@ -24,8 +24,8 @@ import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 
 /**
- * A rule that ensures any Gradle daemons started over the course of some tests will be shutdown and
- * also collecting the daemon logs for the failed tests.
+ * A rule that ensures any Gradle daemons started over the course of some tests will be shutdown and also collecting the daemon logs for the
+ * failed tests.
  *
  * This may be too aggressive for test classes, but it can be a useful rule for test suites.
  */

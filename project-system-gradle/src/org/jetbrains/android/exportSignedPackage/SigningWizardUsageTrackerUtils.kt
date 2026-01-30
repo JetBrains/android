@@ -42,14 +42,15 @@ fun trackWizardOkAction(project: Project) {
 }
 
 fun trackWizardGradleSigningFailed(project: Project, cause: SigningWizardFailureCause) {
-  val event = createEvent(project, SIGNING_WIZARD_GRADLE_SIGNING_FAILED)
-    .setSigningWizardEvent(SigningWizardEvent.newBuilder().setFailureCause(cause))
+  val event =
+    createEvent(project, SIGNING_WIZARD_GRADLE_SIGNING_FAILED).setSigningWizardEvent(SigningWizardEvent.newBuilder().setFailureCause(cause))
   log(event)
 }
 
 fun trackWizardIntellijSigningFailed(project: Project, cause: SigningWizardFailureCause) {
-  val event = createEvent(project, SIGNING_WIZARD_INTELLIJ_SIGNING_FAILED)
-    .setSigningWizardEvent(SigningWizardEvent.newBuilder().setFailureCause(cause))
+  val event =
+    createEvent(project, SIGNING_WIZARD_INTELLIJ_SIGNING_FAILED)
+      .setSigningWizardEvent(SigningWizardEvent.newBuilder().setFailureCause(cause))
   log(event)
 }
 
@@ -57,14 +58,11 @@ fun trackWizardGradleSigning(
   project: Project,
   targetType: SigningWizardEvent.SigningTargetType,
   numberOfModules: Int,
-  numberOfVariants: Int
+  numberOfVariants: Int,
 ) {
-  val signEvent = SigningWizardEvent.newBuilder()
-    .setTargetType(targetType)
-    .setNumberOfModules(numberOfModules)
-    .setNumberOfVariants(numberOfVariants)
-  val event = createEvent(project, SIGNING_WIZARD_GRADLE_SIGNING_SUCCEEDED)
-    .setSigningWizardEvent(signEvent)
+  val signEvent =
+    SigningWizardEvent.newBuilder().setTargetType(targetType).setNumberOfModules(numberOfModules).setNumberOfVariants(numberOfVariants)
+  val event = createEvent(project, SIGNING_WIZARD_GRADLE_SIGNING_SUCCEEDED).setSigningWizardEvent(signEvent)
   log(event)
 }
 
@@ -73,14 +71,10 @@ fun trackWizardIntellijSigning(project: Project) {
 }
 
 private fun createEvent(project: Project, kind: AndroidStudioEvent.EventKind): AndroidStudioEvent.Builder {
-  return AndroidStudioEvent.newBuilder()
-    .setCategory(AndroidStudioEvent.EventCategory.PROJECT_SYSTEM)
-    .setKind(kind)
-    .withProjectId(project)
+  return AndroidStudioEvent.newBuilder().setCategory(AndroidStudioEvent.EventCategory.PROJECT_SYSTEM).setKind(kind).withProjectId(project)
 }
 
 private fun createAndLog(project: Project, kind: AndroidStudioEvent.EventKind) {
   val event = createEvent(project, kind)
   log(event)
 }
-

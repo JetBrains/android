@@ -71,16 +71,11 @@ class PropertiesPageTest {
   @Before
   @Suppress("UNCHECKED_CAST")
   fun setUp() {
-    val controlTypeProvider =
-      mock(ControlTypeProvider::class.java) as ControlTypeProvider<PropertyItem>
+    val controlTypeProvider = mock(ControlTypeProvider::class.java) as ControlTypeProvider<PropertyItem>
     val editorProvider = mock(EditorProvider::class.java) as EditorProvider<PropertyItem>
     disposable = disposableRule.disposable
     ApplicationManager.getApplication()
-      .registerOrReplaceServiceInstance(
-        PropertiesComponent::class.java,
-        PropertiesComponentMock(),
-        disposable!!,
-      )
+      .registerOrReplaceServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock(), disposable!!)
     tableUI = TableUIProvider(controlTypeProvider, editorProvider)
     tableModel = mock(PTableModel::class.java)
     page = PropertiesPage(disposable!!)
@@ -125,11 +120,7 @@ class PropertiesPageTest {
   fun testSeparatorAddedBeforeFirstCustomComponent() {
     page!!.addComponent(JLabel())
 
-    checkLineModels(
-      pageLines,
-      SeparatorLineModel::class.java,
-      GenericInspectorLineModel::class.java,
-    )
+    checkLineModels(pageLines, SeparatorLineModel::class.java, GenericInspectorLineModel::class.java)
   }
 
   @Test
@@ -145,12 +136,7 @@ class PropertiesPageTest {
     page!!.addTable(tableModel!!, false, tableUI!!, emptyList())
     page!!.addSubTitle("SubTitle")
 
-    checkLineModels(
-      pageLines,
-      CollapsibleLabelModel::class.java,
-      TableLineModel::class.java,
-      CollapsibleLabelModel::class.java,
-    )
+    checkLineModels(pageLines, CollapsibleLabelModel::class.java, TableLineModel::class.java, CollapsibleLabelModel::class.java)
   }
 
   @Test

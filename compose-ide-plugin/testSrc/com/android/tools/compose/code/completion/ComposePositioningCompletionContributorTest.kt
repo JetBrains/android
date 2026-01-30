@@ -151,7 +151,7 @@ class ComposePositioningCompletionContributorTest {
           horizontalOrVerticalArrangement: Arrangement.HorizontalOrVertical = Arrangement.Center,
           content: @Composable () -> Unit
       ) {}
-    """
+      """
         .trimIndent(),
     )
   }
@@ -181,13 +181,10 @@ class ComposePositioningCompletionContributorTest {
     // Ordering: all Horizontal entries on `Alignment` should come first, followed by those on
     // `AbsoluteAlignment`.
     val lookupStrings = myFixture.lookupElementStrings!!
-    assertThat(lookupStrings.subList(0, 3))
-      .containsExactly("Alignment.Start", "Alignment.CenterHorizontally", "Alignment.End")
-    assertThat(lookupStrings.subList(3, 5))
-      .containsExactly("AbsoluteAlignment.Left", "AbsoluteAlignment.Right")
+    assertThat(lookupStrings.subList(0, 3)).containsExactly("Alignment.Start", "Alignment.CenterHorizontally", "Alignment.End")
+    assertThat(lookupStrings.subList(3, 5)).containsExactly("AbsoluteAlignment.Left", "AbsoluteAlignment.Right")
 
-    val alignmentStartLookupItem =
-      myFixture.lookupElements?.find { it.lookupString == "Alignment.Start" }!!
+    val alignmentStartLookupItem = myFixture.lookupElements?.find { it.lookupString == "Alignment.Start" }!!
 
     val presentation = LookupElementPresentation()
     alignmentStartLookupItem.renderElement(presentation)
@@ -237,13 +234,10 @@ class ComposePositioningCompletionContributorTest {
     // Ordering: all Horizontal entries on `Alignment` should come first, followed by those on
     // `AbsoluteAlignment`.
     val lookupStrings = myFixture.lookupElementStrings!!
-    assertThat(lookupStrings.subList(0, 3))
-      .containsExactly("Alignment.Start", "Alignment.CenterHorizontally", "Alignment.End")
-    assertThat(lookupStrings.subList(3, 5))
-      .containsExactly("AbsoluteAlignment.Left", "AbsoluteAlignment.Right")
+    assertThat(lookupStrings.subList(0, 3)).containsExactly("Alignment.Start", "Alignment.CenterHorizontally", "Alignment.End")
+    assertThat(lookupStrings.subList(3, 5)).containsExactly("AbsoluteAlignment.Left", "AbsoluteAlignment.Right")
 
-    val alignmentStartLookupItem =
-      myFixture.lookupElements?.find { it.lookupString == "AbsoluteAlignment.Left" }!!
+    val alignmentStartLookupItem = myFixture.lookupElements?.find { it.lookupString == "AbsoluteAlignment.Left" }!!
 
     val presentation = LookupElementPresentation()
     alignmentStartLookupItem.renderElement(presentation)
@@ -348,11 +342,9 @@ class ComposePositioningCompletionContributorTest {
     // Ordering: all Vertical alignments on `Alignment` should come at the top. There are no
     // Vertical entries on `AbsoluteAlignment`.
     val lookupStrings = myFixture.lookupElementStrings!!
-    assertThat(lookupStrings.subList(0, 3))
-      .containsExactly("Alignment.Top", "Alignment.CenterVertically", "Alignment.Bottom")
+    assertThat(lookupStrings.subList(0, 3)).containsExactly("Alignment.Top", "Alignment.CenterVertically", "Alignment.Bottom")
 
-    val centerVerticallyLookupElement =
-      myFixture.lookupElements?.find { it.lookupString == "Alignment.CenterVertically" }!!
+    val centerVerticallyLookupElement = myFixture.lookupElements?.find { it.lookupString == "Alignment.CenterVertically" }!!
 
     val presentation = LookupElementPresentation()
     centerVerticallyLookupElement.renderElement(presentation)
@@ -422,8 +414,7 @@ class ComposePositioningCompletionContributorTest {
         "AbsoluteAlignment.BottomRight",
       )
 
-    val centerVerticallyLookupElement =
-      myFixture.lookupElements?.find { it.lookupString == "Alignment.CenterStart" }!!
+    val centerVerticallyLookupElement = myFixture.lookupElements?.find { it.lookupString == "Alignment.CenterStart" }!!
 
     val presentation = LookupElementPresentation()
     centerVerticallyLookupElement.renderElement(presentation)
@@ -491,8 +482,7 @@ class ComposePositioningCompletionContributorTest {
         "Arrangement.Absolute.SpaceAround",
       )
 
-    val startLookupElement =
-      myFixture.lookupElements?.find { it.lookupString == "Arrangement.Center" }!!
+    val startLookupElement = myFixture.lookupElements?.find { it.lookupString == "Arrangement.Center" }!!
 
     val presentation = LookupElementPresentation()
     startLookupElement.renderElement(presentation)
@@ -560,8 +550,7 @@ class ComposePositioningCompletionContributorTest {
         "Arrangement.Absolute.SpaceAround",
       )
 
-    val startLookupElement =
-      myFixture.lookupElements?.find { it.lookupString == "Arrangement.Absolute.Center" }!!
+    val startLookupElement = myFixture.lookupElements?.find { it.lookupString == "Arrangement.Absolute.Center" }!!
 
     val presentation = LookupElementPresentation()
     startLookupElement.renderElement(presentation)
@@ -610,8 +599,7 @@ class ComposePositioningCompletionContributorTest {
     // Ordering: all Horizontal entries on `Arrangement` should come first, followed by those on
     // `Arrangement.Absolute`.
     val lookupStrings = myFixture.lookupElementStrings!!
-    assertThat(lookupStrings.subList(0, 6))
-      .containsExactly("Start", "End", "Center", "SpaceEvenly", "SpaceBetween", "SpaceAround")
+    assertThat(lookupStrings.subList(0, 6)).containsExactly("Start", "End", "Center", "SpaceEvenly", "SpaceBetween", "SpaceAround")
     assertThat(lookupStrings.subList(6, 12))
       .containsExactly(
         "Absolute.Left",
@@ -622,8 +610,7 @@ class ComposePositioningCompletionContributorTest {
         "Absolute.SpaceAround",
       )
 
-    val startLookupElement =
-      myFixture.lookupElements?.find { it.lookupString == "Absolute.Center" }!!
+    val startLookupElement = myFixture.lookupElements?.find { it.lookupString == "Absolute.Center" }!!
 
     val presentation = LookupElementPresentation()
     startLookupElement.renderElement(presentation)
@@ -672,8 +659,7 @@ class ComposePositioningCompletionContributorTest {
     // Ordering: all Horizontal entries on `Arrangement` should come first. No entries from
     // `Arrangement.Absolute` should be present.
     val lookupStrings = myFixture.lookupElementStrings!!
-    assertThat(lookupStrings.subList(0, 6))
-      .containsExactly("Left", "Center", "Right", "SpaceBetween", "SpaceEvenly", "SpaceAround")
+    assertThat(lookupStrings.subList(0, 6)).containsExactly("Left", "Center", "Right", "SpaceBetween", "SpaceEvenly", "SpaceAround")
 
     assertThat(lookupStrings).doesNotContain("Start")
     assertThat(lookupStrings).doesNotContain("End")
@@ -786,15 +772,9 @@ class ComposePositioningCompletionContributorTest {
     // `Arrangement.Absolute`.
     val lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings.subList(0, 4))
-      .containsExactly(
-        "Arrangement.Center",
-        "Arrangement.SpaceEvenly",
-        "Arrangement.SpaceBetween",
-        "Arrangement.SpaceAround",
-      )
+      .containsExactly("Arrangement.Center", "Arrangement.SpaceEvenly", "Arrangement.SpaceBetween", "Arrangement.SpaceAround")
 
-    val topLookupElement =
-      myFixture.lookupElements?.find { it.lookupString == "Arrangement.SpaceEvenly" }!!
+    val topLookupElement = myFixture.lookupElements?.find { it.lookupString == "Arrangement.SpaceEvenly" }!!
 
     val presentation = LookupElementPresentation()
     topLookupElement.renderElement(presentation)
@@ -843,8 +823,7 @@ class ComposePositioningCompletionContributorTest {
 
     myFixture.moveCaret("(horizontalArrangement = A|)")
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings!!.filter { it.startsWith("Arrangement") })
-      .containsNoDuplicates()
+    assertThat(myFixture.lookupElementStrings!!.filter { it.startsWith("Arrangement") }).containsNoDuplicates()
 
     myFixture.moveCaret("(horizontalArrangement = Arrangement.A|)")
     myFixture.completeBasic()

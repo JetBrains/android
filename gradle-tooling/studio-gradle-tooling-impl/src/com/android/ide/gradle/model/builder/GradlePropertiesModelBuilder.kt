@@ -17,14 +17,12 @@ package com.android.ide.gradle.model.builder
 
 import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.impl.GradlePropertiesModelImpl
+import java.util.Locale
 import org.gradle.api.Project
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.util.GradleVersion
-import java.util.Locale
 
-/**
- * An injected Gradle tooling model builder to fetch Gradle properties.
- */
+/** An injected Gradle tooling model builder to fetch Gradle properties. */
 class GradlePropertiesModelBuilder : ToolingModelBuilder {
 
   override fun canBuild(modelName: String): Boolean {
@@ -35,12 +33,12 @@ class GradlePropertiesModelBuilder : ToolingModelBuilder {
     check(canBuild(modelName)) { "Unexpected model name requested: $modelName" }
     return GradlePropertiesModelImpl(
       useAndroidX = getGradlePropertyBooleanValue(USE_ANDROID_X_PROPERTY, project),
-      excludeLibraryComponentsFromConstraints = getGradlePropertyBooleanValue(EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY, project)
-                                                ?: getGradlePropertyBooleanValue(
-                                                  EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY_EXPERIMENTAL, project),
+      excludeLibraryComponentsFromConstraints =
+        getGradlePropertyBooleanValue(EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY, project)
+          ?: getGradlePropertyBooleanValue(EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY_EXPERIMENTAL, project),
       generateManifestClass = getGradlePropertyBooleanValue(GENERATE_MANIFEST_CLASS_PROPERTY, project),
       disableAgpUpgradePrompt = getGradlePropertyBooleanValue(DISABLE_AGP_UPGRADE_PROMPT, project),
-      getGradlePropertyBooleanValue(USE_CUSTOM_MANAGED_DEVICES, project)
+      getGradlePropertyBooleanValue(USE_CUSTOM_MANAGED_DEVICES, project),
     )
   }
 
@@ -55,27 +53,29 @@ class GradlePropertiesModelBuilder : ToolingModelBuilder {
   }
 
   // Modelled from AGP's logic in OptionParsers.kt
-  private fun Any.toBoolean(): Boolean? = when (this) {
-    is Boolean -> this
-    is CharSequence ->
-      when (toString().lowercase(Locale.US)) {
-        "true" -> true
-        "false" -> false
-        else -> null
-      }
-    is Number ->
-      when (toInt()) {
-        0 -> false
-        1 -> true
-        else -> null
-      }
-    else -> null
-  }
+  private fun Any.toBoolean(): Boolean? =
+    when (this) {
+      is Boolean -> this
+      is CharSequence ->
+        when (toString().lowercase(Locale.US)) {
+          "true" -> true
+          "false" -> false
+          else -> null
+        }
+      is Number ->
+        when (toInt()) {
+          0 -> false
+          1 -> true
+          else -> null
+        }
+      else -> null
+    }
 }
 
 private const val USE_ANDROID_X_PROPERTY = "android.useAndroidX"
 private const val EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY = "android.dependency.excludeLibraryComponentsFromConstraints"
-private const val EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY_EXPERIMENTAL = "android.experimental.dependency.excludeLibraryComponentsFromConstraints"
+private const val EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY_EXPERIMENTAL =
+  "android.experimental.dependency.excludeLibraryComponentsFromConstraints"
 private const val GENERATE_MANIFEST_CLASS_PROPERTY = "android.generateManifestClass"
 private const val DISABLE_AGP_UPGRADE_PROMPT = "android.disableAgpUpgradePrompt"
 private const val USE_CUSTOM_MANAGED_DEVICES = "android.experimental.testOptions.managedDevices.customDevice"

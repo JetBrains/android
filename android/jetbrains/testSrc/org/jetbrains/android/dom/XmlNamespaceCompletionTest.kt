@@ -40,88 +40,96 @@ abstract class XmlNamespaceCompletionTest : AndroidTestCase() {
 
     fun testValuesResources() {
       myFixture.configureFromExistingVirtualFile(
-        myFixture.addFileToProject(
-          "res/values/values.xml",
-          // language=xml
-          """
+        myFixture
+          .addFileToProject(
+            "res/values/values.xml",
+            // language=xml
+            """
           <resources xmlns:foo="${caret}">
             <string name="some_string">Some string</string>
           </resources>
-          """.trimIndent()
-        ).virtualFile
+          """
+              .trimIndent(),
+          )
+          .virtualFile
       )
 
       myFixture.completeBasic()
 
-      assertThat(myFixture.lookupElementStrings).containsExactly(
-        SdkConstants.ANDROID_URI,
-        SdkConstants.TOOLS_URI,
-        SdkConstants.URI_PREFIX + APP_PACKAGE_NAME,
-        SdkConstants.XLIFF_URI
-      )
+      assertThat(myFixture.lookupElementStrings)
+        .containsExactly(
+          SdkConstants.ANDROID_URI,
+          SdkConstants.TOOLS_URI,
+          SdkConstants.URI_PREFIX + APP_PACKAGE_NAME,
+          SdkConstants.XLIFF_URI,
+        )
     }
 
     fun testDrawableResources() {
       myFixture.configureFromExistingVirtualFile(
-        myFixture.addFileToProject(
-        "res/drawable/drawable.xml",
-          // language=xml
-          """
+        myFixture
+          .addFileToProject(
+            "res/drawable/drawable.xml",
+            // language=xml
+            """
           <bitmap xmlns:foo="${caret}"/>
-          """.trimIndent()
-        ).virtualFile
+          """
+              .trimIndent(),
+          )
+          .virtualFile
       )
 
       myFixture.completeBasic()
 
       // Then
-      assertThat(myFixture.lookupElementStrings).containsExactly(
-        SdkConstants.ANDROID_URI,
-        SdkConstants.TOOLS_URI,
-        SdkConstants.URI_PREFIX + APP_PACKAGE_NAME,
-        SdkConstants.AAPT_URI
-      )
+      assertThat(myFixture.lookupElementStrings)
+        .containsExactly(
+          SdkConstants.ANDROID_URI,
+          SdkConstants.TOOLS_URI,
+          SdkConstants.URI_PREFIX + APP_PACKAGE_NAME,
+          SdkConstants.AAPT_URI,
+        )
     }
 
     fun testMipmapResources() {
       myFixture.configureFromExistingVirtualFile(
-        myFixture.addFileToProject(
-        "res/mipmap/mipmap.xml",
-          // language=xml
-          """
+        myFixture
+          .addFileToProject(
+            "res/mipmap/mipmap.xml",
+            // language=xml
+            """
           <adaptive-icon xmlns:foo="${caret}">
           </adaptive-icon>
-          """.trimIndent()
-        ).virtualFile
+          """
+              .trimIndent(),
+          )
+          .virtualFile
       )
 
       myFixture.completeBasic()
 
-      assertThat(myFixture.lookupElementStrings).containsExactly(
-        SdkConstants.ANDROID_URI,
-        SdkConstants.TOOLS_URI
-      )
+      assertThat(myFixture.lookupElementStrings).containsExactly(SdkConstants.ANDROID_URI, SdkConstants.TOOLS_URI)
     }
 
     fun testLayoutResources() {
       myFixture.configureFromExistingVirtualFile(
-        myFixture.addFileToProject(
-        "res/layout/layout.xml",
-          // language=xml
-          """
+        myFixture
+          .addFileToProject(
+            "res/layout/layout.xml",
+            // language=xml
+            """
           <android.support.constraint.ConstraintLayout xmlns:foo="${caret}">
           </android.support.constraint.ConstraintLayout>
-          """.trimIndent()
-        ).virtualFile
+          """
+              .trimIndent(),
+          )
+          .virtualFile
       )
 
       myFixture.completeBasic()
 
-      assertThat(myFixture.lookupElementStrings).containsExactly(
-        SdkConstants.ANDROID_URI,
-        SdkConstants.TOOLS_URI,
-        SdkConstants.URI_PREFIX + APP_PACKAGE_NAME
-      )
+      assertThat(myFixture.lookupElementStrings)
+        .containsExactly(SdkConstants.ANDROID_URI, SdkConstants.TOOLS_URI, SdkConstants.URI_PREFIX + APP_PACKAGE_NAME)
     }
   }
 
@@ -129,14 +137,9 @@ abstract class XmlNamespaceCompletionTest : AndroidTestCase() {
 
     override fun configureAdditionalModules(
       projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
-      modules: MutableList<MyAdditionalModuleData>
+      modules: MutableList<MyAdditionalModuleData>,
     ) {
-      addModuleWithAndroidFacet(
-        projectBuilder,
-        modules,
-        LIB_NAME,
-        AndroidProjectTypes.PROJECT_TYPE_LIBRARY
-      )
+      addModuleWithAndroidFacet(projectBuilder, modules, LIB_NAME, AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
     }
 
     override fun setUp() {
@@ -147,90 +150,102 @@ abstract class XmlNamespaceCompletionTest : AndroidTestCase() {
 
     fun testValuesResources() {
       myFixture.configureFromExistingVirtualFile(
-        myFixture.addFileToProject(
-        "res/values/values.xml",
-          // language=xml
-          """
+        myFixture
+          .addFileToProject(
+            "res/values/values.xml",
+            // language=xml
+            """
           <resources xmlns:foo="${caret}">
             <string name="some_string">Some string</string>
           </resources>
-          """.trimIndent()
-        ).virtualFile
+          """
+              .trimIndent(),
+          )
+          .virtualFile
       )
 
       myFixture.completeBasic()
 
-      assertThat(myFixture.lookupElementStrings).containsExactly(
-        SdkConstants.ANDROID_URI,
-        SdkConstants.TOOLS_URI,
-        SdkConstants.URI_PREFIX + APP_PACKAGE_NAME,
-        SdkConstants.XLIFF_URI,
-        SdkConstants.URI_PREFIX + LIB_PACKAGE_NAME
-      )
+      assertThat(myFixture.lookupElementStrings)
+        .containsExactly(
+          SdkConstants.ANDROID_URI,
+          SdkConstants.TOOLS_URI,
+          SdkConstants.URI_PREFIX + APP_PACKAGE_NAME,
+          SdkConstants.XLIFF_URI,
+          SdkConstants.URI_PREFIX + LIB_PACKAGE_NAME,
+        )
     }
 
     fun testDrawableResources() {
       myFixture.configureFromExistingVirtualFile(
-        myFixture.addFileToProject(
-        "res/drawable/drawable.xml",
-          // language=xml
-          """
+        myFixture
+          .addFileToProject(
+            "res/drawable/drawable.xml",
+            // language=xml
+            """
           <bitmap xmlns:foo="${caret}"/>
-          """.trimIndent()
-        ).virtualFile
+          """
+              .trimIndent(),
+          )
+          .virtualFile
       )
 
       myFixture.completeBasic()
 
-      assertThat(myFixture.lookupElementStrings).containsExactly(
-        SdkConstants.ANDROID_URI,
-        SdkConstants.TOOLS_URI,
-        SdkConstants.URI_PREFIX + APP_PACKAGE_NAME,
-        SdkConstants.AAPT_URI,
-        SdkConstants.URI_PREFIX + LIB_PACKAGE_NAME
-      )
+      assertThat(myFixture.lookupElementStrings)
+        .containsExactly(
+          SdkConstants.ANDROID_URI,
+          SdkConstants.TOOLS_URI,
+          SdkConstants.URI_PREFIX + APP_PACKAGE_NAME,
+          SdkConstants.AAPT_URI,
+          SdkConstants.URI_PREFIX + LIB_PACKAGE_NAME,
+        )
     }
 
     fun testMipmapResources() {
       myFixture.configureFromExistingVirtualFile(
-        myFixture.addFileToProject(
-        "res/mipmap/mipmap.xml",
-          // language=xml
-          """
+        myFixture
+          .addFileToProject(
+            "res/mipmap/mipmap.xml",
+            // language=xml
+            """
           <adaptive-icon xmlns:foo="${caret}">
           </adaptive-icon>
-          """.trimIndent()
-        ).virtualFile
+          """
+              .trimIndent(),
+          )
+          .virtualFile
       )
 
       myFixture.completeBasic()
 
-      assertThat(myFixture.lookupElementStrings).containsExactly(
-        SdkConstants.ANDROID_URI,
-        SdkConstants.TOOLS_URI
-      )
+      assertThat(myFixture.lookupElementStrings).containsExactly(SdkConstants.ANDROID_URI, SdkConstants.TOOLS_URI)
     }
 
     fun testLayoutResources() {
       myFixture.configureFromExistingVirtualFile(
-        myFixture.addFileToProject(
-        "res/layout/layout.xml",
-          // language=xml
-          """
+        myFixture
+          .addFileToProject(
+            "res/layout/layout.xml",
+            // language=xml
+            """
           <android.support.constraint.ConstraintLayout xmlns:foo="${caret}">
           </android.support.constraint.ConstraintLayout>
-          """.trimIndent()
-        ).virtualFile
+          """
+              .trimIndent(),
+          )
+          .virtualFile
       )
 
       myFixture.completeBasic()
 
-      assertThat(myFixture.lookupElementStrings).containsExactly(
-        SdkConstants.ANDROID_URI,
-        SdkConstants.TOOLS_URI,
-        SdkConstants.URI_PREFIX + APP_PACKAGE_NAME,
-        SdkConstants.URI_PREFIX + LIB_PACKAGE_NAME
-      )
+      assertThat(myFixture.lookupElementStrings)
+        .containsExactly(
+          SdkConstants.ANDROID_URI,
+          SdkConstants.TOOLS_URI,
+          SdkConstants.URI_PREFIX + APP_PACKAGE_NAME,
+          SdkConstants.URI_PREFIX + LIB_PACKAGE_NAME,
+        )
     }
   }
 }

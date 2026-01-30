@@ -33,11 +33,11 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import java.util.function.Supplier
+import javax.swing.JLabel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.function.Supplier
-import javax.swing.JLabel
 
 class MemoryCaptureStageViewTest {
 
@@ -49,15 +49,11 @@ class MemoryCaptureStageViewTest {
 
   private val transportService = FakeTransportService(myTimer)
 
-  @get:Rule
-  val appRule = ApplicationRule()
+  @get:Rule val appRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
-  @Rule
-  @JvmField
-  val grpcChannel = FakeGrpcChannel("MemoryProfilerStageViewTestChannel", transportService)
+  @Rule @JvmField val grpcChannel = FakeGrpcChannel("MemoryProfilerStageViewTestChannel", transportService)
 
   @Before
   fun setupBase() {
@@ -96,21 +92,24 @@ class MemoryCaptureStageViewTest {
     assertThat(createStageWithCaptureLoaded(capture).captureSelection.selectedCapture).isEqualTo(capture)
   }
 
-  private fun createStageWithCaptureLoaded(capture: CaptureObject) = MemoryCaptureStage(
-    profilers,
-    mockLoader,
-    CaptureDurationData(1, false, false, CaptureEntry(Any(), Supplier { capture })),
-    MoreExecutors.directExecutor()
-  ).apply {
-    enter()
-    captureSelection.refreshSelectedHeap()
-  }
+  private fun createStageWithCaptureLoaded(capture: CaptureObject) =
+    MemoryCaptureStage(
+        profilers,
+        mockLoader,
+        CaptureDurationData(1, false, false, CaptureEntry(Any(), Supplier { capture })),
+        MoreExecutors.directExecutor(),
+      )
+      .apply {
+        enter()
+        captureSelection.refreshSelectedHeap()
+      }
 
-  private fun makeFakeCapture(prepare: FakeCaptureObject.Builder.() -> Unit = {}) = FakeCaptureObject.Builder()
-    .setCaptureName("SAMPLE_CAPTURE1")
-    .setStartTime(0)
-    .setEndTime(10)
-    .setInfoMessage("Foo")
-    .apply(prepare)
-    .build()
+  private fun makeFakeCapture(prepare: FakeCaptureObject.Builder.() -> Unit = {}) =
+    FakeCaptureObject.Builder()
+      .setCaptureName("SAMPLE_CAPTURE1")
+      .setStartTime(0)
+      .setEndTime(10)
+      .setInfoMessage("Foo")
+      .apply(prepare)
+      .build()
 }

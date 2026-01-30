@@ -44,22 +44,20 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
-import org.junit.Ignore
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import java.io.File
 import java.io.IOException
 import java.time.Duration
 import java.util.UUID
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
 
 @Ignore("Feature is not in use now, do not waste resources  on actively testing it.")
 class BuildAnalyzerStorageFileManagerTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  var tmpFolder: TemporaryFolder = TemporaryFolder()
+  @get:Rule var tmpFolder: TemporaryFolder = TemporaryFolder()
 
   @Test
   fun testBuildResultsAreConvertedAndStoredInFile() {
@@ -133,81 +131,74 @@ class BuildAnalyzerStorageFileManagerTest {
     fileManager.deleteHistoricBuildResultByID("no-such-file")
   }
 
-  private fun countOfFiles(dir: File) =
-    FileUtils.getAllFiles(dir).size()
+  private fun countOfFiles(dir: File) = FileUtils.getAllFiles(dir).size()
 
   private fun constructBuildResultsObject(buildID: String = UUID.randomUUID().toString()): BuildAnalysisResults {
-    val requestHolder = BuildRequestHolder(
-      GradleBuildInvoker.Request(
-        BuildMode.DEFAULT_BUILD_MODE,
-        projectRule.project,
-        File(projectRule.project.projectFilePath),
-        emptyList(),
-        ExternalSystemTaskId.create(ProjectSystemId(""), ExternalSystemTaskType.EXECUTE_TASK, projectRule.project)
+    val requestHolder =
+      BuildRequestHolder(
+        GradleBuildInvoker.Request(
+          BuildMode.DEFAULT_BUILD_MODE,
+          projectRule.project,
+          File(projectRule.project.projectFilePath),
+          emptyList(),
+          ExternalSystemTaskId.create(ProjectSystemId(""), ExternalSystemTaskType.EXECUTE_TASK, projectRule.project),
+        )
       )
-    )
-    val annotationProcessorData = listOf(
-      AnnotationProcessorData("com.google.auto.value.processor.AutoAnnotationProcessor", Duration.ofMillis(123)),
-      AnnotationProcessorData("com.google.auto.value.processor.AutoValueBuilderProcessor", Duration.ofMillis(456)),
-      AnnotationProcessorData("com.google.auto.value.processor.AutoOneOfProcessor", Duration.ofMillis(789)),
-      AnnotationProcessorData("com.google.auto.value.processor.AutoValueProcessor", Duration.ofMillis(101)),
-      AnnotationProcessorData("com.google.auto.value.extension.memoized.processor.MemoizedValidator", Duration.ofMillis(102)),
-      AnnotationProcessorData("dagger.internal.codegen.ComponentProcessor", Duration.ofMillis(103))
-    )
-    val nonIncrementalAnnotationProcessorData = listOf(
-      AnnotationProcessorData("com.google.auto.value.processor.AutoValueBuilderProcessor", Duration.ofMillis(456)),
-      AnnotationProcessorData("com.google.auto.value.processor.AutoValueProcessor", Duration.ofMillis(101)),
-      AnnotationProcessorData("dagger.internal.codegen.ComponentProcessor", Duration.ofMillis(103))
-    )
-    val annotationProcessorsAnalyzerResult = AnnotationProcessorsAnalyzer.Result(annotationProcessorData,
-                                                                                 nonIncrementalAnnotationProcessorData)
+    val annotationProcessorData =
+      listOf(
+        AnnotationProcessorData("com.google.auto.value.processor.AutoAnnotationProcessor", Duration.ofMillis(123)),
+        AnnotationProcessorData("com.google.auto.value.processor.AutoValueBuilderProcessor", Duration.ofMillis(456)),
+        AnnotationProcessorData("com.google.auto.value.processor.AutoOneOfProcessor", Duration.ofMillis(789)),
+        AnnotationProcessorData("com.google.auto.value.processor.AutoValueProcessor", Duration.ofMillis(101)),
+        AnnotationProcessorData("com.google.auto.value.extension.memoized.processor.MemoizedValidator", Duration.ofMillis(102)),
+        AnnotationProcessorData("dagger.internal.codegen.ComponentProcessor", Duration.ofMillis(103)),
+      )
+    val nonIncrementalAnnotationProcessorData =
+      listOf(
+        AnnotationProcessorData("com.google.auto.value.processor.AutoValueBuilderProcessor", Duration.ofMillis(456)),
+        AnnotationProcessorData("com.google.auto.value.processor.AutoValueProcessor", Duration.ofMillis(101)),
+        AnnotationProcessorData("dagger.internal.codegen.ComponentProcessor", Duration.ofMillis(103)),
+      )
+    val annotationProcessorsAnalyzerResult =
+      AnnotationProcessorsAnalyzer.Result(annotationProcessorData, nonIncrementalAnnotationProcessorData)
     val taskCache = mutableMapOf<String, TaskData>()
     val alwaysRunTaskData = mutableListOf<AlwaysRunTaskData>()
-    val alwaysRunTaskDatum = AlwaysRunTaskData(
-      TaskData(
-        "task name",
-        "project path",
-        PluginData(PluginData.PluginType.UNKNOWN, "id name"),
-        12345,
-        12345,
-        TaskData.TaskExecutionMode.FULL,
-        listOf("abc", "def", "ghi")
-      ),
-      AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS
-    )
+    val alwaysRunTaskDatum =
+      AlwaysRunTaskData(
+        TaskData(
+          "task name",
+          "project path",
+          PluginData(PluginData.PluginType.UNKNOWN, "id name"),
+          12345,
+          12345,
+          TaskData.TaskExecutionMode.FULL,
+          listOf("abc", "def", "ghi"),
+        ),
+        AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS,
+      )
     taskCache[alwaysRunTaskDatum.taskData.getTaskPath()] = alwaysRunTaskDatum.taskData
     alwaysRunTaskData.add(alwaysRunTaskDatum)
     val alwaysRunTaskDataResult = AlwaysRunTasksAnalyzer.Result(alwaysRunTaskData)
     val pluginCache = mutableMapOf<String, PluginData>()
     val criticalPathData = mutableListOf<TaskData>()
     val pluginDatum = PluginData(PluginData.PluginType.BINARY_PLUGIN, "id name")
-    val criticalPathDatum = TaskData(
-      "task name 2",
-      "project path",
-      pluginDatum,
-      12345,
-      12345,
-      TaskData.TaskExecutionMode.FULL,
-      listOf("abc", "def", "ghi")
-    )
+    val criticalPathDatum =
+      TaskData("task name 2", "project path", pluginDatum, 12345, 12345, TaskData.TaskExecutionMode.FULL, listOf("abc", "def", "ghi"))
     taskCache[criticalPathDatum.getTaskPath()] = criticalPathDatum
     pluginCache[pluginDatum.idName] = pluginDatum
     criticalPathData.add(criticalPathDatum)
-    val criticalPathAnalyzerResult = CriticalPathAnalyzer.Result(
-      criticalPathData,
-      listOf(PluginBuildData(pluginDatum, 12345)),
-      12345,
-      12345
-    )
-    val taskDatum = TaskData(
-      "task name 3",
-      "project path",
-      PluginData(PluginData.PluginType.BUILDSRC_PLUGIN, "id name"),
-      12345,
-      12345,
-      TaskData.TaskExecutionMode.FULL,
-      listOf("abc", "def", "ghi")
-    )
+    val criticalPathAnalyzerResult =
+      CriticalPathAnalyzer.Result(criticalPathData, listOf(PluginBuildData(pluginDatum, 12345)), 12345, 12345)
+    val taskDatum =
+      TaskData(
+        "task name 3",
+        "project path",
+        PluginData(PluginData.PluginType.BUILDSRC_PLUGIN, "id name"),
+        12345,
+        12345,
+        TaskData.TaskExecutionMode.FULL,
+        listOf("abc", "def", "ghi"),
+      )
     val garbageCollectionAnalyzerResult = GarbageCollectionAnalyzer.Result(listOf(GarbageCollectionData("name", 12345)), 12345, true)
     val pluginsConfigurationDataMap = mutableMapOf<PluginData, Long>()
     val projectConfigurationData = mutableListOf<ProjectConfigurationData>()
@@ -215,11 +206,8 @@ class BuildAnalyzerStorageFileManagerTest {
     pluginsConfigurationDataMap[PluginData(PluginData.PluginType.BINARY_PLUGIN, "id name")] = 12345
     projectConfigurationData.add(ProjectConfigurationData("project path", 12345, listOf(), listOf()))
     allAppliedPlugins["id"] = listOf(PluginData(PluginData.PluginType.BINARY_PLUGIN, "id name"))
-    val projectConfigurationAnalyzerResult = ProjectConfigurationAnalyzer.Result(
-      pluginsConfigurationDataMap,
-      projectConfigurationData,
-      allAppliedPlugins
-    )
+    val projectConfigurationAnalyzerResult =
+      ProjectConfigurationAnalyzer.Result(pluginsConfigurationDataMap, projectConfigurationData, allAppliedPlugins)
     val taskData = TasksSharingOutputData(taskDatum.getTaskPath(), listOf(taskDatum))
     taskCache[taskDatum.getTaskPath()] = taskDatum
     val taskConfigurationAnalyzerResult = TasksConfigurationIssuesAnalyzer.Result(listOf(taskData))
@@ -242,7 +230,7 @@ class BuildAnalyzerStorageFileManagerTest {
       taskCategoryWarningsAnalyzerResult,
       buildID,
       taskCache as HashMap<String, TaskData>,
-      pluginCache as HashMap<String, PluginData>
+      pluginCache as HashMap<String, PluginData>,
     )
   }
 }

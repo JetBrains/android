@@ -51,10 +51,7 @@ class AutoFillHintsConverter : ResolvingConverter<String>() {
     // string constants, if any module has androidx.autofill.HintConstants, then any layout will be
     // given all elements.
     return CachedValuesManager.getManager(project).getCachedValue(project) {
-      CachedValueProvider.Result(
-        calculateAutoFillHints(project),
-        ProjectRootModificationTracker.getInstance(project),
-      )
+      CachedValueProvider.Result(calculateAutoFillHints(project), ProjectRootModificationTracker.getInstance(project))
     }
   }
 
@@ -63,17 +60,13 @@ class AutoFillHintsConverter : ResolvingConverter<String>() {
     val allScope = GlobalSearchScope.allScope(project)
     val viewClass = psiFacade.findClass(CLASS_VIEW, allScope)
     val viewClassConstants =
-      viewClass
-        ?.allFields
-        ?.filter { it.name.contains(AUTOFILL_HINT_PREFIX) }
-        ?.mapNotNull { it.computeConstantValue() as? String } ?: return emptyList()
+      viewClass?.allFields?.filter { it.name.contains(AUTOFILL_HINT_PREFIX) }?.mapNotNull { it.computeConstantValue() as? String }
+        ?: return emptyList()
 
     val hintConstantsClass = psiFacade.findClass(ANDROIDX_HINTS_CONSTANTS_CLASS, allScope)
     val hintConstantsClassConstants =
-      hintConstantsClass
-        ?.allFields
-        ?.filter { it.name.contains(AUTOFILL_HINT_PREFIX) }
-        ?.mapNotNull { it.computeConstantValue() as? String } ?: return viewClassConstants
+      hintConstantsClass?.allFields?.filter { it.name.contains(AUTOFILL_HINT_PREFIX) }?.mapNotNull { it.computeConstantValue() as? String }
+        ?: return viewClassConstants
 
     return viewClassConstants.union(hintConstantsClassConstants).toList()
   }

@@ -57,9 +57,7 @@ class CreateTypedResourceFileActionTest {
     for (folderType in ResourceFolderType.entries) {
       val filePath = "res/" + folderType.getName() + "/my_" + folderType.getName() + ".xml"
       dataContext.add(CommonDataKeys.PSI_ELEMENT, fixture.addFileToProject(filePath, ""))
-      assertWithMessage("Failed for ${folderType.getName()}")
-        .that(doIsAvailable(dataContext.build(), folderType))
-        .isTrue()
+      assertWithMessage("Failed for ${folderType.getName()}").that(doIsAvailable(dataContext.build(), folderType)).isTrue()
     }
 
     val resDir = ReadAction.compute<VirtualFile, Throwable> { fixture.findFileInTempDir("res") }
@@ -73,38 +71,24 @@ class CreateTypedResourceFileActionTest {
   fun addPreferencesScreenAndroidxPreferenceLibraryHandling() {
     TestProjectSystem(project).useInTests()
     // First check without having androidx.preference as a library
-    assertThat(getDefaultRootTagByResourceType(module, ResourceFolderType.XML))
-      .isEqualTo("PreferenceScreen")
-
+    assertThat(getDefaultRootTagByResourceType(module, ResourceFolderType.XML)).isEqualTo("PreferenceScreen")
 
     module
-        .getModuleSystem()
-        .getRegisteringModuleSystem()
-        ?.registerDependency(GoogleMavenArtifactId.ANDROIDX_PREFERENCE, DependencyType.IMPLEMENTATION)
+      .getModuleSystem()
+      .getRegisteringModuleSystem()
+      ?.registerDependency(GoogleMavenArtifactId.ANDROIDX_PREFERENCE, DependencyType.IMPLEMENTATION)
     // Now with the dependency, the handler should return "androidx.preference.PreferenceScreen"
-    assertThat(getDefaultRootTagByResourceType(module, ResourceFolderType.XML))
-      .isEqualTo("androidx.preference.PreferenceScreen")
+    assertThat(getDefaultRootTagByResourceType(module, ResourceFolderType.XML)).isEqualTo("androidx.preference.PreferenceScreen")
   }
 
   @RunsInEdt
   @Test
   fun doCreateAndNavigate_rawResource_navigateTrue() {
     val filename = "new_resource_file.json"
-    val action =
-      CreateTypedResourceFileAction("Unimportant string", ResourceFolderType.RAW, false, false)
-    val virtualFileDir =
-      assertNotNull(
-        VirtualFileManager.getInstance().findFileByNioPath(Path.of(fixture.tempDirPath))
-      )
+    val action = CreateTypedResourceFileAction("Unimportant string", ResourceFolderType.RAW, false, false)
+    val virtualFileDir = assertNotNull(VirtualFileManager.getInstance().findFileByNioPath(Path.of(fixture.tempDirPath)))
     val psiDirectory = assertNotNull(PsiManager.getInstance(project).findDirectory(virtualFileDir))
-    val elements =
-      action.doCreateAndNavigate(
-        filename,
-        psiDirectory,
-        rootTagName = "",
-        chooseTagName = false,
-        navigate = true,
-      )
+    val elements = action.doCreateAndNavigate(filename, psiDirectory, rootTagName = "", chooseTagName = false, navigate = true)
     assertThat(elements).hasLength(1)
     val addedFile = elements.single()
     assertThat(addedFile).isInstanceOf(PsiFile::class.java)
@@ -119,21 +103,10 @@ class CreateTypedResourceFileActionTest {
   @Test
   fun doCreateAndNavigate_rawResource_navigateFalse() {
     val filename = "new_resource_file.json"
-    val action =
-      CreateTypedResourceFileAction("Unimportant string", ResourceFolderType.RAW, false, false)
-    val virtualFileDir =
-      assertNotNull(
-        VirtualFileManager.getInstance().findFileByNioPath(Path.of(fixture.tempDirPath))
-      )
+    val action = CreateTypedResourceFileAction("Unimportant string", ResourceFolderType.RAW, false, false)
+    val virtualFileDir = assertNotNull(VirtualFileManager.getInstance().findFileByNioPath(Path.of(fixture.tempDirPath)))
     val psiDirectory = assertNotNull(PsiManager.getInstance(project).findDirectory(virtualFileDir))
-    val elements =
-      action.doCreateAndNavigate(
-        filename,
-        psiDirectory,
-        rootTagName = "",
-        chooseTagName = false,
-        navigate = false,
-      )
+    val elements = action.doCreateAndNavigate(filename, psiDirectory, rootTagName = "", chooseTagName = false, navigate = false)
     assertThat(elements).hasLength(1)
     val addedFile = elements.single()
     assertThat(addedFile).isInstanceOf(PsiFile::class.java)

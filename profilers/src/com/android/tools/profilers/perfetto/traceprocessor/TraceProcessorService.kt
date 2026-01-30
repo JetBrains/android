@@ -22,8 +22,7 @@ import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapS
 import java.io.File
 
 /**
- * This service manages the lifetime and connections to a TraceProcessorDaemon (TPD),
- * which is used to parse and analyse Perfetto traces.
+ * This service manages the lifetime and connections to a TraceProcessorDaemon (TPD), which is used to parse and analyse Perfetto traces.
  *
  * You need to call {@link loadTrace(Long, File)} first, before calling any method that query data from TPD.
  */
@@ -36,9 +35,7 @@ interface TraceProcessorService {
    */
   fun loadTrace(traceId: Long, traceFile: File, ideProfilerServices: IdeProfilerServices): Boolean
 
-  /**
-   * Query the Perfetto trace processor processes and threads information available in a trace.
-   */
+  /** Query the Perfetto trace processor processes and threads information available in a trace. */
   fun getProcessMetadata(traceId: Long, ideProfilerServices: IdeProfilerServices): List<ProcessModel>
 
   /**
@@ -47,10 +44,12 @@ interface TraceProcessorService {
    * @param processes set of processes to get CPU data for, e.g. a main process plus surfaceflinger one.
    * @param selectedProcess the selected application process, useful for retrieving Android graphics data.
    */
-  fun loadCpuData(traceId: Long,
-                  processes: List<ProcessModel>,
-                  selectedProcess: ProcessModel,
-                  ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter
+  fun loadCpuData(
+    traceId: Long,
+    processes: List<ProcessModel>,
+    selectedProcess: ProcessModel,
+    ideProfilerServices: IdeProfilerServices,
+  ): SystemTraceModelAdapter
 
   /**
    * Query the Perfetto trace processor for Heapprofd data and populate the profiler {@link NativeMemoryHeapSet} object with the results.
@@ -58,9 +57,9 @@ interface TraceProcessorService {
   fun loadMemoryData(traceId: Long, abi: String, memorySet: NativeMemoryHeapSet, ideProfilerServices: IdeProfilerServices)
 
   /**
-   * Query the trace metadata from the metadata table. https://perfetto.dev/docs/analysis/sql-tables#metadata
-   * If the metadataName is blank or has multiple rows with the same name, the value of each row is returned.
-   * If an error occurs, or the metadata is not found an empty list is returned.
+   * Query the trace metadata from the metadata table. https://perfetto.dev/docs/analysis/sql-tables#metadata If the metadataName is blank
+   * or has multiple rows with the same name, the value of each row is returned. If an error occurs, or the metadata is not found an empty
+   * list is returned.
    */
-  fun getTraceMetadata(traceId: Long, metadataName: String, ideProfilerServices: IdeProfilerServices) : List<String>
+  fun getTraceMetadata(traceId: Long, metadataName: String, ideProfilerServices: IdeProfilerServices): List<String>
 }

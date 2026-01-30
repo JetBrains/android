@@ -28,8 +28,7 @@ import javax.swing.border.Border
 import javax.swing.table.TableCellRenderer
 
 /** Renderer should use this for creating a border based on the [ColumnInfo] specification. */
-fun ColumnInfo.createBorder(): Border =
-  with(insets) { JBUI.Borders.empty(top, left + if (leftDivider) 1 else 0, bottom, right) }
+fun ColumnInfo.createBorder(): Border = with(insets) { JBUI.Borders.empty(top, left + if (leftDivider) 1 else 0, bottom, right) }
 
 /** Renderer used each [IntColumn] specified. */
 class IntTableCellRenderer(private val columnInfo: IntColumn) : TableCellRenderer, JBLabel() {

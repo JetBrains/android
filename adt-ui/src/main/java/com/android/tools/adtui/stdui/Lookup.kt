@@ -64,10 +64,7 @@ private fun Int.modulo(other: Int): Int {
 }
 
 /** A popup menu used to display completions while editing a [CommonTextField]. */
-class Lookup<out M : CommonTextFieldModel>(
-  val editor: CommonTextField<M>,
-  private val ui: LookupUI = DefaultLookupUI(),
-) {
+class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, private val ui: LookupUI = DefaultLookupUI()) {
   private val listModel = DefaultListModel<String>()
   private val filteredModel = FilteringListModel(listModel)
   private var matcher = Matcher()
@@ -81,11 +78,9 @@ class Lookup<out M : CommonTextFieldModel>(
   /**
    * Is the current value included in the top of the completion popup.
    *
-   * Some fields allows custom values in addition to the supplied values from completions given by
-   * [EditingSupport]. An example is the user is typing "ma" and the completions include
-   * "match_parent". If the user types <enter> should we commit "ma" or "match_parent" ? The
-   * solution chosen is to include "ma" as the top choice in the completions. Reference:
-   * b/148628592.
+   * Some fields allows custom values in addition to the supplied values from completions given by [EditingSupport]. An example is the user
+   * is typing "ma" and the completions include "match_parent". If the user types <enter> should we commit "ma" or "match_parent" ? The
+   * solution chosen is to include "ma" as the top choice in the completions. Reference: b/148628592.
    */
   private var currentValueIncluded = false
 
@@ -271,20 +266,15 @@ class Lookup<out M : CommonTextFieldModel>(
   /**
    * Compute the location of the popup.
    *
-   * The popup can be placed either above or below the editor. Attempt to keep the popup on the same
-   * side of the editor i.e. don't jump up and down. Also make sure there is room to the left if the
-   * popup is wide.
+   * The popup can be placed either above or below the editor. Attempt to keep the popup on the same side of the editor i.e. don't jump up
+   * and down. Also make sure there is room to the left if the popup is wide.
    */
   private fun computeLocation(): Point {
     ui.visibleRowCount = min(filteredModel.size, MAX_LOOKUP_LIST_HEIGHT)
     val popupSize = ui.popupSize
     val screenBounds = ui.screenBounds(editor)
     val editorBounds = ui.editorBounds(editor)
-    val xPos =
-      max(
-        min(editorBounds.x, screenBounds.x + screenBounds.width - popupSize.width),
-        screenBounds.x,
-      )
+    val xPos = max(min(editorBounds.x, screenBounds.x + screenBounds.width - popupSize.width), screenBounds.x)
     val yPosAbove = editorBounds.y - popupSize.height
     val yPosBelow = editorBounds.y + editorBounds.height
     showBelow =
@@ -343,12 +333,7 @@ interface LookupUI {
 class DefaultLookupUI : LookupUI {
   private val renderer = MyLookupCellRenderer()
   private val list = JBList<String>()
-  private val scrollPane =
-    ScrollPaneFactory.createScrollPane(
-      list,
-      VERTICAL_SCROLLBAR_AS_NEEDED,
-      HORIZONTAL_SCROLLBAR_NEVER,
-    )
+  private val scrollPane = ScrollPaneFactory.createScrollPane(list, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER)
   private var popup: JBPopup? = null
 
   override var clickAction: () -> Unit = {}
@@ -407,11 +392,7 @@ class DefaultLookupUI : LookupUI {
     val model = list.model
     list.fixedCellHeight =
       when {
-        model.size > 0 ->
-          renderer
-            .getListCellRendererComponent(list, model.getElementAt(0), 0, false, false)
-            .preferredSize
-            .height
+        model.size > 0 -> renderer.getListCellRendererComponent(list, model.getElementAt(0), 0, false, false).preferredSize.height
         else -> DEFAULT_CELL_HEIGHT
       }
   }
@@ -419,8 +400,7 @@ class DefaultLookupUI : LookupUI {
   override fun updateLocation(location: Point, editor: JComponent) {
     val currentPopup = popup
     if (currentPopup == null || currentPopup.isDisposed) {
-      popup =
-        JBPopupFactory.getInstance().createComponentPopupBuilder(scrollPane, list).createPopup()
+      popup = JBPopupFactory.getInstance().createComponentPopupBuilder(scrollPane, list).createPopup()
       popup?.show(RelativePoint(editor, location))
     } else {
       currentPopup.setLocation(RelativePoint(editor, location).screenPoint)
@@ -431,8 +411,7 @@ class DefaultLookupUI : LookupUI {
 
   override fun screenBounds(editor: JComponent): Rectangle {
     val toolkit = Toolkit.getDefaultToolkit()
-    val configuration =
-      editor.graphicsConfiguration ?: return Rectangle(Point(0, 0), toolkit.screenSize)
+    val configuration = editor.graphicsConfiguration ?: return Rectangle(Point(0, 0), toolkit.screenSize)
     val screenBounds = configuration.bounds
     val screenInsets = toolkit.getScreenInsets(configuration)
     screenBounds.x += screenInsets.left
@@ -452,23 +431,15 @@ class DefaultLookupUI : LookupUI {
     popup?.setUiVisible(false)
   }
 
-  /**
-   * A [ListCellRenderer] which is able to display which characters match the current search
-   * criteria.
-   */
+  /** A [ListCellRenderer] which is able to display which characters match the current search criteria. */
   class MyLookupCellRenderer : SimpleColoredComponent(), ListCellRenderer<String> {
-    private val foregroundAttributes =
-      SimpleTextAttributes(STYLE_PLAIN, UIUtil.getLabelForeground())
-    private val matchedAttributes =
-      SimpleTextAttributes(STYLE_PLAIN, LookupCellRenderer.MATCHED_FOREGROUND_COLOR)
+    private val foregroundAttributes = SimpleTextAttributes(STYLE_PLAIN, UIUtil.getLabelForeground())
+    private val matchedAttributes = SimpleTextAttributes(STYLE_PLAIN, LookupCellRenderer.MATCHED_FOREGROUND_COLOR)
 
     var semiFocused = false
     var matcher: Matcher? = null
 
-    /**
-     * A [ListCellRenderer] which is able to display which characters match the current search
-     * criteria.
-     */
+    /** A [ListCellRenderer] which is able to display which characters match the current search criteria. */
     override fun getListCellRendererComponent(
       list: JList<out String>,
       value: String,
@@ -486,13 +457,7 @@ class DefaultLookupUI : LookupUI {
         }
       val ranges = matcher?.matchingFragments(value)?.map { TextRange(it.startOffset, it.endOffset) }
       if (ranges != null) {
-        SpeedSearchUtil.appendColoredFragments(
-          this,
-          value,
-          ranges,
-          foregroundAttributes,
-          matchedAttributes,
-        )
+        SpeedSearchUtil.appendColoredFragments(this, value, ranges, foregroundAttributes, matchedAttributes)
       } else {
         append(value, foregroundAttributes)
       }

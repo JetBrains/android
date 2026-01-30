@@ -44,12 +44,10 @@ import kotlin.math.roundToInt
 /**
  * A panel to show text and an optional control for collapsing/expanding a section.
  *
- * When the text on this label is too wide for the allowable space, this label can can either show
- * training ellipsis or clip the text. In this way the control can be used in connection with an
- * [ExpandableItemsHandler].
+ * When the text on this label is too wide for the allowable space, this label can can either show training ellipsis or clip the text. In
+ * this way the control can be used in connection with an [ExpandableItemsHandler].
  *
- * The control for collapsing/expanding a section is represented by a button with an image
- * controlled by the specified [model].
+ * The control for collapsing/expanding a section is represented by a button with an image controlled by the specified [model].
  */
 class CollapsibleLabelPanel(
   val model: CollapsibleLabelModel,
@@ -78,14 +76,7 @@ class CollapsibleLabelPanel(
       { activateAction.takeIf { model.expandable } },
     )
   private val actionButtons = mutableListOf<FocusableActionButton>()
-  private val resizeHandler =
-    ColumnFractionChangeHandler(
-      nameColumnFraction,
-      { label.x },
-      { width },
-      { 0 },
-      ::onResizeModeChange,
-    )
+  private val resizeHandler = ColumnFractionChangeHandler(nameColumnFraction, { label.x }, { width }, { 0 }, ::onResizeModeChange)
   private var initialized = false
 
   val text: String?
@@ -144,9 +135,7 @@ class CollapsibleLabelPanel(
 
   override fun updateUI() {
     super.updateUI()
-    if (
-      initialized
-    ) { // All locals are uninitialized (label will be null) when updateUI is called from the super
+    if (initialized) { // All locals are uninitialized (label will be null) when updateUI is called from the super
       // class constructor
       label.font = UIUtil.getLabelFont(fontSize)
       if (fontStyle != Font.PLAIN) {
@@ -171,10 +160,7 @@ class CollapsibleLabelPanel(
   }
 
   private fun onResizeModeChange(newResizeMode: Boolean) {
-    label.cursor =
-      Cursor.getPredefinedCursor(
-        if (newResizeMode) Cursor.W_RESIZE_CURSOR else Cursor.DEFAULT_CURSOR
-      )
+    label.cursor = Cursor.getPredefinedCursor(if (newResizeMode) Cursor.W_RESIZE_CURSOR else Cursor.DEFAULT_CURSOR)
     repaint()
   }
 
@@ -187,8 +173,7 @@ class CollapsibleLabelPanel(
     isVisible = model.visible
     label.isVisible = isVisible
     label.text = if (model.showEllipses) valueWithTrailingEllipsis else valueWithoutEllipsis
-    label.foreground =
-      if (model.enabled) UIUtil.getLabelForeground() else UIUtil.getLabelDisabledForeground()
+    label.foreground = if (model.enabled) UIUtil.getLabelForeground() else UIUtil.getLabelDisabledForeground()
     expandButton.icon = model.icon
     revalidateParent?.revalidate()
     revalidateParent?.repaint()

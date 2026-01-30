@@ -87,13 +87,8 @@ class StateReadTest {
 
   @Test
   fun assignedPropertyRead() {
-    createPsiFile(
-        "fun Inner(arg: String, onNameChange: (String) -> Unit)",
-        "Inner(arg = stateVar.value) { stateVar.value = it }",
-      )
-      .assertContainsSingleStateRead {
-        expression("|value|)") to StateRead.create(stateVar(), outerFunction())
-      }
+    createPsiFile("fun Inner(arg: String, onNameChange: (String) -> Unit)", "Inner(arg = stateVar.value) { stateVar.value = it }")
+      .assertContainsSingleStateRead { expression("|value|)") to StateRead.create(stateVar(), outerFunction()) }
   }
 
   @Test
@@ -103,10 +98,7 @@ class StateReadTest {
         "Inner(arg = stateListVar[0].value) { stateListVar[0].value = it }",
         "val stateListVar = listOf(rememberSaveable { mutableStateOf(\"\") })",
       )
-      .assertContainsSingleStateRead {
-        expression("|value|)") to
-          StateRead.create(expression("= |stateListVar[0]|"), outerFunction())
-      }
+      .assertContainsSingleStateRead { expression("|value|)") to StateRead.create(expression("= |stateListVar[0]|"), outerFunction()) }
   }
 
   @Test
@@ -117,10 +109,7 @@ class StateReadTest {
         "val container = StateHolder(rememberSaveable { mutableStateOf(\"\") })",
         "class StateHolder(val stateProp: MutableState<String>)",
       )
-      .assertContainsSingleStateRead {
-        expression("|value|)") to
-          StateRead.create(expression("= container.|stateProp|"), outerFunction())
-      }
+      .assertContainsSingleStateRead { expression("|value|)") to StateRead.create(expression("= container.|stateProp|"), outerFunction()) }
   }
 
   @Test
@@ -130,9 +119,7 @@ class StateReadTest {
         "Inner(arg = stateVar.intValue) { stateVar.intValue = it }",
         "val stateVar = rememberSaveable { mutableIntStateOf(42) }",
       )
-      .assertContainsSingleStateRead {
-        expression("|intValue|)") to StateRead.create(stateVar(), outerFunction())
-      }
+      .assertContainsSingleStateRead { expression("|intValue|)") to StateRead.create(stateVar(), outerFunction()) }
   }
 
   @Test
@@ -142,9 +129,7 @@ class StateReadTest {
         "Inner(arg = stateVar.longValue) { stateVar.longValue = it }",
         "val stateVar = rememberSaveable { mutableLongStateOf(8657309L) }",
       )
-      .assertContainsSingleStateRead {
-        expression("|longValue|)") to StateRead.create(stateVar(), outerFunction())
-      }
+      .assertContainsSingleStateRead { expression("|longValue|)") to StateRead.create(stateVar(), outerFunction()) }
   }
 
   @Test
@@ -154,9 +139,7 @@ class StateReadTest {
         "Inner(arg = stateVar.floatValue) { stateVar.floatValue = it }",
         "val stateVar = rememberSaveable { mutableFloatStateOf(3.14159f) }",
       )
-      .assertContainsSingleStateRead {
-        expression("|floatValue|)") to StateRead.create(stateVar(), outerFunction())
-      }
+      .assertContainsSingleStateRead { expression("|floatValue|)") to StateRead.create(stateVar(), outerFunction()) }
   }
 
   @Test
@@ -166,64 +149,47 @@ class StateReadTest {
         "Inner(arg = stateVar.doubleValue) { stateVar.doubleValue = it }",
         "val stateVar = rememberSaveable { mutableDoubleStateOf(2.71828) }",
       )
-      .assertContainsSingleStateRead {
-        expression("|doubleValue|)") to StateRead.create(stateVar(), outerFunction())
-      }
+      .assertContainsSingleStateRead { expression("|doubleValue|)") to StateRead.create(stateVar(), outerFunction()) }
   }
 
   @Test
   fun composableLambdaArgument() {
-    createPsiFile("fun Inner(arg: @Composable () -> Unit)", "Inner { stateVar.value }")
-      .assertContainsSingleStateRead {
-        expression("|value|") to
-          StateRead.create(expression("{ |stateVar|."), lambda("|stateVar.value|"))
-      }
+    createPsiFile("fun Inner(arg: @Composable () -> Unit)", "Inner { stateVar.value }").assertContainsSingleStateRead {
+      expression("|value|") to StateRead.create(expression("{ |stateVar|."), lambda("|stateVar.value|"))
+    }
   }
 
   @Test
   fun noncomposableLambdaArgument() {
-    createPsiFile("fun Inner(arg: () -> Unit)", "Inner { stateVar.value }")
-      .findAllStateReads()
-      .let { assertThat(it).isEmpty() }
+    createPsiFile("fun Inner(arg: () -> Unit)", "Inner { stateVar.value }").findAllStateReads().let { assertThat(it).isEmpty() }
   }
 
   @Test
   fun inlineLambdaArgument() {
-    createPsiFile("inline fun Inner(arg: () -> Unit)", "Inner { stateVar.value }")
-      .assertContainsSingleStateRead {
-        expression("|value|") to StateRead.create(expression("{ |stateVar|."), outerFunction())
-      }
+    createPsiFile("inline fun Inner(arg: () -> Unit)", "Inner { stateVar.value }").assertContainsSingleStateRead {
+      expression("|value|") to StateRead.create(expression("{ |stateVar|."), outerFunction())
+    }
   }
 
   @Test
   fun noinlineLambdaArgument() {
-    createPsiFile("inline fun Inner(noinline arg: () -> Unit)", "Inner { stateVar.value }")
-      .findAllStateReads()
-      .let { assertThat(it).isEmpty() }
+    createPsiFile("inline fun Inner(noinline arg: () -> Unit)", "Inner { stateVar.value }").findAllStateReads().let {
+      assertThat(it).isEmpty()
+    }
   }
 
   @Test
   fun composableNoinlineLambdaArgument() {
-    createPsiFile(
-        "fun Inner(arg: @Composable () -> Unit, otherArg: Int)",
-        "Inner({ stateVar.value }, 3)",
-      )
-      .assertContainsSingleStateRead {
-        expression("|value|") to
-          StateRead.create(expression("{ |stateVar|."), lambda("|stateVar.value|"))
-      }
+    createPsiFile("fun Inner(arg: @Composable () -> Unit, otherArg: Int)", "Inner({ stateVar.value }, 3)").assertContainsSingleStateRead {
+      expression("|value|") to StateRead.create(expression("{ |stateVar|."), lambda("|stateVar.value|"))
+    }
   }
 
   @Test
   fun composablePositionalLambdaArgument() {
-    createPsiFile(
-        "fun Inner(arg: @Composable () -> Unit, otherArg: Int)",
-        "Inner({ stateVar.value }, 3)",
-      )
-      .assertContainsSingleStateRead {
-        expression("|value|") to
-          StateRead.create(expression("{ |stateVar|."), lambda("|stateVar.value|"))
-      }
+    createPsiFile("fun Inner(arg: @Composable () -> Unit, otherArg: Int)", "Inner({ stateVar.value }, 3)").assertContainsSingleStateRead {
+      expression("|value|") to StateRead.create(expression("{ |stateVar|."), lambda("|stateVar.value|"))
+    }
   }
 
   @Test
@@ -232,10 +198,7 @@ class StateReadTest {
         "fun Inner(beforeArg: Int, arg: @Composable () -> Unit, afterArg: Int)",
         "Inner(arg = { stateVar.value }, beforeArg = 17, afterArg = 42)",
       )
-      .assertContainsSingleStateRead {
-        expression("|value|") to
-          StateRead.create(expression("{ |stateVar|."), lambda("|stateVar.value|"))
-      }
+      .assertContainsSingleStateRead { expression("|value|") to StateRead.create(expression("{ |stateVar|."), lambda("|stateVar.value|")) }
   }
 
   @Test
@@ -246,8 +209,7 @@ class StateReadTest {
         extraCode = "inline fun MoreInner(arg: () -> Unit)",
       )
       .assertContainsSingleStateRead {
-        expression("|value|") to
-          StateRead.create(expression("{ |stateVar|."), lambda("|MoreInner { stateVar.value }|"))
+        expression("|value|") to StateRead.create(expression("{ |stateVar|."), lambda("|MoreInner { stateVar.value }|"))
       }
   }
 
@@ -302,8 +264,7 @@ class StateReadTest {
     checkNotNull(stateRead)
     assertThat(stateRead.stateVar).isEqualTo(a)
     assertThat(stateRead.scope).isEqualTo(block)
-    assertThat(stateRead.scopeName)
-      .isEqualTo(ComposeBundle.message("state.read.recompose.target.enclosing.lambda"))
+    assertThat(stateRead.scopeName).isEqualTo(ComposeBundle.message("state.read.recompose.target.enclosing.lambda"))
   }
 
   @Test
@@ -381,8 +342,7 @@ class StateReadTest {
     checkNotNull(stateRead)
     assertThat(stateRead.stateVar).isEqualTo(a)
     assertThat(stateRead.scope).isEqualTo(anonymousFunction.bodyExpression)
-    assertThat(stateRead.scopeName)
-      .isEqualTo(ComposeBundle.message("state.read.recompose.target.enclosing.anonymous.function"))
+    assertThat(stateRead.scopeName).isEqualTo(ComposeBundle.message("state.read.recompose.target.enclosing.anonymous.function"))
   }
 
   @Test
@@ -430,16 +390,13 @@ class StateReadTest {
     )
   }
 
-  private fun PsiFile.assertContainsSingleStateRead(
-    keyValueSupplier: PsiFile.() -> Pair<KtExpression, StateRead?>
-  ) {
+  private fun PsiFile.assertContainsSingleStateRead(keyValueSupplier: PsiFile.() -> Pair<KtExpression, StateRead?>) {
     val pair = keyValueSupplier()
     assertThat(findAllStateReads()).containsExactly(pair.first, pair.second)
   }
 
   private fun PsiFile.findAllStateReads(): Map<KtNameReferenceExpression, StateRead> =
-    collectDescendantsOfType<KtNameReferenceExpression>()
-      .associateWithNotNull(KtNameReferenceExpression::getStateRead)
+    collectDescendantsOfType<KtNameReferenceExpression>().associateWithNotNull(KtNameReferenceExpression::getStateRead)
 
   private fun PsiFile.lambda(window: String): KtLambdaExpression = getEnclosing(window)
 
@@ -447,6 +404,5 @@ class StateReadTest {
 
   private fun PsiFile.stateVar(): KtNameReferenceExpression = getEnclosing("= |stateVar|")
 
-  private fun PsiFile.outerFunction(): KtNamedFunction =
-    getEnclosing("|fun $OUTER_FUNCTION" to "\n}|")
+  private fun PsiFile.outerFunction(): KtNamedFunction = getEnclosing("|fun $OUTER_FUNCTION" to "\n}|")
 }

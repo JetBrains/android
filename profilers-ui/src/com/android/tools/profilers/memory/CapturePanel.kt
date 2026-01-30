@@ -32,14 +32,14 @@ import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
-import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
+import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
 import com.android.tools.profilers.memory.chart.MemoryVisualizationView
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -49,13 +49,15 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-class CapturePanel(profilersView: StudioProfilersView,
-                   selection: MemoryCaptureSelection,
-                   selectionTimeLabel: JLabel?,
-                   selectionRange: Range,
-                   ideComponents: IdeProfilerComponents,
-                   timeline: StreamingTimeline,
-                   isFullScreenHeapDumpUi: Boolean) : AspectObserver() {
+class CapturePanel(
+  profilersView: StudioProfilersView,
+  selection: MemoryCaptureSelection,
+  selectionTimeLabel: JLabel?,
+  selectionRange: Range,
+  ideComponents: IdeProfilerComponents,
+  timeline: StreamingTimeline,
+  isFullScreenHeapDumpUi: Boolean,
+) : AspectObserver() {
   val heapView = MemoryHeapView(selection)
   val captureView = MemoryCaptureView(selection, ideComponents) // TODO: remove after full migration. Only needed for legacy tests
   val classGrouping = MemoryClassGrouping(selection)
@@ -63,13 +65,14 @@ class CapturePanel(profilersView: StudioProfilersView,
   val classSetView = MemoryClassSetView(selection, ideComponents, selectionRange, timeline)
   val instanceDetailsView = MemoryInstanceDetailsView(selection, ideComponents, timeline)
 
-  val captureInfoMessage = JLabel(StudioIcons.Common.WARNING).apply {
-    border = TOOLBAR_ICON_BORDER
-    // preset the minimize size of the info to only show the icon, so the text can be truncated when the user resizes the vertical splitter.
-    minimumSize = preferredSize
-    isVisible = false
-    selection.aspect.addDependency(this@CapturePanel)
-      .onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS) {
+  val captureInfoMessage =
+    JLabel(StudioIcons.Common.WARNING).apply {
+      border = TOOLBAR_ICON_BORDER
+      // preset the minimize size of the info to only show the icon, so the text can be truncated when the user resizes the vertical
+      // splitter.
+      minimumSize = preferredSize
+      isVisible = false
+      selection.aspect.addDependency(this@CapturePanel).onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS) {
         when (val infoMessage = selection.selectedCapture?.infoMessage) {
           null -> isVisible = false
           else -> {
@@ -79,7 +82,7 @@ class CapturePanel(profilersView: StudioProfilersView,
           }
         }
       }
-  }
+    }
 
   private val filterComponent =
     FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS).apply {
@@ -92,24 +95,22 @@ class CapturePanel(profilersView: StudioProfilersView,
 }
 
 /**
- * Helper class to maintain toolbar components between tabs.
- * One copy of components is maintained to preserve state and manage the selected heap.
- * This provides for a seamless user experience when doing things like filtering.
- * The caveat is components can only be added to one panel at a time. To work around
- * this a list of toolbar components is collected for each tab. When that tab is activated
- * the list of components is added to the selected tab.
+ * Helper class to maintain toolbar components between tabs. One copy of components is maintained to preserve state and manage the selected
+ * heap. This provides for a seamless user experience when doing things like filtering. The caveat is components can only be added to one
+ * panel at a time. To work around this a list of toolbar components is collected for each tab. When that tab is activated the list of
+ * components is added to the selected tab.
  */
-private data class ToolbarComponents(val toolbarPanel: JPanel,
-                                     val components: List<Component>)
+private data class ToolbarComponents(val toolbarPanel: JPanel, val components: List<Component>)
 
-private class CapturePanelUi(private val selection: MemoryCaptureSelection,
-                             private val heapView: MemoryHeapView,
-                             private val classGrouping: MemoryClassGrouping,
-                             private val classifierView: MemoryClassifierView,
-                             private val filterComponent: FilterComponent,
-                             private val captureInfoMessage: JLabel,
-                             private val profilersView: StudioProfilersView)
-  : JPanel(BorderLayout()) {
+private class CapturePanelUi(
+  private val selection: MemoryCaptureSelection,
+  private val heapView: MemoryHeapView,
+  private val classGrouping: MemoryClassGrouping,
+  private val classifierView: MemoryClassifierView,
+  private val filterComponent: FilterComponent,
+  private val captureInfoMessage: JLabel,
+  private val profilersView: StudioProfilersView,
+) : JPanel(BorderLayout()) {
   private val observer = AspectObserver()
   private val classTypeFilterMenu = ClassTypeFilterMenu(selection)
   private val issueTypeFilterMenu = IssueTypeFilterMenu(selection)
@@ -119,54 +120,57 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
   private var activeTabIndex = 0
 
   init {
-    val headingPanel = JPanel().apply {
-      layout = BoxLayout(this, BoxLayout.Y_AXIS)
-      add(buildSummaryPanel())
-    }
+    val headingPanel =
+      JPanel().apply {
+        layout = BoxLayout(this, BoxLayout.Y_AXIS)
+        add(buildSummaryPanel())
+      }
     add(headingPanel, BorderLayout.PAGE_START)
     add(buildDetailsPanel(headingPanel), BorderLayout.CENTER)
   }
 
-  private fun buildDetailsPanel(headingPanel: JPanel) = JPanel(BorderLayout()).apply {
-    fun refreshPanel() {
-      removeAll()
-      if (selection.selectedCapture is HeapDumpCaptureObject) {
-        val toolbarPanel = JPanel(createToolbarLayout())
-        toolbarDefaults().forEach { toolbarPanel.add(it) }
-        headingPanel.add(buildToolbarPanel(toolbarPanel), 0)
-        add(classifierView.component)
+  private fun buildDetailsPanel(headingPanel: JPanel) =
+    JPanel(BorderLayout()).apply {
+      fun refreshPanel() {
+        removeAll()
+        if (selection.selectedCapture is HeapDumpCaptureObject) {
+          val toolbarPanel = JPanel(createToolbarLayout())
+          toolbarDefaults().forEach { toolbarPanel.add(it) }
+          headingPanel.add(buildToolbarPanel(toolbarPanel), 0)
+          add(classifierView.component)
+        } else {
+          add(buildTabPanel(), BorderLayout.CENTER)
+        }
       }
-      else {
-        add(buildTabPanel(), BorderLayout.CENTER)
-      }
+      selection.aspect.addDependency(observer).onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, ::refreshPanel)
+      refreshPanel()
     }
-    selection.aspect.addDependency(observer).onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, ::refreshPanel)
-    refreshPanel()
-  }
 
-  private fun buildNonTabPanel(toolbar: JPanel, component: JComponent) = JPanel(BorderLayout()).apply {
-    add(buildToolbarPanel(toolbar), BorderLayout.PAGE_START)
-    add(component, BorderLayout.CENTER)
-  }
+  private fun buildNonTabPanel(toolbar: JPanel, component: JComponent) =
+    JPanel(BorderLayout()).apply {
+      add(buildToolbarPanel(toolbar), BorderLayout.PAGE_START)
+      add(component, BorderLayout.CENTER)
+    }
 
   // Add the right side toolbar so that it is on top of the truncated |myCaptureInfoMessage|.
-  private fun buildTabPanel() = JBTabbedPane().apply {
-    border = AdtUiUtils.DEFAULT_TOP_BORDER
-    addTab(this, "Table", classifierView, toolbarDefaults())
-    addTab(this, "Visualization", visualizationView, mutableListOf(visualizationView.toolbarComponents, toolbarCore()).flatten())
-    fun updateTabs() {
-      // do move which panel the tabs bar appears on.
-      tabListeners[activeTabIndex].onSelectionChanged(false)
-      val title = getTitleAt(selectedIndex)
-      val panel = toolbarTabPanels[title]!!.toolbarPanel
-      panel.removeAll()
-      toolbarTabPanels[title]!!.components.forEach { panel.add(it) }
-      tabListeners[selectedIndex].onSelectionChanged(true)
-      activeTabIndex = selectedIndex
+  private fun buildTabPanel() =
+    JBTabbedPane().apply {
+      border = AdtUiUtils.DEFAULT_TOP_BORDER
+      addTab(this, "Table", classifierView, toolbarDefaults())
+      addTab(this, "Visualization", visualizationView, mutableListOf(visualizationView.toolbarComponents, toolbarCore()).flatten())
+      fun updateTabs() {
+        // do move which panel the tabs bar appears on.
+        tabListeners[activeTabIndex].onSelectionChanged(false)
+        val title = getTitleAt(selectedIndex)
+        val panel = toolbarTabPanels[title]!!.toolbarPanel
+        panel.removeAll()
+        toolbarTabPanels[title]!!.components.forEach { panel.add(it) }
+        tabListeners[selectedIndex].onSelectionChanged(true)
+        activeTabIndex = selectedIndex
+      }
+      addChangeListener { updateTabs() }
+      updateTabs()
     }
-    addChangeListener { updateTabs() }
-    updateTabs()
-  }
 
   private fun addTab(tabPane: JBTabbedPane, name: String, tabContainer: CapturePanelTabContainer, toolbarComponents: List<Component>) {
     toolbarTabPanels[name] = ToolbarComponents(JPanel(createToolbarLayout()), toolbarComponents)
@@ -176,104 +180,111 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
     body.border = JBUI.Borders.empty() // undo insets added by `JBTabbedPane.addTab`
   }
 
-  private fun toolbarDefaults() = mutableListOf<Component>().apply {
-    if (selection.selectedCapture !is NativeAllocationSampleCaptureObject) {
-      add(heapView.component)
-    }
-    if (selection.selectedCapture is HeapDumpCaptureObject) {
-      add(classTypeFilterMenu.component)
-      add(issueTypeFilterMenu.component)
-    }
-    add(classGrouping.component)
-    addAll(toolbarCore())
-  }
-
-  private fun toolbarCore() = mutableListOf<Component>().apply {
-    add(filterComponent)
-    add(captureInfoMessage)
-  }
-
-  private fun buildToolbarPanel(toolbar: JPanel) = JPanel(BorderLayout()).apply {
-    add(toolbar, BorderLayout.LINE_START)
-    alignmentX = Component.LEFT_ALIGNMENT
-    minimumSize = Dimension(0, minimumSize.height)
-  }
-
-  private fun buildSummaryPanel() = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
-    border = AdtUiUtils.DEFAULT_TOP_BORDER
-    fun mkLabel(desc: String, action: Runnable? = null) =
-      StatLabel(0L, desc, numFont = ProfilerFonts.H2_FONT, descFont = AdtUiUtils.DEFAULT_FONT.biggerOn(1f), action = action)
-
-    val totalClassLabel = mkLabel("Classes")
-    val totalLeakLabel = mkLabel("Leaks")
-    val totalBitmapDuplicatesLabel = mkLabel("Duplicates")
-    val totalCountLabel = mkLabel("Count")
-    val totalNativeSizeLabel = mkLabel("Native Size")
-    val totalShallowSizeLabel = mkLabel("Shallow Size")
-    val totalRetainedSizeLabel = mkLabel("Retained Size")
-
-    // Compute total classes asynchronously because it can take multiple seconds
-    fun refreshTotalClassesAsync(heap: HeapSet) = profilersView.studioProfilers.ideServices.poolExecutor.execute {
-      // Handle "no filter" case specially, because it recomputes from the current instance stream,
-      // and `ClassifierSet` only considers instances as "matched" if the filter is not empty.
-      // This is analogous to how `MemoryClassifierView` is checking if filter is empty to treat it specially
-      val filterMatches = if (selection.filterHandler.filter.isEmpty) heap.instancesStream else heap.filterMatches
-      // Totals other than class count don't need this, because they are direct fields initialized correctly
-      val count = filterMatches.mapToLong { it.classEntry.classId }.distinct().count()
-      profilersView.studioProfilers.ideServices.mainExecutor.execute { totalClassLabel.numValue = count }
+  private fun toolbarDefaults() =
+    mutableListOf<Component>().apply {
+      if (selection.selectedCapture !is NativeAllocationSampleCaptureObject) {
+        add(heapView.component)
+      }
+      if (selection.selectedCapture is HeapDumpCaptureObject) {
+        add(classTypeFilterMenu.component)
+        add(issueTypeFilterMenu.component)
+      }
+      add(classGrouping.component)
+      addAll(toolbarCore())
     }
 
-    // Compute total retained size asynchronously because it can take multiple seconds
-    fun refreshTotalRetainedSizeAsync(heap: HeapSet) = profilersView.studioProfilers.ideServices.poolExecutor.execute {
-      val retainedSize = heap.totalRetainedSize
-      profilersView.studioProfilers.ideServices.mainExecutor.execute { totalRetainedSizeLabel.numValue = retainedSize }
+  private fun toolbarCore() =
+    mutableListOf<Component>().apply {
+      add(filterComponent)
+      add(captureInfoMessage)
     }
 
-    fun refreshSummaries() {
-      selection.selectedHeapSet?.let { heap ->
-        refreshTotalClassesAsync(heap)
-        totalCountLabel.numValue = heap.totalObjectCount.toLong()
-        totalNativeSizeLabel.numValue = heap.totalNativeSize
-        totalShallowSizeLabel.numValue = heap.totalShallowSize
-        refreshTotalRetainedSizeAsync(heap)
+  private fun buildToolbarPanel(toolbar: JPanel) =
+    JPanel(BorderLayout()).apply {
+      add(toolbar, BorderLayout.LINE_START)
+      alignmentX = Component.LEFT_ALIGNMENT
+      minimumSize = Dimension(0, minimumSize.height)
+    }
 
-        val capture = selection.selectedCapture
-        isVisible = capture is HeapDumpCaptureObject
-        if (capture !is HeapDumpCaptureObject) {
-          totalLeakLabel.isVisible = false
-          totalBitmapDuplicatesLabel.isVisible = false
-          return@let
+  private fun buildSummaryPanel() =
+    JPanel(FlowLayout(FlowLayout.LEFT)).apply {
+      border = AdtUiUtils.DEFAULT_TOP_BORDER
+      fun mkLabel(desc: String, action: Runnable? = null) =
+        StatLabel(0L, desc, numFont = ProfilerFonts.H2_FONT, descFont = AdtUiUtils.DEFAULT_FONT.biggerOn(1f), action = action)
+
+      val totalClassLabel = mkLabel("Classes")
+      val totalLeakLabel = mkLabel("Leaks")
+      val totalBitmapDuplicatesLabel = mkLabel("Duplicates")
+      val totalCountLabel = mkLabel("Count")
+      val totalNativeSizeLabel = mkLabel("Native Size")
+      val totalShallowSizeLabel = mkLabel("Shallow Size")
+      val totalRetainedSizeLabel = mkLabel("Retained Size")
+
+      // Compute total classes asynchronously because it can take multiple seconds
+      fun refreshTotalClassesAsync(heap: HeapSet) =
+        profilersView.studioProfilers.ideServices.poolExecutor.execute {
+          // Handle "no filter" case specially, because it recomputes from the current instance stream,
+          // and `ClassifierSet` only considers instances as "matched" if the filter is not empty.
+          // This is analogous to how `MemoryClassifierView` is checking if filter is empty to treat it specially
+          val filterMatches = if (selection.filterHandler.filter.isEmpty) heap.instancesStream else heap.filterMatches
+          // Totals other than class count don't need this, because they are direct fields initialized correctly
+          val count = filterMatches.mapToLong { it.classEntry.classId }.distinct().count()
+          profilersView.studioProfilers.ideServices.mainExecutor.execute { totalClassLabel.numValue = count }
         }
 
-        totalLeakLabel.apply {
-          val leakFilter = capture.activityFragmentLeakFilter
-          numValue = getFilteredInstanceCount(heap, selection.selectedClassTypeFilter, leakFilter)
-          isVisible = true
-          icon = if (numValue > 0) StudioIcons.Common.WARNING else null
+      // Compute total retained size asynchronously because it can take multiple seconds
+      fun refreshTotalRetainedSizeAsync(heap: HeapSet) =
+        profilersView.studioProfilers.ideServices.poolExecutor.execute {
+          val retainedSize = heap.totalRetainedSize
+          profilersView.studioProfilers.ideServices.mainExecutor.execute { totalRetainedSizeLabel.numValue = retainedSize }
         }
-        totalBitmapDuplicatesLabel.apply {
-          val dupeFilter = capture.bitmapDuplicationFilter
-          numValue = getFilteredInstanceCount(heap, selection.selectedClassTypeFilter, dupeFilter)
-          isVisible = true
-          icon = if (numValue > 0) StudioIcons.Common.WARNING else null
+
+      fun refreshSummaries() {
+        selection.selectedHeapSet?.let { heap ->
+          refreshTotalClassesAsync(heap)
+          totalCountLabel.numValue = heap.totalObjectCount.toLong()
+          totalNativeSizeLabel.numValue = heap.totalNativeSize
+          totalShallowSizeLabel.numValue = heap.totalShallowSize
+          refreshTotalRetainedSizeAsync(heap)
+
+          val capture = selection.selectedCapture
+          isVisible = capture is HeapDumpCaptureObject
+          if (capture !is HeapDumpCaptureObject) {
+            totalLeakLabel.isVisible = false
+            totalBitmapDuplicatesLabel.isVisible = false
+            return@let
+          }
+
+          totalLeakLabel.apply {
+            val leakFilter = capture.activityFragmentLeakFilter
+            numValue = getFilteredInstanceCount(heap, selection.selectedClassTypeFilter, leakFilter)
+            isVisible = true
+            icon = if (numValue > 0) StudioIcons.Common.WARNING else null
+          }
+          totalBitmapDuplicatesLabel.apply {
+            val dupeFilter = capture.bitmapDuplicationFilter
+            numValue = getFilteredInstanceCount(heap, selection.selectedClassTypeFilter, dupeFilter)
+            isVisible = true
+            icon = if (numValue > 0) StudioIcons.Common.WARNING else null
+          }
         }
       }
+
+      selection.aspect
+        .addDependency(observer)
+        .onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, ::refreshSummaries)
+        .onChange(CaptureSelectionAspect.CURRENT_FILTER, ::refreshSummaries)
+
+      add(totalClassLabel)
+      add(totalLeakLabel)
+      add(totalBitmapDuplicatesLabel)
+      add(FlatSeparator(6, 36))
+      add(totalCountLabel)
+      add(totalNativeSizeLabel)
+      add(totalShallowSizeLabel)
+      add(totalRetainedSizeLabel)
+      alignmentX = Component.LEFT_ALIGNMENT
     }
-
-    selection.aspect.addDependency(observer)
-      .onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, ::refreshSummaries)
-      .onChange(CaptureSelectionAspect.CURRENT_FILTER, ::refreshSummaries)
-
-    add(totalClassLabel)
-    add(totalLeakLabel)
-    add(totalBitmapDuplicatesLabel)
-    add(FlatSeparator(6, 36))
-    add(totalCountLabel)
-    add(totalNativeSizeLabel)
-    add(totalShallowSizeLabel)
-    add(totalRetainedSizeLabel)
-    alignmentX = Component.LEFT_ALIGNMENT
-  }
 
   /**
    * Calculates the number of instances that match a filter, after first applying the currently active class type filter.
@@ -283,10 +294,12 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
    * @param instanceFilter The instance filter to apply (e.g., the leak or duplicate filter).
    * @return The total count of matching instances.
    */
-  private fun getFilteredInstanceCount(heapSet: ClassifierSet,
-                                       classTypeFilter: CaptureObjectInstanceFilter?,
-                                       instanceFilter: CaptureObjectInstanceFilter): Long {
-    val baseStream = classTypeFilter?.let { heapSet.instancesStream.filter{classTypeFilter.instanceTest(it)} } ?: heapSet.instancesStream
-    return baseStream.filter{instanceFilter.instanceTest(it)}.count()
+  private fun getFilteredInstanceCount(
+    heapSet: ClassifierSet,
+    classTypeFilter: CaptureObjectInstanceFilter?,
+    instanceFilter: CaptureObjectInstanceFilter,
+  ): Long {
+    val baseStream = classTypeFilter?.let { heapSet.instancesStream.filter { classTypeFilter.instanceTest(it) } } ?: heapSet.instancesStream
+    return baseStream.filter { instanceFilter.instanceTest(it) }.count()
   }
 }

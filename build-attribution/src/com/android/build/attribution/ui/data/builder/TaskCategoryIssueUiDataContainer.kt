@@ -24,20 +24,16 @@ import com.android.build.attribution.ui.getWarningMessage
 import com.android.buildanalyzer.common.TaskCategory
 import com.android.buildanalyzer.common.TaskCategoryIssue
 
-class TaskCategoryIssueUiDataContainer(
-  private val buildAnalysisResult: BuildEventsAnalysisResult
-) {
+class TaskCategoryIssueUiDataContainer(private val buildAnalysisResult: BuildEventsAnalysisResult) {
 
   fun issuesForCategory(taskCategory: TaskCategory, severity: TaskCategoryIssue.Severity): List<TaskCategoryIssueUiData> {
     if (buildAnalysisResult.getTaskCategoryWarningsAnalyzerResult() !is TaskCategoryWarningsAnalyzer.IssuesResult) {
       return emptyList()
     }
     return (buildAnalysisResult.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult)
-      .taskCategoryIssues.filter { issue ->
-        issue.taskCategory == taskCategory && issue.severity == severity
-      }.map {
-        it.toUiData(buildAnalysisResult.getNonIncrementalAnnotationProcessorsData())
-      }
+      .taskCategoryIssues
+      .filter { issue -> issue.taskCategory == taskCategory && issue.severity == severity }
+      .map { it.toUiData(buildAnalysisResult.getNonIncrementalAnnotationProcessorsData()) }
   }
 
   fun getTaskCategoryIssues(taskCategory: TaskCategory, severity: TaskCategoryIssue.Severity): List<TaskCategoryIssue> {
@@ -45,14 +41,10 @@ class TaskCategoryIssueUiDataContainer(
       return emptyList()
     }
     return (buildAnalysisResult.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult)
-      .taskCategoryIssues.filter { issue ->
-        issue.taskCategory == taskCategory && issue.severity == severity
-      }
+      .taskCategoryIssues
+      .filter { issue -> issue.taskCategory == taskCategory && issue.severity == severity }
   }
 
-  private fun TaskCategoryIssue.toUiData(nonIncrementalAnnotationProcessors: List<AnnotationProcessorData>) = TaskCategoryIssueUiData(
-    this,
-    this.getWarningMessage(nonIncrementalAnnotationProcessors),
-    this.getLink()
-  )
+  private fun TaskCategoryIssue.toUiData(nonIncrementalAnnotationProcessors: List<AnnotationProcessorData>) =
+    TaskCategoryIssueUiData(this, this.getWarningMessage(nonIncrementalAnnotationProcessors), this.getLink())
 }

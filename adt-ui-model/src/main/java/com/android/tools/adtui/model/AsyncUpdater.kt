@@ -17,9 +17,8 @@ package com.android.tools.adtui.model
 
 object AsyncUpdater {
   /**
-   * Creates an updater for results `R` that can be too expensive to compute and refresh per frame.
-   * The result is computed asynchronously and refreshed in the UI when it's ready, and repeated
-   * until it's up-to-date.
+   * Creates an updater for results `R` that can be too expensive to compute and refresh per frame. The result is computed asynchronously
+   * and refreshed in the UI when it's ready, and repeated until it's up-to-date.
    *
    * @param runOnUi run the provided action on the UI thread
    * @param runOnBackground run the provided action on the background thread

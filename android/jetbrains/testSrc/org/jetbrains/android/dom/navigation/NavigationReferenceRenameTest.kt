@@ -36,8 +36,7 @@ class NavigationReferenceRenameTest {
   private val projectRule = AndroidProjectRule.withSdk().initAndroid(true)
   private val domRule = AndroidDomRule("res/navigation") { projectRule.fixture }
 
-  @get:Rule
-  val ruleChain: TestRule = RuleChain.outerRule(projectRule).around(domRule).around(EdtRule())
+  @get:Rule val ruleChain: TestRule = RuleChain.outerRule(projectRule).around(domRule).around(EdtRule())
 
   @Before
   fun setUp() {
@@ -50,9 +49,8 @@ class NavigationReferenceRenameTest {
     val navFile = projectRule.fixture.copyFileToProject("nav_arg_type_rename.xml", "res/navigation/nav_arg_type_rename.xml")
     val classToRename: PsiClass = projectRule.fixture.findClass("p1.p2.Data")
     projectRule.fixture.renameElement(classToRename, "MyDataClass")
-    val arg: XmlTag? = navFile.toPsiFile(projectRule.project)?.findDescendantOfType<XmlTag>()
-      ?.findFirstSubTag("fragment")
-      ?.findFirstSubTag("argument")
+    val arg: XmlTag? =
+      navFile.toPsiFile(projectRule.project)?.findDescendantOfType<XmlTag>()?.findFirstSubTag("fragment")?.findFirstSubTag("argument")
     assertThat(arg?.getAttribute("app:argType")?.value).isEqualTo("p1.p2.MyDataClass")
   }
 }

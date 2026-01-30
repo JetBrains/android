@@ -20,19 +20,17 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.cpu.systemtrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
+import java.util.ArrayList
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.ArrayList
-import java.util.concurrent.TimeUnit
 
 class LazyDataSeriesTest {
   private val timer = FakeTimer()
   private lateinit var capture: CpuCapture
 
-  @Rule
-  @JvmField
-  var myGrpcChannel = FakeGrpcChannel("CpuProfilerStageTestChannel", FakeTransportService(timer))
+  @Rule @JvmField var myGrpcChannel = FakeGrpcChannel("CpuProfilerStageTestChannel", FakeTransportService(timer))
 
   @Before
   fun setup() {
@@ -46,64 +44,32 @@ class LazyDataSeriesTest {
     val series = LazyDataSeries<ThreadState> { testSeriesData }
     // Test get exact data.
     var seriesData: List<SeriesData<ThreadState>> =
-      series.getDataForRange(
-        Range(
-          TimeUnit.MILLISECONDS.toMicros(1).toDouble(),
-          TimeUnit.MILLISECONDS.toMicros(100).toDouble()
-        )
-      )
+      series.getDataForRange(Range(TimeUnit.MILLISECONDS.toMicros(1).toDouble(), TimeUnit.MILLISECONDS.toMicros(100).toDouble()))
     verifySeriesDataMatches(seriesData, testSeriesData, 0, 10)
 
     // Test no overlap returns one result. This result should be the last.
     seriesData =
-      series.getDataForRange(
-        Range(
-          TimeUnit.MILLISECONDS.toMicros(100).toDouble(),
-          TimeUnit.MILLISECONDS.toMicros(150).toDouble()
-        )
-      )
+      series.getDataForRange(Range(TimeUnit.MILLISECONDS.toMicros(100).toDouble(), TimeUnit.MILLISECONDS.toMicros(150).toDouble()))
     verifySeriesDataMatches(seriesData, testSeriesData, 9, 10)
 
     // Test trace info starts before series data [xxxx|xx]----| returns only valid overlapped range.
-    seriesData =
-      series.getDataForRange(
-        Range(
-          TimeUnit.MILLISECONDS.toMicros(0).toDouble(),
-          TimeUnit.MILLISECONDS.toMicros(50).toDouble()
-        )
-      )
+    seriesData = series.getDataForRange(Range(TimeUnit.MILLISECONDS.toMicros(0).toDouble(), TimeUnit.MILLISECONDS.toMicros(50).toDouble()))
     verifySeriesDataMatches(seriesData, testSeriesData, 0, 5)
 
     // Test trace info overlaps end of series data |-----[xx|xxx] returns only data starting at just before 50 up to max data.
     seriesData =
-      series.getDataForRange(
-        Range(
-          TimeUnit.MILLISECONDS.toMicros(50).toDouble(),
-          TimeUnit.MILLISECONDS.toMicros(150).toDouble()
-        )
-      )
+      series.getDataForRange(Range(TimeUnit.MILLISECONDS.toMicros(50).toDouble(), TimeUnit.MILLISECONDS.toMicros(150).toDouble()))
     verifySeriesDataMatches(seriesData, testSeriesData, 5, 10)
 
     // Test trace info is subset of series data [xxx|xxxx|xx] returns only data within range
     val minUs = TimeUnit.MILLISECONDS.toMicros(50)
     val maxUs = TimeUnit.MILLISECONDS.toMicros(75)
-    seriesData =
-      series.getDataForRange(
-        Range(
-          minUs.toDouble(),
-          maxUs.toDouble()
-        )
-      )
+    seriesData = series.getDataForRange(Range(minUs.toDouble(), maxUs.toDouble()))
     verifySeriesDataMatches(seriesData, testSeriesData, 5, 8)
 
     // Test last element is returned if we request last bit of data.
     seriesData =
-      series.getDataForRange(
-        Range(
-          TimeUnit.MILLISECONDS.toMicros(99).toDouble(),
-          TimeUnit.MILLISECONDS.toMicros(100).toDouble()
-        )
-      )
+      series.getDataForRange(Range(TimeUnit.MILLISECONDS.toMicros(99).toDouble(), TimeUnit.MILLISECONDS.toMicros(100).toDouble()))
     verifySeriesDataMatches(seriesData, testSeriesData, 9, 10)
   }
 
@@ -113,12 +79,7 @@ class LazyDataSeriesTest {
     val series = LazyDataSeries<ThreadState> { testSeriesData }
     // Test getting data for an empty series doesn't cause issues and returns nothing.
     val seriesData: List<SeriesData<ThreadState>> =
-      series.getDataForRange(
-        Range(
-          TimeUnit.MILLISECONDS.toMicros(1).toDouble(),
-          TimeUnit.MILLISECONDS.toMicros(100).toDouble()
-        )
-      )
+      series.getDataForRange(Range(TimeUnit.MILLISECONDS.toMicros(1).toDouble(), TimeUnit.MILLISECONDS.toMicros(100).toDouble()))
     assertThat(seriesData).hasSize(0)
   }
 
@@ -126,7 +87,7 @@ class LazyDataSeriesTest {
     seriesData: List<SeriesData<ThreadState>>,
     testSeriesData: List<SeriesData<ThreadState>>,
     startIndex: Int,
-    endIndex: Int
+    endIndex: Int,
   ) {
     var j = 0
     for (i in startIndex until endIndex) {

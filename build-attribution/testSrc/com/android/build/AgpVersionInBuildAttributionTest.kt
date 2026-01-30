@@ -24,12 +24,13 @@ enum class AgpVersionInBuildAttributionTest(
   override val gradleVersion: String? = null,
   override val jdkVersion: JavaSdkVersion? = null,
   override val compileSdk: String,
-  override val kotlinVersion: String? = null
+  override val kotlinVersion: String? = null,
 ) : AgpVersionSoftwareEnvironment {
   CURRENT(compileSdk = "34"),
-  AGP_71_GRADLE_75(agpVersion = "7.1.0", gradleVersion = "7.5", jdkVersion = JavaSdkVersion.JDK_17, compileSdk = "34")
-  ;
+  AGP_71_GRADLE_75(agpVersion = "7.1.0", gradleVersion = "7.5", jdkVersion = JavaSdkVersion.JDK_17, compileSdk = "34");
 
-  override val targetSdk: String get() = compileSdk
+  override val targetSdk: String
+    get() = compileSdk
+
   override val modelVersion: ModelVersion = ModelVersion.V2
 }

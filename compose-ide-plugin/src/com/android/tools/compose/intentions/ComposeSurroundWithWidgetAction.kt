@@ -44,25 +44,18 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
 /**
- * Intention action that includes [ComposeSurroundWithBoxAction], [ComposeSurroundWithRowAction],
- * [ComposeSurroundWithColumnAction].
+ * Intention action that includes [ComposeSurroundWithBoxAction], [ComposeSurroundWithRowAction], [ComposeSurroundWithColumnAction].
  *
- * After this action is selected, a new pop-up appears, in which user can choose between actions
- * listed above.
+ * After this action is selected, a new pop-up appears, in which user can choose between actions listed above.
  *
  * @see intentionDescriptions/ComposeSurroundWithWidgetActionGroup/before.kt.template
  *   intentionDescriptions/ComposeSurroundWithWidgetActionGroup/after.kt.template
  */
 class ComposeSurroundWithWidgetActionGroup :
   IntentionActionGroup<ComposeSurroundWithWidgetAction>(
-    listOf(
-      ComposeSurroundWithBoxAction(),
-      ComposeSurroundWithRowAction(),
-      ComposeSurroundWithColumnAction(),
-    )
+    listOf(ComposeSurroundWithBoxAction(), ComposeSurroundWithRowAction(), ComposeSurroundWithColumnAction())
   ) {
-  override fun getGroupText(actions: List<ComposeSurroundWithWidgetAction>) =
-    ComposeBundle.message("surround.with.widget.intention.text")
+  override fun getGroupText(actions: List<ComposeSurroundWithWidgetAction>) = ComposeBundle.message("surround.with.widget.intention.text")
 
   override fun chooseAction(
     project: Project,
@@ -84,10 +77,7 @@ class ComposeSurroundWithWidgetActionGroup :
       object : BaseListPopupStep<ComposeSurroundWithWidgetAction>(null, actions) {
         override fun getTextFor(action: ComposeSurroundWithWidgetAction) = action.text
 
-        override fun onChosen(
-          selectedValue: ComposeSurroundWithWidgetAction,
-          finalChoice: Boolean,
-        ): PopupStep<*>? {
+        override fun onChosen(selectedValue: ComposeSurroundWithWidgetAction, finalChoice: Boolean): PopupStep<*>? {
           invokeAction(selectedValue)
           return FINAL_CHOICE
         }
@@ -100,22 +90,14 @@ class ComposeSurroundWithWidgetActionGroup :
 }
 
 /**
- * Finds the first [KtCallExpression] at the given offset stopping if it finds any [KtNamedFunction]
- * so it does not exit the `Composable`.
+ * Finds the first [KtCallExpression] at the given offset stopping if it finds any [KtNamedFunction] so it does not exit the `Composable`.
  */
 private fun PsiFile.findParentCallExpression(offset: Int): PsiElement? =
-  PsiTreeUtil.findElementOfClassAtOffsetWithStopSet(
-    this,
-    offset,
-    KtCallExpression::class.java,
-    false,
-    KtNamedFunction::class.java,
-  )
+  PsiTreeUtil.findElementOfClassAtOffsetWithStopSet(this, offset, KtCallExpression::class.java, false, KtNamedFunction::class.java)
 
 /**
- * Finds the nearest surroundable [PsiElement] starting at the given offset and looking at the
- * parents. If the offset is at the end of a line, this method might look in the immediately
- * previous offset.
+ * Finds the nearest surroundable [PsiElement] starting at the given offset and looking at the parents. If the offset is at the end of a
+ * line, this method might look in the immediately previous offset.
  */
 private fun findNearestSurroundableElement(file: PsiFile, offset: Int): PsiElement? {
   val nearestElement =
@@ -128,10 +110,7 @@ private fun findNearestSurroundableElement(file: PsiFile, offset: Int): PsiEleme
   return file.findParentCallExpression(nearestElement.startOffset)
 }
 
-/**
- * Finds the [TextRange] to surround based on the current [editor] selection. It returns null if
- * there is no block that can be selected.
- */
+/** Finds the [TextRange] to surround based on the current [editor] selection. It returns null if there is no block that can be selected. */
 fun findSurroundingSelectionRange(file: PsiFile, editor: Editor): TextRange? {
   if (!editor.selectionModel.hasSelection()) return null
 
@@ -145,11 +124,8 @@ fun findSurroundingSelectionRange(file: PsiFile, editor: Editor): TextRange? {
   // Text("By</selection>e")
   //
   // Would wrap the three elements instead of just the Button.
-  val startSelectionOffset =
-    findNearestSurroundableElement(file, editor.selectionModel.selectionStart)?.startOffset
-      ?: Int.MAX_VALUE
-  val endSelectionOffset =
-    findNearestSurroundableElement(file, editor.selectionModel.selectionEnd)?.endOffset ?: -1
+  val startSelectionOffset = findNearestSurroundableElement(file, editor.selectionModel.selectionStart)?.startOffset ?: Int.MAX_VALUE
+  val endSelectionOffset = findNearestSurroundableElement(file, editor.selectionModel.selectionEnd)?.endOffset ?: -1
 
   val statements =
     findElements(
@@ -198,8 +174,7 @@ abstract class ComposeSurroundWithWidgetAction : IntentionAction, HighPriorityAc
     val surroundRange = findSurroundableRange(file, editor) ?: return
     // Extend the selection if it does not match the inferred range
     if (
-      editor.selectionModel.selectionStart != surroundRange.startOffset ||
-        editor.selectionModel.selectionEnd != surroundRange.endOffset
+      editor.selectionModel.selectionStart != surroundRange.startOffset || editor.selectionModel.selectionEnd != surroundRange.endOffset
     ) {
       editor.selectionModel.setSelection(surroundRange.startOffset, surroundRange.endOffset)
     }

@@ -24,10 +24,10 @@ import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.flow.MutableStateFlow
 import java.awt.Dimension
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class MemoryClassGrouping(private val selection: MemoryCaptureSelection) : AspectObserver() {
   private val groupingFlow: MutableStateFlow<Selection<ClassGrouping>> =
@@ -36,31 +36,38 @@ class MemoryClassGrouping(private val selection: MemoryCaptureSelection) : Aspec
   val component: JPanel
 
   init {
-    selection.aspect.addDependency(this)
+    selection.aspect
+      .addDependency(this)
       .onChange(CaptureSelectionAspect.CLASS_GROUPING, ::groupingChanged)
       .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, ::groupingChanged) // Refresh options when capture changes
 
-    val dropDown = ProfilerDropDownComponent(
-      ClassGrouping.ARRANGE_BY_CLASS.toString(),
-      "Arrange by",
-      null,
-      groupingFlow,
-      null,
-      { grouping -> selection.classGrouping = grouping },
-      { grouping -> grouping?.label ?: "" }
-    )
+    val dropDown =
+      ProfilerDropDownComponent(
+        ClassGrouping.ARRANGE_BY_CLASS.toString(),
+        "Arrange by",
+        null,
+        groupingFlow,
+        null,
+        { grouping -> selection.classGrouping = grouping },
+        { grouping -> grouping?.label ?: "" },
+      )
 
-    component = JPanel(createToolbarLayout()).apply {
-      add(JLabel("Arrange by:").apply {
-        border = JBUI.Borders.empty(1, 12, 0, 2)
-        foreground = UIUtil.getLabelDisabledForeground()
-      })
-      add(dropDown)
-      add(JPanel().apply {
-        preferredSize = Dimension(JBUI.scale(1), JBUI.scale(16))
-        background = JBColor.border()
-      })
-    }
+    component =
+      JPanel(createToolbarLayout()).apply {
+        add(
+          JLabel("Arrange by:").apply {
+            border = JBUI.Borders.empty(1, 12, 0, 2)
+            foreground = UIUtil.getLabelDisabledForeground()
+          }
+        )
+        add(dropDown)
+        add(
+          JPanel().apply {
+            preferredSize = Dimension(JBUI.scale(1), JBUI.scale(16))
+            background = JBColor.border()
+          }
+        )
+      }
 
     groupingChanged()
   }
@@ -71,8 +78,10 @@ class MemoryClassGrouping(private val selection: MemoryCaptureSelection) : Aspec
 
   private val availableGroupings: List<ClassGrouping>
     get() {
-      val capture: CaptureObject = selection.selectedCapture ?: // ARRANGE_BY_CLASS is generally always supported.
-                                   return listOf(ClassGrouping.ARRANGE_BY_CLASS)
+      val capture: CaptureObject =
+        selection.selectedCapture
+          ?: // ARRANGE_BY_CLASS is generally always supported.
+          return listOf(ClassGrouping.ARRANGE_BY_CLASS)
       return ClassGrouping.entries.filter { capture.isGroupingSupported(it) }
     }
 }

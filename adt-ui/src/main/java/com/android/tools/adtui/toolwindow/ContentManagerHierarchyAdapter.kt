@@ -27,8 +27,7 @@ import com.intellij.util.containers.DisposableWrapperList
 
 /** Receives events from all content managers in a hierarchy of a possibly split tool window. */
 @Suppress("LeakingThis")
-abstract class ContentManagerHierarchyAdapter(private val toolWindow: ToolWindow) :
-  ContentManagerListener, Disposable {
+abstract class ContentManagerHierarchyAdapter(private val toolWindow: ToolWindow) : ContentManagerListener, Disposable {
 
   private val listener =
     object : ContentManagerListener, Disposable {

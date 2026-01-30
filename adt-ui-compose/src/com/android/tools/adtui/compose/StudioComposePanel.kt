@@ -22,6 +22,4 @@ import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 
 @Suppress("FunctionName")
 @OptIn(ExperimentalJewelApi::class)
-fun StudioComposePanel(content: @Composable () -> Unit): JComponent = JewelComposeNoThemePanel {
-  StudioTheme(content)
-}
+fun StudioComposePanel(content: @Composable () -> Unit): JComponent = JewelComposeNoThemePanel { StudioTheme(content) }

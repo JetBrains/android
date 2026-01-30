@@ -57,7 +57,6 @@ import com.intellij.ui.SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
-import kotlinx.coroutines.asCoroutineDispatcher
 import java.awt.Insets
 import java.awt.datatransfer.StringSelection
 import java.awt.event.KeyAdapter
@@ -72,6 +71,7 @@ import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingUtilities
 import javax.swing.event.ListSelectionListener
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -96,12 +96,7 @@ internal constructor(
     project: Project,
     model: StackTraceModel,
     parentDisposable: Disposable,
-  ) : this(
-    project,
-    model,
-    parentDisposable,
-    { p: Project, l: CodeLocation -> IntelliJCodeElement(p, l) }
-  )
+  ) : this(project, model, parentDisposable, { p: Project, l: CodeLocation -> IntelliJCodeElement(p, l) })
 
   init {
     listView.selectionMode = SINGLE_SELECTION
@@ -196,12 +191,7 @@ internal constructor(
             listView.selectedIndex = index
           }
         } else {
-          throw IndexOutOfBoundsException(
-            "View has " +
-              listView.itemsCount +
-              " elements while aspect is changing to index " +
-              index
-          )
+          throw IndexOutOfBoundsException("View has " + listView.itemsCount + " elements while aspect is changing to index " + index)
         }
       }
   }
@@ -238,20 +228,11 @@ internal constructor(
 
   override fun isCopyVisible(dataContext: DataContext) = true
 
-  /**
-   * Copies the selected list item to the clipboard. The copied text rendering is the same as the
-   * list rendering.
-   */
+  /** Copies the selected list item to the clipboard. The copied text rendering is the same as the list rendering. */
   override fun performCopy(dataContext: DataContext) {
     val selectedIndex = listView.selectedIndex
     if (selectedIndex >= 0 && selectedIndex < listView.itemsCount) {
-      renderer.getListCellRendererComponent(
-        listView,
-        listModel.getElementAt(selectedIndex),
-        selectedIndex,
-        true,
-        false
-      )
+      renderer.getListCellRendererComponent(listView, listModel.getElementAt(selectedIndex), selectedIndex, true, false)
       val data = renderer.getCharSequence(false).toString()
       copyPasteManager.setContents(StringSelection(data))
     }
@@ -273,7 +254,7 @@ internal constructor(
       value: StackElement?,
       index: Int,
       selected: Boolean,
-      hasFocus: Boolean
+      hasFocus: Boolean,
     ) {
       if (value == null) {
         return
@@ -297,8 +278,7 @@ internal constructor(
     private fun renderJavaStackFrame(codeElement: CodeElement, selected: Boolean) {
       @Suppress("UnstableApiUsage")
       icon = iconManager.getPlatformIcon(PlatformIcons.Method)
-      val textAttribute =
-        if (selected || codeElement.isInUserCode) REGULAR_ATTRIBUTES else GRAY_ATTRIBUTES
+      val textAttribute = if (selected || codeElement.isInUserCode) REGULAR_ATTRIBUTES else GRAY_ATTRIBUTES
       val location = codeElement.codeLocation
       val methodBuilder = StringBuilder(codeElement.methodName)
       if (location.lineNumber != INVALID_LINE_NUMBER) {
@@ -310,11 +290,7 @@ internal constructor(
       val methodName = methodBuilder.toString()
       append(methodName, textAttribute, methodName)
       val packageName = " (" + codeElement.packageName + ")"
-      append(
-        packageName,
-        if (selected) REGULAR_ITALIC_ATTRIBUTES else GRAYED_ITALIC_ATTRIBUTES,
-        packageName
-      )
+      append(packageName, if (selected) REGULAR_ITALIC_ATTRIBUTES else GRAYED_ITALIC_ATTRIBUTES, packageName)
     }
 
     private fun renderNativeStackFrame(codeElement: CodeElement, selected: Boolean) {
@@ -346,11 +322,7 @@ internal constructor(
 
       val nativeModuleName = location.nativeModuleName ?: "unknown"
       val moduleName = " " + Paths.get(nativeModuleName).fileName.toString()
-      append(
-        moduleName,
-        if (selected) REGULAR_ITALIC_ATTRIBUTES else GRAYED_ITALIC_ATTRIBUTES,
-        moduleName
-      )
+      append(moduleName, if (selected) REGULAR_ITALIC_ATTRIBUTES else GRAYED_ITALIC_ATTRIBUTES, moduleName)
     }
 
     private fun renderThreadElement(threadElement: ThreadElement, selected: Boolean) {

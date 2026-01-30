@@ -33,8 +33,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class RenameResourceReferenceTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   @Before
   fun setup() {

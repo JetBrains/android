@@ -28,27 +28,16 @@ import javax.swing.JComponent
 import org.jetbrains.annotations.TestOnly
 
 /**
- * An instruction for rendering an URL. It wraps a [HyperlinkLabel] which supports all the proper
- * formatting and interactions users would perform on a typical URL. By default, it will handle
- * mouse clicks by browsing to the specified url, unless action is specified, in which case the
- * action will be run when the link is clicked. When specifying an action, a suffix [Icon] can be
- * specified. It will be displayed after the text. It's not possible to specify a suffix icon when a
- * url is specified.
+ * An instruction for rendering an URL. It wraps a [HyperlinkLabel] which supports all the proper formatting and interactions users would
+ * perform on a typical URL. By default, it will handle mouse clicks by browsing to the specified url, unless action is specified, in which
+ * case the action will be run when the link is clicked. When specifying an action, a suffix [Icon] can be specified. It will be displayed
+ * after the text. It's not possible to specify a suffix icon when a url is specified.
  */
 class HyperlinkInstruction
-private constructor(
-  font: Font,
-  text: String,
-  url: String? = null,
-  suffixIcon: Icon? = null,
-  action: ((InputEvent) -> Unit)? = null,
-) : RenderInstruction() {
+private constructor(font: Font, text: String, url: String? = null, suffixIcon: Icon? = null, action: ((InputEvent) -> Unit)? = null) :
+  RenderInstruction() {
 
-  constructor(
-    font: Font,
-    text: String,
-    url: String,
-  ) : this(font = font, text = text, url = url, suffixIcon = null, action = null)
+  constructor(font: Font, text: String, url: String) : this(font = font, text = text, url = url, suffixIcon = null, action = null)
 
   constructor(
     font: Font,
@@ -91,10 +80,7 @@ private constructor(
 
   override fun render(c: JComponent, g2d: Graphics2D, bounds: Rectangle) {
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-    g2d.setRenderingHint(
-      RenderingHints.KEY_TEXT_ANTIALIASING,
-      RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB,
-    )
+    g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB)
     g2d.translate(bounds.x, bounds.y)
     hyperlinkLabel.bounds = bounds
     hyperlinkLabel.paint(g2d)

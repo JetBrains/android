@@ -21,9 +21,9 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.StudioProfilers
 import com.intellij.openapi.diagnostic.Logger
+import javax.swing.Icon
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import javax.swing.Icon
 
 private val logger = Logger.getInstance("ProcessListModel")
 
@@ -45,13 +45,14 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
   val preferredProcessName = _preferredProcessName.asStateFlow()
 
   init {
-    profilers.addDependency(this)
+    profilers
+      .addDependency(this)
       .onChange(ProfilerAspect.PROCESSES) { deviceToProcessesUpdated() }
       .onChange(ProfilerAspect.PREFERRED_PROCESS_NAME) { preferredProcessUpdated() }
   }
 
-  fun getSelectedDeviceProcesses() = _deviceToProcesses.value.getOrDefault(
-    _selectedDevice.value?.device ?: Common.Device.getDefaultInstance(), listOf())
+  fun getSelectedDeviceProcesses() =
+    _deviceToProcesses.value.getOrDefault(_selectedDevice.value?.device ?: Common.Device.getDefaultInstance(), listOf())
 
   private fun deviceToProcessesUpdated() {
     profilers.deviceProcessMap.keys.forEach { device ->
@@ -96,9 +97,7 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
     reorderProcessList()
   }
 
-  /**
-   * Checks for the presence of the preferred process, and resets the selection if preferred process is selected and no longer present.
-   */
+  /** Checks for the presence of the preferred process, and resets the selection if preferred process is selected and no longer present. */
   private fun checkForPreferredProcess() {
     val isPreferredProcessPresent = getSelectedDeviceProcesses().find { it.name == _preferredProcessName.value } != null
     if (!isPreferredProcessPresent && _isPreferredProcessSelected.value) {
@@ -106,9 +105,7 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
     }
   }
 
-  /**
-   * Resets the process selection if the process is no longer in the updated process list.
-   */
+  /** Resets the process selection if the process is no longer in the updated process list. */
   private fun updateProcessSelection() {
     if (selectedProcess.value != Common.Process.getDefaultInstance() && !getSelectedDeviceProcesses().contains(selectedProcess.value)) {
       resetProcessSelection()
@@ -119,9 +116,9 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
    * Reorders the device process list by process name in increasing lexicographic order. One exception to this sort/order is that the
    * preferred processes will always be the first entries in the list.
    *
-   * Preferred processes are defined to be processes with names that have the same content leading up to the first colon (':') character
-   * in the process name as the preferred process name. The preferred process names themselves are sorted lexicographically, with the
-   * process whose name fully matches the preferred process name being at the top of the list.
+   * Preferred processes are defined to be processes with names that have the same content leading up to the first colon (':') character in
+   * the process name as the preferred process name. The preferred process names themselves are sorted lexicographically, with the process
+   * whose name fully matches the preferred process name being at the top of the list.
    */
   private fun reorderProcessList() {
     if (!isDeviceSelected()) {
@@ -131,31 +128,37 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
     // The following collection of indices (sorted by a custom comparator) of device process names that have the same substring up to the
     // first ":" instance as the preferred process name. These are the device processes that will be brought to the top of the device
     // process list and are considered to be the "preferred processes".
-    val preferredProcessesWithIndicesSorted = if (!_preferredProcessName.value.isNullOrBlank()) {
-      getSelectedDeviceProcesses().withIndex().filter { (_, value) ->
-        value.name.split(':').first() == _preferredProcessName.value!!.split(':').first()
-      }.sortedWith { a, b ->
-        // The following comparator gives priority to a device process if the process name is equal to the preferred process name.
-        // Otherwise, it uses a regular lexicographic comparison.
-        val processNameA = a.value.name
-        val processNameB = b.value.name
-        when {
-          processNameA == _preferredProcessName.value && processNameB != _preferredProcessName.value -> -1
-          processNameA != _preferredProcessName.value && processNameB == _preferredProcessName.value -> 1
-          else -> processNameA.compareTo(processNameB)
-        }
-      }.map { it.index }
-    }
-    // If there is no preferred process name, then we should not prioritize any processes, hence the empty list.
-    else {
-      listOf()
-    }
+    val preferredProcessesWithIndicesSorted =
+      if (!_preferredProcessName.value.isNullOrBlank()) {
+        getSelectedDeviceProcesses()
+          .withIndex()
+          .filter { (_, value) -> value.name.split(':').first() == _preferredProcessName.value!!.split(':').first() }
+          .sortedWith { a, b ->
+            // The following comparator gives priority to a device process if the process name is equal to the preferred process name.
+            // Otherwise, it uses a regular lexicographic comparison.
+            val processNameA = a.value.name
+            val processNameB = b.value.name
+            when {
+              processNameA == _preferredProcessName.value && processNameB != _preferredProcessName.value -> -1
+              processNameA != _preferredProcessName.value && processNameB == _preferredProcessName.value -> 1
+              else -> processNameA.compareTo(processNameB)
+            }
+          }
+          .map { it.index }
+      }
+      // If there is no preferred process name, then we should not prioritize any processes, hence the empty list.
+      else {
+        listOf()
+      }
 
     val reorderedProcessList = mutableListOf<Common.Process>()
     // Populate the new, reordered list with the non-preferred processes and sort it lexicographically.
-    reorderedProcessList.addAll(getSelectedDeviceProcesses().withIndex().filter {
-      !preferredProcessesWithIndicesSorted.contains(it.index) && it.value.state == Common.Process.State.ALIVE
-    }.map { it.value })
+    reorderedProcessList.addAll(
+      getSelectedDeviceProcesses()
+        .withIndex()
+        .filter { !preferredProcessesWithIndicesSorted.contains(it.index) && it.value.state == Common.Process.State.ALIVE }
+        .map { it.value }
+    )
     reorderedProcessList.sortBy { it.name }
     // Add the preferred processes to the top of the new, reordered list.
     reorderedProcessList.addAll(0, preferredProcessesWithIndicesSorted.map { getSelectedDeviceProcesses()[it] })
@@ -176,18 +179,24 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
    *
    * TODO(b/326629716): Adapt this method to not always auto-select the preferred process if a non-preferred process is already selected.
    */
-  private fun updatePreferredProcessAndSelect(preferredProcessesWithIndicesSorted: List<Int>, reorderedProcessList: MutableList<Common.Process>) {
+  private fun updatePreferredProcessAndSelect(
+    preferredProcessesWithIndicesSorted: List<Int>,
+    reorderedProcessList: MutableList<Common.Process>,
+  ) {
     // If the preferred process name is present, but the process entry is not present, add a fake/dead process entry to represent it.
     if (!_preferredProcessName.value.isNullOrBlank() && preferredProcessesWithIndicesSorted.isEmpty()) {
-      val deadPreferredProcess = Common.Process.newBuilder().setName(_preferredProcessName.value).setState(Common.Process.State.DEAD).build()
+      val deadPreferredProcess =
+        Common.Process.newBuilder().setName(_preferredProcessName.value).setState(Common.Process.State.DEAD).build()
       // The preferred process, dead or alive, should always be added to the top.
       reorderedProcessList.add(0, deadPreferredProcess)
       selectPreferredProcess(reorderedProcessList)
     }
     // If a preferred process already exists and is running, and no process selection has been made, the preferred process is selected.
-    else if (preferredProcessesWithIndicesSorted.isNotEmpty() &&
-             ((_isPreferredProcessSelected.value && _selectedProcess.value.state == Common.Process.State.DEAD) ||
-              _selectedProcess.value == Common.Process.getDefaultInstance())) {
+    else if (
+      preferredProcessesWithIndicesSorted.isNotEmpty() &&
+        ((_isPreferredProcessSelected.value && _selectedProcess.value.state == Common.Process.State.DEAD) ||
+          _selectedProcess.value == Common.Process.getDefaultInstance())
+    ) {
       selectPreferredProcess(reorderedProcessList)
     }
   }
@@ -197,11 +206,9 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
     preferredProcess?.let { onProcessSelection(it) }
   }
 
-  /**
-   * Auto-selects a device if there is no device is currently selected and there is only one online device.
-   */
+  /** Auto-selects a device if there is no device is currently selected and there is only one online device. */
   private fun autoSelectDevice() {
-    val updatedDevices = _deviceList.value;
+    val updatedDevices = _deviceList.value
     if (!isDeviceSelected() && updatedDevices.size == 1) {
       onDeviceSelection(updatedDevices.first())
     }
@@ -211,16 +218,13 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
    * Converts a Studio main toolbar device selection to a profiler-level device selection and registers it.
    *
    * There are three selection scenarios covered:
-   *
    * 1. User selects a running device in the main toolbar, matching online device found in the transport pipeline:
-   *    - Profiler-level selection constructed with device name, marked as running, and Common.Device instance fetched from the pipeline.
-   *
+   *     - Profiler-level selection constructed with device name, marked as running, and Common.Device instance fetched from the pipeline.
    * 2. User selects an online device in the main toolbar, but no matching online device found in the transport pipeline:
-   *    - Profiler-level selection with device name, marked as not running, and a default Common.Device instance.
-   *    - This is an intermediate selection state as online toolbar device means the device should be fetched soon by transport pipeline.
-   *
+   *     - Profiler-level selection with device name, marked as not running, and a default Common.Device instance.
+   *     - This is an intermediate selection state as online toolbar device means the device should be fetched soon by transport pipeline.
    * 3. User selects an offline device in the main toolbar, and no matching online device found in the transport pipeline:
-   *    - Profiler-level selection with device name, marked as not running, and a default Common.Device instance.
+   *     - Profiler-level selection with device name, marked as not running, and a default Common.Device instance.
    */
   fun onDeviceSelection(deviceSelection: ToolbarDeviceSelection) {
     val deviceName = deviceSelection.name
@@ -238,40 +242,45 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
         // Running device with corresponding device from the pipeline found.
         doDeviceSelection(deviceName, featureLevel, true, isDebuggable, device, icon)
       }
-    }
-    else {
+    } else {
       // Offline devices have no mapped Common.Device, so use a default instance. Display device name to the user.
       doDeviceSelection(deviceName, featureLevel, false, isDebuggable, Common.Device.getDefaultInstance(), icon)
     }
   }
 
-  /**
-   * Performs selection of Common.Device selected from standalone profiler device dropdown.
-   */
+  /** Performs selection of Common.Device selected from standalone profiler device dropdown. */
   fun onDeviceSelection(newDevice: Common.Device) {
-    doDeviceSelection(newDevice.model, newDevice.featureLevel, true, newDevice.buildType.contains("debug", ignoreCase = true), newDevice,
-                      null)
+    doDeviceSelection(
+      newDevice.model,
+      newDevice.featureLevel,
+      true,
+      newDevice.buildType.contains("debug", ignoreCase = true),
+      newDevice,
+      null,
+    )
   }
 
-  private fun doDeviceSelection(name: String,
-                                featureLevel: Int,
-                                isRunning: Boolean,
-                                isDebuggable: Boolean,
-                                device: Common.Device,
-                                icon: Icon?) {
+  private fun doDeviceSelection(
+    name: String,
+    featureLevel: Int,
+    isRunning: Boolean,
+    isDebuggable: Boolean,
+    device: Common.Device,
+    icon: Icon?,
+  ) {
     _selectedDevice.value = ProfilerDeviceSelection(name, featureLevel, isRunning, isDebuggable, device, icon)
-    logger.info("Setting selected device. " +
-                "Name: '$name', IsRunning: $isRunning, " +
-                "DeviceSerial: '${device.serial}', " +
-                "IsDefaultDevice: ${device == Common.Device.getDefaultInstance()}")
+    logger.info(
+      "Setting selected device. " +
+        "Name: '$name', IsRunning: $isRunning, " +
+        "DeviceSerial: '${device.serial}', " +
+        "IsDefaultDevice: ${device == Common.Device.getDefaultInstance()}"
+    )
 
     setSelectedDevicesCount(1)
     onDeviceChange()
   }
 
-  /**
-   * Performs state changes necessary after user selects a new device such as resetting their currently selected process.
-   */
+  /** Performs state changes necessary after user selects a new device such as resetting their currently selected process. */
   private fun onDeviceChange() {
     // Reset process selection to avoid ghost process selection on device change.
     resetProcessSelection()
@@ -292,10 +301,12 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
   }
 
   fun setSelectedDevicesCount(selectedDevicesCount: Int) {
-    _selectedDevicesCount.value = selectedDevicesCount;
+    _selectedDevicesCount.value = selectedDevicesCount
   }
 
-  fun resetDeviceSelection() { _selectedDevice.value = null }
+  fun resetDeviceSelection() {
+    _selectedDevice.value = null
+  }
 
   fun resetProcessSelection() {
     onProcessSelection(Common.Process.getDefaultInstance())
@@ -309,9 +320,8 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
    * This can be determined by checking if the selected device is in the keys of the device to processes map returned by the transport
    * pipeline. This map only contains running devices.
    */
-  private fun isSelectedDeviceRunning() = _deviceList.value.firstOrNull {
-    _selectedDevice.value != null && it.deviceId == _selectedDevice.value!!.device.deviceId
-  } != null
+  private fun isSelectedDeviceRunning() =
+    _deviceList.value.firstOrNull { _selectedDevice.value != null && it.deviceId == _selectedDevice.value!!.device.deviceId } != null
 
   data class ToolbarDeviceSelection(
     val name: String,
@@ -321,7 +331,7 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
     val isDebuggable: Boolean,
     val serial: String,
     // The icon can be null if there is no icon found. Default is set to null for tests that do not require/test the icon.
-    val icon: Icon? = null
+    val icon: Icon? = null,
   )
 
   data class ProfilerDeviceSelection(
@@ -334,6 +344,6 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
     // is found.
     val device: Common.Device,
     // The icon can be null if there is no icon found. Default is set to null for tests that do not require/test the icon.
-    val icon: Icon? = null
+    val icon: Icon? = null,
   )
 }

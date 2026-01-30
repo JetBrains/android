@@ -20,14 +20,13 @@ import com.android.ide.common.rendering.api.LayoutlibCallback
 import com.android.tools.rendering.parsers.TagSnapshot
 
 /**
- * Interface with the extensions used internally by Android Studio of the LayoutlibCallback to
- * manage the lifecyle and some settings of [LayoutlibCallbackImpl].
+ * Interface with the extensions used internally by Android Studio of the LayoutlibCallback to manage the lifecyle and some settings of
+ * [LayoutlibCallbackImpl].
  */
 internal abstract class LayoutlibCallbackEx : LayoutlibCallback() {
   /**
-   * Returns whether the loader has received requests to load custom views. Note that the custom
-   * view loading may not actually have succeeded; this flag only records whether it was
-   * <b>requested</b>.
+   * Returns whether the loader has received requests to load custom views. Note that the custom view loading may not actually have
+   * succeeded; this flag only records whether it was <b>requested</b>.
    *
    * <p/>
    * This allows to efficiently only recreate when needed upon code change in the project.
@@ -37,13 +36,11 @@ internal abstract class LayoutlibCallbackEx : LayoutlibCallback() {
   abstract fun isUsed(): Boolean
 
   /**
-   * Load and parse the R class such that resource references in the layout rendering can refer to
-   * local resources properly.
+   * Load and parse the R class such that resource references in the layout rendering can refer to local resources properly.
    *
-   * <p>This only needs to be done if the build system compiles code of the given module against
-   * R.java files generated with final fields, which will cause the chosen numeric resource ids to
-   * be inlined into the consuming code. In this case we treat the R class bytecode as the source of
-   * truth for mapping resources to numeric ids.
+   * <p>This only needs to be done if the build system compiles code of the given module against R.java files generated with final fields,
+   * which will cause the chosen numeric resource ids to be inlined into the consuming code. In this case we treat the R class bytecode as
+   * the source of truth for mapping resources to numeric ids.
    */
   abstract fun loadAndParseRClass(): Unit
 
@@ -62,9 +59,6 @@ internal abstract class LayoutlibCallbackEx : LayoutlibCallback() {
   /** Sets the resources to be used via `@aapt` resource references. */
   abstract fun setAaptDeclaredResources(resources: MutableMap<String, TagSnapshot>)
 
-  /**
-   * Sets the layout name and the parser. This is the parser that will be returned when
-   * [LayoutlibCallback.getParser] is invoked.
-   */
+  /** Sets the layout name and the parser. This is the parser that will be returned when [LayoutlibCallback.getParser] is invoked. */
   abstract fun setLayoutParser(layoutName: String, modelParser: ILayoutPullParser)
 }

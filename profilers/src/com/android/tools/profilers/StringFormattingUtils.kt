@@ -16,19 +16,15 @@
 package com.android.tools.profilers
 
 object StringFormattingUtils {
-  /**
-   * Format long value into string with commas.
-   */
+  /** Format long value into string with commas. */
   @JvmStatic
   fun formatLongValueWithCommas(value: Long): String {
     return value.toString().reversed().chunked(3).joinToString(",").reversed()
   }
 
-  /**
-   * Format string in US-based title-casing (first letter capitalized, rest of word lowercase).
-   */
+  /** Format string in US-based title-casing (first letter capitalized, rest of word lowercase). */
   @JvmStatic
-  fun formatStringInTitleCase(str: String) : String {
+  fun formatStringInTitleCase(str: String): String {
     return str.lowercase().replaceFirstChar(Char::uppercase)
   }
 }

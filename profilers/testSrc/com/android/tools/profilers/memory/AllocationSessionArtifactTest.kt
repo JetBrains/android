@@ -25,48 +25,50 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class AllocationSessionArtifactTest {
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("AllocationSessionArtifactTestChannel", transportService)
+  @get:Rule var grpcChannel = FakeGrpcChannel("AllocationSessionArtifactTestChannel", transportService)
 
   private lateinit var profilers: StudioProfilers
 
   @Before
   fun setup() {
-    profilers = StudioProfilers(
-      ProfilerClient(grpcChannel.channel),
-      FakeIdeProfilerServices(),
-      FakeTimer()
-    )
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), FakeTimer())
   }
 
   @Test
   fun `artifact loaded for finished allocation session`() {
-    val session = with(Common.Session.newBuilder()) {
-      sessionId = ProfilersTestData.SESSION_DATA.sessionId
-      streamId = ProfilersTestData.SESSION_DATA.streamId
-      pid = ProfilersTestData.SESSION_DATA.pid
-      startTimestamp = 0
-      endTimestamp = TIMESTAMP3
-      build()
-    }
+    val session =
+      with(Common.Session.newBuilder()) {
+        sessionId = ProfilersTestData.SESSION_DATA.sessionId
+        streamId = ProfilersTestData.SESSION_DATA.streamId
+        pid = ProfilersTestData.SESSION_DATA.pid
+        startTimestamp = 0
+        endTimestamp = TIMESTAMP3
+        build()
+      }
 
     val info = Memory.AllocationsInfo.newBuilder().setStartTime(TIMESTAMP1).setSuccess(true).setLegacy(true)
-    transportService.addEventToStream(session.streamId,
-                                      ProfilersTestData.generateMemoryAllocationInfoData(TIMESTAMP1, session.pid, info.setEndTime(
-                                        Long.MAX_VALUE).build()).setIsEnded(false).build())
-    transportService.addEventToStream(session.streamId,
-                                      ProfilersTestData.generateMemoryAllocationInfoData(TIMESTAMP1, session.pid, info.setEndTime(
-                                        TIMESTAMP2).build()).setIsEnded(true).build())
+    transportService.addEventToStream(
+      session.streamId,
+      ProfilersTestData.generateMemoryAllocationInfoData(TIMESTAMP1, session.pid, info.setEndTime(Long.MAX_VALUE).build())
+        .setIsEnded(false)
+        .build(),
+    )
+    transportService.addEventToStream(
+      session.streamId,
+      ProfilersTestData.generateMemoryAllocationInfoData(TIMESTAMP1, session.pid, info.setEndTime(TIMESTAMP2).build())
+        .setIsEnded(true)
+        .build(),
+    )
     val artifacts = AllocationSessionArtifact.getSessionArtifacts(profilers, session, Common.SessionMetaData.getDefaultInstance())
     assertThat(artifacts.size).isEqualTo(1)
     assertThat(artifacts[0]).isInstanceOf(LegacyAllocationsSessionArtifact::class.java)
@@ -85,18 +87,21 @@ class AllocationSessionArtifactTest {
 
   @Test
   fun `artifact loaded for ongoing allocation session`() {
-    val session = with(Common.Session.newBuilder()) {
-      sessionId = ProfilersTestData.SESSION_DATA.sessionId
-      streamId = ProfilersTestData.SESSION_DATA.streamId
-      pid = ProfilersTestData.SESSION_DATA.pid
-      startTimestamp = 0
-      endTimestamp = Long.MAX_VALUE
-      build()
-    }
+    val session =
+      with(Common.Session.newBuilder()) {
+        sessionId = ProfilersTestData.SESSION_DATA.sessionId
+        streamId = ProfilersTestData.SESSION_DATA.streamId
+        pid = ProfilersTestData.SESSION_DATA.pid
+        startTimestamp = 0
+        endTimestamp = Long.MAX_VALUE
+        build()
+      }
 
     val info = Memory.AllocationsInfo.newBuilder().setStartTime(TIMESTAMP1).setEndTime(Long.MAX_VALUE).setLegacy(false)
-    transportService.addEventToStream(session.streamId,
-                                      ProfilersTestData.generateMemoryAllocationInfoData(TIMESTAMP1, session.pid, info.build()).setIsEnded(false).build())
+    transportService.addEventToStream(
+      session.streamId,
+      ProfilersTestData.generateMemoryAllocationInfoData(TIMESTAMP1, session.pid, info.build()).setIsEnded(false).build(),
+    )
     val artifacts = AllocationSessionArtifact.getSessionArtifacts(profilers, session, Common.SessionMetaData.getDefaultInstance())
     assertThat(artifacts.size).isEqualTo(1)
     assertThat(artifacts[0]).isInstanceOf(AllocationSessionArtifact::class.java)

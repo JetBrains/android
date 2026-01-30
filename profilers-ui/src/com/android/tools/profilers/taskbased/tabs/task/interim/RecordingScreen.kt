@@ -47,23 +47,26 @@ fun RecordingScreen(recordingScreenModel: RecordingScreenModel<*>) {
   val isRecordingFailed by recordingScreenModel.isRecordingFailed.collectAsState()
   val canRecordingStop by recordingScreenModel.canRecordingStop.collectAsState()
   val isUserStoppable = recordingScreenModel.isUserStoppable
-  Column(modifier = Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.Center,
-         horizontalAlignment = Alignment.CenterHorizontally) {
+  Column(
+    modifier = Modifier.fillMaxSize().padding(20.dp),
+    verticalArrangement = Arrangement.Center,
+    horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
     if (isRecordingFailed) {
       Text(
         text = String.format(TaskBasedUxStrings.FAILED_TO_RECORD_TITLE, recordingScreenModel.taskName),
-        fontSize = TextUnit(18f, TextUnitType.Sp), fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.testTag("RecordingErrorMessage")
+        fontSize = TextUnit(18f, TextUnitType.Sp),
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.testTag("RecordingErrorMessage"),
       )
-      Text(
-        text = TaskBasedUxStrings.FAILED_TO_RECORD_MESSAGE,
-        modifier = Modifier.padding(top = 8.dp)
-      )
-    }
-    else {
+      Text(text = TaskBasedUxStrings.FAILED_TO_RECORD_MESSAGE, modifier = Modifier.padding(top = 8.dp))
+    } else {
       Column {
-        Row(modifier = Modifier.padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(5.dp),
-            verticalAlignment = Alignment.CenterVertically) {
+        Row(
+          modifier = Modifier.padding(bottom = 8.dp),
+          horizontalArrangement = Arrangement.spacedBy(5.dp),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
           if (!isStopButtonClicked) {
             Icon(
               key = StudioIconsCompose.Profiler.Toolbar.StopRecording,
@@ -73,26 +76,28 @@ fun RecordingScreen(recordingScreenModel: RecordingScreenModel<*>) {
           }
           val ongoingTaskName = recordingScreenModel.taskName.lowercase()
           Text(
-            text = if (isStopButtonClicked) TaskBasedUxStrings.STOPPING_IN_PROGRESS
-            else if (isUserStoppable) TaskBasedUxStrings.RECORDING_IN_PROGRESS
-            else "Saving a $ongoingTaskName...",
-            fontSize = TextUnit(18f, TextUnitType.Sp), fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.testTag("RecordingScreenMessage"))
+            text =
+              if (isStopButtonClicked) TaskBasedUxStrings.STOPPING_IN_PROGRESS
+              else if (isUserStoppable) TaskBasedUxStrings.RECORDING_IN_PROGRESS else "Saving a $ongoingTaskName...",
+            fontSize = TextUnit(18f, TextUnitType.Sp),
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.testTag("RecordingScreenMessage"),
+          )
         }
       }
       Box(modifier = Modifier.padding(bottom = 24.dp)) {
         if (isStopButtonClicked) {
           Text(TaskBasedUxStrings.STOPPING_TIME_WARNING, fontStyle = FontStyle.Italic)
-        }
-        else {
+        } else {
           Text(RecordingScreenModel.formatElapsedTime(elapsedNs))
         }
       }
       if (isUserStoppable) {
-        DefaultButton(onClick = { recordingScreenModel.onStopRecordingButtonClick() },
-                      enabled = canRecordingStop && !isStopButtonClicked,
-                      modifier = Modifier.testTag("StopRecordingButton"))
-        {
+        DefaultButton(
+          onClick = { recordingScreenModel.onStopRecordingButtonClick() },
+          enabled = canRecordingStop && !isStopButtonClicked,
+          modifier = Modifier.testTag("StopRecordingButton"),
+        ) {
           Text(TaskBasedUxStrings.STOP_RECORDING)
         }
       }

@@ -23,8 +23,7 @@ value class SwingPath(override val value: Path2D.Float) : SwingShape {
   constructor() : this(Path2D.Float())
 
   val currentPoint: SwingPoint
-    get() =
-      SwingPoint(SwingX(value.currentPoint.x.toFloat()), SwingY(value.currentPoint.y.toFloat()))
+    get() = SwingPoint(SwingX(value.currentPoint.x.toFloat()), SwingY(value.currentPoint.y.toFloat()))
 
   fun moveTo(point: SwingPoint) {
     moveTo(point.x, point.y)
@@ -35,14 +34,7 @@ value class SwingPath(override val value: Path2D.Float) : SwingShape {
   }
 
   fun curveTo(point1: SwingPoint, point2: SwingPoint, point3: SwingPoint) {
-    value.curveTo(
-      point1.x.value,
-      point1.y.value,
-      point2.x.value,
-      point2.y.value,
-      point3.x.value,
-      point3.y.value,
-    )
+    value.curveTo(point1.x.value, point1.y.value, point2.x.value, point2.y.value, point3.x.value, point3.y.value)
   }
 
   fun lineTo(x: SwingX, y: SwingY) {

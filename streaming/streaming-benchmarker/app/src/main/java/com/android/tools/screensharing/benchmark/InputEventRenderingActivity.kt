@@ -58,9 +58,7 @@ private const val DEFAULT_BITS_PER_CHANNEL = 2
 private const val DEFAULT_LATENCY_BITS = 6
 private val NUMERIC_KEYCODES = KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9
 
-/**
- * Scales a point from the source space to the destination space.
- */
+/** Scales a point from the source space to the destination space. */
 private fun Point.scale(src: Size, dst: Size): Point {
   val scaledX = x * dst.width / src.width.toDouble()
   val scaledY = y * dst.height / src.height.toDouble()
@@ -68,11 +66,9 @@ private fun Point.scale(src: Size, dst: Size): Point {
 }
 
 /**
- * An activity that displays and encodes touches and some other inputs in its video output.
- * The intended use is to analyze the performance of the end-to-end device mirroring or
- * embedded emulator in Android Studio by tracking how long it takes an input sent from Studio
- * to make it all the way to the device and for the resulting video from the device to make it
- * back to Studio.
+ * An activity that displays and encodes touches and some other inputs in its video output. The intended use is to analyze the performance
+ * of the end-to-end device mirroring or embedded emulator in Android Studio by tracking how long it takes an input sent from Studio to make
+ * it all the way to the device and for the resulting video from the device to make it back to Studio.
  */
 class InputEventRenderingActivity : Activity() {
   private val textVisible = AtomicBoolean()
@@ -114,7 +110,9 @@ class InputEventRenderingActivity : Activity() {
   }
 
   override fun onTouchEvent(event: MotionEvent): Boolean = processEvent(event)
+
   override fun onGenericMotionEvent(event: MotionEvent): Boolean = processEvent(event)
+
   override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean = processKey(keyCode)
 
   private fun setTextVisible(visibility: Boolean) {
@@ -133,7 +131,7 @@ class InputEventRenderingActivity : Activity() {
   private fun processEvent(event: MotionEvent): Boolean {
     makeBenchmarkUiVisible()
     setTextVisible(false)
-    with (visibilityHandler) {
+    with(visibilityHandler) {
       removeCallbacks(makeTextVisible)
       postDelayed(makeTextVisible, resources.getInteger(R.integer.delay_before_showing_text_ms).toLong())
     }
@@ -158,7 +156,8 @@ class InputEventRenderingActivity : Activity() {
   private fun processKey(keyCode: Int): Boolean {
     when (keyCode) {
       KeyEvent.KEYCODE_DEL -> enteredText.text = enteredText.text.dropLast(1)
-      KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_DPAD_UP -> {
+      KeyEvent.KEYCODE_VOLUME_UP,
+      KeyEvent.KEYCODE_DPAD_UP -> {
         enteredText.text = ""
         when (state) {
           State.BENCHMARKING -> showTouchableArea()
@@ -166,7 +165,8 @@ class InputEventRenderingActivity : Activity() {
           State.INITIALIZED -> {}
         }
       }
-      KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_DPAD_DOWN -> manuallyDecrementBitsPerChannel()
+      KeyEvent.KEYCODE_VOLUME_DOWN,
+      KeyEvent.KEYCODE_DPAD_DOWN -> manuallyDecrementBitsPerChannel()
       in NUMERIC_KEYCODES -> enteredText.append(NUMERIC_KEYCODES.indexOf(keyCode).toString())
       KeyEvent.KEYCODE_COMMA -> enteredText.append(",")
       KeyEvent.KEYCODE_ENTER -> if (setBitConfigFromEnteredText()) showTouchableArea()
@@ -238,7 +238,7 @@ class InputEventRenderingActivity : Activity() {
     if (state != State.INITIALIZED) {
       state = State.INITIALIZED
       Log.d(TAG, "Resetting to initial state.")
-      binding.root.background = ResourcesCompat.getDrawable(resources, R.drawable.initialized, /* theme = */ null)
+      binding.root.background = ResourcesCompat.getDrawable(resources, R.drawable.initialized, /* theme= */ null)
       binding.root.descendants.forEach { it.visibility = INVISIBLE }
       setMaxBits(DEFAULT_MAX_BITS)
       setBitsPerChannel(DEFAULT_BITS_PER_CHANNEL)
@@ -252,7 +252,7 @@ class InputEventRenderingActivity : Activity() {
     if (state != State.SHOWING_TOUCHABLE_AREA) {
       state = State.SHOWING_TOUCHABLE_AREA
       Log.d(TAG, "Showing touchable area for benchmarking.")
-      binding.root.background = ResourcesCompat.getDrawable(resources, R.drawable.touchable_area_delimiter, /* theme = */ null)
+      binding.root.background = ResourcesCompat.getDrawable(resources, R.drawable.touchable_area_delimiter, /* theme= */ null)
       binding.root.descendants.forEach { it.visibility = INVISIBLE }
       binding.root.invalidate()
     }
@@ -263,9 +263,7 @@ class InputEventRenderingActivity : Activity() {
     if (state != State.BENCHMARKING) {
       state = State.BENCHMARKING
       Log.d(TAG, "Showing benchmarking UI to begin benchmarking.")
-      binding.root.descendants.forEach {
-        if (it !== coordinates && it !== frameLatencyText) it.visibility = VISIBLE
-      }
+      binding.root.descendants.forEach { if (it !== coordinates && it !== frameLatencyText) it.visibility = VISIBLE }
     }
   }
 
@@ -294,9 +292,7 @@ class InputEventRenderingActivity : Activity() {
   /** Creates noise in the [noiseBitmapView] to make the encoder's job a little harder. */
   private fun makeSomeNoise() {
     val bitmap = getOrInitializeNoiseBitmap()
-    (0 until bitmap.width).forEach { x ->
-      (0 until bitmap.height).forEach { y -> bitmap.setPixel(x, y, randomColor()) }
-    }
+    (0 until bitmap.width).forEach { x -> (0 until bitmap.height).forEach { y -> bitmap.setPixel(x, y, randomColor()) } }
     noiseBitmapView.invalidate()
   }
 
@@ -309,12 +305,10 @@ class InputEventRenderingActivity : Activity() {
     var numXPixels = NOISE_BITMAP_SIZE
     var numYPixels = NOISE_BITMAP_SIZE
     if (noiseBitmapView.width > noiseBitmapView.height) {
-      numYPixels =
-        (NOISE_BITMAP_SIZE * noiseBitmapView.height / noiseBitmapView.width.toDouble()).roundToInt()
+      numYPixels = (NOISE_BITMAP_SIZE * noiseBitmapView.height / noiseBitmapView.width.toDouble()).roundToInt()
     }
     if (noiseBitmapView.height > noiseBitmapView.width) {
-      numXPixels =
-        (NOISE_BITMAP_SIZE * noiseBitmapView.width / noiseBitmapView.height.toDouble()).roundToInt()
+      numXPixels = (NOISE_BITMAP_SIZE * noiseBitmapView.width / noiseBitmapView.height.toDouble()).roundToInt()
     }
     val bitmap = Bitmap.createBitmap(numXPixels, numYPixels, Bitmap.Config.ARGB_8888)
     bitmap.eraseColor(0xfffffff)

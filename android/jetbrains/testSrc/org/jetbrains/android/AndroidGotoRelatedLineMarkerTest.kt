@@ -22,15 +22,15 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
+import java.io.File
+import java.util.ArrayList
+import java.util.HashSet
 import org.jetbrains.kotlin.psi.KtClass
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.io.File
-import java.util.ArrayList
-import java.util.HashSet
 
 /**
  * Tests of [AndroidGotoRelatedLineMarkerProvider] for Android.
@@ -43,38 +43,40 @@ import java.util.HashSet
 @RunsInEdt
 class AndroidGotoRelatedLineMarkerTest {
 
-  @get:Rule
-  var androidProjectRule = AndroidProjectRule.withSdk().onEdt()
+  @get:Rule var androidProjectRule = AndroidProjectRule.withSdk().onEdt()
 
   private val myFixture by lazy {
-    androidProjectRule.fixture.apply {
-      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
-    }
+    androidProjectRule.fixture.apply { testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString() }
   }
 
   @Test
   fun javaAnonymousInnerClassToNothing() {
     myFixture.addFileToProject("res/layout/activity_main.xml", BASIC_LAYOUT).virtualFile
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/Util.java",
-      //language=Java
-      """
-        package p1.p2;
-        import android.app.Activity;
-        import android.os.Bundle;
-        import android.support.annotation.Nullable;
-        public class Util  {
-            void foo() {
-                Activity blank = new Activity() {
-                    @Override
-                    protected void onCreate(@Nullable Bundle savedInstanceState) {
-                        super.onCreate(savedInstanceState);
-                        setContentView(R.layout.activity_main);
-                    }
-                };
-            }
-        }
-      """.trimIndent()).virtualFile
+    val file =
+      myFixture
+        .addFileToProject(
+          "src/p1/p2/Util.java",
+          // language=Java
+          """
+          package p1.p2;
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.support.annotation.Nullable;
+          public class Util  {
+              void foo() {
+                  Activity blank = new Activity() {
+                      @Override
+                      protected void onCreate(@Nullable Bundle savedInstanceState) {
+                          super.onCreate(savedInstanceState);
+                          setContentView(R.layout.activity_main);
+                      }
+                  };
+              }
+          }
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(file)
     assertThat(doGotoRelatedFile(file)).isEmpty()
     doCheckNoLineMarkers()
@@ -87,7 +89,7 @@ class AndroidGotoRelatedLineMarkerTest {
     val menuFile = myFixture.addFileToProject("res/menu/menu_main.xml", MENU).virtualFile
     val activityFile = myFixture.addFileToProject("src/p1/p2/MyActivity.kt", KOTLIN_ACTIVITY).virtualFile
     doTestGotoRelatedFile(activityFile, setOf(layoutFile, menuFile), PsiFile::class.java)
-    doCheckLineMarkers(setOf(layoutFile, menuFile), PsiFile::class.java,"Related XML file")
+    doCheckLineMarkers(setOf(layoutFile, menuFile), PsiFile::class.java, "Related XML file")
   }
 
   @Test
@@ -187,7 +189,7 @@ class AndroidGotoRelatedLineMarkerTest {
     val menuFile = myFixture.addFileToProject("res/menu/menu_main.xml", MENU).virtualFile
     val activityFile = myFixture.addFileToProject("src/p1/p2/MyActivity.kt", KOTLIN_ACTIVITY).virtualFile
     doTestGotoRelatedFile(menuFile, setOf(activityFile), KtClass::class.java)
-    doCheckLineMarkers(setOf(activityFile), KtClass::class.java,"Related Kotlin class")
+    doCheckLineMarkers(setOf(activityFile), KtClass::class.java, "Related Kotlin class")
   }
 
   @Test
@@ -259,15 +261,12 @@ class AndroidGotoRelatedLineMarkerTest {
     return GotoRelatedSymbolAction.getItems(myFixture.file, myFixture.editor)
   }
 
-  private fun doCheckLineMarkers(expectedTargetFiles: Set<VirtualFile>,
-                                 targetElementClass: Class<*>,
-                                 expectedTooltip: String) {
+  private fun doCheckLineMarkers(expectedTargetFiles: Set<VirtualFile>, targetElementClass: Class<*>, expectedTooltip: String) {
     val relatedMarkers = doGetRelatedLineMarkers()
     assertThat(relatedMarkers).hasSize(1)
     val marker = relatedMarkers[0] as RelatedItemLineMarkerInfo
     assertThat(marker.lineMarkerTooltip).isEqualTo(expectedTooltip)
-    doCheckItems(expectedTargetFiles, marker.createGotoRelatedItems().toList(),
-                 targetElementClass)
+    doCheckItems(expectedTargetFiles, marker.createGotoRelatedItems().toList(), targetElementClass)
   }
 
   private fun doCheckNoLineMarkers() {
@@ -306,17 +305,18 @@ class AndroidGotoRelatedLineMarkerTest {
     }
 
     private val BASIC_LAYOUT =
-      //language=XML
+      // language=XML
       """
-       <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                      android:orientation="vertical"
-                      android:layout_width="match_parent"
-                      android:layout_height="match_parent">
-        </LinearLayout>
-     """.trimIndent()
+      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                     android:orientation="vertical"
+                     android:layout_width="match_parent"
+                     android:layout_height="match_parent">
+       </LinearLayout>
+      """
+        .trimIndent()
 
     private val KOTLIN_ACTIVITY =
-      //language=Kotlin
+      // language=Kotlin
       """
         package p1.p2
 
@@ -337,39 +337,42 @@ class AndroidGotoRelatedLineMarkerTest {
               return true
           }
         }
-      """.trimIndent()
+      """
+        .trimIndent()
 
     private val MANIFEST =
-      //language=XML
+      // language=XML
       """
-        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="p1.p2">
-          <application>
-            <activity android:name="p1.p2.MyActivity"/>
-          </application>
-        </manifest>
-      """.trimIndent()
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        package="p1.p2">
+        <application>
+          <activity android:name="p1.p2.MyActivity"/>
+        </application>
+      </manifest>
+      """
+        .trimIndent()
 
     private val MENU =
-      //language=XML
+      // language=XML
       """
-        <menu xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            xmlns:tools="http://schemas.android.com/tools"
-            tools:context="com.example.myapplication.MainActivity">
-            <item
-                android:id="@+id/action_settings"
-                android:orderInCategory="100"
-                android:title="@string/action_settings"
-                app:showAsAction="never" />
-        </menu>
-      """.trimIndent()
+      <menu xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto"
+          xmlns:tools="http://schemas.android.com/tools"
+          tools:context="com.example.myapplication.MainActivity">
+          <item
+              android:id="@+id/action_settings"
+              android:orderInCategory="100"
+              android:title="@string/action_settings"
+              app:showAsAction="never" />
+      </menu>
+      """
+        .trimIndent()
   }
 
   fun createManifest() {
     myFixture.addFileToProject(
       "AndroidManifest.xml",
-      //language=xml
+      // language=xml
       """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -377,6 +380,8 @@ class AndroidGotoRelatedLineMarkerTest {
           <application android:icon="@drawable/icon">
           </application>
       </manifest>
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
   }
 }

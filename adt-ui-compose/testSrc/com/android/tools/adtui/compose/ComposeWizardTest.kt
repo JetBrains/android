@@ -50,8 +50,7 @@ class ComposeWizardTest {
 
     composeTestRule.setContent { wizard.Content() }
 
-    @OptIn(ExperimentalTestApi::class)
-    composeTestRule.onNodeWithText("abcd").performKeyInput { keyPress(Key.Enter) }
+    @OptIn(ExperimentalTestApi::class) composeTestRule.onNodeWithText("abcd").performKeyInput { keyPress(Key.Enter) }
 
     wizard.awaitClose(5.seconds)
   }

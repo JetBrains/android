@@ -26,8 +26,7 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.concurrency.annotations.RequiresWriteLock
 
 /** Turns on inlay hints for Compose `State` reads. */
-internal object EnableComposeStateReadInlayHintsAction :
-  IntentionAction by ComposeStateReadInlayHintsAction(true)
+internal object EnableComposeStateReadInlayHintsAction : IntentionAction by ComposeStateReadInlayHintsAction(true)
 
 /** Enables or disables inlay hints for Compose `State` reads. */
 private class ComposeStateReadInlayHintsAction(private val enable: Boolean) : IntentionAction {
@@ -44,18 +43,14 @@ private class ComposeStateReadInlayHintsAction(private val enable: Boolean) : In
 
   override fun startInWriteAction(): Boolean = true
 
-  @RequiresReadLock
-  override fun isAvailable(project: Project, editor: Editor, file: PsiFile) =
-    hintsEnabled() != enable
+  @RequiresReadLock override fun isAvailable(project: Project, editor: Editor, file: PsiFile) = hintsEnabled() != enable
 
   @RequiresWriteLock
   override fun invoke(project: Project, editor: Editor, file: PsiFile) {
-    DeclarativeInlayHintsSettings.getInstance()
-      .setProviderEnabled(ComposeStateReadInlayHintsProvider.PROVIDER_ID, enable)
+    DeclarativeInlayHintsSettings.getInstance().setProviderEnabled(ComposeStateReadInlayHintsProvider.PROVIDER_ID, enable)
     DeclarativeInlayHintsPassFactory.scheduleRecompute(editor, project)
   }
 
   private fun hintsEnabled() =
-    DeclarativeInlayHintsSettings.getInstance()
-      .isProviderEnabled(ComposeStateReadInlayHintsProvider.PROVIDER_ID) ?: false
+    DeclarativeInlayHintsSettings.getInstance().isProviderEnabled(ComposeStateReadInlayHintsProvider.PROVIDER_ID) ?: false
 }

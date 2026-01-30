@@ -15,18 +15,16 @@
  */
 package org.jetbrains.android.refactoring
 
-import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.refactoring.ui.RefactoringDialog
+import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.selected
 import javax.swing.JComponent
 
-internal class UnusedResourcesDialog(
-  project: Project,
-  private val filterAndDescription: FilterAndDescription?,
-) : RefactoringDialog(project, true) {
+internal class UnusedResourcesDialog(project: Project, private val filterAndDescription: FilterAndDescription?) :
+  RefactoringDialog(project, true) {
 
   class FilterAndDescription(val filter: UnusedResourcesProcessor.Filter, val description: String)
 
@@ -42,26 +40,26 @@ internal class UnusedResourcesDialog(
 
   override fun createCenterPanel(): JComponent {
     return panel {
-      row {
-        if (filterAndDescription != null) {
-          checkBox("Search entire project")
-            .bindSelected(::searchEntireProject)
-            .comment("When unchecked, ${filterAndDescription.description}.")
-        } else {
-          checkBox("Search entire project")
-            .bindSelected(::searchEntireProject)
-            .enabled(false)
-            .selected(true)
-            .comment("To restrict the scope, open a resource file or " +
-                     "select some files/directories in the Project tool window, " +
-                     "and then invoke the refactoring.")
+        row {
+          if (filterAndDescription != null) {
+            checkBox("Search entire project")
+              .bindSelected(::searchEntireProject)
+              .comment("When unchecked, ${filterAndDescription.description}.")
+          } else {
+            checkBox("Search entire project")
+              .bindSelected(::searchEntireProject)
+              .enabled(false)
+              .selected(true)
+              .comment(
+                "To restrict the scope, open a resource file or " +
+                  "select some files/directories in the Project tool window, " +
+                  "and then invoke the refactoring."
+              )
+          }
         }
+        row { checkBox("Delete unused @id declarations too").bindSelected(::includeIds) }
       }
-      row {
-        checkBox("Delete unused @id declarations too")
-          .bindSelected(::includeIds)
-      }
-    }.also { centerPanel = it }
+      .also { centerPanel = it }
   }
 
   override fun doAction() {
@@ -70,11 +68,12 @@ internal class UnusedResourcesDialog(
     // but this does not seem to work with RefactoringDialog.
     centerPanel?.apply()
 
-    val filter = if (searchEntireProject) {
-      null
-    } else {
-      filterAndDescription?.filter
-    }
+    val filter =
+      if (searchEntireProject) {
+        null
+      } else {
+        filterAndDescription?.filter
+      }
 
     val processor = UnusedResourcesProcessor(myProject, filter, includeIds)
     processor.setPreviewUsages(isPreviewUsages)

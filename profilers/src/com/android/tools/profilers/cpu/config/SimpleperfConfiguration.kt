@@ -20,20 +20,14 @@ import com.android.tools.adtui.model.options.OptionsProperty
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.Trace.SimpleperfOptions
 
-/**
- * Simple perf configuration
- */
+/** Simple perf configuration */
 class SimpleperfConfiguration(name: String) : ProfilingConfiguration(name) {
-  /**
-   * Sampling interval (for sample-based profiling) in microseconds.
-   */
+  /** Sampling interval (for sample-based profiling) in microseconds. */
   @OptionsProperty(name = "Sample interval: ", group = TRACE_CONFIG_GROUP, order = 100, unit = "Us (Microseconds)")
   var profilingSamplingIntervalUs = DEFAULT_SAMPLING_INTERVAL_US
 
   override fun getOptions(): SimpleperfOptions {
-    return SimpleperfOptions.newBuilder()
-      .setSamplingIntervalUs(profilingSamplingIntervalUs)
-      .build()
+    return SimpleperfOptions.newBuilder().setSamplingIntervalUs(profilingSamplingIntervalUs).build()
   }
 
   private fun setSymbolDirs(configBuilder: SimpleperfOptions.Builder, symbolDirs: Iterable<String>) {
@@ -55,6 +49,6 @@ class SimpleperfConfiguration(name: String) : ProfilingConfiguration(name) {
   }
 
   override fun getRequiredDeviceLevel(): Int {
-    return AndroidVersion.VersionCodes.O;
+    return AndroidVersion.VersionCodes.O
   }
 }

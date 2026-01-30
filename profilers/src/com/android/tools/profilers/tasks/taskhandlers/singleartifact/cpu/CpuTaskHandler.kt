@@ -38,8 +38,7 @@ abstract class CpuTaskHandler(private val sessionsManager: SessionsManager) : Si
     if (sessionsManager.isSessionAlive) {
       if (cpuRecordingConfig != null) {
         stage.profilerConfigModel.profilingConfiguration = cpuRecordingConfig
-      }
-      else {
+      } else {
         // The UI to start a task is only enabled if the task configuration is non-null, making this an illegal state to be in.
         throw IllegalStateException("The task configuration cannot be null.")
       }
@@ -86,12 +85,16 @@ abstract class CpuTaskHandler(private val sessionsManager: SessionsManager) : Si
 
     if (config == null) {
       // config being null is only possible if the device does not support any configuration.
-      return StartTaskSelectionError(StartTaskSelectionErrorCode.INVALID_DEVICE,
-                                     "No task configuration was found for API ${device.featureLevel} device")
+      return StartTaskSelectionError(
+        StartTaskSelectionErrorCode.INVALID_DEVICE,
+        "No task configuration was found for API ${device.featureLevel} device",
+      )
     }
 
-    return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN,
-                                   getMinApiStartTaskErrorMessage(config.requiredDeviceLevel))
+    return StartTaskSelectionError(
+      StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN,
+      getMinApiStartTaskErrorMessage(config.requiredDeviceLevel),
+    )
   }
 
   protected open fun isDeviceSupported(device: Common.Device, config: ProfilingConfiguration?) =

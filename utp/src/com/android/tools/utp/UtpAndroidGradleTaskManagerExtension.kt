@@ -23,15 +23,13 @@ import org.jetbrains.plugins.gradle.service.task.GradleTaskManagerExtension
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 
 /**
- * Extension of GradleTaskManager to enhance processing of test results from
- * DeviceProviderInstrumentedTestTask to Android Studio with Unified Test Platform.
+ * Extension of GradleTaskManager to enhance processing of test results from DeviceProviderInstrumentedTestTask to Android Studio with
+ * Unified Test Platform.
  */
 class UtpAndroidGradleTaskManagerExtension : GradleTaskManagerExtension {
 
   companion object {
-    /**
-     * A Gradle project property to enable UTP test results reporting.
-     */
+    /** A Gradle project property to enable UTP test results reporting. */
     const val ENABLE_UTP_TEST_REPORT_PROPERTY: String = "com.android.tools.utp.GradleAndroidProjectResolverExtension.enable"
 
     private const val ANDROID_TEST_SCRIPT_NAME = "addGradleAndroidTestListener"
@@ -48,8 +46,7 @@ class UtpAndroidGradleTaskManagerExtension : GradleTaskManagerExtension {
     try {
       val initScript = loadInitScript(javaClass, "/utp/addGradleAndroidTestListener.gradle")
       settings.addInitScript(ANDROID_TEST_SCRIPT_NAME, initScript)
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       LOG.error(e)
     }
   }

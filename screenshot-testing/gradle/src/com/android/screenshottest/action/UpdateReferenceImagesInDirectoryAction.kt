@@ -15,10 +15,10 @@
  */
 package com.android.screenshottest.action
 
+import com.android.screenshottest.producers.isScreenshotTestSourceSet
 import com.android.screenshottest.util.UPDATE_ACTION_DESCRIPTION
 import com.android.screenshottest.util.UPDATE_ACTION_TEXT
 import com.android.tools.idea.flags.StudioFlags
-import com.android.screenshottest.producers.isScreenshotTestSourceSet
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -27,16 +27,13 @@ import com.intellij.psi.PsiDirectory
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 
-class UpdateReferenceImagesInDirectoryAction : UpdateReferenceImagesBaseAction(
-  UPDATE_ACTION_TEXT,
-  UPDATE_ACTION_DESCRIPTION,
-  AllIcons.FileTypes.Image
-) {
+class UpdateReferenceImagesInDirectoryAction :
+  UpdateReferenceImagesBaseAction(UPDATE_ACTION_TEXT, UPDATE_ACTION_DESCRIPTION, AllIcons.FileTypes.Image) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = false
-    if(!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()){
+    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()) {
       return
     }
 

@@ -26,32 +26,28 @@ import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel
 import com.android.tools.profilers.cpu.nodemodel.SyscallModel
 import com.google.common.annotations.VisibleForTesting
 
-open class BaseCpuCapture @JvmOverloads constructor(/**
-                                                     * ID of the trace used to generate the capture.
-                                                     */
-                                                    private val traceId: Long,
-                                                    /**
-                                                     * Technology used to generate the capture.
-                                                     */
-                                                    private val type: TraceType,
-                                                    /**
-                                                     * Whether this trace supports dual clock timing info.
-                                                     */
-                                                    private val dualClock: Boolean,
-                                                    /**
-                                                     * User-facing string when this trace doesn't supports dual clock
-                                                     */
-                                                    private val dualClockMessage: String?,
-                                                    range: Range,
-                                                    captureTrees: Map<CpuThreadInfo, CaptureNode>,
-                                                    private val tags: Set<String> = setOf()) : CpuCapture {
+open class BaseCpuCapture
+@JvmOverloads
+constructor(
+  /** ID of the trace used to generate the capture. */
+  private val traceId: Long,
+  /** Technology used to generate the capture. */
+  private val type: TraceType,
+  /** Whether this trace supports dual clock timing info. */
+  private val dualClock: Boolean,
+  /** User-facing string when this trace doesn't supports dual clock */
+  private val dualClockMessage: String?,
+  range: Range,
+  captureTrees: Map<CpuThreadInfo, CaptureNode>,
+  private val tags: Set<String> = setOf(),
+) : CpuCapture {
   @VisibleForTesting
-  constructor(traceId: Long,
-              type: TraceType,
-              range: Range,
-              captureTrees: Map<CpuThreadInfo, CaptureNode>) :
-    this(traceId, type, true, null, range, captureTrees) {
-  }
+  constructor(
+    traceId: Long,
+    type: TraceType,
+    range: Range,
+    captureTrees: Map<CpuThreadInfo, CaptureNode>,
+  ) : this(traceId, type, true, null, range, captureTrees) {}
 
   private val availableThreads: Set<CpuThreadInfo>
   private val threadIdToNode: Map<Int, CaptureNode>
@@ -59,6 +55,7 @@ open class BaseCpuCapture @JvmOverloads constructor(/**
   private var clockType: ClockType
   var tagsCollapsed = setOf<String>()
     private set
+
   private val unabbreviatedTrees: Map<CaptureNode, List<CaptureNode>>
 
   init {
@@ -71,26 +68,29 @@ open class BaseCpuCapture @JvmOverloads constructor(/**
   }
 
   companion object {
-    /**
-     * A placeholder thread ID when main thread doesn't exist.
-     */
+    /** A placeholder thread ID when main thread doesn't exist. */
     const val NO_THREAD_ID = -1
   }
 
-  /**
-   * The CPU capture has its own [Timeline] for the purpose of exposing a variety of [Range]s.
-   */
-  private val timeline = DefaultTimeline().apply {
-    dataRange.set(range)
-    viewRange.set(range)
-  }
+  /** The CPU capture has its own [Timeline] for the purpose of exposing a variety of [Range]s. */
+  private val timeline =
+    DefaultTimeline().apply {
+      dataRange.set(range)
+      viewRange.set(range)
+    }
 
   override fun getMainThreadId() = mainThreadId
+
   override fun getTimeline() = timeline
+
   override fun getCaptureNode(threadId: Int) = threadIdToNode[threadId]
+
   override fun getThreads() = availableThreads
+
   override fun getCaptureNodes() = threadIdToNode.values
+
   override fun containsThread(threadId: Int) = threadId in threadIdToNode
+
   override fun getTraceId() = traceId
 
   override fun updateClockType(clockType: ClockType) {
@@ -104,19 +104,23 @@ open class BaseCpuCapture @JvmOverloads constructor(/**
   }
 
   override fun isDualClock() = dualClock
+
   override fun getDualClockDisabledMessage() = dualClockMessage
+
   override fun getType() = type
 
   override fun collapseNodesWithTags(tagsToCollapse: Set<String>) {
     if (tagsToCollapse != tagsCollapsed) {
-      fun collapse(node: CaptureNode) = when (node.data.tag) {
-        !in tagsToCollapse -> null
-        else -> when (node.data) {
-          is JavaMethodModel -> OpaqueJavaMethodModel
-          is SyscallModel -> OpaqueSyscallModel
-          else -> OpaqueNativeNodeModel
+      fun collapse(node: CaptureNode) =
+        when (node.data.tag) {
+          !in tagsToCollapse -> null
+          else ->
+            when (node.data) {
+              is JavaMethodModel -> OpaqueJavaMethodModel
+              is SyscallModel -> OpaqueSyscallModel
+              else -> OpaqueNativeNodeModel
+            }
         }
-      }
       fun isOpaqueModel(data: CaptureNodeModel) =
         data === OpaqueJavaMethodModel || data === OpaqueSyscallModel || data === OpaqueNativeNodeModel
       fun hideFromPaths(children: List<CaptureNode>) = children.map { it.abbreviatedBy(::collapse, ::isOpaqueModel) }
@@ -130,11 +134,16 @@ open class BaseCpuCapture @JvmOverloads constructor(/**
   }
 
   override fun getTags() = tags
+
   override fun getCollapsedTags() = tagsCollapsed
 
   private object OpaqueJavaMethodModel : JavaMethodModel("<<java code>>", "", "")
-  private object OpaqueSyscallModel: SyscallModel("<<syscall>>")
+
+  private object OpaqueSyscallModel : SyscallModel("<<syscall>>")
+
   private object OpaqueNativeNodeModel : NativeNodeModel() {
-    init { myName = "<<native code>>" }
+    init {
+      myName = "<<native code>>"
+    }
   }
 }

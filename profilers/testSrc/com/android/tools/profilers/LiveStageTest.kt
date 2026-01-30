@@ -21,11 +21,10 @@ import com.android.tools.profilers.event.EventMonitor
 import com.android.tools.profilers.memory.LiveMemoryFootprintModel
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
+import kotlin.test.assertFalse
 import org.junit.Before
 import org.junit.Test
-import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.Mockito
-import kotlin.test.assertFalse
 
 class LiveStageTest {
   private lateinit var myProfilers: StudioProfilers
@@ -52,7 +51,7 @@ class LiveStageTest {
   @Test
   fun testStopDisableAutoProfiling() {
     myLiveStage.exit()
-    assertThat( myLiveStage.studioProfilers.autoProfilingEnabled).isFalse()
+    assertThat(myLiveStage.studioProfilers.autoProfilingEnabled).isFalse()
   }
 
   @Test
@@ -66,7 +65,7 @@ class LiveStageTest {
   @Test
   fun testStageType() {
     val result = myLiveStage.stageType
-    assertThat(result).isEqualTo(AndroidProfilerEvent.Stage.LIVE_STAGE);
+    assertThat(result).isEqualTo(AndroidProfilerEvent.Stage.LIVE_STAGE)
   }
 
   @Test

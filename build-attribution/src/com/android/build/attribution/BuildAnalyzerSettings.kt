@@ -67,14 +67,12 @@ class BuildAnalyzerConfigurableProvider(val project: Project) : ConfigurableProv
   }
 }
 
-private class BuildAnalyzerConfigurable(val project: Project) : BoundSearchableConfigurable(
-  displayName = BuildAnalyzerConfigurableProvider.DISPLAY_NAME,
-  helpTopic = "build.analyzer"
-) {
+private class BuildAnalyzerConfigurable(val project: Project) :
+  BoundSearchableConfigurable(displayName = BuildAnalyzerConfigurableProvider.DISPLAY_NAME, helpTopic = "build.analyzer") {
   private val buildAnalyzerSettings = BuildAnalyzerSettings.getInstance(project)
 
-  private val fileSizeFormatted = AtomicFileSize(
-    BuildAnalyzerStorageManager.getInstance(project).getStorageDescriptor().currentBuildHistoryDataSize)
+  private val fileSizeFormatted =
+    AtomicFileSize(BuildAnalyzerStorageManager.getInstance(project).getStorageDescriptor().currentBuildHistoryDataSize)
 
   override fun apply() {
     super.apply()
@@ -84,43 +82,42 @@ private class BuildAnalyzerConfigurable(val project: Project) : BoundSearchableC
   override fun createPanel(): DialogPanel = panel {
     if (StudioFlags.BUILD_ANALYZER_HISTORY.get()) {
       row {
-        text("").bindIntText(BuildAnalyzerStorageManager.getInstance(project).getStorageDescriptor().numberOfBuildResultsStored)
+        text("")
+          .bindIntText(BuildAnalyzerStorageManager.getInstance(project).getStorageDescriptor().numberOfBuildResultsStored)
           .label("Number of build results stored: ")
 
-        text("").bindText(fileSizeFormatted)
-          .label("File size taken up by stored build results: ")
+        text("").bindText(fileSizeFormatted).label("File size taken up by stored build results: ")
       }
 
       row {
         text("Maximum number of build results stored")
-        intTextField(IntRange(0, 100)).bindIntText(
-          getter = { buildAnalyzerSettings.settingsState.maxNumberOfBuildsStored },
-          setter = { buildAnalyzerSettings.settingsState.maxNumberOfBuildsStored = it }
-        )
+        intTextField(IntRange(0, 100))
+          .bindIntText(
+            getter = { buildAnalyzerSettings.settingsState.maxNumberOfBuildsStored },
+            setter = { buildAnalyzerSettings.settingsState.maxNumberOfBuildsStored = it },
+          )
       }
 
       row {
         text("Maximum storage capacity in kilobytes")
-        intTextField(IntRange(0, 100000)).bindIntText(
-          getter = { buildAnalyzerSettings.settingsState.maxStorageSpaceKilobytes },
-          setter = { buildAnalyzerSettings.settingsState.maxStorageSpaceKilobytes = it }
-        )
+        intTextField(IntRange(0, 100000))
+          .bindIntText(
+            getter = { buildAnalyzerSettings.settingsState.maxStorageSpaceKilobytes },
+            setter = { buildAnalyzerSettings.settingsState.maxStorageSpaceKilobytes = it },
+          )
       }
 
-      row {
-        button("Clear Build Results Data", ClearBuildResultsAction(::reset))
-      }
+      row { button("Clear Build Results Data", ClearBuildResultsAction(::reset)) }
     }
   }
 }
 
-class AtomicFileSize(private val reference: AtomicProperty<Long>) : AbstractObservableProperty<String>(), ObservableMutableProperty<String> {
+class AtomicFileSize(private val reference: AtomicProperty<Long>) :
+  AbstractObservableProperty<String>(), ObservableMutableProperty<String> {
   private var representation = Formats.formatFileSize(reference.get())
 
   init {
-    reference.afterChange {
-      set(Formats.formatFileSize(reference.get()))
-    }
+    reference.afterChange { set(Formats.formatFileSize(reference.get())) }
   }
 
   override fun get() = representation

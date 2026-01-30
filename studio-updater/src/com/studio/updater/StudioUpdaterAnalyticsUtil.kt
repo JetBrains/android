@@ -18,7 +18,6 @@
 
 package com.studio.updater
 
-
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
 import com.android.utils.StdLogger
@@ -38,10 +37,9 @@ fun logProcessStart() {
   UsageTracker.log(
     AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.STUDIO_PATCH_UPDATER
-      studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder().apply {
-        kind = StudioPatchUpdaterEvent.Kind.START
-      }.build()
-    })
+      studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder().apply { kind = StudioPatchUpdaterEvent.Kind.START }.build()
+    }
+  )
   // Ensure all events are flushed to disk before process exit.
   Runtime.getRuntime().addShutdownHook(Thread(UsageTracker::deinitialize))
 }
@@ -50,30 +48,27 @@ fun logProcessSuccess() {
   UsageTracker.log(
     AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.STUDIO_PATCH_UPDATER
-      studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder().apply {
-        kind = StudioPatchUpdaterEvent.Kind.EXIT_OK
-      }.build()
-    })
+      studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder().apply { kind = StudioPatchUpdaterEvent.Kind.EXIT_OK }.build()
+    }
+  )
 }
 
 fun logProcessAbort() {
   UsageTracker.log(
     AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.STUDIO_PATCH_UPDATER
-      studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder().apply {
-        kind = StudioPatchUpdaterEvent.Kind.EXIT_ABORT
-      }.build()
-    })
+      studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder().apply { kind = StudioPatchUpdaterEvent.Kind.EXIT_ABORT }.build()
+    }
+  )
 }
 
 fun logException() {
   UsageTracker.log(
     AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.STUDIO_PATCH_UPDATER
-      studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder().apply {
-        kind = StudioPatchUpdaterEvent.Kind.EXIT_EXCEPTION
-      }.build()
-    })
+      studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder().apply { kind = StudioPatchUpdaterEvent.Kind.EXIT_EXCEPTION }.build()
+    }
+  )
 }
 
 private fun toAnalytics(kind: ValidationResult.Kind): StudioPatchUpdaterEvent.IssueDialog.Issue.Kind {
@@ -115,8 +110,7 @@ private fun toAnalytics(value: ValidationResult.Option): StudioPatchUpdaterEvent
 fun logProcessFinish(result: Boolean) {
   if (result) {
     logProcessSuccess()
-  }
-  else {
+  } else {
     logProcessAbort()
   }
 }
@@ -136,19 +130,15 @@ internal fun toAnalytics(phase: String): StudioPatchUpdaterEvent.Kind {
 }
 
 internal fun toAnalytics(results: List<ValidationResult>): StudioPatchUpdaterEvent.IssueDialog {
-  return StudioPatchUpdaterEvent.IssueDialog.newBuilder().apply {
-    results.forEach { addIssue(toAnalytics(it)) }
-  }.build()
+  return StudioPatchUpdaterEvent.IssueDialog.newBuilder().apply { results.forEach { addIssue(toAnalytics(it)) } }.build()
 }
 
 internal fun toAnalytics(result: Map<String, ValidationResult.Option>): StudioPatchUpdaterEvent.IssueDialogChoices {
-  return StudioPatchUpdaterEvent.IssueDialogChoices.newBuilder().apply {
-    result.values.forEach { addChoice(validationToAnalytics(it)) }
-  }.build()
+  return StudioPatchUpdaterEvent.IssueDialogChoices.newBuilder()
+    .apply { result.values.forEach { addChoice(validationToAnalytics(it)) } }
+    .build()
 }
 
 private fun validationToAnalytics(value: ValidationResult.Option): StudioPatchUpdaterEvent.IssueDialogChoices.Choice {
-  return StudioPatchUpdaterEvent.IssueDialogChoices.Choice.newBuilder().apply {
-    chosenOption = toAnalytics(value)
-  }.build()
+  return StudioPatchUpdaterEvent.IssueDialogChoices.Choice.newBuilder().apply { chosenOption = toAnalytics(value) }.build()
 }

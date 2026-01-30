@@ -16,17 +16,13 @@
 package com.android.build.attribution.proto
 
 import com.google.common.truth.Truth
+import kotlin.reflect.KClass
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import kotlin.reflect.KClass
 
 @RunWith(Parameterized::class)
-class PairEnumFinderTest(
-  name: String,
-  private val real: KClass<out Enum<*>>,
-  private val converter: EnumConverter<Enum<*>, Enum<*>>
-) {
+class PairEnumFinderTest(name: String, private val real: KClass<out Enum<*>>, private val converter: EnumConverter<Enum<*>, Enum<*>>) {
 
   @Test
   fun testEnumConversionBothWays() {
@@ -40,8 +36,7 @@ class PairEnumFinderTest(
   companion object {
     @Parameterized.Parameters(name = "\"{0}\" conversion test")
     @JvmStatic
-    fun myTestParameters() = PairEnumFinder.permissibleConversions.map {
-      arrayOf(it.key.simpleName, it.key, it.value as EnumConverter<*, *>)
-    }
+    fun myTestParameters() =
+      PairEnumFinder.permissibleConversions.map { arrayOf(it.key.simpleName, it.key, it.value as EnumConverter<*, *>) }
   }
 }

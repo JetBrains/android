@@ -21,8 +21,8 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 
 /**
- * Store value of the lookup element in code completion suggestion list.
- * Can be used with custom comparator to change the ordering of the suggestion list
+ * Store value of the lookup element in code completion suggestion list. Can be used with custom comparator to change the ordering of the
+ * suggestion list
  */
 class GmdCodeCompletionLookupElement(
   // Value of each of the items in the suggestion list
@@ -33,9 +33,9 @@ class GmdCodeCompletionLookupElement(
   private val myPresentation: LookupElementPresentation? = null,
 ) : LookupElement(), Comparable<LookupElement> {
 
-  constructor(element: LookupElement) : this(
-    myValue = element.lookupString, myScore = (element as? GmdCodeCompletionLookupElement)?.myScore ?: 0u
-  )
+  constructor(
+    element: LookupElement
+  ) : this(myValue = element.lookupString, myScore = (element as? GmdCodeCompletionLookupElement)?.myScore ?: 0u)
 
   override fun getLookupString(): String {
     return myValue

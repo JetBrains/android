@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.profilers
 
 import com.intellij.openapi.diagnostic.Logger
 
@@ -27,8 +27,7 @@ data class Selection<T>(val selected: T?, val items: List<T>) {
     if (item == null) return deselect()
 
     if (item !in items) {
-      Logger.getInstance(Selection::class.java)
-        .warn("Requested item $item is not among allowed selections $items.")
+      Logger.getInstance(Selection::class.java).warn("Requested item $item is not among allowed selections $items.")
       return this
     }
     return Selection(item, items)

@@ -27,26 +27,28 @@ class UnusedResourcesHandler : RefactoringActionHandler {
   @UiThread
   override fun invoke(project: Project, editor: Editor, file: PsiFile, dataContext: DataContext) {
     UnusedResourcesDialog(
-      project,
-      UnusedResourcesDialog.FilterAndDescription(
-        UnusedResourcesProcessor.FileFilter.from(setOf(file)),
-        "the refactoring is restricted to the resources in the currently open file",
-      ),
-    ).show()
+        project,
+        UnusedResourcesDialog.FilterAndDescription(
+          UnusedResourcesProcessor.FileFilter.from(setOf(file)),
+          "the refactoring is restricted to the resources in the currently open file",
+        ),
+      )
+      .show()
   }
 
   @UiThread
   override fun invoke(project: Project, elements: Array<PsiElement>, dataContext: DataContext) {
     UnusedResourcesDialog(
-      project,
-      if (elements.isEmpty()) {
-        null
-      } else {
-        UnusedResourcesDialog.FilterAndDescription(
-          UnusedResourcesProcessor.FileFilter.from (elements.toList()),
-          "the refactoring is restricted to the resources in the currently selected files/directories",
-        )
-      },
-    ).show()
+        project,
+        if (elements.isEmpty()) {
+          null
+        } else {
+          UnusedResourcesDialog.FilterAndDescription(
+            UnusedResourcesProcessor.FileFilter.from(elements.toList()),
+            "the refactoring is restricted to the resources in the currently selected files/directories",
+          )
+        },
+      )
+      .show()
   }
 }

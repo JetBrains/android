@@ -50,8 +50,8 @@ class HtmlLabel : JEditorPane() {
   }
 
   /**
-   * Adds a hyperlink listener, while disabling the default link activation mechanism. Use the
-   * overloaded [addHyperlinkListener] method if you wish to preserve the default mechanism.
+   * Adds a hyperlink listener, while disabling the default link activation mechanism. Use the overloaded [addHyperlinkListener] method if
+   * you wish to preserve the default mechanism.
    */
   override fun addHyperlinkListener(listener: HyperlinkListener?) {
     if (listener == null) return
@@ -60,10 +60,7 @@ class HtmlLabel : JEditorPane() {
     super.addHyperlinkListener(listener)
   }
 
-  /**
-   * Adds hyperlink listener. If [disableDefaultLinkHandling] is true, the default browser launching
-   * mechanism is removed.
-   */
+  /** Adds hyperlink listener. If [disableDefaultLinkHandling] is true, the default browser launching mechanism is removed. */
   fun addHyperlinkListener(listener: HyperlinkListener, disableDefaultLinkHandling: Boolean) {
     if (disableDefaultLinkHandling) {
       removeHyperlinkListener(defaultHyperlinkListener)
@@ -103,13 +100,9 @@ class HtmlLabel : JEditorPane() {
       editorPane.addCss(font, foreground)
     }
 
-    /**
-     * Adds Cascading Style Sheets to the component. If it is an instance of [HtmlLabel] it will
-     * preserve its default listener.
-     */
+    /** Adds Cascading Style Sheets to the component. If it is an instance of [HtmlLabel] it will preserve its default listener. */
     private fun JEditorPane.addCss(font: Font, foreground: Color) {
-      val preserveDefaultHtmlLabelListener =
-        this is HtmlLabel && hyperlinkListeners.contains(defaultHyperlinkListener)
+      val preserveDefaultHtmlLabelListener = this is HtmlLabel && hyperlinkListeners.contains(defaultHyperlinkListener)
       val kit = HTMLEditorKitBuilder.simple()
       kit.styleSheet = createCss(font, foreground)
       setEditorKit(kit)

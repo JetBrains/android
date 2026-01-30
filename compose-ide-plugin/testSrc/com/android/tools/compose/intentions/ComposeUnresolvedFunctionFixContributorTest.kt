@@ -59,15 +59,10 @@ class ComposeUnresolvedFunctionFixContributorTest {
         .trimIndent(),
     )
 
-    val action =
-      myFixture.availableIntentions.find {
-        it.text == "Create @Composable function 'UnresolvedFunction'"
-      }
+    val action = myFixture.availableIntentions.find { it.text == "Create @Composable function 'UnresolvedFunction'" }
     assertThat(action).isNotNull()
 
-    WriteCommandAction.runWriteCommandAction(myFixture.project) {
-      action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
-    }
+    WriteCommandAction.runWriteCommandAction(myFixture.project) { action!!.invoke(myFixture.project, myFixture.editor, myFixture.file) }
 
     // language=kotlin
     val expectedText =
@@ -108,15 +103,10 @@ class ComposeUnresolvedFunctionFixContributorTest {
         .trimIndent(),
     )
 
-    val action =
-      myFixture.availableIntentions.find {
-        it.text == "Create @Composable function 'UnresolvedFunction'"
-      }
+    val action = myFixture.availableIntentions.find { it.text == "Create @Composable function 'UnresolvedFunction'" }
     assertThat(action).isNotNull()
 
-    WriteCommandAction.runWriteCommandAction(myFixture.project) {
-      action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
-    }
+    WriteCommandAction.runWriteCommandAction(myFixture.project) { action!!.invoke(myFixture.project, myFixture.editor, myFixture.file) }
 
     myFixture.checkResult(
       // language=kotlin
@@ -157,10 +147,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
         .trimIndent(),
     )
 
-    val action =
-      myFixture.availableIntentions.find {
-        it.text == "Create @Composable function 'unresolvedFunction'"
-      }
+    val action = myFixture.availableIntentions.find { it.text == "Create @Composable function 'unresolvedFunction'" }
     assertThat(action).isNull()
   }
 
@@ -182,10 +169,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
         .trimIndent(),
     )
 
-    val action =
-      myFixture.availableIntentions.find {
-        it.text == "Create @Composable function 'unresolvedFunction'"
-      }
+    val action = myFixture.availableIntentions.find { it.text == "Create @Composable function 'unresolvedFunction'" }
     assertThat(action).isNull()
   }
 
@@ -207,15 +191,10 @@ class ComposeUnresolvedFunctionFixContributorTest {
         .trimIndent(),
     )
 
-    val action =
-      myFixture.availableIntentions.find {
-        it.text == "Create @Composable function 'UnresolvedFunction'"
-      }
+    val action = myFixture.availableIntentions.find { it.text == "Create @Composable function 'UnresolvedFunction'" }
     assertThat(action).isNotNull()
 
-    WriteCommandAction.runWriteCommandAction(myFixture.project) {
-      action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
-    }
+    WriteCommandAction.runWriteCommandAction(myFixture.project) { action!!.invoke(myFixture.project, myFixture.editor, myFixture.file) }
 
     myFixture.checkResult(
       // language=kotlin

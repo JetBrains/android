@@ -19,25 +19,18 @@ import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
+import java.time.Duration
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult
-import java.time.Duration
 
-/**
- * Analyzer for reporting non incremental annotation processors and the annotation processors compilation time.
- */
-class AnnotationProcessorsAnalyzer(
-  private val taskContainer: TaskContainer,
-  private val pluginContainer: PluginContainer
-) : BaseAnalyzer<AnnotationProcessorsAnalyzer.Result>(),
-    BuildEventsAnalyzer {
+/** Analyzer for reporting non incremental annotation processors and the annotation processors compilation time. */
+class AnnotationProcessorsAnalyzer(private val taskContainer: TaskContainer, private val pluginContainer: PluginContainer) :
+  BaseAnalyzer<AnnotationProcessorsAnalyzer.Result>(), BuildEventsAnalyzer {
   private val annotationProcessorsMap = HashMap<String, Duration>()
   private val projectsNonIncrementalAnnotationProcessorsMap = mutableMapOf<String, MutableList<String>>()
 
-  /**
-   * Sums up the compilation time for annotation processors for all sub-projects.
-   */
+  /** Sums up the compilation time for annotation processors for all sub-projects. */
   private fun updateAnnotationProcessorCompilationTime(className: String, compilationDuration: Duration) {
     val currentDuration = annotationProcessorsMap.getOrDefault(className, Duration.ZERO)
     annotationProcessorsMap[className] = currentDuration + compilationDuration
@@ -51,9 +44,9 @@ class AnnotationProcessorsAnalyzer(
           updateAnnotationProcessorCompilationTime(it.className, it.duration)
 
           if (it.type == JavaCompileTaskOperationResult.AnnotationProcessorResult.Type.UNKNOWN) {
-            projectsNonIncrementalAnnotationProcessorsMap.getOrPut(taskContainer.getTask(event, pluginContainer).projectPath) {
-              mutableListOf()
-            }.add(it.className)
+            projectsNonIncrementalAnnotationProcessorsMap
+              .getOrPut(taskContainer.getTask(event, pluginContainer).projectPath) { mutableListOf() }
+              .add(it.className)
           }
         }
       }
@@ -68,20 +61,18 @@ class AnnotationProcessorsAnalyzer(
   override fun calculateResult(): Result {
     // If the project is using kapt, drop non incremental annotation processors data for this project
     // TODO(b/159108417): get data about annotation processors incrementality from kapt
-    taskContainer.getTasks(TaskData::isKaptTask).forEach {
-      projectsNonIncrementalAnnotationProcessorsMap.remove(it.projectPath)
-    }
+    taskContainer.getTasks(TaskData::isKaptTask).forEach { projectsNonIncrementalAnnotationProcessorsMap.remove(it.projectPath) }
 
     val finalNonIncrementalAnnotationProcessors = projectsNonIncrementalAnnotationProcessorsMap.values.flatten().distinct()
 
     return Result(
       annotationProcessorsMap.map { AnnotationProcessorData(it.key, it.value) },
-      finalNonIncrementalAnnotationProcessors.map { AnnotationProcessorData(it, annotationProcessorsMap[it]!!) }
+      finalNonIncrementalAnnotationProcessors.map { AnnotationProcessorData(it, annotationProcessorsMap[it]!!) },
     )
   }
 
   data class Result(
     val annotationProcessorsData: List<AnnotationProcessorData>,
-    val nonIncrementalAnnotationProcessorsData: List<AnnotationProcessorData>
+    val nonIncrementalAnnotationProcessorsData: List<AnnotationProcessorData>,
   ) : AnalyzerResult
 }

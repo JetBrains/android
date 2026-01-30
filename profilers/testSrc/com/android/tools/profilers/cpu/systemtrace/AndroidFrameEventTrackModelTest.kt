@@ -30,38 +30,41 @@ class AndroidFrameEventTrackModelTest {
   fun eventsAreGroupedByDepth() {
     val trackModel = AndroidFrameEventTrackModel(PHASE_PROTO, Range(0.0, 10.0), listOf(), multiSelectionModel)
     assertThat(trackModel.series.size).isEqualTo(2)
-    assertThat(trackModel.series[0].series).containsExactly(
-      SeriesData(0L, AndroidFrameEvent.Padding),
-      SeriesData(2L, AndroidFrameEvent.Data(3, 2, 1)),
-      SeriesData(3L, AndroidFrameEvent.Padding)
-    ).inOrder()
-    assertThat(trackModel.series[1].series).containsExactly(
-      SeriesData(0L, AndroidFrameEvent.Data(0, 0, 1)),
-      SeriesData(1L, AndroidFrameEvent.Data(1, 1, 1)),
-      SeriesData(2L, AndroidFrameEvent.Data(2, 2, 1)),
-      SeriesData(3L, AndroidFrameEvent.Padding)
-    )
+    assertThat(trackModel.series[0].series)
+      .containsExactly(
+        SeriesData(0L, AndroidFrameEvent.Padding),
+        SeriesData(2L, AndroidFrameEvent.Data(3, 2, 1)),
+        SeriesData(3L, AndroidFrameEvent.Padding),
+      )
+      .inOrder()
+    assertThat(trackModel.series[1].series)
+      .containsExactly(
+        SeriesData(0L, AndroidFrameEvent.Data(0, 0, 1)),
+        SeriesData(1L, AndroidFrameEvent.Data(1, 1, 1)),
+        SeriesData(2L, AndroidFrameEvent.Data(2, 2, 1)),
+        SeriesData(3L, AndroidFrameEvent.Padding),
+      )
   }
 
   @Test
   fun ongoingEventsShouldHaveMaxEndTimestamp() {
-    val phase = TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
-      .setPhaseName("App")
-      .addAllFrameEvent(listOf(
-        makeFrame(0, 0, 1000, 0),
-        makeFrame(1, 5000, -1, 0)))
-      .build()
+    val phase =
+      TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
+        .setPhaseName("App")
+        .addAllFrameEvent(listOf(makeFrame(0, 0, 1000, 0), makeFrame(1, 5000, -1, 0)))
+        .build()
     val trackModel = AndroidFrameEventTrackModel(phase, Range(0.0, 10.0), listOf(), multiSelectionModel)
-    assertThat(trackModel.series[0].series).containsExactly(
-      SeriesData(0L, AndroidFrameEvent.Data(0, 0, 1)),
-      SeriesData(1L, AndroidFrameEvent.Padding),
-      SeriesData(5L, AndroidFrameEvent.Data(1, 5, Long.MAX_VALUE))
-    ).inOrder()
+    assertThat(trackModel.series[0].series)
+      .containsExactly(
+        SeriesData(0L, AndroidFrameEvent.Data(0, 0, 1)),
+        SeriesData(1L, AndroidFrameEvent.Padding),
+        SeriesData(5L, AndroidFrameEvent.Data(1, 5, Long.MAX_VALUE)),
+      )
+      .inOrder()
   }
 
   private companion object {
-    fun makeFrame(frameNumber: Int, timestamp: Long, duration: Long, depth: Int
-    ): TraceProcessor.AndroidFrameEventsResult.FrameEvent =
+    fun makeFrame(frameNumber: Int, timestamp: Long, duration: Long, depth: Int): TraceProcessor.AndroidFrameEventsResult.FrameEvent =
       TraceProcessor.AndroidFrameEventsResult.FrameEvent.newBuilder()
         .setFrameNumber(frameNumber)
         .setTimestampNanoseconds(timestamp)
@@ -72,11 +75,9 @@ class AndroidFrameEventTrackModelTest {
     val PHASE_PROTO: TraceProcessor.AndroidFrameEventsResult.Phase =
       TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
         .setPhaseName("App")
-        .addAllFrameEvent(listOf(
-          makeFrame(0, 0, 1000, 0),
-          makeFrame(1, 1000, 1000, 0),
-          makeFrame(2, 2000, 1000, 0),
-          makeFrame(3, 2000, 1000, 1)))
+        .addAllFrameEvent(
+          listOf(makeFrame(0, 0, 1000, 0), makeFrame(1, 1000, 1000, 0), makeFrame(2, 2000, 1000, 0), makeFrame(3, 2000, 1000, 1))
+        )
         .build()
   }
 }

@@ -15,15 +15,12 @@
  */
 package org.jetbrains.android.completion
 
-import com.android.tools.idea.testing.deleteText
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElementPresentation
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiNamedElement
-import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestCase
 
 class AndroidDeprecationPresentationCompletionContributorTest : AndroidTestCase() {
@@ -46,22 +43,24 @@ class AndroidDeprecationPresentationCompletionContributorTest : AndroidTestCase(
           }
         }
       }
-      """
+      """,
     )
 
     myFixture.moveCaret("/* all API levels */|")
-    assertThat(typeAndGetCompletions("new Bundle().getParcel", "getParcelable")).containsExactly(
-      "getParcelable(String key, Class<T> clazz)",
-      // Deprecated since 33:
-      "getParcelable(String key)",
-    )
+    assertThat(typeAndGetCompletions("new Bundle().getParcel", "getParcelable"))
+      .containsExactly(
+        "getParcelable(String key, Class<T> clazz)",
+        // Deprecated since 33:
+        "getParcelable(String key)",
+      )
 
     myFixture.moveCaret("/* 33+ */|")
-    assertThat(typeAndGetCompletions("new Bundle().getParcel", "getParcelable")).containsExactly(
-      "getParcelable(String key, Class<T> clazz)",
-      // Deprecated since 33:
-      "getParcelable(String key) [deprecated]",
-    )
+    assertThat(typeAndGetCompletions("new Bundle().getParcel", "getParcelable"))
+      .containsExactly(
+        "getParcelable(String key, Class<T> clazz)",
+        // Deprecated since 33:
+        "getParcelable(String key) [deprecated]",
+      )
   }
 
   // This contributor actually should not do anything in Kotlin currently, because we don't
@@ -89,7 +88,7 @@ class AndroidDeprecationPresentationCompletionContributorTest : AndroidTestCase(
           }
         }
       }
-      """
+      """,
     )
 
     myFixture.moveCaret("/* all API levels */|")
@@ -98,20 +97,22 @@ class AndroidDeprecationPresentationCompletionContributorTest : AndroidTestCase(
     // items in Kotlin, but that the `isExcluded` functionality of the DeprecationFilter is not
     // correctly implemented. We should fix this, as we will be showing items as struck-out even in
     // contexts where they should not be considered deprecated.
-    assertThat(typeAndGetCompletions("Bundle().getParcel", "getParcelable")).containsExactly(
-      "getParcelable(key: String?, clazz: Class<T!>)",
-      // Deprecated since 33:
-      "getParcelable(key: String?)",
-    )
+    assertThat(typeAndGetCompletions("Bundle().getParcel", "getParcelable"))
+      .containsExactly(
+        "getParcelable(key: String?, clazz: Class<T!>)",
+        // Deprecated since 33:
+        "getParcelable(key: String?)",
+      )
 
     myFixture.moveCaret("/* 33+ */|")
     // If this assertion starts failing, it may mean that we started striking out deprecated items in
     // completion for Kotlin. If so, the last item needs to have " [deprecated]" appended to it.
-    assertThat(typeAndGetCompletions("Bundle().getParcel", "getParcelable")).containsExactly(
-      "getParcelable(key: String?, clazz: Class<T!>)",
-      // Deprecated since 33:
-      "getParcelable(key: String?)",
-    )
+    assertThat(typeAndGetCompletions("Bundle().getParcel", "getParcelable"))
+      .containsExactly(
+        "getParcelable(key: String?, clazz: Class<T!>)",
+        // Deprecated since 33:
+        "getParcelable(key: String?)",
+      )
   }
 
   private fun typeAndGetCompletions(prefixToType: String, nameFilter: String): List<String> {
@@ -134,7 +135,7 @@ class AndroidDeprecationPresentationCompletionContributorTest : AndroidTestCase(
     return myFixture.lookupElements
       .orEmpty()
       .filter { (it.psiElement as? PsiNamedElement)?.name == name }
-      .map {lookupElement ->
+      .map { lookupElement ->
         val presentation = LookupElementPresentation()
         lookupElement.renderElement(presentation)
         val text = presentation.itemText!! + presentation.tailText!!

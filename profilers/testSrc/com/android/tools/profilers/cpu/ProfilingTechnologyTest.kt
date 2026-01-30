@@ -19,12 +19,12 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.Trace.TraceMode
 import com.android.tools.profilers.TraceConfigOptionsUtils
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
 import com.android.tools.profilers.cpu.config.AtraceConfiguration
 import com.android.tools.profilers.cpu.config.ImportedConfiguration
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -83,8 +83,7 @@ class ProfilingTechnologyTest {
   @Test
   fun fromConfigArtInstrumented() {
     val artInstrumentedConfiguration = ArtInstrumentedConfiguration("MyConfiguration")
-    assertThat(ProfilingTechnology.fromConfig(artInstrumentedConfiguration))
-      .isEqualTo(ProfilingTechnology.ART_INSTRUMENTED)
+    assertThat(ProfilingTechnology.fromConfig(artInstrumentedConfiguration)).isEqualTo(ProfilingTechnology.ART_INSTRUMENTED)
   }
 
   @Test

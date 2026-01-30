@@ -45,12 +45,7 @@ class InstructionsPanelTest {
     val panel = JPanel(BorderLayout())
 
     val instructions =
-      InstructionsPanel.Builder(
-          TextInstruction(
-            UIUtilities.getFontMetrics(panel, AdtUiUtils.DEFAULT_FONT),
-            "InstructionsPanelTest",
-          )
-        )
+      InstructionsPanel.Builder(TextInstruction(UIUtilities.getFontMetrics(panel, AdtUiUtils.DEFAULT_FONT), "InstructionsPanelTest"))
         .setEaseOut(easeOut, { child -> panel.remove(child) })
         .build()
     panel.add(instructions, BorderLayout.CENTER)
@@ -103,15 +98,13 @@ class InstructionsPanelTest {
     assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getDefaultCursor())
 
     fakeUi.mouse.moveTo(20, yLine2Url)
-    assertThat(instructionsComponent.cursor)
-      .isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+    assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
 
     fakeUi.mouse.moveTo(20, yLine3Text)
     assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getDefaultCursor())
 
     fakeUi.mouse.moveTo(20, yLine2Url)
-    assertThat(instructionsComponent.cursor)
-      .isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+    assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
 
     assertThat(fakeUi.mouse.focus).isNotNull()
     fakeUi.mouse.moveTo(Int.MAX_VALUE, Int.MAX_VALUE) // Force mouseExited event
@@ -119,8 +112,7 @@ class InstructionsPanelTest {
     assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getDefaultCursor())
 
     fakeUi.mouse.moveTo(20, yLine2Url)
-    assertThat(instructionsComponent.cursor)
-      .isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+    assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
   }
 
   @Test
@@ -131,10 +123,7 @@ class InstructionsPanelTest {
     var actionPerformed = false
     val action = { _: InputEvent -> actionPerformed = true }
 
-    val instructions =
-      InstructionsPanel.Builder(HyperlinkInstruction(metrics.font, "Hyperlink", action))
-        .setPaddings(0, 0)
-        .build()
+    val instructions = InstructionsPanel.Builder(HyperlinkInstruction(metrics.font, "Hyperlink", action)).setPaddings(0, 0).build()
     panel.add(instructions, TabularLayout.Constraint(0, 0))
 
     val fakeUi = FakeUi(panel)
@@ -146,8 +135,7 @@ class InstructionsPanelTest {
 
     fakeUi.mouse.moveTo(20, yHyperlink)
     val instructionsComponent = fakeUi.mouse.focus!!
-    assertThat(instructionsComponent.cursor)
-      .isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+    assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
 
     fakeUi.mouse.click(20, yHyperlink)
     assertThat(actionPerformed).isTrue()

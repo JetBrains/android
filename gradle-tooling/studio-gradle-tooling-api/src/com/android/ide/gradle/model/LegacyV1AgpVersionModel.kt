@@ -17,8 +17,6 @@ package com.android.ide.gradle.model
 
 /** Contains the AGP versions used by and android Gradle project that can be fetched using V1 models */
 interface LegacyV1AgpVersionModel {
-  /**
-   * The AGP version of the android project.
-   */
+  /** The AGP version of the android project. */
   val agp: String
 }

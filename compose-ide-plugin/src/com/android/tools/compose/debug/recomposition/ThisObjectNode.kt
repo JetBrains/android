@@ -26,10 +26,8 @@ import com.intellij.xdebugger.frame.XValueChildrenList
 import com.intellij.xdebugger.frame.XValueNode
 import com.intellij.xdebugger.frame.XValuePlace
 
-internal class ThisObjectNode(
-  private val context: EvaluationContextImpl,
-  private val state: ParamState,
-) : XNamedValue(ComposeBundle.message("recomposition.state.this")) {
+internal class ThisObjectNode(private val context: EvaluationContextImpl, private val state: ParamState) :
+  XNamedValue(ComposeBundle.message("recomposition.state.this")) {
   // Create the child node early because we are known to be on the correct thread.
   private val valueNode = createValueNode()
 
@@ -42,9 +40,7 @@ internal class ThisObjectNode(
   }
 
   private fun createValueNode(): JavaValue {
-    val nodeManager =
-      context.debugProcess.xdebugProcess?.nodeManager
-        ?: throw IllegalStateException("Missing node manager")
+    val nodeManager = context.debugProcess.xdebugProcess?.nodeManager ?: throw IllegalStateException("Missing node manager")
     val descriptor =
       object : ThisDescriptorImpl(context.project) {
         override fun getName() = ComposeBundle.message("recomposition.state.value")

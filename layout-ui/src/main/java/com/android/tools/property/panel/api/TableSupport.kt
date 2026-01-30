@@ -28,8 +28,7 @@ interface TableSupport {
   /**
    * Update the row height for this editor.
    *
-   * This should only be called if the editor requires a non standard height see
-   * [PropertyEditorModel.isCustomHeight].
+   * This should only be called if the editor requires a non standard height see [PropertyEditorModel.isCustomHeight].
    */
   fun updateRowHeight(scrollIntoView: Boolean) {}
 }

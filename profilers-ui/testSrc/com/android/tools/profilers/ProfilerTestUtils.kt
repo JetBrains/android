@@ -17,9 +17,7 @@ package com.android.tools.profilers
 
 import com.intellij.testFramework.TestActionEvent
 
-/**
- * Helper function to simulate selecting an item from a [ProfilerDropDownComponent].
- */
+/** Helper function to simulate selecting an item from a [ProfilerDropDownComponent]. */
 fun <T> selectItem(component: ProfilerDropDownComponent<T>, itemToSelect: T) {
   // Get the underlying dropdown action, which is exposed for testing.
   val dropdownAction = component.dropDownAction

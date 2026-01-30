@@ -15,10 +15,7 @@
  */
 package com.android.tools.adtui.model
 
-/**
- * Multiselection model of selections type [S] indexed by some keys. The selection order is
- * maintained.
- */
+/** Multiselection model of selections type [S] indexed by some keys. The selection order is maintained. */
 class MultiSelectionModel<S> : AspectModel<MultiSelectionModel.Aspect>() {
   private val currentSelections = LinkedHashMap<Any, Entry<S>>()
   var activeSelectionKey: Any? = null

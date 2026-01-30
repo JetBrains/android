@@ -34,14 +34,16 @@ import javax.swing.JRadioButton
 import javax.swing.MutableComboBoxModel
 
 /**
- * This class implements the UI for selecting and performing recording options.
- * If custom configuration isn't supported, parameter `editConfig` should be `null`,
- * then the UI will also be simpler without button/menu for custom configurations.
+ * This class implements the UI for selecting and performing recording options. If custom configuration isn't supported, parameter
+ * `editConfig` should be `null`, then the UI will also be simpler without button/menu for custom configurations.
  */
-class RecordingOptionsView @JvmOverloads constructor(private val recordingModel: RecordingOptionsModel,
-                                                     // TODO unified UI for add/edit config instead of arbitrary callback?
-                                                     editConfig: ((MutableComboBoxModel<RecordingOption>) -> Unit)? = null)
-  : JBPanel<RecordingOptionsView>(GridBagLayout()) {
+class RecordingOptionsView
+@JvmOverloads
+constructor(
+  private val recordingModel: RecordingOptionsModel,
+  // TODO unified UI for add/edit config instead of arbitrary callback?
+  editConfig: ((MutableComboBoxModel<RecordingOption>) -> Unit)? = null,
+) : JBPanel<RecordingOptionsView>(GridBagLayout()) {
   private val observer = AspectObserver()
 
   private val btnGroup = ButtonGroup()
@@ -51,31 +53,35 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
     private set
 
   @VisibleForTesting
-  val configComponents = editConfig?.let {
-    ConfigComponentGroup(
-      JButton(EDIT_CONFIG).apply { addActionListener { editConfig(recordingModel.customConfigurationModel) }},
-      radioButton("").apply { addActionListener { recordingModel.selectCurrentCustomConfiguration() }},
-      ProfilerCombobox(recordingModel.customConfigurationModel).apply {
-        // Sets prototype value to minimum width option to compute width of dropdown.
-        // Now dropdown width is always constrained/overriden by parent width as parent is always wider.
-        prototypeDisplayValue = PrototypeDisplayRecordingOption
-      }
-    )
-  }
+  val configComponents =
+    editConfig?.let {
+      ConfigComponentGroup(
+        JButton(EDIT_CONFIG).apply { addActionListener { editConfig(recordingModel.customConfigurationModel) } },
+        radioButton("").apply { addActionListener { recordingModel.selectCurrentCustomConfiguration() } },
+        ProfilerCombobox(recordingModel.customConfigurationModel).apply {
+          // Sets prototype value to minimum width option to compute width of dropdown.
+          // Now dropdown width is always constrained/overriden by parent width as parent is always wider.
+          prototypeDisplayValue = PrototypeDisplayRecordingOption
+        },
+      )
+    }
+
+  @VisibleForTesting val startStopButton = JButton(START).apply { addActionListener { onStartStopButtonPressed() } }
 
   @VisibleForTesting
-  val startStopButton = JButton(START).apply { addActionListener { onStartStopButtonPressed() }}
+  val optionRows =
+    FlexibleGrid().also {
+      it.set(makeRows())
+      addComponentListener(
+        object : ComponentAdapter() {
+          override fun componentResized(e: ComponentEvent?) = it.adapt(width, height)
+        }
+      )
+    }
 
   @VisibleForTesting
-  val optionRows = FlexibleGrid().also {
-    it.set(makeRows())
-    addComponentListener(object: ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent?) = it.adapt(width, height)
-    })
-  }
-
-  @VisibleForTesting
-  val allRadios get() = if (configComponents != null) builtInRadios + configComponents.radio else builtInRadios
+  val allRadios
+    get() = if (configComponents != null) builtInRadios + configComponents.radio else builtInRadios
 
   init {
     val btnRow =
@@ -84,13 +90,15 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
         add(startStopButton)
       }
 
-    val content = JBPanel<Nothing>(BorderLayout()).apply {
-      add(optionRows, BorderLayout.CENTER)
-      add(btnRow, BorderLayout.SOUTH)
-    }
+    val content =
+      JBPanel<Nothing>(BorderLayout()).apply {
+        add(optionRows, BorderLayout.CENTER)
+        add(btnRow, BorderLayout.SOUTH)
+      }
     add(content, GridBagConstraints())
 
-    recordingModel.addDependency(observer)
+    recordingModel
+      .addDependency(observer)
       .onChange(RecordingOptionsModel.Aspect.RECORDING_CHANGED, ::onRecordingChanged)
       .onChange(RecordingOptionsModel.Aspect.SELECTION_CHANGED, ::onSelectionChanged)
       .onChange(RecordingOptionsModel.Aspect.BUILT_IN_OPTIONS_CHANGED, ::onBuiltInOptionsChanged)
@@ -109,9 +117,7 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
       onRecordingChanged()
       onSelectionChanged()
       onOptionReadinessChanged()
-      configComponents?.apply {
-        button.isEnabled = true
-      }
+      configComponents?.apply { button.isEnabled = true }
     }
     // Disable everything
     else {
@@ -126,55 +132,76 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
   }
 
   private fun makeRows(): List<Pair<JComponent, String>> {
-    val builtInRows = builtInRadios zip recordingModel.builtInOptions.map {it.description}
+    val builtInRows = builtInRadios zip recordingModel.builtInOptions.map { it.description }
     return configComponents?.let {
-      val configRadioWrapper = JBPanel<Nothing>(BorderLayout()).apply {
-        add(it.radio, BorderLayout.LINE_START)
-        add(it.menu, BorderLayout.CENTER)
-      }
+      val configRadioWrapper =
+        JBPanel<Nothing>(BorderLayout()).apply {
+          add(it.radio, BorderLayout.LINE_START)
+          add(it.menu, BorderLayout.CENTER)
+        }
       builtInRows + (configRadioWrapper to ADD_CONFIG_DESC)
     } ?: builtInRows
   }
 
-  private fun makeBuiltInRadios() = recordingModel.builtInOptions.map { opt ->
-    radioButton(opt.title).apply { addActionListener { recordingModel.selectBuiltInOption(opt) } }
-  }
+  private fun makeBuiltInRadios() =
+    recordingModel.builtInOptions.map { opt ->
+      radioButton(opt.title).apply { addActionListener { recordingModel.selectBuiltInOption(opt) } }
+    }
 
-  private fun onSelectionChanged() = when {
-    recordingModel.isSelectedOptionBuiltIn -> {
-      startStopButton.isEnabled = !recordingModel.isRecording || recordingModel.canStop()
-      builtInRadios[recordingModel.builtInOptions.indexOf(recordingModel.selectedOption)].isSelected = true
+  private fun onSelectionChanged() =
+    when {
+      recordingModel.isSelectedOptionBuiltIn -> {
+        startStopButton.isEnabled = !recordingModel.isRecording || recordingModel.canStop()
+        builtInRadios[recordingModel.builtInOptions.indexOf(recordingModel.selectedOption)].isSelected = true
+      }
+      recordingModel.isSelectedOptionCustom -> {
+        startStopButton.isEnabled = !recordingModel.isRecording || recordingModel.canStop()
+        configComponents!!.radio.isSelected = true
+        configComponents.menu.selectedItem = recordingModel.selectedOption!!
+      }
+      else -> {
+        startStopButton.isEnabled = false
+        allRadios.forEach { it.isSelected = false }
+      }
     }
-    recordingModel.isSelectedOptionCustom -> {
-      startStopButton.isEnabled = !recordingModel.isRecording || recordingModel.canStop()
-      configComponents!!.radio.isSelected = true
-      configComponents.menu.selectedItem = recordingModel.selectedOption!!
-    }
-    else -> {
-      startStopButton.isEnabled = false
-      allRadios.forEach { it.isSelected = false }
-    }
-  }
 
-  private fun onRecordingChanged() = with (startStopButton) { when {
-    recordingModel.isLoading    -> { text = LOADING  ; isEnabled = false; setOptionsEnabled(false) }
-    !recordingModel.isRecording -> { text = START    ; isEnabled = true ; setOptionsEnabled(true)  }
-    recordingModel.canStop()    -> { text = STOP     ; isEnabled = true ; setOptionsEnabled(false) }
-    else                        -> { text = RECORDING; isEnabled = false; setOptionsEnabled(false) }
-  }}
+  private fun onRecordingChanged() =
+    with(startStopButton) {
+      when {
+        recordingModel.isLoading -> {
+          text = LOADING
+          isEnabled = false
+          setOptionsEnabled(false)
+        }
+        !recordingModel.isRecording -> {
+          text = START
+          isEnabled = true
+          setOptionsEnabled(true)
+        }
+        recordingModel.canStop() -> {
+          text = STOP
+          isEnabled = true
+          setOptionsEnabled(false)
+        }
+        else -> {
+          text = RECORDING
+          isEnabled = false
+          setOptionsEnabled(false)
+        }
+      }
+    }
 
   private fun onOptionReadinessChanged() =
     (builtInRadios zip recordingModel.builtInOptions).forEach { (radio, opt) ->
-      radio.set(isEnabled &&
-                !recordingModel.isRecording &&
-                recordingModel.isOptionReady(opt), recordingModel.getOptionNotReadyMessage(opt))
+      radio.set(isEnabled && !recordingModel.isRecording && recordingModel.isOptionReady(opt), recordingModel.getOptionNotReadyMessage(opt))
     }
 
-  private fun onStartStopButtonPressed() = when {
-    !recordingModel.isRecording && recordingModel.canStart() -> recordingModel.start()
-    recordingModel.isRecording && recordingModel.canStop() -> recordingModel.stop()
-    else -> throw IllegalStateException("Start/stop unexpectedly enabled")
-  }
+  private fun onStartStopButtonPressed() =
+    when {
+      !recordingModel.isRecording && recordingModel.canStart() -> recordingModel.start()
+      recordingModel.isRecording && recordingModel.canStop() -> recordingModel.stop()
+      else -> throw IllegalStateException("Start/stop unexpectedly enabled")
+    }
 
   private fun setOptionsEnabled(enabled: Boolean) {
     (builtInRadios zip recordingModel.builtInOptions).forEach { (radio, opt) ->
@@ -217,8 +244,8 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
 }
 
 /**
- * This class implements the grid of recording options and their descriptions that can adapt to available width/height.
- * The layout that contains it is responsible for calling the `width` method.
+ * This class implements the grid of recording options and their descriptions that can adapt to available width/height. The layout that
+ * contains it is responsible for calling the `width` method.
  */
 @VisibleForTesting
 class FlexibleGrid : JBPanel<FlexibleGrid>() {
@@ -256,40 +283,43 @@ class FlexibleGrid : JBPanel<FlexibleGrid>() {
   }
 
   fun adapt(width: Int, height: Int) {
-    mode = when {
-      width >= doubleColumnWidth && height >= doubleColumnHeight -> Mode.Wide
-      width >= singleColumnWidth && height >= singleColumnHeight -> Mode.Tall
-      else -> Mode.Compact
-    }
+    mode =
+      when {
+        width >= doubleColumnWidth && height >= doubleColumnHeight -> Mode.Wide
+        width >= singleColumnWidth && height >= singleColumnHeight -> Mode.Tall
+        else -> Mode.Compact
+      }
   }
 
   private fun refresh() {
     removeAll()
-    add(when (mode) {
-      Mode.Wide -> makeWideView()
-      Mode.Tall -> makeTallView()
-      Mode.Compact -> makeCompactView()
-    })
+    add(
+      when (mode) {
+        Mode.Wide -> makeWideView()
+        Mode.Tall -> makeTallView()
+        Mode.Compact -> makeCompactView()
+      }
+    )
     revalidate()
     repaint()
   }
 
-  private fun makeWideView() = makePanelWithRows {
-    (ctrl, desc) -> UI.PanelFactory.panel(ctrl).withComment(desc).moveCommentRight()
-  }.splitColumns().createPanel()
+  private fun makeWideView() =
+    makePanelWithRows { (ctrl, desc) -> UI.PanelFactory.panel(ctrl).withComment(desc).moveCommentRight() }.splitColumns().createPanel()
 
-  private fun makeTallView() = makePanelWithRows {
-    (ctrl, desc) -> UI.PanelFactory.panel(ctrl).withComment(desc)
-  }.createPanel()
+  private fun makeTallView() = makePanelWithRows { (ctrl, desc) -> UI.PanelFactory.panel(ctrl).withComment(desc) }.createPanel()
 
-  private fun makeCompactView() = makePanelWithRows {
-    (ctrl, desc) -> UI.PanelFactory.panel(ctrl).withTooltip(desc)
-  }.createPanel()
+  private fun makeCompactView() = makePanelWithRows { (ctrl, desc) -> UI.PanelFactory.panel(ctrl).withTooltip(desc) }.createPanel()
 
   private fun makePanelWithRows(makeRow: (Pair<JComponent, String>) -> PanelBuilder) =
     UI.PanelFactory.grid().apply { rows.forEach { add(makeRow(it)) } }
 
-  @VisibleForTesting enum class Mode { Wide, Tall, Compact }
+  @VisibleForTesting
+  enum class Mode {
+    Wide,
+    Tall,
+    Compact,
+  }
 
   companion object {
     const val DESC_HEIGHT = 50

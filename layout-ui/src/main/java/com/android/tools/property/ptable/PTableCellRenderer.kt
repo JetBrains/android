@@ -25,10 +25,9 @@ interface PTableCellRenderer {
   /**
    * Returns component for rendering the [column] of the specified [item].
    *
-   * The [depth] indicates how deeply nested the [item] should be shown in the [table]. If
-   * [isSelected] the item should be shown as selected. If [hasFocus] the item should be shown with
-   * focus colors. If [isExpanded] the item should be shown without ellipsis (the user is hovering
-   * over the item).
+   * The [depth] indicates how deeply nested the [item] should be shown in the [table]. If [isSelected] the item should be shown as
+   * selected. If [hasFocus] the item should be shown with focus colors. If [isExpanded] the item should be shown without ellipsis (the user
+   * is hovering over the item).
    *
    * A return value of null means the cell is empty.
    */
@@ -79,11 +78,7 @@ class DefaultPTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
 class DefaultPTableCellRendererProvider : PTableCellRendererProvider {
   val renderer = DefaultPTableCellRenderer()
 
-  override fun invoke(
-    table: PTable,
-    property: PTableItem,
-    column: PTableColumn,
-  ): PTableCellRenderer {
+  override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellRenderer {
     return renderer
   }
 }

@@ -34,19 +34,17 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
-import java.util.Arrays
 
 @RunWith(Parameterized::class)
 class ImportedSessionTests(
   private val isTaskBasedUxEnabled: Boolean,
-  private val sessionType: Common.SessionData.SessionStarted.SessionType
+  private val sessionType: Common.SessionData.SessionStarted.SessionType,
 ) {
 
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("ImportedSessionTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("ImportedSessionTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -57,13 +55,10 @@ class ImportedSessionTests(
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
     myObserver = SessionsManagerTest.SessionsAspectObserver()
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
-    myManager.addDependency(myObserver)
+    myManager
+      .addDependency(myObserver)
       .onChange(SessionAspect.SELECTED_SESSION) { myObserver.selectedSessionChanged() }
       .onChange(SessionAspect.PROFILING_SESSION) { myObserver.profilingSessionChanged() }
       .onChange(SessionAspect.SESSIONS) { myObserver.sessionsChanged() }
@@ -87,8 +82,7 @@ class ImportedSessionTests(
   }
 
   @Test
-  fun testImportSessionListenerBehavesCorrectly(
-  ) {
+  fun testImportSessionListenerBehavesCorrectly() {
     ideProfilerServices.enableTaskBasedUx(isTaskBasedUxEnabled)
 
     val trace = CpuProfilerTestUtils.getTraceFile("art_streaming.trace")

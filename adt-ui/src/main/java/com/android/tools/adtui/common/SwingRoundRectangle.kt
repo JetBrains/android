@@ -17,10 +17,7 @@ package com.android.tools.adtui.common
 
 import java.awt.geom.RoundRectangle2D
 
-/**
- * Represents a round rectangle in swing space Defined by [SwingX], [SwingY], and length and width
- * of [SwingLength]
- */
+/** Represents a round rectangle in swing space Defined by [SwingX], [SwingY], and length and width of [SwingLength] */
 @JvmInline
 value class SwingRoundRectangle(override val value: RoundRectangle2D.Float) : SwingShape {
   constructor(

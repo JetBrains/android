@@ -19,11 +19,11 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.SeriesData
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 import javax.swing.JPanel
+import org.junit.Before
+import org.junit.Test
 
 class CpuThreadsTooltipViewTest {
   private val timeline = DefaultTimeline()
@@ -40,10 +40,11 @@ class CpuThreadsTooltipViewTest {
 
   @Test
   fun textUpdateOnThreadChange() {
-    val threadSeries = mutableListOf<SeriesData<ThreadState>>().apply {
-      add(SeriesData(TimeUnit.SECONDS.toMicros(1), ThreadState.RUNNING))
-      add(SeriesData(TimeUnit.SECONDS.toMicros(8), ThreadState.DEAD))
-    }
+    val threadSeries =
+      mutableListOf<SeriesData<ThreadState>>().apply {
+        add(SeriesData(TimeUnit.SECONDS.toMicros(1), ThreadState.RUNNING))
+        add(SeriesData(TimeUnit.SECONDS.toMicros(8), ThreadState.DEAD))
+      }
 
     cpuThreadsTooltip.setThread("myThread", LazyDataSeries { threadSeries })
     var tooltipTime = TimeUnit.SECONDS.toMicros(1).toDouble()

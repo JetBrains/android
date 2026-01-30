@@ -35,23 +35,19 @@ import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import javax.swing.JTree
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JTree
 
 class BottomUpDetailsViewTest {
   private val timer = FakeTimer()
 
-  @JvmField
-  @Rule
-  val grpcChannel = FakeGrpcChannel("BottomUpDetailsViewTest", FakeTransportService(timer))
+  @JvmField @Rule val grpcChannel = FakeGrpcChannel("BottomUpDetailsViewTest", FakeTransportService(timer))
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var profilersView: StudioProfilersView
   private lateinit var capture: CpuCapture
@@ -65,31 +61,38 @@ class BottomUpDetailsViewTest {
 
   @Test
   fun showsNoDataForThreadMessageWhenNodeIsEmpty() {
-    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, Range(), emptyList(),
-                                                       capture, Utils::runOnUi) as CaptureDetails.BottomUp
+    val bottomUp =
+      CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, Range(), emptyList(), capture, Utils::runOnUi) as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
-    val noDataInstructions = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().first {
-      val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
+    val noDataInstructions =
+      TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().first {
+        val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
 
-      textInstruction.text == CaptureDetailsView.NO_DATA_FOR_THREAD_MESSAGE
-    }
+        textInstruction.text == CaptureDetailsView.NO_DATA_FOR_THREAD_MESSAGE
+      }
     assertThat(noDataInstructions.isVisible).isTrue()
   }
 
   @Test
   fun showsContentWhenNodeIsNotNull() {
-    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, Range(),
-                                                       listOf(capture.getCaptureNode(capture.mainThreadId)!!),
-                                                       capture, Utils::runOnUi) as CaptureDetails.BottomUp
+    val bottomUp =
+      CaptureDetails.Type.BOTTOM_UP.build(
+        ClockType.GLOBAL,
+        Range(),
+        listOf(capture.getCaptureNode(capture.mainThreadId)!!),
+        capture,
+        Utils::runOnUi,
+      ) as CaptureDetails.BottomUp
     assertThat(bottomUp.model?.root?.base).isInstanceOf(Aggregate.BottomUp.Root::class.java)
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
-    val noDataInstructionsList = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
-      val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
+    val noDataInstructionsList =
+      TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
+        val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
 
-      textInstruction.text == CaptureDetailsView.NO_DATA_FOR_THREAD_MESSAGE
-    }
+        textInstruction.text == CaptureDetailsView.NO_DATA_FOR_THREAD_MESSAGE
+      }
     assertThat(noDataInstructionsList).isEmpty()
 
     val tree = TreeWalker(bottomUpView.component).descendants().filterIsInstance<JTree>().first()
@@ -100,16 +103,22 @@ class BottomUpDetailsViewTest {
   fun showsNoDataForRangeMessage() {
     // Select a range where we don't have trace data
     val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
-    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, range,
-                                                       listOf(capture.getCaptureNode(capture.mainThreadId)!!),
-                                                       capture, Utils::runOnUi) as CaptureDetails.BottomUp
+    val bottomUp =
+      CaptureDetails.Type.BOTTOM_UP.build(
+        ClockType.GLOBAL,
+        range,
+        listOf(capture.getCaptureNode(capture.mainThreadId)!!),
+        capture,
+        Utils::runOnUi,
+      ) as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
-    val noDataInstructions = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().first {
-      val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
+    val noDataInstructions =
+      TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().first {
+        val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
 
-      textInstruction.text == CaptureDetailsView.NO_DATA_FOR_RANGE_MESSAGE
-    }
+        textInstruction.text == CaptureDetailsView.NO_DATA_FOR_RANGE_MESSAGE
+      }
     assertThat(noDataInstructions.isVisible).isTrue()
   }
 }

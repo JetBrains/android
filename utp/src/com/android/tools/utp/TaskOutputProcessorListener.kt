@@ -20,27 +20,17 @@ import com.google.testing.platform.proto.api.core.TestResultProto.TestResult
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto.TestSuiteMetaData
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto.TestSuiteResult
 
-/**
- * An interface to receive test progress from [TaskOutputProcessor].
- */
+/** An interface to receive test progress from [TaskOutputProcessor]. */
 interface TaskOutputProcessorListener {
-  /**
-   * Called when a test suite execution is started.
-   */
+  /** Called when a test suite execution is started. */
   fun onTestSuiteStarted(testSuite: TestSuiteMetaData)
 
-  /**
-   * Called when a test case execution is started.
-   */
+  /** Called when a test case execution is started. */
   fun onTestCaseStarted(testCase: TestCase)
 
-  /**
-   * Called when a test case execution is finished.
-   */
+  /** Called when a test case execution is finished. */
   fun onTestCaseFinished(testCaseResult: TestResult)
 
-  /**
-   * Called when a test suite execution is finished.
-   */
+  /** Called when a test suite execution is finished. */
   fun onTestSuiteFinished(testSuiteResult: TestSuiteResult)
 }

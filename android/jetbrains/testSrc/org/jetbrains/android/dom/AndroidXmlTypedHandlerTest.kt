@@ -27,12 +27,13 @@ class AndroidXmlTypedHandlerTest : AndroidTestCase() {
   lateinit var tester: CompletionAutoPopupTester
 
   override fun runInDispatchThread(): Boolean = false
+
   override fun runTestRunnable(testRunnable: ThrowableRunnable<Throwable>) = tester.runWithAutoPopupEnabled(testRunnable)
 
   override fun providesCustomManifest(): Boolean = true
 
   override fun setUp() {
-    UITestUtil.replaceIdeEventQueueSafely()  // See UsefulTestCase#runBare which should be the stack frame above this one.
+    UITestUtil.replaceIdeEventQueueSafely() // See UsefulTestCase#runBare which should be the stack frame above this one.
     runInEdtAndWait { super.setUp() }
     tester = CompletionAutoPopupTester(myFixture)
 
@@ -51,7 +52,8 @@ class AndroidXmlTypedHandlerTest : AndroidTestCase() {
         </application>
 
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
   }
 
@@ -59,16 +61,18 @@ class AndroidXmlTypedHandlerTest : AndroidTestCase() {
 
   fun testTagBodyIds() {
     // Given:
-    val stringsXml = myFixture.addFileToProject(
-      "res/values/strings.xml",
-      // language=xml
-      """
+    val stringsXml =
+      myFixture.addFileToProject(
+        "res/values/strings.xml",
+        // language=xml
+        """
       <resources>
         <string name='foo'>foo</string>
         <string name='bar'>$caret</string>
       </resources>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(stringsXml.virtualFile)
 
     // Given:
@@ -80,16 +84,18 @@ class AndroidXmlTypedHandlerTest : AndroidTestCase() {
 
   fun testTagBodyAttributes() {
     // Given:
-    val stringsXml = myFixture.addFileToProject(
-      "res/values/strings.xml",
-      // language=xml
-      """
+    val stringsXml =
+      myFixture.addFileToProject(
+        "res/values/strings.xml",
+        // language=xml
+        """
       <resources>
         <string name='foo'>foo</string>
         <string name='bar'>$caret</string>
       </resources>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(stringsXml.virtualFile)
 
     // Given:
@@ -101,15 +107,17 @@ class AndroidXmlTypedHandlerTest : AndroidTestCase() {
 
   fun testAttrValueLayoutIds() {
     // Given:
-    val stringsXml = myFixture.addFileToProject(
-      "res/layout/my_layout.xml",
-      // language=xml
-      """
+    val stringsXml =
+      myFixture.addFileToProject(
+        "res/layout/my_layout.xml",
+        // language=xml
+        """
       <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="$caret"
         android:layout_height="match_parent" />
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(stringsXml.virtualFile)
 
     // Given:
@@ -121,15 +129,17 @@ class AndroidXmlTypedHandlerTest : AndroidTestCase() {
 
   fun testAttrValueLayoutAttributes() {
     // Given:
-    val stringsXml = myFixture.addFileToProject(
-      "res/layout/my_layout.xml",
-      // language=xml
-      """
+    val stringsXml =
+      myFixture.addFileToProject(
+        "res/layout/my_layout.xml",
+        // language=xml
+        """
       <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="$caret"
         android:layout_height="match_parent" />
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(stringsXml.virtualFile)
 
     // Given:
@@ -152,16 +162,18 @@ class AndroidXmlTypedHandlerTest : AndroidTestCase() {
 
   fun testAttrValueStyle() {
     // Given:
-    val stringsXml = myFixture.addFileToProject(
-      "res/values/strings.xml",
-      // language=xml
-      """
+    val stringsXml =
+      myFixture.addFileToProject(
+        "res/values/strings.xml",
+        // language=xml
+        """
       <resources>
         <style name="foo" />
         <style name="bar" parent="$caret" />
       </resources>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(stringsXml.virtualFile)
 
     // Given:

@@ -53,24 +53,19 @@ class EnableComposeStateReadInlayHintsActionTest {
 
   @Test
   fun getText() {
-    assertThat(EnableComposeStateReadInlayHintsAction.text)
-      .isEqualTo(ComposeBundle.message("state.read.inlay.provider.enable"))
+    assertThat(EnableComposeStateReadInlayHintsAction.text).isEqualTo(ComposeBundle.message("state.read.inlay.provider.enable"))
   }
 
   @Test
   fun isAvailable() {
     setHintsAvailable(false)
-    assertThat(EnableComposeStateReadInlayHintsAction.isAvailable(project, fixture.editor, psiFile))
-      .isTrue()
+    assertThat(EnableComposeStateReadInlayHintsAction.isAvailable(project, fixture.editor, psiFile)).isTrue()
     setHintsAvailable(true)
-    assertThat(EnableComposeStateReadInlayHintsAction.isAvailable(project, fixture.editor, psiFile))
-      .isFalse()
+    assertThat(EnableComposeStateReadInlayHintsAction.isAvailable(project, fixture.editor, psiFile)).isFalse()
     setHintsAvailable(false)
-    assertThat(EnableComposeStateReadInlayHintsAction.isAvailable(project, fixture.editor, psiFile))
-      .isTrue()
+    assertThat(EnableComposeStateReadInlayHintsAction.isAvailable(project, fixture.editor, psiFile)).isTrue()
     setHintsAvailable(true)
-    assertThat(EnableComposeStateReadInlayHintsAction.isAvailable(project, fixture.editor, psiFile))
-      .isFalse()
+    assertThat(EnableComposeStateReadInlayHintsAction.isAvailable(project, fixture.editor, psiFile)).isFalse()
   }
 
   @Test
@@ -84,11 +79,9 @@ class EnableComposeStateReadInlayHintsActionTest {
   }
 
   private fun setHintsAvailable(enabled: Boolean) {
-    DeclarativeInlayHintsSettings.getInstance()
-      .setProviderEnabled(ComposeStateReadInlayHintsProvider.PROVIDER_ID, enabled)
+    DeclarativeInlayHintsSettings.getInstance().setProviderEnabled(ComposeStateReadInlayHintsProvider.PROVIDER_ID, enabled)
   }
 
   private fun areHintsAvailable() =
-    DeclarativeInlayHintsSettings.getInstance()
-      .isProviderEnabled(ComposeStateReadInlayHintsProvider.PROVIDER_ID) ?: false
+    DeclarativeInlayHintsSettings.getInstance().isProviderEnabled(ComposeStateReadInlayHintsProvider.PROVIDER_ID) ?: false
 }

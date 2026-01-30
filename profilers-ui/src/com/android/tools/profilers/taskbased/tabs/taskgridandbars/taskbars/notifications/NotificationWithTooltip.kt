@@ -30,23 +30,25 @@ import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBas
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_NOTIFICATION_TOOLTIP_MAX_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TOOLTIP_VERTICAL_SPACING_DP
 import com.android.tools.profilers.taskbased.common.text.EllipsisText
+import kotlin.time.Duration
 import main.utils.tooltips.TooltipStyleFactory.createTooltipStyle
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.icon.IntelliJIconKey
-import kotlin.time.Duration
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun NotificationWithTooltip(notificationText: String,
-                            tooltipMainText: String,
-                            tooltipSubText: String?,
-                            iconKey: IntelliJIconKey,
-                            iconDescription: String) {
+fun NotificationWithTooltip(
+  notificationText: String,
+  tooltipMainText: String,
+  tooltipSubText: String?,
+  iconKey: IntelliJIconKey,
+  iconDescription: String,
+) {
   Tooltip(
     tooltip = {
-      Column (modifier = Modifier.widthIn(max = TASK_NOTIFICATION_TOOLTIP_MAX_WIDTH_DP)) {
+      Column(modifier = Modifier.widthIn(max = TASK_NOTIFICATION_TOOLTIP_MAX_WIDTH_DP)) {
         Text(text = tooltipMainText, fontWeight = if (tooltipSubText == null) FontWeight.Normal else FontWeight.SemiBold)
         tooltipSubText?.let {
           Spacer(modifier = Modifier.height(TOOLTIP_VERTICAL_SPACING_DP))
@@ -55,17 +57,14 @@ fun NotificationWithTooltip(notificationText: String,
       }
     },
     content = { NotificationIconAndText(notificationText, iconKey, iconDescription) },
-    style = createTooltipStyle(Duration.ZERO)
+    style = createTooltipStyle(Duration.ZERO),
   )
 }
 
 @Composable
 private fun NotificationIconAndText(notificationText: String, iconKey: IntelliJIconKey, iconDescription: String) {
   Row(verticalAlignment = Alignment.CenterVertically) {
-    Icon(
-      key = iconKey,
-      contentDescription = iconDescription,
-    )
+    Icon(key = iconKey, contentDescription = iconDescription)
     Spacer(modifier = Modifier.width(TASK_NOTIFICATION_ICON_TEXT_HORIZONTAL_SPACE_DP))
     EllipsisText(text = notificationText, enableTooltipOnOverflow = false)
   }

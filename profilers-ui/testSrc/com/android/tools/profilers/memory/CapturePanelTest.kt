@@ -34,10 +34,10 @@ import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import javax.swing.JComponent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JComponent
 
 class CapturePanelTest {
 
@@ -46,15 +46,11 @@ class CapturePanelTest {
   private val myTimer = FakeTimer()
   private val transportService = FakeTransportService(myTimer)
 
-  @Rule
-  @JvmField
-  val grpcChannel = FakeGrpcChannel("MemoryProfilerStageViewTestChannel", transportService)
+  @Rule @JvmField val grpcChannel = FakeGrpcChannel("MemoryProfilerStageViewTestChannel", transportService)
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Before
   fun setupBase() {
@@ -70,21 +66,26 @@ class CapturePanelTest {
     val heap2 = HeapSet(capture, "heap2", 2)
     val allHeap = AllHeapSet(capture, arrayOf(heap1, heap2)).also { it.clearClassifierSets() }
 
-    val insts1 = arrayOf(FakeInstanceObject.Builder(capture, 1, "obj").setHeapId(1).setShallowSize(4).build(),
-                         FakeInstanceObject.Builder(capture, 2, "int").setHeapId(1).setShallowSize(8).build(),
-                         FakeInstanceObject.Builder(capture, 3, "str").setHeapId(1).setShallowSize(14).build())
-    val insts2 = arrayOf(FakeInstanceObject.Builder(capture, 4, "cat").setHeapId(2).setShallowSize(3).build(),
-                         FakeInstanceObject.Builder(capture, 5, "dog").setHeapId(2).setShallowSize(5).build(),
-                         FakeInstanceObject.Builder(capture, 6, "rat").setHeapId(2).setShallowSize(7).build())
+    val insts1 =
+      arrayOf(
+        FakeInstanceObject.Builder(capture, 1, "obj").setHeapId(1).setShallowSize(4).build(),
+        FakeInstanceObject.Builder(capture, 2, "int").setHeapId(1).setShallowSize(8).build(),
+        FakeInstanceObject.Builder(capture, 3, "str").setHeapId(1).setShallowSize(14).build(),
+      )
+    val insts2 =
+      arrayOf(
+        FakeInstanceObject.Builder(capture, 4, "cat").setHeapId(2).setShallowSize(3).build(),
+        FakeInstanceObject.Builder(capture, 5, "dog").setHeapId(2).setShallowSize(5).build(),
+        FakeInstanceObject.Builder(capture, 6, "rat").setHeapId(2).setShallowSize(7).build(),
+      )
     val insts = insts1 + insts2
     insts.forEach { allHeap.addDeltaInstanceObject(it) }
-
 
     val stage = MainMemoryProfilerStage(profilers, FakeCaptureObjectLoader())
     val selection = MemoryCaptureSelection(profilers.ideServices)
     val profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
-    val panel = CapturePanel(profilersView, selection, null, profilers.timeline.selectionRange,
-                             FakeIdeProfilerComponents(), profilers.timeline,true)
+    val panel =
+      CapturePanel(profilersView, selection, null, profilers.timeline.selectionRange, FakeIdeProfilerComponents(), profilers.timeline, true)
 
     selection.selectCaptureEntry(CaptureEntry(Any()) { capture })
     selection.finishSelectingCaptureObject(capture)
@@ -103,9 +104,12 @@ class CapturePanelTest {
   }
 
   companion object {
-    fun JComponent.getStatLabelValue(desc: String): String? = TreeWalker(this).descendantStream()
-      .filter { it is StatLabel && it.descText == desc}
-      .map { (it as StatLabel).numText }
-      .findFirst().orElse(null)
+    fun JComponent.getStatLabelValue(desc: String): String? =
+      TreeWalker(this)
+        .descendantStream()
+        .filter { it is StatLabel && it.descText == desc }
+        .map { (it as StatLabel).numText }
+        .findFirst()
+        .orElse(null)
   }
 }

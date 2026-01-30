@@ -31,11 +31,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.setMain
 
 /**
- * Replaces the EdtCoroutineDispatcher with a very simple dispatcher that doesn't depend on
- * IntelliJ.
+ * Replaces the EdtCoroutineDispatcher with a very simple dispatcher that doesn't depend on IntelliJ.
  *
- * This is for use in standalone demo / interactive testing apps that would otherwise be broken by
- * the presence of EdtCoroutineDispatcher on the classpath without the IntelliJ Platform being used.
+ * This is for use in standalone demo / interactive testing apps that would otherwise be broken by the presence of EdtCoroutineDispatcher on
+ * the classpath without the IntelliJ Platform being used.
  */
 fun installStandaloneMainDispatcher() {
   if (ApplicationManager.getApplication() != null) {

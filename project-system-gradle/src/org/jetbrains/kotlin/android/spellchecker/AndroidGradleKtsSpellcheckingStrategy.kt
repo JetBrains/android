@@ -28,8 +28,7 @@ import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 class AndroidGradleKtsSpellcheckingStrategy : SpellcheckingStrategy(), DumbAware {
   private val kotlinSpellcheckingStrategy by lazy {
     Language.findLanguageByID("kotlin")?.let { language ->
-      LanguageSpellchecking.INSTANCE.allForLanguage(language)
-        .firstOrNull { it !is AndroidGradleKtsSpellcheckingStrategy }
+      LanguageSpellchecking.INSTANCE.allForLanguage(language).firstOrNull { it !is AndroidGradleKtsSpellcheckingStrategy }
     }
   }
 

@@ -25,16 +25,16 @@ class DownloadsSummaryUIDataTest {
 
   @Test
   fun testSumOfRequests() {
-    Truth.assertThat(DownloadsSummaryUIData (downloadsData).sumOfRequests).isEqualTo(5 + 1 + 1 + 1)
+    Truth.assertThat(DownloadsSummaryUIData(downloadsData).sumOfRequests).isEqualTo(5 + 1 + 1 + 1)
   }
 
   @Test
   fun testSumOfDataBytes() {
-    Truth.assertThat(DownloadsSummaryUIData (downloadsData).sumOfDataBytes).isEqualTo(300000 + 10000)
+    Truth.assertThat(DownloadsSummaryUIData(downloadsData).sumOfDataBytes).isEqualTo(300000 + 10000)
   }
 
   @Test
   fun testSumOfTimeMs() {
-    Truth.assertThat(DownloadsSummaryUIData (downloadsData).sumOfTimeMs).isEqualTo(1000 + 500 + 10 + 5)
+    Truth.assertThat(DownloadsSummaryUIData(downloadsData).sumOfTimeMs).isEqualTo(1000 + 500 + 10 + 5)
   }
 }

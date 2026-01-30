@@ -20,15 +20,14 @@ import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder.Compa
 import com.android.tools.idea.projectsystem.SourceProviderManager.Companion.replaceForTest
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.inMemory
 import com.google.common.truth.Truth
+import java.io.File
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 class SymbolSourceTest {
 
-  @Rule @JvmField
-  var projectRule = inMemory().initAndroid(true)
+  @Rule @JvmField var projectRule = inMemory().initAndroid(true)
 
   @Test
   fun dynamicSymbolSourceReturnsDirectoriesPerArch() {
@@ -37,23 +36,18 @@ class SymbolSourceTest {
     val x86Libraries = File("path/to/x86/libraries")
     val moreX86Libraries = File("path/to/x86/more_libraries")
 
-    val source = DynamicSymbolSource()
-      .add(Abi.ARMEABI.cpuArch, armLibraries)
-      .add(Abi.ARMEABI.cpuArch, moreArmLibraries)
-      .add(Abi.X86.cpuArch, x86Libraries)
-      .add(Abi.X86.cpuArch, moreX86Libraries)
+    val source =
+      DynamicSymbolSource()
+        .add(Abi.ARMEABI.cpuArch, armLibraries)
+        .add(Abi.ARMEABI.cpuArch, moreArmLibraries)
+        .add(Abi.X86.cpuArch, x86Libraries)
+        .add(Abi.X86.cpuArch, moreX86Libraries)
 
-    source.getDirsFor(Abi.ARMEABI).also {
-      Truth.assertThat(it).containsExactly(armLibraries, moreArmLibraries)
-    }
+    source.getDirsFor(Abi.ARMEABI).also { Truth.assertThat(it).containsExactly(armLibraries, moreArmLibraries) }
 
-    source.getDirsFor(Abi.X86).also {
-      Truth.assertThat(it).containsExactly(x86Libraries, moreX86Libraries)
-    }
+    source.getDirsFor(Abi.X86).also { Truth.assertThat(it).containsExactly(x86Libraries, moreX86Libraries) }
 
-    source.getDirsFor(Abi.MIPS).also {
-      Truth.assertThat(it).isEmpty()
-    }
+    source.getDirsFor(Abi.MIPS).also { Truth.assertThat(it).isEmpty() }
   }
 
   @Test
@@ -64,38 +58,26 @@ class SymbolSourceTest {
     val x86Libraries = File("path/to/x86/libraries")
     val moreX86Libraries = File("path/to/x86/more_libraries")
 
-    val armSource = DynamicSymbolSource()
-      .add(Abi.ARMEABI.cpuArch, armLibraries)
-      .add(Abi.ARMEABI.cpuArch, moreArmLibraries)
+    val armSource = DynamicSymbolSource().add(Abi.ARMEABI.cpuArch, armLibraries).add(Abi.ARMEABI.cpuArch, moreArmLibraries)
 
-    val x86Source = DynamicSymbolSource()
-      .add(Abi.X86.cpuArch, x86Libraries)
-      .add(Abi.X86.cpuArch, moreX86Libraries)
+    val x86Source = DynamicSymbolSource().add(Abi.X86.cpuArch, x86Libraries).add(Abi.X86.cpuArch, moreX86Libraries)
 
     // Even though the arm and x86 sources are separated, when we use our merge source, it should
     // act as if everything was added to the same DynamicSymbolSource.
     val source = MergeSymbolSource(listOf(armSource, x86Source))
 
-    source.getDirsFor(Abi.ARMEABI).also {
-      Truth.assertThat(it).containsExactly(armLibraries, moreArmLibraries)
-    }
+    source.getDirsFor(Abi.ARMEABI).also { Truth.assertThat(it).containsExactly(armLibraries, moreArmLibraries) }
 
-    source.getDirsFor(Abi.X86).also {
-      Truth.assertThat(it).containsExactly(x86Libraries, moreX86Libraries)
-    }
+    source.getDirsFor(Abi.X86).also { Truth.assertThat(it).containsExactly(x86Libraries, moreX86Libraries) }
 
-    source.getDirsFor(Abi.MIPS).also {
-      Truth.assertThat(it).isEmpty()
-    }
+    source.getDirsFor(Abi.MIPS).also { Truth.assertThat(it).isEmpty() }
   }
 
   @Test
   fun emptyJniLibs() {
     val source = JniSymbolSource(projectRule.module)
 
-    source.getDirsFor(Abi.ARM64_V8A).also {
-      Truth.assertThat(it).isEmpty()
-    }
+    source.getDirsFor(Abi.ARM64_V8A).also { Truth.assertThat(it).isEmpty() }
   }
 
   @Test
@@ -103,24 +85,16 @@ class SymbolSourceTest {
     val source = JniSymbolSource(projectRule.module)
 
     // Create foo.so file and get the jniLibs URL.
-    val jniLibsUrl = projectRule.fixture
-      .addFileToProject("jniLibs/arm64-v8a/foo.so", "hello, world!")
-      .virtualFile
-      .parent
-      .parent
-      .url
+    val jniLibsUrl = projectRule.fixture.addFileToProject("jniLibs/arm64-v8a/foo.so", "hello, world!").virtualFile.parent.parent.url
     Truth.assertThat(jniLibsUrl).endsWith("jniLibs")
 
     // Create a new source provider that contains the new jniLibsUrl, and inject it for the test.
     replaceForTest(
       AndroidFacet.getInstance(projectRule.module)!!,
       projectRule.fixture.projectDisposable,
-      create("main", "AndroidManifest.xml")
-        .withJniLibsDirectoryUrls(listOf(jniLibsUrl))
-        .build())
+      create("main", "AndroidManifest.xml").withJniLibsDirectoryUrls(listOf(jniLibsUrl)).build(),
+    )
 
-    source.getDirsFor(Abi.ARM64_V8A).also {
-      Truth.assertThat(it).isNotEmpty()
-    }
+    source.getDirsFor(Abi.ARM64_V8A).also { Truth.assertThat(it).isNotEmpty() }
   }
 }

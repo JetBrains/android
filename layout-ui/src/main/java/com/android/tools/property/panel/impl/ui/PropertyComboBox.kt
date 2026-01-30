@@ -61,15 +61,11 @@ private const val RIGHT_OVERLAY_MARGIN = 6
  *
  * This control will act as a ComboBox or a DropDown depending on the model.
  *
- * When this control is used as a table cell renderer that is currently expanded, we will show a
- * [PropertyLabel] instead of the ComboBox (or DropDown) since the user will not be able to click on
- * the DropDown button in the popup (the popup will close when the cursor is moved outside of the
- * table).
+ * When this control is used as a table cell renderer that is currently expanded, we will show a [PropertyLabel] instead of the ComboBox (or
+ * DropDown) since the user will not be able to click on the DropDown button in the popup (the popup will close when the cursor is moved
+ * outside of the table).
  */
-class PropertyComboBox(
-  private val model: ComboBoxPropertyEditorModel,
-  private val context: EditorContext,
-) : JPanel(BorderLayout()) {
+class PropertyComboBox(private val model: ComboBoxPropertyEditorModel, private val context: EditorContext) : JPanel(BorderLayout()) {
   private val comboBox = WrappedComboBox(model, context)
   private val label = PropertyLabel(model)
   private var initialized = false
@@ -119,8 +115,7 @@ class PropertyComboBox(
     comboBox.bounds = Rectangle(0, 0, width, height).apply { JBInsets.removeFrom(this, insets) }
 
     // The label should be placed indented from the left edge to match the ComboBox.
-    val labelBounds =
-      comboBox.bounds.apply { JBInsets.removeFrom(this, UIManager.getInsets("ComboBox.padding")) }
+    val labelBounds = comboBox.bounds.apply { JBInsets.removeFrom(this, UIManager.getInsets("ComboBox.padding")) }
     labelBounds.width =
       when (model.tableExpansionState) {
         // The label for the left part of a popup should go to the right edge of the table.
@@ -141,11 +136,7 @@ class PropertyComboBox(
     label.isVisible = !editing
     // Avoid painting the right vertical edge of the cell border if this is the left part of the
     // complete value:
-    ClientProperty.put(
-      this,
-      HIDE_RIGHT_BORDER,
-      model.tableExpansionState == TableExpansionState.EXPANDED_CELL_FOR_POPUP,
-    )
+    ClientProperty.put(this, HIDE_RIGHT_BORDER, model.tableExpansionState == TableExpansionState.EXPANDED_CELL_FOR_POPUP)
   }
 }
 
@@ -162,21 +153,12 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, context: Edito
     registerActionKey({ enterInPopup() }, KeyStrokes.ENTER, "enter")
     registerActionKey({ enterInPopup() }, KeyStrokes.SPACE, "enter")
     registerActionKey({ escape() }, KeyStrokes.ESCAPE, "escape", { wouldConsumeEscape() })
-    registerActionKey(
-      { tab { enterInPopup() } },
-      KeyStrokes.TAB,
-      "tab",
-      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
-    )
+    registerActionKey({ tab { enterInPopup() } }, KeyStrokes.TAB, "tab", condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     registerActionKey({ backtab { enterInPopup() } }, KeyStrokes.BACKTAB, "backtab")
     focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
     background = UIUtil.TRANSPARENT_COLOR
     isOpaque = false
-    HelpSupportBinding.registerHelpKeyActions(
-      this,
-      { model.property },
-      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
-    )
+    HelpSupportBinding.registerHelpKeyActions(this, { model.property }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     if (context != EditorContext.STAND_ALONE_EDITOR) {
       putClientProperty(IS_TABLE_CELL_EDITOR_PROPERTY, true)
       // A table cell renderer and editor has a border on the parent PropertyComboBox. Remove the
@@ -218,8 +200,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, context: Edito
 
     addPopupMenuListener(
       object : PopupMenuListener {
-        override fun popupMenuWillBecomeInvisible(event: PopupMenuEvent) =
-          model.popupMenuWillBecomeInvisible()
+        override fun popupMenuWillBecomeInvisible(event: PopupMenuEvent) = model.popupMenuWillBecomeInvisible()
 
         override fun popupMenuCanceled(event: PopupMenuEvent) {}
 

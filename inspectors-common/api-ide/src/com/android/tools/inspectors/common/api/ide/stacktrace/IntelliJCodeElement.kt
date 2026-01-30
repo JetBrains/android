@@ -28,8 +28,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 
-class IntelliJCodeElement(private val project: Project, private val codeLocation: CodeLocation) :
-  CodeElement {
+class IntelliJCodeElement(private val project: Project, private val codeLocation: CodeLocation) : CodeElement {
   private val packageName: String
   private val simpleClassName: String
   private val isInUserCode: Boolean
@@ -42,8 +41,7 @@ class IntelliJCodeElement(private val project: Project, private val codeLocation
     } else {
       val dot = className.lastIndexOf('.')
       packageName = if (dot <= 0) NO_PACKAGE else className.substring(0, dot)
-      simpleClassName =
-        if (dot + 1 < className.length) className.substring(dot + 1) else UNKONWN_CLASS
+      simpleClassName = if (dot + 1 < className.length) className.substring(dot + 1) else UNKONWN_CLASS
     }
 
     isInUserCode =
@@ -73,9 +71,7 @@ class IntelliJCodeElement(private val project: Project, private val codeLocation
     }
     val file = LocalFileSystem.getInstance().findFileByPath(sourceFileName) ?: return false
     val application = ApplicationManager.getApplication()
-    return application.runReadAction(
-      Computable { ProjectFileIndex.getInstance(project).isInSource(file) }
-    )
+    return application.runReadAction(Computable { ProjectFileIndex.getInstance(project).isInSource(file) })
   }
 
   private fun isInSources(): Boolean {

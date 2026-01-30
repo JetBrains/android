@@ -36,55 +36,31 @@ import com.intellij.json.psi.JsonStringLiteral
 
 internal const val BASE_DEPTH_FOR_LITERAL_IN_PROPERTY = 2
 
-internal const val BASE_DEPTH_FOR_NAME_IN_PROPERTY_OBJECT =
-  BASE_DEPTH_FOR_LITERAL_IN_PROPERTY + BASE_DEPTH_FOR_LITERAL_IN_PROPERTY
+internal const val BASE_DEPTH_FOR_NAME_IN_PROPERTY_OBJECT = BASE_DEPTH_FOR_LITERAL_IN_PROPERTY + BASE_DEPTH_FOR_LITERAL_IN_PROPERTY
 
-/**
- * Depth for a literal of a property of the list of ConstraintSets. With respect to the
- * ConstraintSets root element.
- */
-private const val CONSTRAINT_SET_LIST_PROPERTY_DEPTH =
-  BASE_DEPTH_FOR_LITERAL_IN_PROPERTY + BASE_DEPTH_FOR_LITERAL_IN_PROPERTY
+/** Depth for a literal of a property of the list of ConstraintSets. With respect to the ConstraintSets root element. */
+private const val CONSTRAINT_SET_LIST_PROPERTY_DEPTH = BASE_DEPTH_FOR_LITERAL_IN_PROPERTY + BASE_DEPTH_FOR_LITERAL_IN_PROPERTY
 
-/**
- * Depth for a literal of a property of a ConstraintSet. With respect to the ConstraintSets root
- * element.
- */
-private const val CONSTRAINT_SET_PROPERTY_DEPTH =
-  CONSTRAINT_SET_LIST_PROPERTY_DEPTH + BASE_DEPTH_FOR_LITERAL_IN_PROPERTY
+/** Depth for a literal of a property of a ConstraintSet. With respect to the ConstraintSets root element. */
+private const val CONSTRAINT_SET_PROPERTY_DEPTH = CONSTRAINT_SET_LIST_PROPERTY_DEPTH + BASE_DEPTH_FOR_LITERAL_IN_PROPERTY
 
-/**
- * Depth for a literal of a property of a Transition. With respect to the Transitions root element.
- */
+/** Depth for a literal of a property of a Transition. With respect to the Transitions root element. */
 private const val TRANSITION_PROPERTY_DEPTH = CONSTRAINT_SET_PROPERTY_DEPTH
 
-/**
- * Depth for a literal of a property of a Constraints block. With respect to the ConstraintSets root
- * element.
- */
-internal const val CONSTRAINT_BLOCK_PROPERTY_DEPTH =
-  CONSTRAINT_SET_PROPERTY_DEPTH + BASE_DEPTH_FOR_LITERAL_IN_PROPERTY
+/** Depth for a literal of a property of a Constraints block. With respect to the ConstraintSets root element. */
+internal const val CONSTRAINT_BLOCK_PROPERTY_DEPTH = CONSTRAINT_SET_PROPERTY_DEPTH + BASE_DEPTH_FOR_LITERAL_IN_PROPERTY
 
-/**
- * Depth for a literal of a property of an OnSwipe block. With respect to the Transitions root
- * element.
- */
-internal const val ONSWIPE_PROPERTY_DEPTH =
-  TRANSITION_PROPERTY_DEPTH + BASE_DEPTH_FOR_LITERAL_IN_PROPERTY
+/** Depth for a literal of a property of an OnSwipe block. With respect to the Transitions root element. */
+internal const val ONSWIPE_PROPERTY_DEPTH = TRANSITION_PROPERTY_DEPTH + BASE_DEPTH_FOR_LITERAL_IN_PROPERTY
 
-/**
- * Depth for a literal of a property of a KeyFrames block. With respect to the Transitions root
- * element.
- */
+/** Depth for a literal of a property of a KeyFrames block. With respect to the Transitions root element. */
 internal const val KEYFRAMES_PROPERTY_DEPTH = ONSWIPE_PROPERTY_DEPTH
 
 /**
- * [CompletionContributor] for the JSON5 format supported in ConstraintLayout-Compose (and
- * MotionLayout).
+ * [CompletionContributor] for the JSON5 format supported in ConstraintLayout-Compose (and MotionLayout).
  *
- * See the official wiki in
- * [GitHub](https://github.com/androidx/constraintlayout/wiki/ConstraintSet-JSON5-syntax) to learn
- * more about the supported JSON5 syntax.
+ * See the official wiki in [GitHub](https://github.com/androidx/constraintlayout/wiki/ConstraintSet-JSON5-syntax) to learn more about the
+ * supported JSON5 syntax.
  */
 class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
   init {
@@ -104,18 +80,13 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
     extend(
       CompletionType.BASIC,
       // Complete ConstraintSet names in Extends keyword
-      jsonStringValue()
-        .withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, KeyWords.Extends),
+      jsonStringValue().withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, KeyWords.Extends),
       ConstraintSetNamesProvider,
     )
     extend(
       CompletionType.BASIC,
       // Complete IDs on special anchors, they take a single string value
-      jsonStringValue()
-        .withPropertyParentAtLevel(
-          BASE_DEPTH_FOR_LITERAL_IN_PROPERTY,
-          SpecialAnchor.values().map { it.keyWord },
-        ),
+      jsonStringValue().withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, SpecialAnchor.values().map { it.keyWord }),
       ConstraintIdsProvider,
     )
     extend(
@@ -147,18 +118,13 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
     extend(
       CompletionType.BASIC,
       // Complete non-numeric dimension values for width & height
-      jsonStringValue()
-        .withPropertyParentAtLevel(
-          BASE_DEPTH_FOR_LITERAL_IN_PROPERTY,
-          Dimension.values().map { it.keyWord },
-        ),
+      jsonStringValue().withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, Dimension.values().map { it.keyWord }),
       EnumValuesCompletionProvider(DimBehavior::class),
     )
     extend(
       CompletionType.BASIC,
       // Complete Visibility mode values
-      jsonStringValue()
-        .withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, KeyWords.Visibility),
+      jsonStringValue().withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, KeyWords.Visibility),
       EnumValuesCompletionProvider(VisibilityMode::class),
     )
     // endregion
@@ -174,10 +140,7 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
       CompletionType.BASIC,
       // Complete existing ConstraintSet names for `from` and `to` Transition properties
       jsonStringValue()
-        .withPropertyParentAtLevel(
-          BASE_DEPTH_FOR_LITERAL_IN_PROPERTY,
-          listOf(TransitionField.From.keyWord, TransitionField.To.keyWord),
-        )
+        .withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, listOf(TransitionField.From.keyWord, TransitionField.To.keyWord))
         .withTransitionsParentAtLevel(TRANSITION_PROPERTY_DEPTH),
       // TODO(b/207030860): Guarantee that provided names for 'from' or 'to' are distinct from each
       // other,
@@ -188,10 +151,7 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
       CompletionType.BASIC,
       // Complete fields of a KeyFrames block
       jsonPropertyName()
-        .withPropertyParentAtLevel(
-          BASE_DEPTH_FOR_NAME_IN_PROPERTY_OBJECT,
-          TransitionField.KeyFrames.keyWord,
-        )
+        .withPropertyParentAtLevel(BASE_DEPTH_FOR_NAME_IN_PROPERTY_OBJECT, TransitionField.KeyFrames.keyWord)
         .withTransitionsParentAtLevel(KEYFRAMES_PROPERTY_DEPTH),
       KeyFramesFieldsProvider,
     )
@@ -199,45 +159,32 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
       CompletionType.BASIC,
       // Complete fields of an OnSwipe block
       jsonPropertyName()
-        .withPropertyParentAtLevel(
-          BASE_DEPTH_FOR_NAME_IN_PROPERTY_OBJECT,
-          TransitionField.OnSwipe.keyWord,
-        )
+        .withPropertyParentAtLevel(BASE_DEPTH_FOR_NAME_IN_PROPERTY_OBJECT, TransitionField.OnSwipe.keyWord)
         .withTransitionsParentAtLevel(ONSWIPE_PROPERTY_DEPTH),
       OnSwipeFieldsProvider,
     )
     extend(
       CompletionType.BASIC,
       // Complete the possible IDs for the OnSwipe `anchor` property
-      jsonStringValue()
-        .withPropertyParentAtLevel(
-          BASE_DEPTH_FOR_LITERAL_IN_PROPERTY,
-          OnSwipeField.AnchorId.keyWord,
-        ),
+      jsonStringValue().withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, OnSwipeField.AnchorId.keyWord),
       ConstraintIdsProvider,
     )
     extend(
       CompletionType.BASIC,
       // Complete the known values for the OnSwipe `side` property
-      jsonStringValue()
-        .withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, OnSwipeField.Side.keyWord),
+      jsonStringValue().withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, OnSwipeField.Side.keyWord),
       EnumValuesCompletionProvider(OnSwipeSide::class),
     )
     extend(
       CompletionType.BASIC,
       // Complete the known values for the OnSwipe `direction` property
-      jsonStringValue()
-        .withPropertyParentAtLevel(
-          BASE_DEPTH_FOR_LITERAL_IN_PROPERTY,
-          OnSwipeField.Direction.keyWord,
-        ),
+      jsonStringValue().withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, OnSwipeField.Direction.keyWord),
       EnumValuesCompletionProvider(OnSwipeDirection::class),
     )
     extend(
       CompletionType.BASIC,
       // Complete the known values for the OnSwipe `mode` property
-      jsonStringValue()
-        .withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, OnSwipeField.Mode.keyWord),
+      jsonStringValue().withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, OnSwipeField.Mode.keyWord),
       EnumValuesCompletionProvider(OnSwipeMode::class),
     )
     extend(
@@ -245,23 +192,14 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
       // Complete the fields for any of the possible KeyFrames children
       jsonPropertyName()
         // A level deeper considering the array surrounding the object
-        .withPropertyParentAtLevel(
-          BASE_DEPTH_FOR_NAME_IN_PROPERTY_OBJECT + 1,
-          KeyFrameField.values().map { it.keyWord },
-        ),
+        .withPropertyParentAtLevel(BASE_DEPTH_FOR_NAME_IN_PROPERTY_OBJECT + 1, KeyFrameField.values().map { it.keyWord }),
       KeyFrameChildFieldsCompletionProvider,
     )
     // endregion
   }
 
-  override fun fillCompletionVariants(
-    parameters: CompletionParameters,
-    result: CompletionResultSet,
-  ) {
-    if (
-      parameters.position.getModuleSystem()?.usesCompose != true ||
-        parameters.position.language != JsonLanguage.INSTANCE
-    ) {
+  override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
+    if (parameters.position.getModuleSystem()?.usesCompose != true || parameters.position.language != JsonLanguage.INSTANCE) {
       // TODO(b/207030860): Allow in other contexts once the syntax is supported outside Compose
       return
     }

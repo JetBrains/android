@@ -25,27 +25,13 @@ class ParamStateTest {
     val states = ParamState.decode(listOf(0b1111101011000110100010000010101))
 
     assertThat(states.map { it.getDisplayName() })
-      .containsExactly(
-        "Changed",
-        "Unchanged",
-        "Evaluating",
-        "Unchanged",
-        "Changed",
-        "Static",
-        "Unknown",
-        "Unknown",
-        "Unknown",
-        "Unknown",
-      )
+      .containsExactly("Changed", "Unchanged", "Evaluating", "Unchanged", "Changed", "Static", "Unknown", "Unknown", "Unknown", "Unknown")
       .inOrder()
   }
 
   @Test
   fun multipleValuea() {
-    val states =
-      ParamState.decode(
-        listOf(0b1111101011000110100010000010101, 0b1111101011000110100010000010100, 0b0010)
-      )
+    val states = ParamState.decode(listOf(0b1111101011000110100010000010101, 0b1111101011000110100010000010100, 0b0010))
 
     assertThat(states.map { it.getDisplayName() })
       .containsExactly(

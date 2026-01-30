@@ -34,46 +34,61 @@ import org.jetbrains.jewel.ui.component.Tooltip
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TaskStartingPointDropdown(profilingProcessStartingPoint: TaskHomeTabModel.ProfilingProcessStartingPoint,
-                              setProfilingProcessStartingPoint: (TaskHomeTabModel.ProfilingProcessStartingPoint) -> Unit,
-                              isProfilingProcessFromNowEnabled: Boolean,
-                              isProfilingProcessFromProcessStartEnabled: Boolean,
-                              isSelectedProcessAlive: Boolean,
-                              processStartDisabledReason: StartTaskSelectionError?) {
+fun TaskStartingPointDropdown(
+  profilingProcessStartingPoint: TaskHomeTabModel.ProfilingProcessStartingPoint,
+  setProfilingProcessStartingPoint: (TaskHomeTabModel.ProfilingProcessStartingPoint) -> Unit,
+  isProfilingProcessFromNowEnabled: Boolean,
+  isProfilingProcessFromProcessStartEnabled: Boolean,
+  isSelectedProcessAlive: Boolean,
+  processStartDisabledReason: StartTaskSelectionError?,
+) {
 
   Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(DROPDOWN_PROMPT_HORIZONTAL_SPACE_DP)) {
     EllipsisText(text = TaskBasedUxStrings.STARTING_POINT_DROPDOWN_TITLE)
-    Dropdown(modifier = Modifier.testTag("TaskStartingPointDropdown"), menuContent = {
-      selectableItem(enabled = isProfilingProcessFromNowEnabled,
-                     selected = profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
-                     onClick = { setProfilingProcessStartingPoint(TaskHomeTabModel.ProfilingProcessStartingPoint.NOW) }) {
-        TaskStartingPointFromNowOption(isProfilingProcessFromNowEnabled, Modifier.testTag("TaskStartingPointOption"))
-      }
-      val isProcessStartSelected = profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START
-      selectableItem(enabled = isProfilingProcessFromProcessStartEnabled,
-                     selected = isProcessStartSelected,
-                     onClick = { setProfilingProcessStartingPoint(TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START) }) {
-        // In the case where the process start option is disabled and not selected, a tooltip explaining why is provided.
-        if (isProfilingProcessFromProcessStartEnabled || isProcessStartSelected) {
-          TaskStartingFromProcessStartOption(isProfilingProcessFromProcessStartEnabled, isSelectedProcessAlive,
-                                             Modifier.testTag("TaskStartingPointOption"))
+    Dropdown(
+      modifier = Modifier.testTag("TaskStartingPointDropdown"),
+      menuContent = {
+        selectableItem(
+          enabled = isProfilingProcessFromNowEnabled,
+          selected = profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
+          onClick = { setProfilingProcessStartingPoint(TaskHomeTabModel.ProfilingProcessStartingPoint.NOW) },
+        ) {
+          TaskStartingPointFromNowOption(isProfilingProcessFromNowEnabled, Modifier.testTag("TaskStartingPointOption"))
         }
-        else {
-          Tooltip(tooltip = {
-            Text(processStartDisabledReason?.let { TaskBasedUxStrings.getStartTaskErrorMessage(it.startTaskSelectionErrorCode) }
-                 ?: "Option unavailable")
-          }) {
-            TaskStartingFromProcessStartOption(false, isSelectedProcessAlive, Modifier.testTag("TaskStartingPointOption"))
+        val isProcessStartSelected = profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START
+        selectableItem(
+          enabled = isProfilingProcessFromProcessStartEnabled,
+          selected = isProcessStartSelected,
+          onClick = { setProfilingProcessStartingPoint(TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START) },
+        ) {
+          // In the case where the process start option is disabled and not selected, a tooltip explaining why is provided.
+          if (isProfilingProcessFromProcessStartEnabled || isProcessStartSelected) {
+            TaskStartingFromProcessStartOption(
+              isProfilingProcessFromProcessStartEnabled,
+              isSelectedProcessAlive,
+              Modifier.testTag("TaskStartingPointOption"),
+            )
+          } else {
+            Tooltip(
+              tooltip = {
+                Text(
+                  processStartDisabledReason?.let { TaskBasedUxStrings.getStartTaskErrorMessage(it.startTaskSelectionErrorCode) }
+                    ?: "Option unavailable"
+                )
+              }
+            ) {
+              TaskStartingFromProcessStartOption(false, isSelectedProcessAlive, Modifier.testTag("TaskStartingPointOption"))
+            }
           }
         }
-      }
-    }) {
+      },
+    ) {
       when (profilingProcessStartingPoint) {
-        TaskHomeTabModel.ProfilingProcessStartingPoint.UNSPECIFIED -> DropdownOptionText(primaryText = "Not specified",
-                                                                                         secondaryText = null, isEnabled = false)
+        TaskHomeTabModel.ProfilingProcessStartingPoint.UNSPECIFIED ->
+          DropdownOptionText(primaryText = "Not specified", secondaryText = null, isEnabled = false)
         TaskHomeTabModel.ProfilingProcessStartingPoint.NOW -> TaskStartingPointFromNowOption(isProfilingProcessFromNowEnabled)
-        TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START -> TaskStartingFromProcessStartOption(
-          isProfilingProcessFromProcessStartEnabled, isSelectedProcessAlive)
+        TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START ->
+          TaskStartingFromProcessStartOption(isProfilingProcessFromProcessStartEnabled, isSelectedProcessAlive)
       }
     }
   }
@@ -81,16 +96,21 @@ fun TaskStartingPointDropdown(profilingProcessStartingPoint: TaskHomeTabModel.Pr
 
 @Composable
 private fun TaskStartingPointFromNowOption(isEnabled: Boolean, modifier: Modifier = Modifier) {
-  DropdownOptionText(modifier,
-                     TaskBasedUxStrings.NOW_STARTING_POINT_DROPDOWN_OPTION_PRIMARY_TEXT,
-                     TaskBasedUxStrings.NOW_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT,
-                     isEnabled)
+  DropdownOptionText(
+    modifier,
+    TaskBasedUxStrings.NOW_STARTING_POINT_DROPDOWN_OPTION_PRIMARY_TEXT,
+    TaskBasedUxStrings.NOW_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT,
+    isEnabled,
+  )
 }
 
 @Composable
 private fun TaskStartingFromProcessStartOption(isEnabled: Boolean, isProcessAlive: Boolean, modifier: Modifier = Modifier) {
-  DropdownOptionText(modifier, TaskBasedUxStrings.STARTUP_STARTING_POINT_DROPDOWN_OPTION_PRIMARY_TEXT,
-                     if (isProcessAlive) TaskBasedUxStrings.STARTUP_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT_RESTART
-                     else TaskBasedUxStrings.STARTUP_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT_START,
-                     isEnabled)
+  DropdownOptionText(
+    modifier,
+    TaskBasedUxStrings.STARTUP_STARTING_POINT_DROPDOWN_OPTION_PRIMARY_TEXT,
+    if (isProcessAlive) TaskBasedUxStrings.STARTUP_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT_RESTART
+    else TaskBasedUxStrings.STARTUP_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT_START,
+    isEnabled,
+  )
 }

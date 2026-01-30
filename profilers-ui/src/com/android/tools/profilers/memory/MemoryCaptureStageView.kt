@@ -31,61 +31,65 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 import javax.swing.JPanel
 
+class MemoryCaptureStageView(profilersView: StudioProfilersView, stage: MemoryCaptureStage) :
+  BaseMemoryProfilerStageView<MemoryCaptureStage>(profilersView, stage) {
 
-class MemoryCaptureStageView(profilersView: StudioProfilersView, stage: MemoryCaptureStage)
-      : BaseMemoryProfilerStageView<MemoryCaptureStage>(profilersView, stage) {
+  private val capturePanel =
+    CapturePanel(
+      profilersView,
+      stage.captureSelection,
+      null,
+      stage.studioProfilers.timeline.selectionRange,
+      ideComponents,
+      stage.timeline,
+      true,
+    )
 
-  private val capturePanel = CapturePanel(profilersView,
-                                          stage.captureSelection,
-                                          null,
-                                          stage.studioProfilers.timeline.selectionRange,
-                                          ideComponents,
-                                          stage.timeline,
-                                          true)
-
-  private val title = JBLabel().apply {
-    border = JBEmptyBorder(0, 5, 0, 0)
-  }
+  private val title = JBLabel().apply { border = JBEmptyBorder(0, 5, 0, 0) }
 
   private var loadingPanel: LoadingPanel? = null
 
-  private val instanceDetailsSplitter = JBSplitter(false).apply {
-    isOpaque = true
-    firstComponent = capturePanel.classSetView.component
-    secondComponent = capturePanel.instanceDetailsView.component
-  }
-
-  private val instanceDetailsWrapper = JBPanel<Nothing>(BorderLayout()).apply {
-    val headingPanel = JPanel(BorderLayout()).apply {
-      border = DEFAULT_HORIZONTAL_BORDERS
-      add(title, BorderLayout.WEST)
-      add(CloseButton { stage.captureSelection.selectClassSet(null) }, BorderLayout.EAST)
+  private val instanceDetailsSplitter =
+    JBSplitter(false).apply {
+      isOpaque = true
+      firstComponent = capturePanel.classSetView.component
+      secondComponent = capturePanel.instanceDetailsView.component
     }
-    add(headingPanel, BorderLayout.NORTH)
-    add(instanceDetailsSplitter, BorderLayout.CENTER)
-  }
 
-  private val chartCaptureSplitter = JBSplitter(true).apply {
-    border = DEFAULT_VERTICAL_BORDERS
-    firstComponent = capturePanel.component
-    secondComponent = instanceDetailsWrapper
-  }
+  private val instanceDetailsWrapper =
+    JBPanel<Nothing>(BorderLayout()).apply {
+      val headingPanel =
+        JPanel(BorderLayout()).apply {
+          border = DEFAULT_HORIZONTAL_BORDERS
+          add(title, BorderLayout.WEST)
+          add(CloseButton { stage.captureSelection.selectClassSet(null) }, BorderLayout.EAST)
+        }
+      add(headingPanel, BorderLayout.NORTH)
+      add(instanceDetailsSplitter, BorderLayout.CENTER)
+    }
+
+  private val chartCaptureSplitter =
+    JBSplitter(true).apply {
+      border = DEFAULT_VERTICAL_BORDERS
+      firstComponent = capturePanel.component
+      secondComponent = instanceDetailsWrapper
+    }
 
   private val layout = CardLayout()
-  private val mainPanel = JPanel(layout).apply {
-    add(chartCaptureSplitter, CARD_CAPTURE)
-  }
+  private val mainPanel = JPanel(layout).apply { add(chartCaptureSplitter, CARD_CAPTURE) }
 
   init {
-    fun updateInstanceDetailsSplitter() = when (val cs = stage.captureSelection.selectedClassSet) {
-      null -> instanceDetailsWrapper.isVisible = false
-      else -> {
-        title.text = "Instance List - " + cs.name
-        instanceDetailsWrapper.isVisible = true
+    fun updateInstanceDetailsSplitter() =
+      when (val cs = stage.captureSelection.selectedClassSet) {
+        null -> instanceDetailsWrapper.isVisible = false
+        else -> {
+          title.text = "Instance List - " + cs.name
+          instanceDetailsWrapper.isVisible = true
+        }
       }
-    }
 
-    stage.captureSelection.aspect.addDependency(this)
+    stage.captureSelection.aspect
+      .addDependency(this)
       .onChange(CaptureSelectionAspect.CURRENT_CLASS, ::updateInstanceDetailsSplitter)
       .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, ::showCaptureUi)
     updateInstanceDetailsSplitter()
@@ -103,25 +107,29 @@ class MemoryCaptureStageView(profilersView: StudioProfilersView, stage: MemoryCa
   // If Task-Based UX is enabled, no toolbar is added to the memory capture stage view.
   override fun isToolbarVisible() = !stage.studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled
 
-  override fun getToolbar() = JPanel(BorderLayout()).apply {
-    add(JLabel().apply {
-      border = JBEmptyBorder(0, 4, 0, 2)
-      text = when (val capture = stage.captureSelection.selectedCapture) {
-        null -> "Heap Dump"
-        else -> {
-          val startMicros = stage.timeline.dataRange.min.toLong()
-          val elapsedMicros = TimeUnit.NANOSECONDS.toMicros(capture.startTimeNs) - startMicros
-          // b/156547059
-          // It's plausible, but highly unlikely that `elapsedMicros` is 0 for a recorded heap dump.
-          // Often this happens when it's loaded from a file. Because it's difficult to get the filename
-          // from here, we simply omit the misleading information
-          if (elapsedMicros > 0)
-            "${capture.name}: ${TimeFormatter.getSimplifiedClockString(elapsedMicros)}"
-          else "${capture.name} (loaded from file)"
-        }
-      }
-    }, BorderLayout.WEST)
-  }
+  override fun getToolbar() =
+    JPanel(BorderLayout()).apply {
+      add(
+        JLabel().apply {
+          border = JBEmptyBorder(0, 4, 0, 2)
+          text =
+            when (val capture = stage.captureSelection.selectedCapture) {
+              null -> "Heap Dump"
+              else -> {
+                val startMicros = stage.timeline.dataRange.min.toLong()
+                val elapsedMicros = TimeUnit.NANOSECONDS.toMicros(capture.startTimeNs) - startMicros
+                // b/156547059
+                // It's plausible, but highly unlikely that `elapsedMicros` is 0 for a recorded heap dump.
+                // Often this happens when it's loaded from a file. Because it's difficult to get the filename
+                // from here, we simply omit the misleading information
+                if (elapsedMicros > 0) "${capture.name}: ${TimeFormatter.getSimplifiedClockString(elapsedMicros)}"
+                else "${capture.name} (loaded from file)"
+              }
+            }
+        },
+        BorderLayout.WEST,
+      )
+    }
 
   private fun showCaptureUi() {
     hideLoadingPanel()

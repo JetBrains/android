@@ -24,8 +24,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 
 /**
- * Project listener that is triggered after each gradle sync.
- * Update code completion device catalog cache if cache is outdated, empty or corrupted
+ * Project listener that is triggered after each gradle sync. Update code completion device catalog cache if cache is outdated, empty or
+ * corrupted
  */
 class GmdCodeCompletionGradleSyncListener(private val project: Project) : ProjectSystemSyncManager.SyncResultListener {
   override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {

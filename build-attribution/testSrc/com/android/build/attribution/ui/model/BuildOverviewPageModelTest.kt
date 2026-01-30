@@ -21,11 +21,9 @@ import com.google.common.truth.Expect
 import org.junit.Rule
 import org.junit.Test
 
-
 class BuildOverviewPageModelTest {
 
-  @get:Rule
-  val expect = Expect.createAndEnableStackTrace()!!
+  @get:Rule val expect = Expect.createAndEnableStackTrace()!!
 
   private val mockData = MockUiData()
   private val warningSuppressions = BuildAttributionWarningsFilter()
@@ -34,12 +32,8 @@ class BuildOverviewPageModelTest {
 
   @Test
   fun testShouldWarnAboutNoGCSetting() {
-    fun testCase(
-      javaVersionUsed: Int?,
-      isGarbageCollectorSettingSet: Boolean?,
-      expectedResult: Boolean
-    ) {
-      mockData.buildSummary  = mockData.mockBuildOverviewData(javaVersionUsed, isGarbageCollectorSettingSet)
+    fun testCase(javaVersionUsed: Int?, isGarbageCollectorSettingSet: Boolean?, expectedResult: Boolean) {
+      mockData.buildSummary = mockData.mockBuildOverviewData(javaVersionUsed, isGarbageCollectorSettingSet)
       expect.that(model.shouldWarnAboutNoGCSetting).isEqualTo(expectedResult)
     }
 
@@ -65,12 +59,8 @@ class BuildOverviewPageModelTest {
   @Test
   fun testShouldWarnAboutNoGCSettingWhenSuppressed() {
     warningSuppressions.suppressNoGCSettingWarning = true
-    fun testCase(
-      javaVersionUsed: Int?,
-      isGarbageCollectorSettingSet: Boolean?,
-      expectedResult: Boolean
-    ) {
-      mockData.buildSummary  = mockData.mockBuildOverviewData(javaVersionUsed, isGarbageCollectorSettingSet)
+    fun testCase(javaVersionUsed: Int?, isGarbageCollectorSettingSet: Boolean?, expectedResult: Boolean) {
+      mockData.buildSummary = mockData.mockBuildOverviewData(javaVersionUsed, isGarbageCollectorSettingSet)
       expect.that(model.shouldWarnAboutNoGCSetting).isEqualTo(expectedResult)
     }
 

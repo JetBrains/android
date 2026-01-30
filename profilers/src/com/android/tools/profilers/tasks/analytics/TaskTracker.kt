@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.tasks.analytics
 
-import com.android.tools.profiler.proto.Common.Session
 import com.android.tools.profiler.proto.Common.Process.ExposureLevel
+import com.android.tools.profiler.proto.Common.Session
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
@@ -32,27 +32,20 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 /**
  * A class responsible for tracking the lifecycle events of a profiler task.
  *
- * This class serves as a wrapper around [com.android.tools.profilers.analytics.FeatureTracker] for task-specific events,
- * gathering necessary metadata about the task (e.g., origin, configuration, exposure level)
- * and reporting events such as task entry, completion, or failure.
+ * This class serves as a wrapper around [com.android.tools.profilers.analytics.FeatureTracker] for task-specific events, gathering
+ * necessary metadata about the task (e.g., origin, configuration, exposure level) and reporting events such as task entry, completion, or
+ * failure.
  *
  * ### Usage Restrictions
- * This class should **only be instantiated by [com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler.enter]
- * and [com.android.tools.profilers.Stage.enter]** in production. Because [TaskMetadata] is built
- * at the moment of instantiation, calling this at the wrong time (e.g., before a session is
- * fully initialized) will result in incorrect or stale telemetry.
+ * This class should **only be instantiated by [com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler.enter] and
+ * [com.android.tools.profilers.Stage.enter]** in production. Because [TaskMetadata] is built at the moment of instantiation, calling this
+ * at the wrong time (e.g., before a session is fully initialized) will result in incorrect or stale telemetry.
  *
- * Use [createTaskTracker] to obtain an instance. If the task-based UX is disabled,
- * a no-op [NullTaskTracker] will be returned.
+ * Use [createTaskTracker] to obtain an instance. If the task-based UX is disabled, a no-op [NullTaskTracker] will be returned.
  */
-open class TaskTracker(
-  private val profilers: StudioProfilers,
-  private val taskMetadata: TaskMetadata
-) {
+open class TaskTracker(private val profilers: StudioProfilers, private val taskMetadata: TaskMetadata) {
 
-  /**
-   * Tracks the event where the user enters a task.
-   */
+  /** Tracks the event where the user enters a task. */
   open fun trackTaskEntered() {
     profilers.ideServices.featureTracker.trackTaskEntered(taskMetadata)
   }
@@ -94,31 +87,32 @@ open class TaskTracker(
   }
 
   /**
-   * A no-op implementation of [TaskTracker] used when task tracking is disabled
-   * or as a safe default value.
+   * A no-op implementation of [TaskTracker] used when task tracking is disabled or as a safe default value.
    *
-   * This implementation is used to initialize the `taskTracker` property in
-   * [com.android.tools.profilers.Stage] before a concrete instance is explicitly
-   * created via [TaskTracker.createTaskTracker]. It overrides all tracking
-   * methods with empty bodies, ensuring that tracking calls remain safe
-   * (avoiding NullPointerExceptions) even if triggered before full
-   * initialization or when the task-based UX is inactive.
+   * This implementation is used to initialize the `taskTracker` property in [com.android.tools.profilers.Stage] before a concrete instance
+   * is explicitly created via [TaskTracker.createTaskTracker]. It overrides all tracking methods with empty bodies, ensuring that tracking
+   * calls remain safe (avoiding NullPointerExceptions) even if triggered before full initialization or when the task-based UX is inactive.
    */
-  private class NullTaskTracker(profilers: StudioProfilers) : TaskTracker(
-    profilers,
-    TaskMetadata(
-      ProfilerTaskType.UNSPECIFIED,
-      0,
-      TaskDataOrigin.UNSPECIFIED,
-      TaskAttachmentPoint.UNSPECIFIED,
-      ExposureLevel.UNKNOWN,
-      null
-    )
-  ) {
+  private class NullTaskTracker(profilers: StudioProfilers) :
+    TaskTracker(
+      profilers,
+      TaskMetadata(
+        ProfilerTaskType.UNSPECIFIED,
+        0,
+        TaskDataOrigin.UNSPECIFIED,
+        TaskAttachmentPoint.UNSPECIFIED,
+        ExposureLevel.UNKNOWN,
+        null,
+      ),
+    ) {
     override fun trackTaskEntered() {}
+
     override fun trackTaskFinished(taskFinishedState: TaskFinishedState) {}
+
     override fun trackStartTaskFailed(metadata: TaskStartFailedMetadata) {}
+
     override fun trackStopTaskFailed(metadata: TaskStopFailedMetadata) {}
+
     override fun trackProcessingTaskFailed(metadata: TaskProcessingFailedMetadata) {}
   }
 
@@ -126,9 +120,8 @@ open class TaskTracker(
     /**
      * Creates a [TaskTracker] based on the current profiler state.
      *
-     * Warning: Should only be called by `ProfilerTaskHandler.enter()` and `Stage.enter()`
-     * in production. This method captures a snapshot of the current session and task state;
-     * calling it outside the standard task-entry lifecycle can lead to inaccurate telemetry metadata.
+     * Warning: Should only be called by `ProfilerTaskHandler.enter()` and `Stage.enter()` in production. This method captures a snapshot of
+     * the current session and task state; calling it outside the standard task-entry lifecycle can lead to inaccurate telemetry metadata.
      *
      * @param profilers The [StudioProfilers] instance used to retrieve state and services.
      */
@@ -139,13 +132,12 @@ open class TaskTracker(
     }
 
     /**
-     * Creates a no-op [TaskTracker] that ignores all tracking calls.
-     * This avoids NullReferenceException bugs and unnecessary checks at call sites.
+     * Creates a no-op [TaskTracker] that ignores all tracking calls. This avoids NullReferenceException bugs and unnecessary checks at call
+     * sites.
      *
      * Warning: Should only be called by the `Stage` constructor (or during
-     * [com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler] initialization) in production to provide a safe default.
-     * For actual telemetry recording, use [createTaskTracker] during the task's
-     * entry phase.
+     * [com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler] initialization) in production to provide a safe default. For
+     * actual telemetry recording, use [createTaskTracker] during the task's entry phase.
      */
     @JvmStatic
     fun createNullTaskTracker(profilers: StudioProfilers): TaskTracker {
@@ -160,17 +152,16 @@ open class TaskTracker(
         taskDataOrigin = resolveDataOrigin(sessionsManager),
         taskAttachmentPoint = resolveAttachmentPoint(sessionsManager),
         exposureLevel = sessionsManager.selectedSessionMetaData.exposureLevel,
-        taskConfig = if (sessionsManager.isSessionAlive) {
-          resolveTaskConfig(profilers, sessionsManager.currentTaskType)
-        } else {
-          null
-        }
+        taskConfig =
+          if (sessionsManager.isSessionAlive) {
+            resolveTaskConfig(profilers, sessionsManager.currentTaskType)
+          } else {
+            null
+          },
       )
     }
 
-    /**
-     * Derive data origin based on whether this is a new recording or a previously recorded session.
-     */
+    /** Derive data origin based on whether this is a new recording or a previously recorded session. */
     private fun resolveDataOrigin(sessionsManager: SessionsManager): TaskDataOrigin {
       return when {
         sessionsManager.isSessionAlive -> TaskDataOrigin.NEW
@@ -188,13 +179,8 @@ open class TaskTracker(
       }
     }
 
-    /**
-     * Retrieves the specific configuration used for the task.
-     */
-    private fun resolveTaskConfig(
-      profilers: StudioProfilers,
-      taskType: ProfilerTaskType
-    ): ProfilingConfiguration? {
+    /** Retrieves the specific configuration used for the task. */
+    private fun resolveTaskConfig(profilers: StudioProfilers, taskType: ProfilerTaskType): ProfilingConfiguration? {
       val availableConfigs = getCustomTaskConfigs(profilers)
 
       return when (taskType) {
@@ -204,8 +190,7 @@ open class TaskTracker(
         ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> {
           val recordingType = profilers.taskHomeTabModel.persistentStateOnTaskEnter.recordingType
           when (recordingType) {
-            TaskHomeTabModel.TaskRecordingType.SAMPLED ->
-              availableConfigs.filterIsInstance<ArtSampledConfiguration>().firstOrNull()
+            TaskHomeTabModel.TaskRecordingType.SAMPLED -> availableConfigs.filterIsInstance<ArtSampledConfiguration>().firstOrNull()
             TaskHomeTabModel.TaskRecordingType.INSTRUMENTED ->
               availableConfigs.filterIsInstance<ArtInstrumentedConfiguration>().firstOrNull()
             else -> null
@@ -219,8 +204,6 @@ open class TaskTracker(
     }
 
     private fun getCustomTaskConfigs(profilers: StudioProfilers): List<ProfilingConfiguration> =
-      CpuProfilerConfigModel(profilers, CpuProfilerStage(profilers)).apply {
-        updateProfilingConfigurations()
-      }.taskProfilingConfigurations
+      CpuProfilerConfigModel(profilers, CpuProfilerStage(profilers)).apply { updateProfilingConfigurations() }.taskProfilingConfigurations
   }
 }

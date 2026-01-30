@@ -88,18 +88,11 @@ class IntellijContextMenuInstaller : ContextMenuInstaller {
         }
       }
 
-    action.registerCustomShortcutSet(
-      { contextMenuItem.keyStrokes.map { KeyboardShortcut(it, null) }.toTypedArray() },
-      component
-    )
+    action.registerCustomShortcutSet({ contextMenuItem.keyStrokes.map { KeyboardShortcut(it, null) }.toTypedArray() }, component)
     popupGroup.add(action)
   }
 
-  override fun installNavigationContextMenu(
-    component: JComponent,
-    navigator: CodeNavigator,
-    codeLocationSupplier: Supplier<CodeLocation>,
-  ) {
+  override fun installNavigationContextMenu(component: JComponent, navigator: CodeNavigator, codeLocationSupplier: Supplier<CodeLocation>) {
     val popupGroup = createOrGetActionGroup(component)
     popupGroup.add(NavigateToCodeAction(codeLocationSupplier, navigator))
   }

@@ -24,12 +24,10 @@ import com.android.build.attribution.ui.data.ProjectConfigurationUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 
 /**
- * Builds the Plugins Configuration Time report from the data gathered by Gradle build analyzers.
- * It accesses analysis results from [analyzersProxy] and provides an implementation for [ConfigurationUiData].
+ * Builds the Plugins Configuration Time report from the data gathered by Gradle build analyzers. It accesses analysis results from
+ * [analyzersProxy] and provides an implementation for [ConfigurationUiData].
  */
-class ConfigurationTimesUiDataBuilder(
-  val analyzersProxy: BuildEventsAnalysisResult
-) {
+class ConfigurationTimesUiDataBuilder(val analyzersProxy: BuildEventsAnalysisResult) {
 
   val totalConfigurationTimeMs = analyzersProxy.getConfigurationPhaseTimeMs()
 
@@ -38,9 +36,11 @@ class ConfigurationTimesUiDataBuilder(
   private fun createConfigurationUiData(): ConfigurationUiData =
     object : ConfigurationUiData {
       override val totalConfigurationTime = TimeWithPercentage(totalConfigurationTimeMs, analyzersProxy.getTotalBuildTimeMs())
-      override val projects: List<ProjectConfigurationUiData> = analyzersProxy.getProjectsConfigurationData()
-        .map { createProjectConfigurationUiData(it) }
-        .sortedByDescending { it.configurationTime }
+      override val projects: List<ProjectConfigurationUiData> =
+        analyzersProxy
+          .getProjectsConfigurationData()
+          .map { createProjectConfigurationUiData(it) }
+          .sortedByDescending { it.configurationTime }
       override val totalIssueCount: Int = projects.sumOf { it.issueCount }
     }
 
@@ -48,9 +48,8 @@ class ConfigurationTimesUiDataBuilder(
     object : ProjectConfigurationUiData {
       override val project = projectData.projectPath
       override val configurationTime = TimeWithPercentage(projectData.totalConfigurationTimeMs, totalConfigurationTimeMs)
-      override val plugins = projectData.pluginsConfigurationData
-        .map { createPluginConfigurationUiData(it) }
-        .sortedByDescending { it.configurationTime }
+      override val plugins =
+        projectData.pluginsConfigurationData.map { createPluginConfigurationUiData(it) }.sortedByDescending { it.configurationTime }
       override val issueCount = plugins.count { it.slowsConfiguration } + plugins.sumOf { it.nestedIssueCount }
     }
 

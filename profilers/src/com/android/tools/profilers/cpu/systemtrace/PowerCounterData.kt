@@ -17,6 +17,4 @@ package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.adtui.model.SeriesData
 
-data class PowerCounterData(
-  val deltaData: List<SeriesData<Long>>,
-  val cumulativeData: List<SeriesData<Long>>)
+data class PowerCounterData(val deltaData: List<SeriesData<Long>>, val cumulativeData: List<SeriesData<Long>>)

@@ -28,19 +28,22 @@ import kotlin.reflect.KClass
 
 class PairEnumFinder {
   companion object {
-    private inline fun <reified A : Enum<A>, reified B : Enum<B>> getDefault() =
-      A::class to EnumConverter(A::class.java, B::class.java)
+    private inline fun <reified A : Enum<A>, reified B : Enum<B>> getDefault() = A::class to EnumConverter(A::class.java, B::class.java)
 
-    val permissibleConversions = mapOf<KClass<out Enum<*>>, EnumConverter<out Enum<*>, out Enum<*>>>(
-      getDefault<AlwaysRunTaskData.Reason, BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.Reason>(),
-      getDefault<PluginData.PluginType, BuildAnalysisResultsMessage.PluginData.PluginType>(),
-      getDefault<DownloadsAnalyzer.DownloadStatus, BuildAnalysisResultsMessage.DownloadsAnalyzerResult.DownloadResult.DownloadStatus>(),
-      getDefault<BuildMode, BuildAnalysisResultsMessage.RequestData.BuildMode>(),
-      getDefault<ProjectConfigurationData.ConfigurationStep.Type, BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type>(),
-      getDefault<TaskData.TaskExecutionMode, BuildAnalysisResultsMessage.TaskData.TaskExecutionMode>(),
-      getDefault<TaskCategory, BuildAnalysisResultsMessage.TaskData.TaskCategory>(),
-      getDefault<TaskCategoryIssue, BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.TaskCategoryIssue>()
-    )
+    val permissibleConversions =
+      mapOf<KClass<out Enum<*>>, EnumConverter<out Enum<*>, out Enum<*>>>(
+        getDefault<AlwaysRunTaskData.Reason, BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.Reason>(),
+        getDefault<PluginData.PluginType, BuildAnalysisResultsMessage.PluginData.PluginType>(),
+        getDefault<DownloadsAnalyzer.DownloadStatus, BuildAnalysisResultsMessage.DownloadsAnalyzerResult.DownloadResult.DownloadStatus>(),
+        getDefault<BuildMode, BuildAnalysisResultsMessage.RequestData.BuildMode>(),
+        getDefault<
+          ProjectConfigurationData.ConfigurationStep.Type,
+          BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type,
+        >(),
+        getDefault<TaskData.TaskExecutionMode, BuildAnalysisResultsMessage.TaskData.TaskExecutionMode>(),
+        getDefault<TaskCategory, BuildAnalysisResultsMessage.TaskData.TaskCategory>(),
+        getDefault<TaskCategoryIssue, BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.TaskCategoryIssue>(),
+      )
 
     inline fun <reified A : Enum<A>, reified B : Enum<B>> getConverter(keyClass: KClass<out A>): EnumConverter<A, B> {
       val protoConverter = permissibleConversions[keyClass] ?: throw IllegalStateException("Converter for class $keyClass not found")

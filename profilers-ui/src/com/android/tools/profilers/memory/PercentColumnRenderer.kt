@@ -23,15 +23,15 @@ import java.util.function.Function
 import javax.swing.Icon
 import javax.swing.JTree
 
-internal class PercentColumnRenderer<T: MemoryObject>(
+internal class PercentColumnRenderer<T : MemoryObject>(
   textGetter: Function<MemoryObjectTreeNode<T>, String>,
   iconGetter: Function<MemoryObjectTreeNode<T>, Icon>,
   alignment: Int,
-  private val percentGetter: Function<MemoryObjectTreeNode<T>, Int>
-): SimpleColumnRenderer<T>(textGetter, iconGetter, alignment) {
+  private val percentGetter: Function<MemoryObjectTreeNode<T>, Int>,
+) : SimpleColumnRenderer<T>(textGetter, iconGetter, alignment) {
 
   private var percent = 0
-  private var hasFocus = false;
+  private var hasFocus = false
 
   override fun paintComponent(g: Graphics) {
     if (percent > 0) {
@@ -45,28 +45,32 @@ internal class PercentColumnRenderer<T: MemoryObject>(
     super.paintComponent(g)
   }
 
-  private fun getSparklineColor() = when {
-    !mySelected -> ProfilerColors.CAPTURE_SPARKLINE
-    hasFocus    -> ProfilerColors.CAPTURE_SPARKLINE_SELECTED
-    else        -> contentDeselectionBackground
-  }
+  private fun getSparklineColor() =
+    when {
+      !mySelected -> ProfilerColors.CAPTURE_SPARKLINE
+      hasFocus -> ProfilerColors.CAPTURE_SPARKLINE_SELECTED
+      else -> contentDeselectionBackground
+    }
 
-  private fun getSparklineAccentColor() = when {
-    !mySelected -> ProfilerColors.CAPTURE_SPARKLINE_ACCENT
-    hasFocus    -> ProfilerColors.CAPTURE_SPARKLINE_SELECTED_ACCENT
-    else        -> contentDeselectionBackground
-  }
+  private fun getSparklineAccentColor() =
+    when {
+      !mySelected -> ProfilerColors.CAPTURE_SPARKLINE_ACCENT
+      hasFocus -> ProfilerColors.CAPTURE_SPARKLINE_SELECTED_ACCENT
+      else -> contentDeselectionBackground
+    }
 
-  override fun customizeCellRenderer(tree: JTree,
-                                     value: Any?,
-                                     selected: Boolean,
-                                     expanded: Boolean,
-                                     leaf: Boolean,
-                                     row: Int,
-                                     hasFocus: Boolean) {
+  override fun customizeCellRenderer(
+    tree: JTree,
+    value: Any?,
+    selected: Boolean,
+    expanded: Boolean,
+    leaf: Boolean,
+    row: Int,
+    hasFocus: Boolean,
+  ) {
     super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
     if (value is MemoryObjectTreeNode<*>) {
-      this.hasFocus = hasFocus;
+      this.hasFocus = hasFocus
       percent = percentGetter.apply(value as MemoryObjectTreeNode<T>)
     }
   }

@@ -61,8 +61,7 @@ import org.jetbrains.jewel.ui.component.Text
 /**
  * A wizard dialog whose steps are implemented in Compose.
  *
- * Pages are implemented by composable functions of the type `@Composable WizardPageScope.() ->
- * Unit`.
+ * Pages are implemented by composable functions of the type `@Composable WizardPageScope.() -> Unit`.
  */
 class ComposeWizard(
   val project: Project?,
@@ -130,8 +129,7 @@ class ComposeWizard(
     @OptIn(ExperimentalJewelApi::class) (enableNewSwingCompositing())
     val component = StudioComposePanel {
       CompositionLocalProvider(LocalProject provides project) {
-        prevButton.action =
-          if (pageStack.size > 1) WizardAction { pageStack.removeLast() } else WizardAction.Disabled
+        prevButton.action = if (pageStack.size > 1) WizardAction { pageStack.removeLast() } else WizardAction.Disabled
         wizardPageScope.apply { WizardPageScaffold(wizardDialogScope, currentPage) }
       }
     }
@@ -169,18 +167,12 @@ internal fun WizardPageScope.WizardPageScaffold(
   ) {
     Box(Modifier.weight(1f)) { content() }
     Divider(Orientation.Horizontal, Modifier.fillMaxWidth())
-    WizardButtonBar(
-      wizardDialogScope,
-      modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp),
-    )
+    WizardButtonBar(wizardDialogScope, modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp))
   }
 }
 
 @Composable
-internal fun WizardPageScope.WizardButtonBar(
-  wizardDialogScope: InternalWizardDialogScope,
-  modifier: Modifier = Modifier,
-) {
+internal fun WizardPageScope.WizardButtonBar(wizardDialogScope: InternalWizardDialogScope, modifier: Modifier = Modifier) {
   with(wizardDialogScope) {
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
       for (button in leftSideButtons) {
@@ -188,15 +180,9 @@ internal fun WizardPageScope.WizardButtonBar(
       }
       Spacer(Modifier.weight(1f))
       OutlinedButton(onClick = { cancel() }, enabled = cancelButtonEnabled) { Text("Cancel") }
-      OutlinedButton(onClick = { popPage() }, enabled = prevButtonEnabled && pageStackSize() > 1) {
-        Text("Previous")
-      }
-      OutlinedButton(onClick = { with(nextAction) { invoke() } }, enabled = nextAction.enabled) {
-        Text("Next")
-      }
-      DefaultButton(onClick = { with(finishAction) { invoke() } }, enabled = finishAction.enabled) {
-        Text("Finish")
-      }
+      OutlinedButton(onClick = { popPage() }, enabled = prevButtonEnabled && pageStackSize() > 1) { Text("Previous") }
+      OutlinedButton(onClick = { with(nextAction) { invoke() } }, enabled = nextAction.enabled) { Text("Next") }
+      DefaultButton(onClick = { with(finishAction) { invoke() } }, enabled = finishAction.enabled) { Text("Finish") }
     }
   }
 }
@@ -243,10 +229,7 @@ class WizardAction(val action: (WizardDialogScope.() -> Unit)?) {
   }
 }
 
-/**
- * Scope providing access to wizard buttons, allowing pages to enable / disable buttons and define
- * their behavior.
- */
+/** Scope providing access to wizard buttons, allowing pages to enable / disable buttons and define their behavior. */
 abstract class WizardPageScope {
   var prevButtonEnabled by mutableStateOf(true)
   var cancelButtonEnabled by mutableStateOf(true)
@@ -266,15 +249,10 @@ abstract class WizardPageScope {
   private val state = mutableStateMapOf<Any, Any>()
 
   @Suppress("UNCHECKED_CAST")
-  fun <T : Any> getOrCreateState(key: Class<T>, defaultState: () -> T): T =
-    state.computeIfAbsent(key) { defaultState() } as T
+  fun <T : Any> getOrCreateState(key: Class<T>, defaultState: () -> T): T = state.computeIfAbsent(key) { defaultState() } as T
 
-  /**
-   * Retrieves wizard-scoped state of the given type, or creates it if it has not yet been created
-   * in this wizard.
-   */
-  inline fun <reified T : Any> getOrCreateState(noinline defaultState: () -> T): T =
-    getOrCreateState(T::class.java, defaultState)
+  /** Retrieves wizard-scoped state of the given type, or creates it if it has not yet been created in this wizard. */
+  inline fun <reified T : Any> getOrCreateState(noinline defaultState: () -> T): T = getOrCreateState(T::class.java, defaultState)
 }
 
 val LocalFileSystem = staticCompositionLocalOf<FileSystem> { FileSystems.getDefault() }

@@ -44,8 +44,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * A chart which renders nodes using a horizontal flow. That is, while normal trees are vertical,
- * rendering nested rows top-to-bottom, this chart renders nested columns left-to-right.
+ * A chart which renders nodes using a horizontal flow. That is, while normal trees are vertical, rendering nested rows top-to-bottom, this
+ * chart renders nested columns left-to-right.
  *
  * @param <N> The type of the node used by this tree chart </N>
  */
@@ -55,10 +55,7 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
   private var root = builder.root
   private val xRange = builder.xRange
 
-  /**
-   * The X range that myXRange could possibly be. Any changes to X range should be limited within
-   * it.
-   */
+  /** The X range that myXRange could possibly be. Any changes to X range should be limited within it. */
   private val globalXRange = builder.globalXRange
   val yRange: Range = Range(INITIAL_Y_POSITION.toDouble(), INITIAL_Y_POSITION.toDouble())
   private val rectangles = ArrayList<Rectangle2D.Float>()
@@ -66,19 +63,17 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
   private val rootVisible = builder.rootVisible
 
   /**
-   * Normally, the focused node is set by mouse hover. However, for tests, it can be a huge
-   * convenience to set this directly.
+   * Normally, the focused node is set by mouse hover. However, for tests, it can be a huge convenience to set this directly.
    *
-   * It is up to the caller to make sure that the node specified here actually belongs to this
-   * chart. Otherwise, the call will have no effect.
+   * It is up to the caller to make sure that the node specified here actually belongs to this chart. Otherwise, the call will have no
+   * effect.
    */
   @set:VisibleForTesting var focusedNode: N? = null
   private val nodeSelectionEnabled = builder.nodeSelectionEnabled
 
   /**
-   * Updates the selected node. This is called by mouse click event handler and also from other
-   * instances of HTreeChart selects a node and wants to update the (un)selected state of this
-   * instance.
+   * Updates the selected node. This is called by mouse click event handler and also from other instances of HTreeChart selects a node and
+   * wants to update the (un)selected state of this instance.
    */
   @get:VisibleForTesting
   var selectedNode: N? = null
@@ -95,8 +90,8 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
   private var canvas: Image? = null
 
   /**
-   * If true, the next render pass will forcefully rebuild this chart's canvas (an expensive
-   * operation which doesn't have to be done too often as usually the contents are static)
+   * If true, the next render pass will forcefully rebuild this chart's canvas (an expensive operation which doesn't have to be done too
+   * often as usually the contents are static)
    */
   private var dataUpdated = false
   private var selectionUpdated = false
@@ -155,26 +150,14 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
     }
     g.font = font
     if (root == null || root!!.childCount == 0) {
-      g.drawString(
-        NO_HTREE,
-        dim.width / 2 - mDefaultFontMetrics.stringWidth(NO_HTREE),
-        dim.height / 2,
-      )
+      g.drawString(NO_HTREE, dim.width / 2 - mDefaultFontMetrics.stringWidth(NO_HTREE), dim.height / 2)
       return
     }
     if (xRange.length == 0.0) {
-      g.drawString(
-        NO_RANGE,
-        dim.width / 2 - mDefaultFontMetrics.stringWidth(NO_RANGE),
-        dim.height / 2,
-      )
+      g.drawString(NO_RANGE, dim.width / 2 - mDefaultFontMetrics.stringWidth(NO_RANGE), dim.height / 2)
       return
     }
-    if (
-      canvas == null ||
-        ImageUtil.getUserHeight(canvas!!) != dim.height ||
-        ImageUtil.getUserWidth(canvas!!) != dim.width
-    ) {
+    if (canvas == null || ImageUtil.getUserHeight(canvas!!) != dim.height || ImageUtil.getUserWidth(canvas!!) != dim.width) {
       redrawToCanvas(dim)
     }
     UIUtil.drawImage(g, canvas!!, 0, 0, null)
@@ -184,11 +167,7 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
   }
 
   private fun redrawToCanvas(dim: Dimension) {
-    if (
-      canvas == null ||
-        ImageUtil.getUserWidth(canvas!!) < dim.width ||
-        ImageUtil.getUserHeight(canvas!!) < dim.height
-    ) {
+    if (canvas == null || ImageUtil.getUserWidth(canvas!!) < dim.width || ImageUtil.getUserHeight(canvas!!) < dim.height) {
       // Note: We intentionally create an RGB image, not an ARGB image, because this allows nodes
       // to render their text clearly (ARGB prevents LCD rendering from working).
       canvas = ImageUtil.createImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB)
@@ -224,8 +203,7 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
         Rectangle2D.Float(
           max(0f, drawingArea.x),
           drawingArea.y,
-          min(drawingArea.x + drawingArea.width, (dim.width - nodeXPaddingPx).toFloat()) -
-            max(0f, drawingArea.x),
+          min(drawingArea.x + drawingArea.width, (dim.width - nodeXPaddingPx).toFloat()) - max(0f, drawingArea.x),
           drawingArea.height,
         )
       // In an effort to optimize performance of this chart's usage (b/281850040), hovering over a
@@ -237,14 +215,7 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
       // all hover coloring. This achieves a consistent UI (if a mouse position change does not
       // update the node's fill color, no other
       // chart update should either).
-      renderer.render(
-        g,
-        node,
-        drawingArea,
-        clampedDrawingArea,
-        false,
-        selectedNode != null && node !== selectedNode,
-      )
+      renderer.render(g, node, drawingArea, clampedDrawingArea, false, selectedNode != null && node !== selectedNode)
     }
     g.dispose()
   }
@@ -297,8 +268,7 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
     rootChanged()
   }
 
-  fun getNodeAt(point: Point): N? =
-    (drawnNodes zip drawnRectangles).find { (_, rect) -> point in rect }?.first
+  fun getNodeAt(point: Point): N? = (drawnNodes zip drawnRectangles).find { (_, rect) -> point in rect }?.first
 
   private fun initializeInputMap() {
     fun bindKey(key: Int, action: String) = inputMap.put(KeyStroke.getKeyStroke(key, 0), action)
@@ -315,25 +285,15 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
       actionMap.put(
         action,
         object : AbstractAction() {
-          override fun actionPerformed(e: ActionEvent) =
-            perform(xRange.length / ACTION_MOVEMENT_FACTOR)
+          override fun actionPerformed(e: ActionEvent) = perform(xRange.length / ACTION_MOVEMENT_FACTOR)
         },
       )
-    bindMovementAction(ACTION_ZOOM_IN) { delta ->
-      xRange.set(xRange.min + delta, xRange.max - delta)
-    }
+    bindMovementAction(ACTION_ZOOM_IN) { delta -> xRange.set(xRange.min + delta, xRange.max - delta) }
     bindMovementAction(ACTION_ZOOM_OUT) { delta ->
-      xRange.set(
-        max(globalXRange.min, xRange.min - delta),
-        min(globalXRange.max, xRange.max + delta),
-      )
+      xRange.set(max(globalXRange.min, xRange.min - delta), min(globalXRange.max, xRange.max + delta))
     }
-    bindMovementAction(ACTION_MOVE_LEFT) { delta ->
-      xRange.shift(-min(xRange.min - globalXRange.min, delta))
-    }
-    bindMovementAction(ACTION_MOVE_RIGHT) { delta ->
-      xRange.shift(min(globalXRange.max - xRange.max, delta))
-    }
+    bindMovementAction(ACTION_MOVE_LEFT) { delta -> xRange.shift(-min(xRange.min - globalXRange.min, delta)) }
+    bindMovementAction(ACTION_MOVE_RIGHT) { delta -> xRange.shift(min(globalXRange.max - xRange.max, delta)) }
   }
 
   private fun initializeMouseEvents() {
@@ -391,8 +351,7 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
             // User attempts to drag the chart's toe (the innermost frame on call stacks) away from
             // the boundary. No.
             // Note that the chart may be taller than the stacks, so we need to limit the delta.
-            yRange.min + viewHeight + deltaY > contentHeight ->
-              deltaY = max(0.0, contentHeight - viewHeight - yRange.min)
+            yRange.min + viewHeight + deltaY > contentHeight -> deltaY = max(0.0, contentHeight - viewHeight - yRange.min)
           }
           yRange.shift(deltaY)
         }
@@ -402,10 +361,7 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
             val cursorRange = positionToRange(e.x.toDouble())
             val leftDelta = (cursorRange - xRange.min) / ZOOM_FACTOR * e.wheelRotation
             val rightDelta = (xRange.max - cursorRange) / ZOOM_FACTOR * e.wheelRotation
-            xRange.set(
-              max(globalXRange.min, xRange.min - leftDelta),
-              min(globalXRange.max, xRange.max + rightDelta),
-            )
+            xRange.set(max(globalXRange.min, xRange.min - leftDelta), min(globalXRange.max, xRange.max + rightDelta))
           } else {
             val deltaY = e.preciseWheelRotation * MOUSE_WHEEL_SCROLL_FACTOR
             shiftYRange(if (orientation == Orientation.TOP_DOWN) deltaY else -deltaY)
@@ -460,20 +416,16 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
 
     fun setRootVisible(visible: Boolean) = this.also { this.rootVisible = visible }
 
-    fun setNodeSelectionEnabled(nodeSelectionEnabled: Boolean) =
-      this.also { this.nodeSelectionEnabled = nodeSelectionEnabled }
+    fun setNodeSelectionEnabled(nodeSelectionEnabled: Boolean) = this.also { this.nodeSelectionEnabled = nodeSelectionEnabled }
 
     /**
-     * @param globalXRange the bounding range of chart's visible area, if it's not set, it assumes
-     *   that there is no bounding range of chart.
+     * @param globalXRange the bounding range of chart's visible area, if it's not set, it assumes that there is no bounding range of chart.
      */
     fun setGlobalXRange(globalXRange: Range) = this.also { this.globalXRange = globalXRange }
 
-    @VisibleForTesting
-    fun setReducer(reducer: HTreeChartReducer<N>) = this.also { this.reducer = reducer }
+    @VisibleForTesting fun setReducer(reducer: HTreeChartReducer<N>) = this.also { this.reducer = reducer }
 
-    fun setCustomNodeHeightPx(customNodeHeightPx: Int) =
-      this.also { this.customNodeHeightPx = customNodeHeightPx }
+    fun setCustomNodeHeightPx(customNodeHeightPx: Int) = this.also { this.customNodeHeightPx = customNodeHeightPx }
 
     fun setNodeXPaddingPx(nodeXPaddingPx: Int) = this.also { this.nodeXPaddingPx = nodeXPaddingPx }
 

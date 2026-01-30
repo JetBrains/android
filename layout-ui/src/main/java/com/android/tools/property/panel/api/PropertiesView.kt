@@ -24,8 +24,8 @@ package com.android.tools.property.panel.api
  * - One view for displaying component properties in Nele
  * - Another view for displaying key frame properties in Motion Editor
  *
- * The [id] of this view, (used for storing preferences). Use [addTab] to create a named tab
- * [PropertiesViewTab]. Each tab will be shown on a separate tab in the properties panel.
+ * The [id] of this view, (used for storing preferences). Use [addTab] to create a named tab [PropertiesViewTab]. Each tab will be shown on
+ * a separate tab in the properties panel.
  */
 open class PropertiesView<P : PropertyItem>(val id: String, val model: PropertiesModel<P>) {
   /** The main properties view. */
@@ -34,8 +34,7 @@ open class PropertiesView<P : PropertyItem>(val id: String, val model: Propertie
   /**
    * The tabbed views.
    *
-   * These views appear in a tabbed pane below the main properties view. Use [addTab] to add a tab
-   * to this view.
+   * These views appear in a tabbed pane below the main properties view. Use [addTab] to add a tab to this view.
    */
   val tabs = mutableListOf<PropertiesViewTab<P>>()
 
@@ -49,8 +48,8 @@ open class PropertiesView<P : PropertyItem>(val id: String, val model: Propertie
   /**
    * Adds a tab to this view.
    *
-   * A TabbedPane will be added below the [main] view with a tab with the specified [name]. Returned
-   * in a [PropertiesViewTab] which can be populated with [InspectorBuilder]s.
+   * A TabbedPane will be added below the [main] view with a tab with the specified [name]. Returned in a [PropertiesViewTab] which can be
+   * populated with [InspectorBuilder]s.
    */
   fun addTab(name: String): PropertiesViewTab<P> {
     val tab = PropertiesViewTab(name, model)

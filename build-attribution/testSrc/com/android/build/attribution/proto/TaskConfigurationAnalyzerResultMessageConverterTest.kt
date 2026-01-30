@@ -26,15 +26,16 @@ import org.junit.Test
 class TaskConfigurationAnalyzerResultMessageConverterTest {
   @Test
   fun testTasksConfigurationIssuesAnalyzerResult() {
-    val taskDatum = TaskData(
-      "task name",
-      "project path",
-      PluginData(PluginData.PluginType.SCRIPT, "id name"),
-      12345,
-      12345,
-      TaskData.TaskExecutionMode.FULL,
-      listOf("abc", "def", "ghi")
-    )
+    val taskDatum =
+      TaskData(
+        "task name",
+        "project path",
+        PluginData(PluginData.PluginType.SCRIPT, "id name"),
+        12345,
+        12345,
+        TaskData.TaskExecutionMode.FULL,
+        listOf("abc", "def", "ghi"),
+      )
     val taskData = TasksSharingOutputData(taskDatum.getTaskPath(), listOf(taskDatum))
     val cache = mutableMapOf<String, TaskData>()
     cache[taskDatum.getTaskPath()] = taskDatum

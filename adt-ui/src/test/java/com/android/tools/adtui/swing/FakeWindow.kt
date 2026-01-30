@@ -31,10 +31,7 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 
-internal inline fun <reified T : Window> createFakeWindow(
-  root: JComponent,
-  parentDisposable: Disposable?,
-): T {
+internal inline fun <reified T : Window> createFakeWindow(root: JComponent, parentDisposable: Disposable?): T {
   // A mock is used here because in a headless environment it is not possible to instantiate
   // Window or any of its subclasses due to checks in the Window constructor.
   val mockWindow = mock(T::class.java)
@@ -64,14 +61,10 @@ private fun wrapInFakeWindow(mockWindow: Window, root: JComponent, parentDisposa
   if (mockWindow is RootPaneContainer) {
     whenever(mockWindow.contentPane).thenReturn(root)
   }
-  doAnswer { invocation ->
-      windowFocusListeners.add(invocation.arguments[0] as WindowFocusListener)
-    }
+  doAnswer { invocation -> windowFocusListeners.add(invocation.arguments[0] as WindowFocusListener) }
     .whenever(mockWindow)
     .addWindowFocusListener(any())
-  doAnswer { invocation ->
-      windowFocusListeners.remove(invocation.arguments[0] as WindowFocusListener)
-    }
+  doAnswer { invocation -> windowFocusListeners.remove(invocation.arguments[0] as WindowFocusListener) }
     .whenever(mockWindow)
     .removeWindowFocusListener(any())
   doAnswer { windowFocusListeners.toTypedArray() }.whenever(mockWindow).windowFocusListeners

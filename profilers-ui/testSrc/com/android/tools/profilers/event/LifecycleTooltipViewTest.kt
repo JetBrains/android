@@ -29,13 +29,13 @@ import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import java.util.concurrent.TimeUnit
+import javax.swing.JLabel
+import javax.swing.JPanel
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
-import javax.swing.JLabel
-import javax.swing.JPanel
 
 class LifecycleTooltipViewTest {
   private lateinit var activityTooltipView: FakeLifecycleTooltipView
@@ -43,14 +43,11 @@ class LifecycleTooltipViewTest {
   private lateinit var monitor: EventMonitor
   private val transportService = FakeTransportService(timer)
 
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("LifecycleTooltipViewTest", transportService)
+  @get:Rule val grpcChannel = FakeGrpcChannel("LifecycleTooltipViewTest", transportService)
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Before
   fun setup() {
@@ -73,18 +70,24 @@ class LifecycleTooltipViewTest {
     val activityEndTimeNs = TimeUnit.SECONDS.toNanos(4)
     val fragmentEndTimeNs = TimeUnit.SECONDS.toNanos(5)
 
-    buildActivityEvent(ACTIVITY_NAME, arrayOf(ActivityStateData(Interaction.ViewData.State.CREATED,
-                                                                TEST_START_TIME_NS),
-                                              ActivityStateData(Interaction.ViewData.State.RESUMED,
-                                                                TEST_START_TIME_NS),
-                                              ActivityStateData(Interaction.ViewData.State.PAUSED,
-                                                                activityEndTimeNs)),
-                       0)
+    buildActivityEvent(
+      ACTIVITY_NAME,
+      arrayOf(
+        ActivityStateData(Interaction.ViewData.State.CREATED, TEST_START_TIME_NS),
+        ActivityStateData(Interaction.ViewData.State.RESUMED, TEST_START_TIME_NS),
+        ActivityStateData(Interaction.ViewData.State.PAUSED, activityEndTimeNs),
+      ),
+      0,
+    )
     for (fragmentName in FRAGMENT_NAMES) {
-      buildActivityEvent(fragmentName,
-                         arrayOf(ActivityStateData(Interaction.ViewData.State.ADDED, TEST_START_TIME_NS),
-                                 ActivityStateData(Interaction.ViewData.State.REMOVED, fragmentEndTimeNs)),
-                         fragmentName.hashCode().toLong())
+      buildActivityEvent(
+        fragmentName,
+        arrayOf(
+          ActivityStateData(Interaction.ViewData.State.ADDED, TEST_START_TIME_NS),
+          ActivityStateData(Interaction.ViewData.State.REMOVED, fragmentEndTimeNs),
+        ),
+        fragmentName.hashCode().toLong(),
+      )
     }
     timer.tick(TimeUnit.SECONDS.toNanos(2))
     // Check text when hovering over event line for adding fragment.
@@ -121,15 +124,23 @@ class LifecycleTooltipViewTest {
 
   @Test
   fun tooltipRangeChangeShouldBeHandled() {
-    buildActivityEvent(ACTIVITY_NAME, arrayOf(
-      ActivityStateData(Interaction.ViewData.State.ADDED, TimeUnit.SECONDS.toNanos(1)),
-      ActivityStateData(Interaction.ViewData.State.PAUSED, TimeUnit.SECONDS.toNanos(2))
-    ), 0)
+    buildActivityEvent(
+      ACTIVITY_NAME,
+      arrayOf(
+        ActivityStateData(Interaction.ViewData.State.ADDED, TimeUnit.SECONDS.toNanos(1)),
+        ActivityStateData(Interaction.ViewData.State.PAUSED, TimeUnit.SECONDS.toNanos(2)),
+      ),
+      0,
+    )
 
-    buildActivityEvent(OTHER_ACTIVITY_NAME, arrayOf(
-      ActivityStateData(Interaction.ViewData.State.ADDED, TimeUnit.SECONDS.toNanos(2)),
-      ActivityStateData(Interaction.ViewData.State.PAUSED, TimeUnit.SECONDS.toNanos(3))
-    ), 0)
+    buildActivityEvent(
+      OTHER_ACTIVITY_NAME,
+      arrayOf(
+        ActivityStateData(Interaction.ViewData.State.ADDED, TimeUnit.SECONDS.toNanos(2)),
+        ActivityStateData(Interaction.ViewData.State.PAUSED, TimeUnit.SECONDS.toNanos(3)),
+      ),
+      0,
+    )
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
@@ -147,16 +158,16 @@ class LifecycleTooltipViewTest {
 
   @Test
   fun testGetActivityTitleTextCompleted() {
-    buildActivityEvent(ACTIVITY_NAME,
-                       arrayOf(ActivityStateData(Interaction.ViewData.State.CREATED,
-                                                 TEST_START_TIME_NS),
-                               ActivityStateData(Interaction.ViewData.State.RESUMED,
-                                                 TEST_START_TIME_NS),
-                               ActivityStateData(Interaction.ViewData.State.PAUSED,
-                                                 TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1)),
-                               ActivityStateData(Interaction.ViewData.State.DESTROYED,
-                                                 TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1))),
-                       0)
+    buildActivityEvent(
+      ACTIVITY_NAME,
+      arrayOf(
+        ActivityStateData(Interaction.ViewData.State.CREATED, TEST_START_TIME_NS),
+        ActivityStateData(Interaction.ViewData.State.RESUMED, TEST_START_TIME_NS),
+        ActivityStateData(Interaction.ViewData.State.PAUSED, TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1)),
+        ActivityStateData(Interaction.ViewData.State.DESTROYED, TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1)),
+      ),
+      0,
+    )
     timer.tick(TimeUnit.SECONDS.toNanos(2))
     assertThat(activityTooltipView.headingText).matches("00:01.001")
     assertThat(activityTooltipView.activityNameText).matches(String.format("%s - destroyed", ACTIVITY_NAME))
@@ -170,22 +181,18 @@ class LifecycleTooltipViewTest {
     assertEquals("00:01.001", text)
   }
 
-  private fun buildActivityEvent(name: String,
-                                 states: Array<ActivityStateData>,
-                                 contextHash: Long) {
+  private fun buildActivityEvent(name: String, states: Array<ActivityStateData>, contextHash: Long) {
     for (state in states) {
-      transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
-                                        Common.Event.newBuilder()
-                                          .setKind(Common.Event.Kind.VIEW)
-                                          .setTimestamp(state.activityStateTime)
-                                          .setGroupId(name.hashCode().toLong())
-                                          .setIsEnded(state.isEndState())
-                                          .setView(
-                                            Interaction.ViewData.newBuilder()
-                                              .setName(name)
-                                              .setState(state.activityState)
-                                              .setParentActivityId(contextHash))
-                                          .build())
+      transportService.addEventToStream(
+        FakeTransportService.FAKE_DEVICE_ID,
+        Common.Event.newBuilder()
+          .setKind(Common.Event.Kind.VIEW)
+          .setTimestamp(state.activityStateTime)
+          .setGroupId(name.hashCode().toLong())
+          .setIsEnded(state.isEndState())
+          .setView(Interaction.ViewData.newBuilder().setName(name).setState(state.activityState).setParentActivityId(contextHash))
+          .build(),
+      )
     }
   }
 
@@ -206,8 +213,11 @@ class LifecycleTooltipViewTest {
   private data class ActivityStateData(var activityState: Interaction.ViewData.State, var activityStateTime: Long) {
     fun isEndState(): Boolean {
       return when (activityState) {
-        Interaction.ViewData.State.PAUSED, Interaction.ViewData.State.STOPPED, Interaction.ViewData.State.DESTROYED -> true
-        Interaction.ViewData.State.SAVED, Interaction.ViewData.State.REMOVED -> true
+        Interaction.ViewData.State.PAUSED,
+        Interaction.ViewData.State.STOPPED,
+        Interaction.ViewData.State.DESTROYED -> true
+        Interaction.ViewData.State.SAVED,
+        Interaction.ViewData.State.REMOVED -> true
         else -> false
       }
     }

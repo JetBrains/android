@@ -17,12 +17,11 @@ package com.android.ide.gradle.model
 
 import java.io.Serializable
 
-data class ArtifactIdentifierImpl(
-  private val groupId: String,
-  private val artifactId: String,
-  private val version: String
-) : ArtifactIdentifier, Serializable {
+data class ArtifactIdentifierImpl(private val groupId: String, private val artifactId: String, private val version: String) :
+  ArtifactIdentifier, Serializable {
   override fun getGroupId() = groupId
+
   override fun getArtifactId() = artifactId
+
   override fun getVersion() = version
 }

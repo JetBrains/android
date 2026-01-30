@@ -18,8 +18,8 @@ package com.android.tools.profilers.cpu
 import com.android.tools.profilers.cpu.CpuCaptureParser.FileHeaderParsingFailureException
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import kotlin.test.assertNull
+import org.junit.Test
 
 class CpuCaptureUtilTest {
   @Test
@@ -47,7 +47,7 @@ class CpuCaptureUtilTest {
 
   @Test
   fun simpleperfKnownTypeTest() {
-    val traceFile = CpuProfilerTestUtils.getTraceFile("simpleperf.trace");
+    val traceFile = CpuProfilerTestUtils.getTraceFile("simpleperf.trace")
     // Known trace type is provided as the currently known trace type
     val result = CpuCaptureParserUtil.getFileTraceType(traceFile, TraceType.SIMPLEPERF)
     assertThat(result).isEqualTo(TraceType.SIMPLEPERF)
@@ -62,7 +62,7 @@ class CpuCaptureUtilTest {
 
   @Test
   fun atraceKnownTypeTest() {
-    val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace");
+    val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
     // Known trace type is provided as the currently known trace type
     val result = CpuCaptureParserUtil.getFileTraceType(traceFile, TraceType.ATRACE)
     assertThat(result).isEqualTo(TraceType.ATRACE)
@@ -70,14 +70,14 @@ class CpuCaptureUtilTest {
 
   @Test(expected = FileHeaderParsingFailureException::class)
   fun atraceKnownTypeVerificationError() {
-    val traceFile = CpuProfilerTestUtils.getTraceFile("simpleperf.trace");
+    val traceFile = CpuProfilerTestUtils.getTraceFile("simpleperf.trace")
     // Known trace type is provided as the currently known trace type and file fail trace verification
     CpuCaptureParserUtil.getFileTraceType(traceFile, TraceType.ATRACE)
   }
 
   @Test
   fun perfettoKnownTypeTest() {
-    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace");
+    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
     // Known trace type is provided as the currently known trace type
     val result = CpuCaptureParserUtil.getFileTraceType(traceFile, TraceType.PERFETTO)
     assertThat(result).isEqualTo(TraceType.PERFETTO)
@@ -85,7 +85,7 @@ class CpuCaptureUtilTest {
 
   @Test(expected = FileHeaderParsingFailureException::class)
   fun perfettoKnownTypeVerificationError() {
-    val traceFile = CpuProfilerTestUtils.getTraceFile("art_streaming.trace");
+    val traceFile = CpuProfilerTestUtils.getTraceFile("art_streaming.trace")
     // Known trace type is provided as the currently known trace type and file fail trace verification
     CpuCaptureParserUtil.getFileTraceType(traceFile, TraceType.PERFETTO)
   }

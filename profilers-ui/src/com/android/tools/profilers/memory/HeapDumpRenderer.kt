@@ -40,9 +40,8 @@ import java.awt.geom.Rectangle2D
 import java.util.function.Consumer
 import javax.swing.JLabel
 
-class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<out CaptureObject>>,
-                       private val viewRange: Range)
-      : AspectObserver(), AbstractDurationDataRenderer {
+class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<out CaptureObject>>, private val viewRange: Range) :
+  AspectObserver(), AbstractDurationDataRenderer {
   private val startsCache = DoubleArrayList()
   private val durationsCache = DoubleArrayList()
   private val labelCache = mutableListOf<JLabel>()
@@ -64,10 +63,12 @@ class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<
     heapDumpHoveredListener.add(listener)
   }
 
-  override fun renderLines(lineChart: LineChart,
-                           g2d: Graphics2D,
-                           transformedPaths: MutableList<Path2D>,
-                           transformedSeries: MutableList<RangedContinuousSeries>) {
+  override fun renderLines(
+    lineChart: LineChart,
+    g2d: Graphics2D,
+    transformedPaths: MutableList<Path2D>,
+    transformedSeries: MutableList<RangedContinuousSeries>,
+  ) {
     val origClip = g2d.clip
     val origX = origClip.bounds.x.toDouble()
     val origY = origClip.bounds.y
@@ -87,9 +88,7 @@ class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<
       val scaledXStart = xStart * dimWidth
       val scaledDuration = xLen * dimWidth
       val newX = Math.max(scaledXStart, origX)
-      clipRect.setRect(newX, origY.toDouble(),
-                       Math.min(scaledDuration + scaledXStart - newX, origX + origWidth - newX),
-                       height)
+      clipRect.setRect(newX, origY.toDouble(), Math.min(scaledDuration + scaledXStart - newX, origX + origWidth - newX), height)
 
       // Draw blank box for heap dump period to indicate the lack of data,
       // as well as other visual hints that the heap dump is at an instance in time
@@ -105,8 +104,7 @@ class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<
         val bottom = clipRect.y.toInt() + height
         val midY = top + height / 2
         color =
-          if (scaledXStart < mousePosition.x && mousePosition.x < scaledXStart + scaledDuration)
-            selectionOverlayBackground
+          if (scaledXStart < mousePosition.x && mousePosition.x < scaledXStart + scaledDuration) selectionOverlayBackground
           else primaryContentBackground
         fill(clipRect)
         color = linkForeground
@@ -120,8 +118,12 @@ class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<
       // Draw the label
       labelCache[i].let { label ->
         g2d.color = labelBgColor
-        g2d.fillRect(clipRect.x.toInt(), (clipRect.height - 2 * labelYPadding - label.height).toInt(),
-                     (label.width + 2 * labelXPadding).toInt(), (label.height + 2 * labelYPadding).toInt())
+        g2d.fillRect(
+          clipRect.x.toInt(),
+          (clipRect.height - 2 * labelYPadding - label.height).toInt(),
+          (label.width + 2 * labelXPadding).toInt(),
+          (label.height + 2 * labelYPadding).toInt(),
+        )
         val labelXOffset = scaledXStart + labelXPadding
         val labelYOffset = (clipRect.height - label.height) - labelYPadding
         g2d.translate(labelXOffset, labelYOffset)
@@ -135,17 +137,21 @@ class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<
 
   override fun renderOverlay(host: Component, g2d: Graphics2D) {}
 
-  override fun handleMouseEvent(overlayComponent: Component, selectionComponent: Component, event: MouseEvent) = false.also {
-    mousePosition = event.point
-    isMouseOverHeapDump = (0 until startsCache.size).any { i ->
-      val xStart = startsCache.getDouble(i)
-      val xLen = durationsCache.getDouble(i)
-      val scaledStartX = xStart * overlayComponent.width
-      val scaledDur = xLen * overlayComponent.width
-      scaledStartX < mousePosition.x && mousePosition.x < scaledStartX + scaledDur &&
-      overlayComponent.y < mousePosition.y && mousePosition.y < overlayComponent.y + overlayComponent.height
+  override fun handleMouseEvent(overlayComponent: Component, selectionComponent: Component, event: MouseEvent) =
+    false.also {
+      mousePosition = event.point
+      isMouseOverHeapDump =
+        (0 until startsCache.size).any { i ->
+          val xStart = startsCache.getDouble(i)
+          val xLen = durationsCache.getDouble(i)
+          val scaledStartX = xStart * overlayComponent.width
+          val scaledDur = xLen * overlayComponent.width
+          scaledStartX < mousePosition.x &&
+            mousePosition.x < scaledStartX + scaledDur &&
+            overlayComponent.y < mousePosition.y &&
+            mousePosition.y < overlayComponent.y + overlayComponent.height
+        }
     }
-  }
 
   private fun modelChanged() {
     startsCache.clear()
@@ -161,13 +167,15 @@ class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<
       val text =
         if (data.value.durationUs == Long.MAX_VALUE) "in progress"
         else TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.length, data.value.durationUs.toDouble(), true)
-      labelCache.add(JLabel("Dump ($text)").apply {
-        font = AdtUiUtils.DEFAULT_FONT.deriveFont(9f)
-        foreground = labelColor
-        background = JBColor.DARK_GRAY
-        val size = preferredSize
-        setBounds(0, 0, size.width, size.height)
-      })
+      labelCache.add(
+        JLabel("Dump ($text)").apply {
+          font = AdtUiUtils.DEFAULT_FONT.deriveFont(9f)
+          foreground = labelColor
+          background = JBColor.DARK_GRAY
+          val size = preferredSize
+          setBounds(0, 0, size.width, size.height)
+        }
+      )
     }
   }
 

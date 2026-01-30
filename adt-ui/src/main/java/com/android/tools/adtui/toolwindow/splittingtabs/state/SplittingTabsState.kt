@@ -24,15 +24,13 @@ import com.intellij.util.xmlb.annotations.XCollection.Style.v2
 
 @Tag("tool-windows")
 internal data class SplittingTabsState(
-  @XCollection(propertyElementName = "tool-windows", style = v2)
-  var toolWindows: List<ToolWindowState> = mutableListOf()
+  @XCollection(propertyElementName = "tool-windows", style = v2) var toolWindows: List<ToolWindowState> = mutableListOf()
 )
 
 @Tag("tool-window")
 internal data class ToolWindowState(
   @Attribute("id") var toolWindowId: String = "",
-  @XCollection(propertyElementName = "tabs", style = v2)
-  var tabStates: List<TabState> = mutableListOf(),
+  @XCollection(propertyElementName = "tabs", style = v2) var tabStates: List<TabState> = mutableListOf(),
   @Attribute("selected-tab") var selectedTabIndex: Int = -1,
 )
 
@@ -45,14 +43,12 @@ internal data class TabState(
 /**
  * Recursively encapsulates the contents of a splittable panel.
  *
- * The platform XML serialization does not support polymorphism so we can't have different types for
- * a parent and leaf state node. Instead, we have nullable properties.
+ * The platform XML serialization does not support polymorphism so we can't have different types for a parent and leaf state node. Instead,
+ * we have nullable properties.
  *
  * The constructors enforce the validity of the data by accepting non-nullable where required.
  */
-@Suppress(
-  "DataClassPrivateConstructor"
-) // Private ctor is exposed by the generated `copy` method but we don't care.
+@Suppress("DataClassPrivateConstructor") // Private ctor is exposed by the generated `copy` method but we don't care.
 @Tag("panel")
 @ConsistentCopyVisibility
 internal data class PanelState
@@ -63,9 +59,7 @@ private constructor(
   @Tag var first: PanelState? = null,
   @Tag var second: PanelState? = null,
 ) {
-  constructor(
-    clientState: String?
-  ) : this(clientState, orientation = null, proportion = null, first = null, second = null)
+  constructor(clientState: String?) : this(clientState, orientation = null, proportion = null, first = null, second = null)
 
   constructor(
     orientation: SplitOrientation,

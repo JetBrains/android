@@ -60,48 +60,50 @@ data class WarningsFilter(
   val showAnnotationProcessorWarnings: Boolean,
   val showNonCriticalPathTasks: Boolean,
   val showConfigurationCacheWarnings: Boolean,
-  val showJetifierWarnings: Boolean
+  val showJetifierWarnings: Boolean,
 ) {
 
   fun acceptTaskIssue(issueData: TaskIssueUiData): Boolean =
     showTaskWarningTypes.contains(issueData.type) &&
-    showTaskSourceTypes.contains(issueData.task.sourceType) &&
-    (showNonCriticalPathTasks || issueData.task.onExtendedCriticalPath)
+      showTaskSourceTypes.contains(issueData.task.sourceType) &&
+      (showNonCriticalPathTasks || issueData.task.onExtendedCriticalPath)
 
   fun toUiText(): String {
-    val taskWarningsPart = when {
-      showTaskSourceTypes.isEmpty() || showTaskWarningTypes.isEmpty() -> ""
-      showTaskSourceTypes.containsAll(PluginSourceType.values().asList())
-      && showTaskWarningTypes.containsAll(TaskIssueType.values().asList()) -> "All task warnings"
-      else -> "Selected types of task warnings"
-    }
+    val taskWarningsPart =
+      when {
+        showTaskSourceTypes.isEmpty() || showTaskWarningTypes.isEmpty() -> ""
+        showTaskSourceTypes.containsAll(PluginSourceType.values().asList()) &&
+          showTaskWarningTypes.containsAll(TaskIssueType.values().asList()) -> "All task warnings"
+        else -> "Selected types of task warnings"
+      }
 
     val annotationProcessorsPart = if (showAnnotationProcessorWarnings) "Annotation processors" else ""
     val configurationCachePart = if (showConfigurationCacheWarnings) "Configuration cache" else ""
     val jetifierPart = if (showJetifierWarnings) "Jetifier" else ""
 
     return sequenceOf(taskWarningsPart, annotationProcessorsPart, configurationCachePart, jetifierPart)
-             .filter { it.isNotBlank() }
-             .joinToString(separator = ", ")
-             .takeIf { it.isNotBlank() } ?: "Nothing selected"
+      .filter { it.isNotBlank() }
+      .joinToString(separator = ", ")
+      .takeIf { it.isNotBlank() } ?: "Nothing selected"
   }
 
   companion object {
-    val DEFAULT = WarningsFilter(
-      showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SCRIPT),
-      showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS, TaskIssueType.TASK_SETUP_ISSUE),
-      showAnnotationProcessorWarnings = true,
-      showNonCriticalPathTasks = false,
-      showConfigurationCacheWarnings = true,
-      showJetifierWarnings = true
-    )
+    val DEFAULT =
+      WarningsFilter(
+        showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SCRIPT),
+        showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS, TaskIssueType.TASK_SETUP_ISSUE),
+        showAnnotationProcessorWarnings = true,
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = true,
+        showJetifierWarnings = true,
+      )
   }
 }
 
 abstract class WarningsFilterToggleAction(
   uiName: String,
   val warningsModel: WarningsDataPageModel,
-  val actionHandlers: ViewActionHandlers
+  val actionHandlers: ViewActionHandlers,
 ) : ToggleAction(uiName), DumbAware {
 
   init {
@@ -118,7 +120,9 @@ abstract class WarningsFilterToggleAction(
   override fun isSelected(e: AnActionEvent): Boolean = isSelected(warningsModel.filter)
 
   abstract fun onAdd(filter: WarningsFilter): WarningsFilter
+
   abstract fun onRemove(filter: WarningsFilter): WarningsFilter
+
   abstract fun isSelected(filter: WarningsFilter): Boolean
 }
 
@@ -126,7 +130,7 @@ private class WarningTypeFilterToggleAction(
   uiName: String,
   val warningType: TaskIssueType,
   warningsModel: WarningsDataPageModel,
-  actionHandlers: ViewActionHandlers
+  actionHandlers: ViewActionHandlers,
 ) : WarningsFilterToggleAction(uiName, warningsModel, actionHandlers) {
   override fun onAdd(filter: WarningsFilter): WarningsFilter =
     filter.copy(showTaskWarningTypes = filter.showTaskWarningTypes.plus(warningType))
@@ -141,7 +145,7 @@ private class TaskSourceTypeWarningFilterToggleAction(
   uiName: String,
   val sourceType: PluginSourceType,
   warningsModel: WarningsDataPageModel,
-  actionHandlers: ViewActionHandlers
+  actionHandlers: ViewActionHandlers,
 ) : WarningsFilterToggleAction(uiName, warningsModel, actionHandlers) {
   override fun onAdd(filter: WarningsFilter): WarningsFilter =
     filter.copy(showTaskSourceTypes = filter.showTaskSourceTypes.plus(sourceType))
@@ -152,111 +156,141 @@ private class TaskSourceTypeWarningFilterToggleAction(
   override fun isSelected(filter: WarningsFilter): Boolean = filter.showTaskSourceTypes.contains(sourceType)
 }
 
-
 private class BoolValueWarningsFilterToggleAction(
   uiName: String,
   warningsModel: WarningsDataPageModel,
   actionHandlers: ViewActionHandlers,
   val valueGetter: (WarningsFilter) -> Boolean,
-  val valueSetter: (WarningsFilter, Boolean) -> WarningsFilter
+  val valueSetter: (WarningsFilter, Boolean) -> WarningsFilter,
 ) : WarningsFilterToggleAction(uiName, warningsModel, actionHandlers) {
   override fun onAdd(filter: WarningsFilter): WarningsFilter = valueSetter(filter, true)
+
   override fun onRemove(filter: WarningsFilter): WarningsFilter = valueSetter(filter, false)
+
   override fun isSelected(filter: WarningsFilter): Boolean = valueGetter(filter)
 }
 
 fun warningsFilterActions(model: WarningsDataPageModel, actionHandlers: ViewActionHandlers, disposable: Disposable): ActionGroup {
   return FilterComponentAction(
-    subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener(disposable) { r.run() } },
-    getModelUIText = { model.filter.toUiText() }
-  ).apply {
-    addAction(object : AnAction("Reset filters to default") {
-      override fun actionPerformed(unused: AnActionEvent) = actionHandlers.applyWarningsFilter(WarningsFilter.DEFAULT)
-    })
-    addSeparator("By task warning type")
-    add(WarningTypeFilterToggleAction("Show Always-run tasks", TaskIssueType.ALWAYS_RUN_TASKS, model, actionHandlers))
-    add(WarningTypeFilterToggleAction("Show Task Setup issues", TaskIssueType.TASK_SETUP_ISSUE, model, actionHandlers))
-    addSeparator("By task type")
-    add(TaskSourceTypeWarningFilterToggleAction(
-      "Show issues for Android/Java/Kotlin plugins", PluginSourceType.ANDROID_PLUGIN, model, actionHandlers
-    ))
-    add(TaskSourceTypeWarningFilterToggleAction(
-      "Show issues for other plugins", PluginSourceType.THIRD_PARTY, model, actionHandlers
-    ))
-    add(TaskSourceTypeWarningFilterToggleAction(
-      "Show issues for project customization", PluginSourceType.BUILD_SCRIPT, model, actionHandlers
-    ))
-    add(BoolValueWarningsFilterToggleAction(
-      "Include issues for tasks non determining this build duration", model, actionHandlers,
-      valueGetter = { filter -> filter.showNonCriticalPathTasks },
-      valueSetter = { filter, value -> filter.copy(showNonCriticalPathTasks = value) }
-    ))
-    addSeparator("Other warnings")
-    add(BoolValueWarningsFilterToggleAction("Show annotation processors issues", model, actionHandlers,
-                                            valueGetter = { filter -> filter.showAnnotationProcessorWarnings },
-                                            valueSetter = { filter, value -> filter.copy(showAnnotationProcessorWarnings = value) }))
-    add(BoolValueWarningsFilterToggleAction("Show configuration cache issues", model, actionHandlers,
-                                            valueGetter = { filter -> filter.showConfigurationCacheWarnings },
-                                            valueSetter = { filter, value -> filter.copy(showConfigurationCacheWarnings = value) }))
-    add(BoolValueWarningsFilterToggleAction("Show Jetifier usage warning", model, actionHandlers,
-                                            valueGetter = { filter -> filter.showJetifierWarnings },
-                                            valueSetter = { filter, value -> filter.copy(showJetifierWarnings = value) }))
-  }
+      subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener(disposable) { r.run() } },
+      getModelUIText = { model.filter.toUiText() },
+    )
+    .apply {
+      addAction(
+        object : AnAction("Reset filters to default") {
+          override fun actionPerformed(unused: AnActionEvent) = actionHandlers.applyWarningsFilter(WarningsFilter.DEFAULT)
+        }
+      )
+      addSeparator("By task warning type")
+      add(WarningTypeFilterToggleAction("Show Always-run tasks", TaskIssueType.ALWAYS_RUN_TASKS, model, actionHandlers))
+      add(WarningTypeFilterToggleAction("Show Task Setup issues", TaskIssueType.TASK_SETUP_ISSUE, model, actionHandlers))
+      addSeparator("By task type")
+      add(
+        TaskSourceTypeWarningFilterToggleAction(
+          "Show issues for Android/Java/Kotlin plugins",
+          PluginSourceType.ANDROID_PLUGIN,
+          model,
+          actionHandlers,
+        )
+      )
+      add(TaskSourceTypeWarningFilterToggleAction("Show issues for other plugins", PluginSourceType.THIRD_PARTY, model, actionHandlers))
+      add(
+        TaskSourceTypeWarningFilterToggleAction(
+          "Show issues for project customization",
+          PluginSourceType.BUILD_SCRIPT,
+          model,
+          actionHandlers,
+        )
+      )
+      add(
+        BoolValueWarningsFilterToggleAction(
+          "Include issues for tasks non determining this build duration",
+          model,
+          actionHandlers,
+          valueGetter = { filter -> filter.showNonCriticalPathTasks },
+          valueSetter = { filter, value -> filter.copy(showNonCriticalPathTasks = value) },
+        )
+      )
+      addSeparator("Other warnings")
+      add(
+        BoolValueWarningsFilterToggleAction(
+          "Show annotation processors issues",
+          model,
+          actionHandlers,
+          valueGetter = { filter -> filter.showAnnotationProcessorWarnings },
+          valueSetter = { filter, value -> filter.copy(showAnnotationProcessorWarnings = value) },
+        )
+      )
+      add(
+        BoolValueWarningsFilterToggleAction(
+          "Show configuration cache issues",
+          model,
+          actionHandlers,
+          valueGetter = { filter -> filter.showConfigurationCacheWarnings },
+          valueSetter = { filter, value -> filter.copy(showConfigurationCacheWarnings = value) },
+        )
+      )
+      add(
+        BoolValueWarningsFilterToggleAction(
+          "Show Jetifier usage warning",
+          model,
+          actionHandlers,
+          valueGetter = { filter -> filter.showJetifierWarnings },
+          valueSetter = { filter, value -> filter.copy(showJetifierWarnings = value) },
+        )
+      )
+    }
 }
 
 fun warningsFilterComponent(model: WarningsDataPageModel, actionHandlers: ViewActionHandlers, disposable: Disposable): Component {
   return JPanel().apply {
-    add(FilterCustomComponent(
-      warningsFilterActions(model, actionHandlers, disposable),
-      subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener(disposable) { r.run() } },
-      getModelUIText = { model.filter.toUiText() }
-    ))
-  }
-}
-
-data class TasksFilter(
-  val showTaskSourceTypes: Set<PluginSourceType>,
-  val showTasksWithoutWarnings: Boolean
-) {
-
-  fun acceptTask(taskData: TaskUiData, currentGrouping: TasksDataPageModel.Grouping): Boolean =
-    (showTasksWithoutWarnings || taskData.hasWarning ||
-     (currentGrouping == TasksDataPageModel.Grouping.BY_TASK_CATEGORY && taskData.relatedTaskCategoryIssues.isNotEmpty())) &&
-    showTaskSourceTypes.contains(taskData.sourceType)
-
-  fun toUiText(): String {
-    if (showTaskSourceTypes.isEmpty()) return "No task types selected"
-    val taskTypesPart = if (showTaskSourceTypes.containsAll(PluginSourceType.values().asList()))
-      "All tasks"
-    else
-      PluginSourceType.values()
-        .filter { it in showTaskSourceTypes }
-        .joinToString(
-          separator = ", ",
-          postfix = " tasks"
-        ) { it.toFilterUiShortName() }
-    return if (showTasksWithoutWarnings) taskTypesPart else "$taskTypesPart with warnings"
-  }
-
-  companion object {
-    val DEFAULT = TasksFilter(
-      showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SCRIPT),
-      showTasksWithoutWarnings = true
+    add(
+      FilterCustomComponent(
+        warningsFilterActions(model, actionHandlers, disposable),
+        subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener(disposable) { r.run() } },
+        getModelUIText = { model.filter.toUiText() },
+      )
     )
   }
 }
 
-private fun PluginSourceType.toFilterUiShortName(): String = when (this) {
-  PluginSourceType.BUILD_SCRIPT -> "Project customization"
-  PluginSourceType.ANDROID_PLUGIN -> "Android/Java/Kotlin"
-  PluginSourceType.THIRD_PARTY -> "Other"
+data class TasksFilter(val showTaskSourceTypes: Set<PluginSourceType>, val showTasksWithoutWarnings: Boolean) {
+
+  fun acceptTask(taskData: TaskUiData, currentGrouping: TasksDataPageModel.Grouping): Boolean =
+    (showTasksWithoutWarnings ||
+      taskData.hasWarning ||
+      (currentGrouping == TasksDataPageModel.Grouping.BY_TASK_CATEGORY && taskData.relatedTaskCategoryIssues.isNotEmpty())) &&
+      showTaskSourceTypes.contains(taskData.sourceType)
+
+  fun toUiText(): String {
+    if (showTaskSourceTypes.isEmpty()) return "No task types selected"
+    val taskTypesPart =
+      if (showTaskSourceTypes.containsAll(PluginSourceType.values().asList())) "All tasks"
+      else
+        PluginSourceType.values()
+          .filter { it in showTaskSourceTypes }
+          .joinToString(separator = ", ", postfix = " tasks") { it.toFilterUiShortName() }
+    return if (showTasksWithoutWarnings) taskTypesPart else "$taskTypesPart with warnings"
+  }
+
+  companion object {
+    val DEFAULT =
+      TasksFilter(
+        showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SCRIPT),
+        showTasksWithoutWarnings = true,
+      )
+  }
 }
 
-abstract class TasksFilterToggleAction(
-  uiName: String,
-  val tasksModel: TasksDataPageModel,
-  val actionHandlers: ViewActionHandlers
-) : ToggleAction(uiName), DumbAware {
+private fun PluginSourceType.toFilterUiShortName(): String =
+  when (this) {
+    PluginSourceType.BUILD_SCRIPT -> "Project customization"
+    PluginSourceType.ANDROID_PLUGIN -> "Android/Java/Kotlin"
+    PluginSourceType.THIRD_PARTY -> "Other"
+  }
+
+abstract class TasksFilterToggleAction(uiName: String, val tasksModel: TasksDataPageModel, val actionHandlers: ViewActionHandlers) :
+  ToggleAction(uiName), DumbAware {
 
   init {
     templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.Always
@@ -272,7 +306,9 @@ abstract class TasksFilterToggleAction(
   override fun isSelected(e: AnActionEvent): Boolean = isSelected(tasksModel.filter)
 
   abstract fun onAdd(filter: TasksFilter): TasksFilter
+
   abstract fun onRemove(filter: TasksFilter): TasksFilter
+
   abstract fun isSelected(filter: TasksFilter): Boolean
 }
 
@@ -280,61 +316,60 @@ private class TaskSourceTypeTasksFilterToggleAction(
   uiName: String,
   val sourceType: PluginSourceType,
   tasksModel: TasksDataPageModel,
-  actionHandlers: ViewActionHandlers
+  actionHandlers: ViewActionHandlers,
 ) : TasksFilterToggleAction(uiName, tasksModel, actionHandlers) {
-  override fun onAdd(filter: TasksFilter): TasksFilter =
-    filter.copy(showTaskSourceTypes = filter.showTaskSourceTypes + sourceType)
+  override fun onAdd(filter: TasksFilter): TasksFilter = filter.copy(showTaskSourceTypes = filter.showTaskSourceTypes + sourceType)
 
-  override fun onRemove(filter: TasksFilter): TasksFilter =
-    filter.copy(showTaskSourceTypes = filter.showTaskSourceTypes - sourceType)
+  override fun onRemove(filter: TasksFilter): TasksFilter = filter.copy(showTaskSourceTypes = filter.showTaskSourceTypes - sourceType)
 
   override fun isSelected(filter: TasksFilter): Boolean = filter.showTaskSourceTypes.contains(sourceType)
 }
 
-private class TasksWithoutWarningsFilterToggleAction(
-  uiName: String,
-  tasksModel: TasksDataPageModel,
-  actionHandlers: ViewActionHandlers
-) : TasksFilterToggleAction(uiName, tasksModel, actionHandlers) {
+private class TasksWithoutWarningsFilterToggleAction(uiName: String, tasksModel: TasksDataPageModel, actionHandlers: ViewActionHandlers) :
+  TasksFilterToggleAction(uiName, tasksModel, actionHandlers) {
   override fun isSelected(filter: TasksFilter): Boolean = filter.showTasksWithoutWarnings
 
   override fun onAdd(filter: TasksFilter): TasksFilter = filter.copy(showTasksWithoutWarnings = true)
 
   override fun onRemove(filter: TasksFilter): TasksFilter = filter.copy(showTasksWithoutWarnings = false)
-
 }
 
 fun tasksFilterActions(model: TasksDataPageModel, actionHandlers: ViewActionHandlers): ActionGroup =
   DefaultActionGroup("Filters", true).apply {
-    addAction(object : AnAction("Reset filters to default") {
-      override fun actionPerformed(unused: AnActionEvent) = actionHandlers.applyTasksFilter(TasksFilter.DEFAULT)
-    })
+    addAction(
+      object : AnAction("Reset filters to default") {
+        override fun actionPerformed(unused: AnActionEvent) = actionHandlers.applyTasksFilter(TasksFilter.DEFAULT)
+      }
+    )
     addSeparator()
-    add(TaskSourceTypeTasksFilterToggleAction(
-      "Show tasks for Android/Java/Kotlin plugins", PluginSourceType.ANDROID_PLUGIN, model, actionHandlers
-    ))
+    add(
+      TaskSourceTypeTasksFilterToggleAction(
+        "Show tasks for Android/Java/Kotlin plugins",
+        PluginSourceType.ANDROID_PLUGIN,
+        model,
+        actionHandlers,
+      )
+    )
     add(TaskSourceTypeTasksFilterToggleAction("Show tasks for other plugins", PluginSourceType.THIRD_PARTY, model, actionHandlers))
-    add(TaskSourceTypeTasksFilterToggleAction(
-      "Show tasks for project customization", PluginSourceType.BUILD_SCRIPT, model, actionHandlers
-    ))
+    add(TaskSourceTypeTasksFilterToggleAction("Show tasks for project customization", PluginSourceType.BUILD_SCRIPT, model, actionHandlers))
     addSeparator()
     add(TasksWithoutWarningsFilterToggleAction("Show tasks without warnings", model, actionHandlers))
   }
 
 fun tasksFilterComponent(model: TasksDataPageModel, actionHandlers: ViewActionHandlers, disposable: Disposable): Component {
   return JPanel().apply {
-    add(FilterCustomComponent(
-      tasksFilterActions(model, actionHandlers),
-      subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener(disposable) { r.run() } },
-      getModelUIText = { model.filter.toUiText() }
-    ))
+    add(
+      FilterCustomComponent(
+        tasksFilterActions(model, actionHandlers),
+        subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener(disposable) { r.run() } },
+        getModelUIText = { model.filter.toUiText() },
+      )
+    )
   }
 }
 
-class FilterComponentAction(
-  val subscribeToModelUpdates: (Runnable) -> Unit,
-  val getModelUIText: () -> String
-) : DefaultActionGroup("Filters", true), CustomComponentAction {
+class FilterComponentAction(val subscribeToModelUpdates: (Runnable) -> Unit, val getModelUIText: () -> String) :
+  DefaultActionGroup("Filters", true), CustomComponentAction {
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
     FilterCustomComponent(this, subscribeToModelUpdates, getModelUIText)
 }
@@ -342,7 +377,7 @@ class FilterComponentAction(
 private class FilterCustomComponent(
   val filterActions: ActionGroup,
   val subscribeToModelUpdates: (Runnable) -> Unit,
-  val getModelUIText: () -> String
+  val getModelUIText: () -> String,
 ) : JPanel() {
   private val popupState = PopupState.forPopup()
   private val nameLabel = JLabel("Filters: ")
@@ -356,9 +391,7 @@ private class FilterCustomComponent(
     add(valueLabel)
     add(Box.createHorizontalStrut(3))
     add(JLabel(AllIcons.Ide.Statusbar_arrows))
-    subscribeToModelUpdates {
-      valueLabel.text = getModelUIText()
-    }
+    subscribeToModelUpdates { valueLabel.text = getModelUIText() }
     installShowPopupMenuOnClick()
     installShowPopupMenuFromKeyboard()
     installFocusIndication()
@@ -366,50 +399,56 @@ private class FilterCustomComponent(
 
   private fun installFocusIndication() {
     fun setFocusedBorder() {
-      border = BorderFactory.createCompoundBorder(
-        RoundedLineBorder(UIUtil.getFocusedBorderColor(), 10, 2),
-        JBUI.Borders.empty(2)
-      )
+      border = BorderFactory.createCompoundBorder(RoundedLineBorder(UIUtil.getFocusedBorderColor(), 10, 2), JBUI.Borders.empty(2))
     }
 
     fun setUnFocusedBorder() {
       border = JBUI.Borders.empty(4)
     }
     setUnFocusedBorder()
-    addFocusListener(object : FocusAdapter() {
-      override fun focusGained(e: FocusEvent) = setFocusedBorder()
-      override fun focusLost(e: FocusEvent) = setUnFocusedBorder()
-    })
+    addFocusListener(
+      object : FocusAdapter() {
+        override fun focusGained(e: FocusEvent) = setFocusedBorder()
+
+        override fun focusLost(e: FocusEvent) = setUnFocusedBorder()
+      }
+    )
   }
 
   private fun installShowPopupMenuOnClick() {
     object : ClickListener() {
-      override fun onClick(event: MouseEvent, clickCount: Int): Boolean {
-        showPopupMenu()
-        return true
+        override fun onClick(event: MouseEvent, clickCount: Int): Boolean {
+          showPopupMenu()
+          return true
+        }
       }
-    }.installOn(this)
+      .installOn(this)
   }
 
   private fun installShowPopupMenuFromKeyboard() {
-    addKeyListener(object : KeyAdapter() {
-      override fun keyPressed(e: KeyEvent) {
-        if (e.keyCode == KeyEvent.VK_ENTER || e.keyCode == KeyEvent.VK_DOWN || e.keyCode == KeyEvent.VK_SPACE) {
-          showPopupMenu()
+    addKeyListener(
+      object : KeyAdapter() {
+        override fun keyPressed(e: KeyEvent) {
+          if (e.keyCode == KeyEvent.VK_ENTER || e.keyCode == KeyEvent.VK_DOWN || e.keyCode == KeyEvent.VK_SPACE) {
+            showPopupMenu()
+          }
         }
       }
-    })
+    )
   }
 
   private fun showPopupMenu() {
-    if (popupState.isRecentlyHidden) return  // Do not show new popup.
+    if (popupState.isRecentlyHidden) return // Do not show new popup.
 
-    val popup: ListPopup = JBPopupFactory.getInstance().createActionGroupPopup(
-      null, filterActions,
-      DataManager.getInstance().getDataContext(this),
-      JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
-      true
-    )
+    val popup: ListPopup =
+      JBPopupFactory.getInstance()
+        .createActionGroupPopup(
+          null,
+          filterActions,
+          DataManager.getInstance().getDataContext(this),
+          JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
+          true,
+        )
     popupState.prepareToShow(popup)
 
     AutoPopupSupportingListener.installOn(popup)

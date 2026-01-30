@@ -31,9 +31,7 @@ class CodeExecutionTrackerTransformTest {
   @Test
   fun testTracksOnlyUsedMethods() {
     val testClassLoader =
-      setupTestClassLoaderWithTransformation(
-        mapOf("com/example/A" to A::class.java, "com/example/B" to B::class.java)
-      ) { visitor ->
+      setupTestClassLoaderWithTransformation(mapOf("com/example/A" to A::class.java, "com/example/B" to B::class.java)) { visitor ->
         CodeExecutionTrackerTransform(visitor, "")
       }
 
@@ -68,11 +66,7 @@ class CodeExecutionTrackerTransformTest {
   fun testTracksOnlyUsedFields() {
     val testClassLoader =
       setupTestClassLoaderWithTransformation(
-        mapOf(
-          "com/example/A" to A::class.java,
-          "com/example/B" to B::class.java,
-          "com/example/C" to C::class.java,
-        )
+        mapOf("com/example/A" to A::class.java, "com/example/B" to B::class.java, "com/example/C" to C::class.java)
       ) { visitor ->
         CodeExecutionTrackerTransform(visitor, "")
       }

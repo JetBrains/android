@@ -50,9 +50,7 @@ constructor(
       }
     content.addComponentListener(listener)
     main.addComponentListener(listener)
-    main.addMouseWheelListener {
-      scrollBy(it.scrollAmount * it.wheelRotation * scrollSensitivity / 2)
-    }
+    main.addMouseWheelListener { scrollBy(it.scrollAmount * it.wheelRotation * scrollSensitivity / 2) }
 
     add(main, BorderLayout.CENTER)
     add(leftButton, BorderLayout.WEST)

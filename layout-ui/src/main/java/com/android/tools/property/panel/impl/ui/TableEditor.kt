@@ -57,15 +57,7 @@ class TableEditor(
 ) {
 
   private val table =
-    PTable.create(
-      lineModel.tableModel,
-      lineModel,
-      rendererProvider,
-      editorProvider,
-      { getToolTipText(it) },
-      ::updateUI,
-      nameColumnFraction,
-    )
+    PTable.create(lineModel.tableModel, lineModel, rendererProvider, editorProvider, { getToolTipText(it) }, ::updateUI, nameColumnFraction)
   val component = table.component as JTable
 
   init {
@@ -84,15 +76,10 @@ class TableEditor(
     )
     component.selectionModel.addListSelectionListener {
       val index = component.selectedRow
-      val item =
-        if (index >= 0 && index < component.rowCount) component.getValueAt(index, 1) as? PTableItem
-        else null
+      val item = if (index >= 0 && index < component.rowCount) component.getValueAt(index, 1) as? PTableItem else null
       lineModel.selectedItem = item
     }
-    HelpSupportBinding.registerHelpKeyActions(
-      component,
-      { lineModel.selectedItem as? PropertyItem },
-    )
+    HelpSupportBinding.registerHelpKeyActions(component, { lineModel.selectedItem as? PropertyItem })
 
     // In the properties panel we do not want the table to handle it's own navigation.
     // Ignore the events and allow the scrollPane created in PropertiesPage to handle the events.
@@ -109,17 +96,9 @@ class TableEditor(
       action.shortcutSet.shortcuts
         .filterIsInstance<KeyboardShortcut>()
         .filter { it.secondKeyStroke == null }
-        .forEach {
-          component.registerAnActionKey(
-            { action },
-            it.firstKeyStroke,
-            action.templatePresentation.description,
-          )
-        }
+        .forEach { component.registerAnActionKey({ action }, it.firstKeyStroke, action.templatePresentation.description) }
     }
-    DataManager.registerDataProvider(component) { dataId ->
-      if (HelpSupport.PROPERTY_ITEM.`is`(dataId)) lineModel.selectedItem else null
-    }
+    DataManager.registerDataProvider(component) { dataId -> if (HelpSupport.PROPERTY_ITEM.`is`(dataId)) lineModel.selectedItem else null }
   }
 
   fun setPreviousTableEditor(editor: TableEditor?) {
@@ -173,20 +152,15 @@ class TableEditor(
     }
     val item = component.getValueAt(tableRow, tableColumn)
     val renderer = component.getCellRenderer(tableRow, tableColumn)
-    val cell =
-      renderer.getTableCellRendererComponent(component, item, false, false, tableRow, tableColumn)
-        ?: return null
+    val cell = renderer.getTableCellRendererComponent(component, item, false, false, tableRow, tableColumn) ?: return null
     val rect = component.getCellRect(tableRow, tableColumn, true)
     cell.setBounds(0, 0, rect.width, rect.height)
-    val control =
-      SwingUtilities.getDeepestComponentAt(cell, event.x - rect.x, event.y - rect.y) as? JComponent
+    val control = SwingUtilities.getDeepestComponentAt(cell, event.x - rect.x, event.y - rect.y) as? JComponent
     return control?.getToolTipText(event)
   }
 
   private fun computeRowHeight(): Int {
-    val property =
-      lineModel.tableModel.items.find { it is PropertyItem } as? PropertyItem
-        ?: return JBUI.scale(DEFAULT_ROW_HEIGHT)
+    val property = lineModel.tableModel.items.find { it is PropertyItem } as? PropertyItem ?: return JBUI.scale(DEFAULT_ROW_HEIGHT)
     val textField = PropertyTextField(TextFieldPropertyEditorModel(property, true))
     return Integer.max(textField.preferredSize.height, JBUI.scale(MINIMUM_ROW_HEIGHT))
   }

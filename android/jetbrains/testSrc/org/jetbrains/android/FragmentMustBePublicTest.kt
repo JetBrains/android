@@ -45,8 +45,7 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
   override fun setUp() {
     // Compute the workspace root before any IDE code starts messing with user.dir:
     getWorkspaceRoot()
-    VfsRootAccess.allowRootAccess(testRootDisposable,
-                                  FileUtil.toCanonicalPath(AndroidTestBase.getAndroidPluginHome()))
+    VfsRootAccess.allowRootAccess(testRootDisposable, FileUtil.toCanonicalPath(AndroidTestBase.getAndroidPluginHome()))
     myVisibilityInspection = createTool()
     super.setUp()
   }
@@ -66,7 +65,9 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
 
   fun testCannotWeaken() {
     myFixture.allowTreeAccessForAllFiles()
-    addJavaFile("test/pkg/WeakTest.java", """
+    addJavaFile(
+      "test/pkg/WeakTest.java",
+      """
       package test.pkg;
 
       @SuppressWarnings({"unused", "deprecation", "RedundantSuppression", "SpellCheckingInspection"})
@@ -97,7 +98,7 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
           private MyView myView;
           private MyActionProvider myActionProvider;
       }
-      """
+      """,
     )
 
     // Stubs; this test doesn't have access to the Android SDK directly
@@ -128,8 +129,7 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
   }
 
   @Suppress("SameParameterValue")
-  private fun addJavaFile(relativePath: String,
-                          @Language("JAVA") text: String) {
+  private fun addJavaFile(relativePath: String, @Language("JAVA") text: String) {
     myFixture.addFileToProject(relativePath, text.trimIndent())
   }
 }

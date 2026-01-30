@@ -26,21 +26,13 @@ import java.net.MalformedURLException
 interface HtmlLinkManager {
   /** Handles a click in the [HtmlLinkManager]. */
   fun interface Action {
-    /**
-     * Called when the action is clicked. If available, the [module] will be passed as a parameter.
-     */
+    /** Called when the action is clicked. If available, the [module] will be passed as a parameter. */
     fun actionPerformed(module: Module?)
   }
 
   fun showNotification(content: String) = Unit
 
-  fun handleUrl(
-    url: String,
-    module: Module,
-    file: PsiFile,
-    hasRenderResult: Boolean,
-    surface: RefreshableSurface,
-  )
+  fun handleUrl(url: String, module: Module, file: PsiFile, hasRenderResult: Boolean, surface: RefreshableSurface)
 
   fun createBuildModuleUrl(): String = URL_BUILD_FOR_RENDERING
 
@@ -60,17 +52,12 @@ interface HtmlLinkManager {
 
   fun createNewClassUrl(className: String): String = "$URL_CREATE_CLASS$className"
 
-  fun createOpenStackUrl(
-    className: String,
-    methodName: String,
-    fileName: String,
-    lineNumber: Int,
-  ): String = "$URL_OPEN$className#$methodName;$fileName:$lineNumber"
+  fun createOpenStackUrl(className: String, methodName: String, fileName: String, lineNumber: Int): String =
+    "$URL_OPEN$className#$methodName;$fileName:$lineNumber"
 
   fun createReplaceTagsUrl(from: String, to: String): String = "$URL_REPLACE_TAGS$from/$to"
 
-  fun createEditAttributeUrl(attribute: String, value: String): String =
-    "$URL_EDIT_ATTRIBUTE$attribute/$value"
+  fun createEditAttributeUrl(attribute: String, value: String): String = "$URL_EDIT_ATTRIBUTE$attribute/$value"
 
   fun createDisableSandboxUrl(): String = URL_DISABLE_SANDBOX
 
@@ -78,17 +65,12 @@ interface HtmlLinkManager {
 
   fun createClearCacheUrl(): String = URL_CLEAR_CACHE_AND_NOTIFY
 
-  fun createAddDependencyUrl(artifactId: GoogleMavenArtifactId): String =
-    "$URL_ADD_DEPENDENCY$artifactId"
+  fun createAddDependencyUrl(artifactId: GoogleMavenArtifactId): String = "$URL_ADD_DEPENDENCY$artifactId"
 
-  fun createAddDebugDependencyUrl(artifactId: GoogleMavenArtifactId): String =
-    "$URL_ADD_DEBUG_DEPENDENCY$artifactId"
+  fun createAddDebugDependencyUrl(artifactId: GoogleMavenArtifactId): String = "$URL_ADD_DEBUG_DEPENDENCY$artifactId"
 
-  fun createReplaceAttributeValueUrl(
-    attribute: String,
-    oldValue: String,
-    newValue: String,
-  ): String = "$URL_REPLACE_ATTRIBUTE_VALUE$attribute/$oldValue/$newValue"
+  fun createReplaceAttributeValueUrl(attribute: String, oldValue: String, newValue: String): String =
+    "$URL_REPLACE_ATTRIBUTE_VALUE$attribute/$oldValue/$newValue"
 
   fun createIgnoreFragmentsUrl(): String = URL_ACTION_IGNORE_FRAGMENTS
 
@@ -96,8 +78,7 @@ interface HtmlLinkManager {
 
   fun createPickLayoutUrl(activityName: String): String = "$URL_ASSIGN_LAYOUT_URL$activityName"
 
-  fun createAssignLayoutUrl(activityName: String, layout: String): String =
-    "$URL_ASSIGN_LAYOUT_URL$activityName:$layout"
+  fun createAssignLayoutUrl(activityName: String, layout: String): String = "$URL_ASSIGN_LAYOUT_URL$activityName:$layout"
 
   companion object {
     /**
@@ -130,13 +111,7 @@ interface HtmlLinkManager {
     @JvmField
     val NOOP_LINK_MANAGER =
       object : HtmlLinkManager {
-        override fun handleUrl(
-          url: String,
-          module: Module,
-          file: PsiFile,
-          hasRenderResult: Boolean,
-          surface: RefreshableSurface,
-        ) {}
+        override fun handleUrl(url: String, module: Module, file: PsiFile, hasRenderResult: Boolean, surface: RefreshableSurface) {}
 
         override fun createCommandLink(command: CommandLink): String = ""
 

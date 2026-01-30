@@ -33,7 +33,9 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<SuppressedWarnin
 
   var suppressNoGCSettingWarning: Boolean
     get() = suppressedWarnings.noGCSettingWarning
-    set(value) { suppressedWarnings.noGCSettingWarning = value }
+    set(value) {
+      suppressedWarnings.noGCSettingWarning = value
+    }
 
   override fun getState(): SuppressedWarnings? {
     return suppressedWarnings

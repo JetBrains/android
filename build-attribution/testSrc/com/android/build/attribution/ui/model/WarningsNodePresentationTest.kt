@@ -23,12 +23,10 @@ import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.N
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-
 class WarningsNodePresentationTest {
 
-  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
-    issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-  }
+  val task1 =
+    mockTask(":app", "compile", "compiler.plugin", 2000).apply { issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this)) }
 
   val data = MockUiData(tasksList = listOf(task1))
 
@@ -36,12 +34,13 @@ class WarningsNodePresentationTest {
   fun testTaskWarningPresentation() {
     val descriptor = TaskWarningDetailsNodeDescriptor(task1.issues.first())
 
-    val expectedPresentation = BuildAnalyzerTreeNodePresentation(
-      mainText = ":app:compile",
-      suffix = "",
-      nodeIconState = NodeIconState.WARNING_ICON,
-      rightAlignedSuffix = "2.0s"
-    )
+    val expectedPresentation =
+      BuildAnalyzerTreeNodePresentation(
+        mainText = ":app:compile",
+        suffix = "",
+        nodeIconState = NodeIconState.WARNING_ICON,
+        rightAlignedSuffix = "2.0s",
+      )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
 
@@ -50,12 +49,13 @@ class WarningsNodePresentationTest {
     val taskIssuesGroup = data.issues.first()
     val descriptor = TaskWarningTypeNodeDescriptor(taskIssuesGroup.type, taskIssuesGroup.issues)
 
-    val expectedPresentation = BuildAnalyzerTreeNodePresentation(
-      mainText = "Always-Run Tasks",
-      suffix = "1 warning",
-      nodeIconState = NodeIconState.NO_ICON,
-      rightAlignedSuffix = "2.0s"
-    )
+    val expectedPresentation =
+      BuildAnalyzerTreeNodePresentation(
+        mainText = "Always-Run Tasks",
+        suffix = "1 warning",
+        nodeIconState = NodeIconState.NO_ICON,
+        rightAlignedSuffix = "2.0s",
+      )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
 
@@ -63,12 +63,13 @@ class WarningsNodePresentationTest {
   fun testAnnotationProcessorsRootPresentation() {
     val descriptor = AnnotationProcessorsRootNodeDescriptor(data.annotationProcessors)
 
-    val expectedPresentation = BuildAnalyzerTreeNodePresentation(
-      mainText = "Non-incremental Annotation Processors",
-      suffix = "3 warnings",
-      rightAlignedSuffix = "1.4s",
-      nodeIconState = NodeIconState.NO_ICON
-    )
+    val expectedPresentation =
+      BuildAnalyzerTreeNodePresentation(
+        mainText = "Non-incremental Annotation Processors",
+        suffix = "3 warnings",
+        rightAlignedSuffix = "1.4s",
+        nodeIconState = NodeIconState.NO_ICON,
+      )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
 
@@ -76,12 +77,13 @@ class WarningsNodePresentationTest {
   fun testAnnotationProcessorNodePresentation() {
     val descriptor = AnnotationProcessorDetailsNodeDescriptor(data.annotationProcessors.nonIncrementalProcessors.first())
 
-    val expectedPresentation = BuildAnalyzerTreeNodePresentation(
-      mainText = "com.google.auto.value.processor.AutoAnnotationProcessor",
-      suffix = "",
-      nodeIconState = NodeIconState.WARNING_ICON,
-      rightAlignedSuffix = "0.1s"
-    )
+    val expectedPresentation =
+      BuildAnalyzerTreeNodePresentation(
+        mainText = "com.google.auto.value.processor.AutoAnnotationProcessor",
+        suffix = "",
+        nodeIconState = NodeIconState.WARNING_ICON,
+        rightAlignedSuffix = "0.1s",
+      )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
 }

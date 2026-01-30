@@ -51,12 +51,10 @@ internal class ConstraintSetModel(jsonProperty: JsonProperty) : JsonPropertyMode
 
   companion object {
     /**
-     * Returns a [ConstraintSetModel], for when the completion is performed on a property or the
-     * value of a property within a ConstraintSet declaration.
+     * Returns a [ConstraintSetModel], for when the completion is performed on a property or the value of a property within a ConstraintSet
+     * declaration.
      */
-    fun getModelForCompletionOnConstraintSetProperty(
-      parameters: CompletionParameters
-    ): ConstraintSetModel? {
+    fun getModelForCompletionOnConstraintSetProperty(parameters: CompletionParameters): ConstraintSetModel? {
       val parentJsonProperty = getJsonPropertyParent(parameters) ?: return null
       ProgressManager.checkCanceled()
       return ConstraintSetModel(parentJsonProperty)

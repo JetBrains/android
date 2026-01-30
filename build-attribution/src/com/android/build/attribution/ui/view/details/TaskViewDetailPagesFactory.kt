@@ -39,40 +39,33 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
-/**
- * This class creates task detail pages from the node provided.
- */
-class TaskViewDetailPagesFactory(
-  val model: TasksDataPageModel,
-  val actionHandlers: ViewActionHandlers
-) {
+/** This class creates task detail pages from the node provided. */
+class TaskViewDetailPagesFactory(val model: TasksDataPageModel, val actionHandlers: ViewActionHandlers) {
 
   fun createDetailsPage(pageId: TasksPageId): JComponent =
     if (pageId.pageType == TaskDetailsPageType.EMPTY_SELECTION) {
       createEmptyPage()
-    }
-    else {
-      model.getNodeDescriptorById(pageId)?.let { nodeDescriptor ->
-        createDetailsPage(nodeDescriptor)
-      } ?: JPanel()
+    } else {
+      model.getNodeDescriptorById(pageId)?.let { nodeDescriptor -> createDetailsPage(nodeDescriptor) } ?: JPanel()
     }
 
-  private fun createEmptyPage() = JPanel().apply {
-    layout = BorderLayout()
-    name = "empty-details"
-    val messageLabel = JLabel("Select page for details").apply {
-      verticalAlignment = SwingConstants.CENTER
-      horizontalAlignment = SwingConstants.CENTER
+  private fun createEmptyPage() =
+    JPanel().apply {
+      layout = BorderLayout()
+      name = "empty-details"
+      val messageLabel =
+        JLabel("Select page for details").apply {
+          verticalAlignment = SwingConstants.CENTER
+          horizontalAlignment = SwingConstants.CENTER
+        }
+      add(messageLabel, BorderLayout.CENTER)
     }
-    add(messageLabel, BorderLayout.CENTER)
-  }
 
-  fun createDetailsPage(nodeDescriptor: TasksTreePresentableNodeDescriptor): JComponent = when (nodeDescriptor) {
-    is TaskDetailsNodeDescriptor -> createTaskDetailsPage(nodeDescriptor)
-    is EntryDetailsNodeDescriptor -> createEntryDetailsPage(nodeDescriptor)
-  }.apply {
-    name = nodeDescriptor.pageId.id
-  }
+  fun createDetailsPage(nodeDescriptor: TasksTreePresentableNodeDescriptor): JComponent =
+    when (nodeDescriptor) {
+      is TaskDetailsNodeDescriptor -> createTaskDetailsPage(nodeDescriptor)
+      is EntryDetailsNodeDescriptor -> createEntryDetailsPage(nodeDescriptor)
+    }.apply { name = nodeDescriptor.pageId.id }
 
   private fun createTaskDetailsPage(descriptor: TaskDetailsNodeDescriptor) = taskDetailsPage(descriptor.taskData, actionHandlers)
 
@@ -87,72 +80,71 @@ class TaskViewDetailPagesFactory(
     }
   }
 
-  fun entryDetailsHtml(
-    descriptor: EntryDetailsNodeDescriptor,
-    linksHandler: HtmlLinksHandler
-  ): String {
-    return HtmlBuilder().apply {
-      val filteredTasksNumber = descriptor.filteredTaskNodes.size
-      val filteredTasksWithWarnings = descriptor.filteredTaskNodes.filter { it.hasWarning }
-      addBold(descriptor.entryData.name).newline()
-      if (descriptor.entryData is CriticalPathTaskCategoryUiData) add(descriptor.entryData.taskCategoryDescription).newline().newline()
-      add("Total duration: ").addHtml(descriptor.filteredEntryTime.toTimeWithPercentage().durationStringHtml()).newline()
-      //TODO (b/240926892): these are filtered tasks, should make it clear for the user.
-      add("Number of tasks: ${filteredTasksNumber.withPluralization("task")}").newline()
-      newline()
+  fun entryDetailsHtml(descriptor: EntryDetailsNodeDescriptor, linksHandler: HtmlLinksHandler): String {
+    return HtmlBuilder()
+      .apply {
+        val filteredTasksNumber = descriptor.filteredTaskNodes.size
+        val filteredTasksWithWarnings = descriptor.filteredTaskNodes.filter { it.hasWarning }
+        addBold(descriptor.entryData.name).newline()
+        if (descriptor.entryData is CriticalPathTaskCategoryUiData) add(descriptor.entryData.taskCategoryDescription).newline().newline()
+        add("Total duration: ").addHtml(descriptor.filteredEntryTime.toTimeWithPercentage().durationStringHtml()).newline()
+        // TODO (b/240926892): these are filtered tasks, should make it clear for the user.
+        add("Number of tasks: ${filteredTasksNumber.withPluralization("task")}").newline()
+        newline()
 
-      if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
-        val taskCategoryInfo = descriptor.entryData.getTaskCategoryIssues(TaskCategoryIssue.Severity.INFO, forWarningsPage = false)
-        if (taskCategoryInfo.isNotEmpty()) {
-          createTaskCategoryIssueMessage(taskCategoryInfo, linksHandler, actionHandlers)
-          newline()
+        if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
+          val taskCategoryInfo = descriptor.entryData.getTaskCategoryIssues(TaskCategoryIssue.Severity.INFO, forWarningsPage = false)
+          if (taskCategoryInfo.isNotEmpty()) {
+            createTaskCategoryIssueMessage(taskCategoryInfo, linksHandler, actionHandlers)
+            newline()
+          }
+        }
+
+        addBold("Warnings").newline()
+        var warningCount = filteredTasksWithWarnings.size
+        val taskCategoryWarnings =
+          if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
+            descriptor.entryData.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = false)
+          } else emptyList()
+        if (descriptor.entryData is CriticalPathTaskCategoryUiData) warningCount += taskCategoryWarnings.size
+        if (warningCount == 0) {
+          // TODO (b/240926892): same here, these are filtered, need to make it clear on UI
+          if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
+            add("No warnings detected for ${descriptor.entryData.name} category.")
+          } else {
+            add("No warnings detected for this plugin.")
+          }
+        } else {
+          if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
+            add("${warningCount.withPluralization("warning")} associated with ${descriptor.entryData.name} category.").newline()
+          } else {
+            add("${warningCount.withPluralization("task")} with warnings associated with this plugin.").newline()
+          }
+          if (warningCount > 10) {
+            add("Top 10 warnings shown below, you can find the full list in the tree on the left.").newline()
+          }
+          if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
+            if (taskCategoryWarnings.isNotEmpty()) {
+              createTaskCategoryIssueMessage(taskCategoryWarnings, linksHandler, actionHandlers)
+              warningCount -= taskCategoryWarnings.size
+            }
+          }
+          filteredTasksWithWarnings.take(minOf(warningCount, 10)).forEach { task ->
+            val linkToTask =
+              linksHandler.actionLink(task.taskPath, task.taskPath) {
+                actionHandlers.tasksDetailsLinkClicked(TasksPageId.task(task, descriptor.entryData.modelGrouping))
+              }
+            beginTable()
+            addTableRow(warnIconHtml, linkToTask)
+            addTableRow("", "Type: ${task.taskType}<BR/>Duration: ${task.executionTime.durationStringHtml()}")
+            endTable()
+            task.issues.forEach { issue ->
+              val description = "${issue.explanation}\n${linksHandler.externalLink("Learn more", issue.helpLink)}".replace("\n", "<BR/>")
+              addHtml(description).newline()
+            }
+          }
         }
       }
-
-      addBold("Warnings").newline()
-      var warningCount = filteredTasksWithWarnings.size
-      val taskCategoryWarnings = if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
-        descriptor.entryData.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = false)
-      } else emptyList()
-      if (descriptor.entryData is CriticalPathTaskCategoryUiData) warningCount += taskCategoryWarnings.size
-      if (warningCount == 0) {
-        //TODO (b/240926892): same here, these are filtered, need to make it clear on UI
-        if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
-          add("No warnings detected for ${descriptor.entryData.name} category.")
-        } else {
-          add("No warnings detected for this plugin.")
-        }
-      } else {
-        if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
-          add("${warningCount.withPluralization("warning")} associated with ${descriptor.entryData.name} category.").newline()
-        } else {
-          add("${warningCount.withPluralization("task")} with warnings associated with this plugin.").newline()
-        }
-        if (warningCount > 10) {
-          add("Top 10 warnings shown below, you can find the full list in the tree on the left.").newline()
-        }
-        if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
-          if (taskCategoryWarnings.isNotEmpty()) {
-            createTaskCategoryIssueMessage(taskCategoryWarnings, linksHandler, actionHandlers)
-            warningCount -= taskCategoryWarnings.size
-          }
-        }
-        filteredTasksWithWarnings.take(minOf(warningCount, 10)).forEach { task ->
-          val linkToTask = linksHandler.actionLink(task.taskPath, task.taskPath) {
-            actionHandlers.tasksDetailsLinkClicked(TasksPageId.task(task, descriptor.entryData.modelGrouping))
-          }
-          beginTable()
-          addTableRow(warnIconHtml, linkToTask)
-          addTableRow("", "Type: ${task.taskType}<BR/>Duration: ${task.executionTime.durationStringHtml()}")
-          endTable()
-          task.issues.forEach { issue ->
-            val description = "${issue.explanation}\n${linksHandler.externalLink("Learn more", issue.helpLink)}".replace("\n", "<BR/>")
-            addHtml(description).newline()
-          }
-        }
-      }
-    }.html
+      .html
   }
-
-
 }

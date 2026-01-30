@@ -35,12 +35,10 @@ import org.jetbrains.annotations.TestOnly
  *
  * @property name A name used to identify an editor and/or a section of editors.
  * @property editorModel The model of an optional editor for this label.
- * @property properties A place to store the expansion state of this label such that it can be
- *   restored later.
+ * @property properties A place to store the expansion state of this label such that it can be restored later.
  * @property expandable True if this label is expandable.
  * @property expanded True if this label is currently expanded.
- * @property icon Shows the expansion state f this is an expandable label, otherwise it may show the
- *   namespace of the property.
+ * @property icon Shows the expansion state f this is an expandable label, otherwise it may show the namespace of the property.
  */
 open class CollapsibleLabelModel(
   val name: String,

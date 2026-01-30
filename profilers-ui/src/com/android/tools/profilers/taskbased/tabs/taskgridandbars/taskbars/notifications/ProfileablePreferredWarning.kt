@@ -17,9 +17,9 @@ package com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.noti
 
 import androidx.compose.runtime.Composable
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.INFO_ICON_DESC
-import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.PROFILEABLE_REBUILD_INSTRUCTION_TOOLTIP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.PROFILEABLE_PREFERRED_WARNING_MAIN_TEXT
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.PROFILEABLE_PREFERRED_WARNING_TOOLTIP
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.PROFILEABLE_REBUILD_INSTRUCTION_TOOLTIP
 import icons.StudioIconsCompose
 
 @Composable
@@ -29,7 +29,11 @@ fun ProfileablePreferredWarning(isPreferredProcessSelected: Boolean) {
     subText += "\n\n$PROFILEABLE_REBUILD_INSTRUCTION_TOOLTIP"
   }
 
-  NotificationWithTooltip(notificationText = PROFILEABLE_PREFERRED_WARNING_MAIN_TEXT,
-                          tooltipMainText = PROFILEABLE_PREFERRED_WARNING_MAIN_TEXT, tooltipSubText = subText,
-                          iconKey = StudioIconsCompose.Common.Warning, iconDescription = INFO_ICON_DESC)
+  NotificationWithTooltip(
+    notificationText = PROFILEABLE_PREFERRED_WARNING_MAIN_TEXT,
+    tooltipMainText = PROFILEABLE_PREFERRED_WARNING_MAIN_TEXT,
+    tooltipSubText = subText,
+    iconKey = StudioIconsCompose.Common.Warning,
+    iconDescription = INFO_ICON_DESC,
+  )
 }

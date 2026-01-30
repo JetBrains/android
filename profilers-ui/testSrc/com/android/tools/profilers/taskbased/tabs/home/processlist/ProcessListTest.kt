@@ -46,14 +46,11 @@ class ProcessListTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
-  @get:Rule
-  val composeTestRule = createStudioComposeTestRule()
+  @get:Rule val composeTestRule = createStudioComposeTestRule()
 
-  @get:Rule
-  val ignoreTestRule = IgnoreTestRule()
+  @get:Rule val ignoreTestRule = IgnoreTestRule()
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("TaskGridViewTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskGridViewTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -63,11 +60,7 @@ class ProcessListTest {
   @Before
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     processListModel = ProcessListModel(myProfilers)
     ideProfilerServices.enableTaskBasedUx(true)
@@ -76,47 +69,48 @@ class ProcessListTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, light theme`() {
-    standaloneSingleWindowApplication(
-      title = "Testing TaskGridView",
-    ) {
+    standaloneSingleWindowApplication(title = "Testing TaskGridView") {
       populateVisualTestData()
-      StudioTestTheme (darkMode = false) {
-        ProcessList(processListModel)
-      }
+      StudioTestTheme(darkMode = false) { ProcessList(processListModel) }
     }
   }
 
   @Ignore("b/309566948")
   @Test
   fun `visual test, dark theme`() {
-    standaloneSingleWindowApplication(
-      title = "Testing TaskGridView",
-    ) {
+    standaloneSingleWindowApplication(title = "Testing TaskGridView") {
       val device1 = TaskModelTestUtils.createDevice("FakeDevice1", Common.Device.State.ONLINE, "12", 24)
-      TaskModelTestUtils.addDeviceWithProcess(device1, TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
-                                                                                        device1.deviceId), myTransportService, myTimer)
+      TaskModelTestUtils.addDeviceWithProcess(
+        device1,
+        TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, device1.deviceId),
+        myTransportService,
+        myTimer,
+      )
 
       // Assert FakeDevice1 was auto-selected.
       assertThat(processListModel.selectedDevice.value).isEqualTo(device1)
 
       val device2 = TaskModelTestUtils.createDevice("FakeDevice2", Common.Device.State.ONLINE, "12", 24)
-      TaskModelTestUtils.addDeviceWithProcess(device2, TaskModelTestUtils.createProcess(20, "FakeProcess2", Common.Process.State.ALIVE,
-                                                                                        device2.deviceId), myTransportService, myTimer)
-      TaskModelTestUtils.addDeviceWithProcess(device2, TaskModelTestUtils.createProcess(40, "FakeProcess3", Common.Process.State.ALIVE,
-                                                                                        device2.deviceId), myTransportService, myTimer)
+      TaskModelTestUtils.addDeviceWithProcess(
+        device2,
+        TaskModelTestUtils.createProcess(20, "FakeProcess2", Common.Process.State.ALIVE, device2.deviceId),
+        myTransportService,
+        myTimer,
+      )
+      TaskModelTestUtils.addDeviceWithProcess(
+        device2,
+        TaskModelTestUtils.createProcess(40, "FakeProcess3", Common.Process.State.ALIVE, device2.deviceId),
+        myTransportService,
+        myTimer,
+      )
 
-
-      StudioTestTheme (darkMode = true) {
-        ProcessList(processListModel)
-      }
+      StudioTestTheme(darkMode = true) { ProcessList(processListModel) }
     }
   }
 
   @Test
   fun `device dropdown selection sets and renders the selected device's processes`() {
-    composeTestRule.setContent {
-      ProcessList(processListModel)
-    }
+    composeTestRule.setContent { ProcessList(processListModel) }
 
     // Assert no device selection is registered in the data model.
     assertThat(processListModel.selectedDevice.value).isNull()
@@ -127,8 +121,12 @@ class ProcessListTest {
 
     // FakeDevice1 is added first and will this be auto-selected.
     val device1 = TaskModelTestUtils.createDevice("FakeDevice1", Common.Device.State.ONLINE, "12", 24)
-    TaskModelTestUtils.addDeviceWithProcess(device1, TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
-                                                                                      device1.deviceId), myTransportService, myTimer)
+    TaskModelTestUtils.addDeviceWithProcess(
+      device1,
+      TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, device1.deviceId),
+      myTransportService,
+      myTimer,
+    )
 
     // Select the device
     processListModel.onDeviceSelection(device1)
@@ -144,10 +142,18 @@ class ProcessListTest {
   fun `process selection reflects in data model`() {
     val device = TaskModelTestUtils.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
     composeTestRule.setContent {
-      TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
-                                                                                       device.deviceId), myTransportService, myTimer)
-      TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
-                                                                                       device.deviceId), myTransportService, myTimer)
+      TaskModelTestUtils.addDeviceWithProcess(
+        device,
+        TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId),
+        myTransportService,
+        myTimer,
+      )
+      TaskModelTestUtils.addDeviceWithProcess(
+        device,
+        TaskModelTestUtils.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId),
+        myTransportService,
+        myTimer,
+      )
       ProcessList(processListModel)
     }
 
@@ -171,9 +177,7 @@ class ProcessListTest {
 
   @Test
   fun testNoDevicesTitleAndMessage() {
-    composeTestRule.setContent {
-      ProcessList(processListModel)
-    }
+    composeTestRule.setContent { ProcessList(processListModel) }
 
     processListModel.setSelectedDevicesCount(0)
     // Because there is zero selected devices, "No Devices" should be the text set for where the selected device name usually is.
@@ -184,9 +188,7 @@ class ProcessListTest {
 
   @Test
   fun testMultipleDevicesTitleAndMessage() {
-    composeTestRule.setContent {
-      ProcessList(processListModel)
-    }
+    composeTestRule.setContent { ProcessList(processListModel) }
 
     processListModel.setSelectedDevicesCount(6)
     // Because there is six selected devices, "Multiple Devices (6)" should be the text set for where the selected device name usually is.
@@ -198,9 +200,17 @@ class ProcessListTest {
   private fun populateVisualTestData() {
     assertThat(processListModel.deviceList.value).isEmpty()
     val device = TaskModelTestUtils.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
-    TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
-                                                                                     device.deviceId), myTransportService, myTimer)
-    TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
-                                                                                     device.deviceId), myTransportService, myTimer)
+    TaskModelTestUtils.addDeviceWithProcess(
+      device,
+      TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId),
+      myTransportService,
+      myTimer,
+    )
+    TaskModelTestUtils.addDeviceWithProcess(
+      device,
+      TaskModelTestUtils.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId),
+      myTransportService,
+      myTimer,
+    )
   }
 }

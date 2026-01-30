@@ -28,18 +28,18 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrRefere
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression
 
 internal fun String.removeDoubleQuote() = this.replace("\"", "")
+
 internal fun PsiElement.superParent(level: Int = 2): PsiElement? {
   return if (level > 0) {
     this.parent?.superParent(level - 1) ?: null
-  }
-  else this
+  } else this
 }
 
-internal fun GrMethodCallExpression.getQualifiedNameList(): List<String>? = (this.invokedExpression as? GrReferenceExpression)
-  ?.qualifiedReferenceName?.split('.')?.reversed()
+internal fun GrMethodCallExpression.getQualifiedNameList(): List<String>? =
+  (this.invokedExpression as? GrReferenceExpression)?.qualifiedReferenceName?.split('.')?.reversed()
 
-internal fun PsiElement.superParentAsGrMethodCall(level: Int = 2): GrMethodCallExpression? = this.superParent(
-  level) as? GrMethodCallExpression
+internal fun PsiElement.superParentAsGrMethodCall(level: Int = 2): GrMethodCallExpression? =
+  this.superParent(level) as? GrMethodCallExpression
 
 // FTL device catalog should be updated every 7 days
 const val FTL_DEVICE_CATALOG_UPDATE_FREQUENCY: Int = 7
@@ -60,8 +60,8 @@ data class AndroidDeviceInfo(
 )
 
 /**
- * Describes number levels in Psi element we need to search for a given suggestion type (device property name or value)
- * in order to get its siblings
+ * Describes number levels in Psi element we need to search for a given suggestion type (device property name or value) in order to get its
+ * siblings
  */
 enum class PsiElementLevel(val psiElementLevel: Int) {
   DEVICE_PROPERTY_NAME(1),
@@ -72,6 +72,7 @@ data class MinAndTargetApiLevel(var minSdk: Int, val targetSdk: Int)
 
 /**
  * Describes variables in ManagedVirtualDevice and ManagedDevice interface
+ *
  * @property propertyName is the variable name in the interface
  * @property needCustomComparable set to true if this variable needs custom ordering in suggestion list. Else set to false
  */
@@ -103,38 +104,61 @@ enum class ConfigurationParameterName(val propertyName: String, val needCustomCo
   }
 }
 
-/**
- * Describes interface of leaf DSL blocks within GMD configuration block
- */
-enum class GmdConfigurationInterfaceInfo(val interfaceName: String,
-                                         val availableConfigurations: PersistentList<ConfigurationParameterName>,
-                                         val leafDslBlock: String = "") {
-  FTL_DEVICE("com.google.firebase.testlab.gradle.ManagedDevice", persistentListOf(ConfigurationParameterName.DEVICE_ID,
-                                                                                  ConfigurationParameterName.API_LEVEL,
-                                                                                  ConfigurationParameterName.ORIENTATION,
-                                                                                  ConfigurationParameterName.LOCALE)),
-
-  FTL_FIXTURE("com.google.firebase.testlab.gradle.Fixture", persistentListOf(ConfigurationParameterName.GRANTED_PERMISSIONS,
-                                                                             ConfigurationParameterName.EXTRA_DEVICE_FILES,
-                                                                             ConfigurationParameterName.NETWORK_PROFILE), "fixture"),
-
-  FTL_EXECUTION("com.google.firebase.testlab.gradle.Execution", persistentListOf(ConfigurationParameterName.TIMEOUT_MINUTES,
-                                                                                 ConfigurationParameterName.MAX_TEST_RERUNS,
-                                                                                 ConfigurationParameterName.FAIL_FAST,
-                                                                                 ConfigurationParameterName.TARGETED_SHARD_DURATION_MINUTES),
-                "execution"),
-
-  FTL_RESULTS("com.google.firebase.testlab.gradle.Results", persistentListOf(ConfigurationParameterName.CLOUD_STORAGE_BUCKET,
-                                                                             ConfigurationParameterName.RESULTS_HISTORY_NAME,
-                                                                             ConfigurationParameterName.DIRECTORIES_TO_PULL,
-                                                                             ConfigurationParameterName.RECORD_VIDEO,
-                                                                             ConfigurationParameterName.PERFORMANCE_METRICS), "results"),
-
-  MANAGED_VIRTUAL_DEVICE("com.android.build.api.dsl.ManagedVirtualDevice", persistentListOf(ConfigurationParameterName.DEVICE_ID,
-                                                                                            ConfigurationParameterName.API_LEVEL,
-                                                                                            ConfigurationParameterName.SYS_IMAGE_SOURCE,
-                                                                                            ConfigurationParameterName.REQUIRE64BIT,
-                                                                                            ConfigurationParameterName.API_PREVIEW));
+/** Describes interface of leaf DSL blocks within GMD configuration block */
+enum class GmdConfigurationInterfaceInfo(
+  val interfaceName: String,
+  val availableConfigurations: PersistentList<ConfigurationParameterName>,
+  val leafDslBlock: String = "",
+) {
+  FTL_DEVICE(
+    "com.google.firebase.testlab.gradle.ManagedDevice",
+    persistentListOf(
+      ConfigurationParameterName.DEVICE_ID,
+      ConfigurationParameterName.API_LEVEL,
+      ConfigurationParameterName.ORIENTATION,
+      ConfigurationParameterName.LOCALE,
+    ),
+  ),
+  FTL_FIXTURE(
+    "com.google.firebase.testlab.gradle.Fixture",
+    persistentListOf(
+      ConfigurationParameterName.GRANTED_PERMISSIONS,
+      ConfigurationParameterName.EXTRA_DEVICE_FILES,
+      ConfigurationParameterName.NETWORK_PROFILE,
+    ),
+    "fixture",
+  ),
+  FTL_EXECUTION(
+    "com.google.firebase.testlab.gradle.Execution",
+    persistentListOf(
+      ConfigurationParameterName.TIMEOUT_MINUTES,
+      ConfigurationParameterName.MAX_TEST_RERUNS,
+      ConfigurationParameterName.FAIL_FAST,
+      ConfigurationParameterName.TARGETED_SHARD_DURATION_MINUTES,
+    ),
+    "execution",
+  ),
+  FTL_RESULTS(
+    "com.google.firebase.testlab.gradle.Results",
+    persistentListOf(
+      ConfigurationParameterName.CLOUD_STORAGE_BUCKET,
+      ConfigurationParameterName.RESULTS_HISTORY_NAME,
+      ConfigurationParameterName.DIRECTORIES_TO_PULL,
+      ConfigurationParameterName.RECORD_VIDEO,
+      ConfigurationParameterName.PERFORMANCE_METRICS,
+    ),
+    "results",
+  ),
+  MANAGED_VIRTUAL_DEVICE(
+    "com.android.build.api.dsl.ManagedVirtualDevice",
+    persistentListOf(
+      ConfigurationParameterName.DEVICE_ID,
+      ConfigurationParameterName.API_LEVEL,
+      ConfigurationParameterName.SYS_IMAGE_SOURCE,
+      ConfigurationParameterName.REQUIRE64BIT,
+      ConfigurationParameterName.API_PREVIEW,
+    ),
+  );
 
   fun getDslSequence(leafBlockName: String, isSimplified: Boolean): PersistentList<String> {
     return if (!isSimplified) persistentListOf(leafBlockName, "devices", "managedDevices", "testOptions", "android")
@@ -142,7 +166,9 @@ enum class GmdConfigurationInterfaceInfo(val interfaceName: String,
       when (this) {
         FTL_DEVICE -> persistentListOf(leafBlockName, "managedDevices", "firebaseTestLab")
         MANAGED_VIRTUAL_DEVICE -> persistentListOf(leafBlockName, "localDevices", "managedDevices", "testOptions", "android")
-        FTL_FIXTURE, FTL_EXECUTION, FTL_RESULTS -> persistentListOf(this.leafDslBlock, "testOptions", "firebaseTestLab")
+        FTL_FIXTURE,
+        FTL_EXECUTION,
+        FTL_RESULTS -> persistentListOf(this.leafDslBlock, "testOptions", "firebaseTestLab")
       }
     }
   }
@@ -158,7 +184,9 @@ fun isFtlPluginEnabled(project: Project, selectedModule: Module? = null): Boolea
 }
 
 fun getGradlePropertyValue(projectBuildModel: ProjectBuildModel, propertyName: String): Boolean {
-  return projectBuildModel.projectBuildModel?.propertiesModel?.declaredProperties?.filter { it.name == propertyName }?.let {
-    if (it.isNotEmpty()) it[0].valueAsString().toBoolean() else false
-  } ?: false
+  return projectBuildModel.projectBuildModel
+    ?.propertiesModel
+    ?.declaredProperties
+    ?.filter { it.name == propertyName }
+    ?.let { if (it.isNotEmpty()) it[0].valueAsString().toBoolean() else false } ?: false
 }

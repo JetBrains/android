@@ -22,8 +22,9 @@ interface FontDirectoryDownloader {
 
   companion object {
     @JvmField
-    val NOOP_FONT_DIRECTORY_DOWNLOADER = object : FontDirectoryDownloader {
-      override fun refreshFonts(success: Runnable?, failure: Runnable?) {}
-    }
+    val NOOP_FONT_DIRECTORY_DOWNLOADER =
+      object : FontDirectoryDownloader {
+        override fun refreshFonts(success: Runnable?, failure: Runnable?) {}
+      }
   }
 }

@@ -26,8 +26,8 @@ import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 
 @OptIn(ExperimentalJewelApi::class)
-class InterimStageView<T>(profilersView: StudioProfilersView, stage: T) : StageView<T>(profilersView,
-                                                                                       stage) where T : StreamingStage, T : InterimStage {
+class InterimStageView<T>(profilersView: StudioProfilersView, stage: T) : StageView<T>(profilersView, stage)
+  where T : StreamingStage, T : InterimStage {
   private val recordingScreenModel: RecordingScreenModel<*>
     // If Task-Based UX is enabled, then stage.recordingScreenModel will be instantiated with a non-null value. This class is only ever
     // used when the flag is enabled, so a non-null assertion (!!) can be made.

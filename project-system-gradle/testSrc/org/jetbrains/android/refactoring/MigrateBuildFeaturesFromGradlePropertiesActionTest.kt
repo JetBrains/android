@@ -26,11 +26,13 @@ import org.junit.Rule
 import org.junit.Test
 
 class MigrateBuildFeaturesFromGradlePropertiesActionTest {
-  @get:Rule
-  var projectRule = AndroidProjectRule.inMemory()
+  @get:Rule var projectRule = AndroidProjectRule.inMemory()
 
-  private val project get() = projectRule.project
-  private val fixture get() = projectRule.fixture
+  private val project
+    get() = projectRule.project
+
+  private val fixture
+    get() = projectRule.fixture
 
   @Test
   fun `check build config action is disabled in non-gradle projects`() {
@@ -40,9 +42,7 @@ class MigrateBuildFeaturesFromGradlePropertiesActionTest {
     ApplicationManager.getApplication().invokeAndWait { fixture.openFileInEditor(file.virtualFile) }
     val action = MigrateBuildConfigFromGradlePropertiesAction()
     val event = TestActionEvent.createTestEvent(action, DataManager.getInstance().getDataContext(fixture.editor.component))
-    ApplicationManager.getApplication().runReadAction {
-      action.update(event)
-    }
+    ApplicationManager.getApplication().runReadAction { action.update(event) }
 
     Assert.assertFalse("Action should not be visible", event.presentation.isVisible)
     Assert.assertFalse("Action should not be enabled", event.presentation.isEnabled)
@@ -56,9 +56,7 @@ class MigrateBuildFeaturesFromGradlePropertiesActionTest {
     ApplicationManager.getApplication().invokeAndWait { fixture.openFileInEditor(file.virtualFile) }
     val action = MigrateResValuesFromGradlePropertiesAction()
     val event = TestActionEvent.createTestEvent(action, DataManager.getInstance().getDataContext(fixture.editor.component))
-    ApplicationManager.getApplication().runReadAction {
-      action.update(event)
-    }
+    ApplicationManager.getApplication().runReadAction { action.update(event) }
 
     Assert.assertFalse("Action should not be visible", event.presentation.isVisible)
     Assert.assertFalse("Action should not be enabled", event.presentation.isEnabled)

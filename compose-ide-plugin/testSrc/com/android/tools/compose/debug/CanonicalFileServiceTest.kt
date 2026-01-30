@@ -30,12 +30,7 @@ class CanonicalFileServiceTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val fakeJarDetector = FakeJarDetector()
 
-  @get:Rule
-  val rule =
-    RuleChain(
-      projectRule,
-      FlagRule(StudioFlags.COMPOSE_CLASS_NAME_CALCULATOR_CANONICAL_FILE_CACHE, true),
-    )
+  @get:Rule val rule = RuleChain(projectRule, FlagRule(StudioFlags.COMPOSE_CLASS_NAME_CALCULATOR_CANONICAL_FILE_CACHE, true))
 
   @Test
   fun getCanonicalFile_differentFileNames() {

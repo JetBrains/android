@@ -49,15 +49,11 @@ import org.junit.Test
 class CallChartDetailsViewTest {
   private val timer = FakeTimer()
 
-  @JvmField
-  @Rule
-  val grpcChannel = FakeGrpcChannel("CallChartDetailsViewTest", FakeTransportService(timer))
+  @JvmField @Rule val grpcChannel = FakeGrpcChannel("CallChartDetailsViewTest", FakeTransportService(timer))
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var profilersView: StudioProfilersView
   private lateinit var profilers: StudioProfilers
@@ -67,21 +63,27 @@ class CallChartDetailsViewTest {
   fun setUp() {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
     profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
-    capture =  CpuProfilerUITestUtils.validCapture(profilers)
+    capture = CpuProfilerUITestUtils.validCapture(profilers)
   }
 
   @Test
   fun showsContentWhenNodeIsNotNull() {
-    val callChart = CaptureDetails.Type.CALL_CHART.build(ClockType.GLOBAL, Range(),
-                                                         listOf(capture.getCaptureNode(capture.mainThreadId)!!),
-                                                         capture, Utils::runOnUi) as CaptureDetails.CallChart
+    val callChart =
+      CaptureDetails.Type.CALL_CHART.build(
+        ClockType.GLOBAL,
+        Range(),
+        listOf(capture.getCaptureNode(capture.mainThreadId)!!),
+        capture,
+        Utils::runOnUi,
+      ) as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(profilersView, callChart)
 
-    val noDataInstructionsList = TreeWalker(callChartView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
-      val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
+    val noDataInstructionsList =
+      TreeWalker(callChartView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
+        val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
 
-      textInstruction.text == CaptureDetailsView.NO_DATA_FOR_THREAD_MESSAGE
-    }
+        textInstruction.text == CaptureDetailsView.NO_DATA_FOR_THREAD_MESSAGE
+      }
     assertThat(noDataInstructionsList).isEmpty()
 
     val chart = TreeWalker(callChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()
@@ -93,12 +95,26 @@ class CallChartDetailsViewTest {
     val parser = CpuCaptureParser(profilers)
 
     val traceFile = resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_PID1_PATH).toFile()
-    val aTraceCapture = parser.parse(traceFile, CpuProfilerTestUtils.FAKE_TRACE_ID, TraceType.ATRACE, 1,
-                                     null /* processNameHint */, TaskTracker.createNullTaskTracker(profilers)).get()
+    val aTraceCapture =
+      parser
+        .parse(
+          traceFile,
+          CpuProfilerTestUtils.FAKE_TRACE_ID,
+          TraceType.ATRACE,
+          1,
+          null /* processNameHint */,
+          TaskTracker.createNullTaskTracker(profilers),
+        )
+        .get()
 
-    val callChart = CaptureDetails.Type.CALL_CHART.build(ClockType.GLOBAL, Range(Double.MIN_VALUE, Double.MAX_VALUE),
-                                                         listOf(aTraceCapture.getCaptureNode(aTraceCapture.mainThreadId)!!),
-                                                         aTraceCapture, Utils::runOnUi) as CaptureDetails.CallChart
+    val callChart =
+      CaptureDetails.Type.CALL_CHART.build(
+        ClockType.GLOBAL,
+        Range(Double.MIN_VALUE, Double.MAX_VALUE),
+        listOf(aTraceCapture.getCaptureNode(aTraceCapture.mainThreadId)!!),
+        aTraceCapture,
+        Utils::runOnUi,
+      ) as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(profilersView, callChart)
     val treeChart = TreeWalker(callChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()
     assertThat(treeChart.mouseMotionListeners[2]).isInstanceOf(CpuTraceEventTooltipView::class.java)
@@ -108,16 +124,22 @@ class CallChartDetailsViewTest {
   fun showsNoDataForRangeMessage() {
     // Select a range where we don't have trace data
     val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
-    val callChart = CaptureDetails.Type.CALL_CHART.build(ClockType.GLOBAL, range,
-                                                         listOf(capture.getCaptureNode(capture.mainThreadId)!!),
-                                                         capture, Utils::runOnUi) as CaptureDetails.CallChart
+    val callChart =
+      CaptureDetails.Type.CALL_CHART.build(
+        ClockType.GLOBAL,
+        range,
+        listOf(capture.getCaptureNode(capture.mainThreadId)!!),
+        capture,
+        Utils::runOnUi,
+      ) as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(profilersView, callChart)
 
-    val noDataInstructions = TreeWalker(callChartView.component).descendants().filterIsInstance<InstructionsPanel>().first {
-      val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
+    val noDataInstructions =
+      TreeWalker(callChartView.component).descendants().filterIsInstance<InstructionsPanel>().first {
+        val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
 
-      textInstruction.text == CaptureDetailsView.NO_DATA_FOR_RANGE_MESSAGE
-    }
+        textInstruction.text == CaptureDetailsView.NO_DATA_FOR_RANGE_MESSAGE
+      }
     assertThat(noDataInstructions.isVisible).isTrue()
   }
 }

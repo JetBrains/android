@@ -38,12 +38,11 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val BLAST_BUFFER_QUEUE_COUNTER_REGEX = Regex("QueuedBuffer - .+BLAST#\\d")
   }
 
-  fun build(traceId: Long,
-            mainProcessId: Int,
-            initialViewRange: Range): SystemTraceCpuCapture {
+  fun build(traceId: Long, mainProcessId: Int, initialViewRange: Range): SystemTraceCpuCapture {
 
-    val mainProcess = model.getProcessById(mainProcessId) ?: throw IllegalArgumentException(
-      "A process with the id $mainProcessId was not found while parsing the capture.")
+    val mainProcess =
+      model.getProcessById(mainProcessId)
+        ?: throw IllegalArgumentException("A process with the id $mainProcessId was not found while parsing the capture.")
 
     val captureTreeNodes = buildCaptureTreeNodes(mainProcess)
     val threadState = buildThreadStateData(mainProcess)
@@ -57,14 +56,27 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val frameManager = SystemTraceFrameManager(mainProcess)
     val sfManager = SystemTraceSurfaceflingerManager(model, mainProcess.name)
 
-    return SystemTraceCpuCapture(traceId, model, captureTreeNodes, threadState, cpuState.schedulingData, cpuState.utilizationData,
-                                 cpuCounters, memoryCounters, powerRailCounters, batteryDrainCounters, blastBufferQueueCounter,
-                                 frameManager, sfManager, initialViewRange)
+    return SystemTraceCpuCapture(
+      traceId,
+      model,
+      captureTreeNodes,
+      threadState,
+      cpuState.schedulingData,
+      cpuState.utilizationData,
+      cpuCounters,
+      memoryCounters,
+      powerRailCounters,
+      batteryDrainCounters,
+      blastBufferQueueCounter,
+      frameManager,
+      sfManager,
+      initialViewRange,
+    )
   }
 
   /**
-   * Returns a map of [CpuThreadInfo] to [CaptureNode].
-   * The capture nodes are built from [TraceEventModel] maintaining the order and hierarchy.
+   * Returns a map of [CpuThreadInfo] to [CaptureNode]. The capture nodes are built from [TraceEventModel] maintaining the order and
+   * hierarchy.
    */
   private fun buildCaptureTreeNodes(mainProcessModel: ProcessModel): Map<CpuThreadInfo, CaptureNode> {
     val threadToCaptureNodeMap = mutableMapOf<CpuThreadInfo, CaptureNode>()
@@ -89,7 +101,6 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
    *
    * @param traceEventModel to convert to a [CaptureNode]. This method will be recursively called on all children.
    * @param depth to current node. Depth starts at 0.
-   *
    * @return The [CaptureNode] that mirrors the [TraceEventModel] passed in.
    */
   private fun populateCaptureNode(traceEventModel: TraceEventModel, depth: Int, nodeFactory: SystemTraceNodeFactory): CaptureNode {
@@ -109,9 +120,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     return node
   }
 
-  /**
-   * Builds a map of thread id to a list of [ThreadState] series.
-   */
+  /** Builds a map of thread id to a list of [ThreadState] series. */
   private fun buildThreadStateData(mainProcessModel: ProcessModel): Map<Int, List<SeriesData<ThreadState>>> {
     val threadToStateSeries = mutableMapOf<Int, List<SeriesData<ThreadState>>>()
 
@@ -156,11 +165,10 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
 
   private data class CpuStateData(
     val schedulingData: Map<Int, List<SeriesData<CpuThreadSliceInfo>>>,
-    val utilizationData: List<SeriesData<Long>>)
+    val utilizationData: List<SeriesData<Long>>,
+  )
 
-  /**
-   * Builds a map of CPU ids to a list of [CpuThreadInfo] series. While building the CPU map it also builds a CPU utilization series.
-   */
+  /** Builds a map of CPU ids to a list of [CpuThreadInfo] series. While building the CPU map it also builds a CPU utilization series. */
   private fun buildCpuStateData(mainProcessModel: ProcessModel): CpuStateData {
 
     // Initialize utilizationData with the buckets.
@@ -191,16 +199,14 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
         // Some of PIDs and TIDs are not present on the process/thread lists, so we do our best to find their data here.
         val processName = model.getProcessById(sched.processId)?.getSafeProcessName() ?: ""
         // Start by checking threads in the known processes, fallback to dangling threads and again to an empty name.
-        val threadName = model.getProcessById(sched.processId)?.threadById?.get(sched.threadId)?.name
-                         ?: model.getDanglingThread(sched.threadId)?.name
-                         ?: ""
+        val threadName =
+          model.getProcessById(sched.processId)?.threadById?.get(sched.threadId)?.name
+            ?: model.getDanglingThread(sched.threadId)?.name
+            ?: ""
 
         processList.add(
-          SeriesData(sched.startTimestampUs,
-                     CpuThreadSliceInfo(
-                       sched.threadId, threadName,
-                       sched.processId, processName,
-                       sched.durationUs)))
+          SeriesData(sched.startTimestampUs, CpuThreadSliceInfo(sched.threadId, threadName, sched.processId, processName, sched.durationUs))
+        )
         lastSliceEnd = sched.endTimestampUs
         if (sched.processId == mainProcessModel.id) {
           // Calculate our start time.
@@ -229,11 +235,13 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     // When we have finished processing all CPUs the utilization series contains the total time each CPU spent in each bucket.
     // Here we normalize this value across the max total wall clock time that could be spent in each bucket and end with our utilization.
     val utilizationTotalTime: Double = UTILIZATION_BUCKET_LENGTH_US * model.getCpuCores().size.toDouble()
-    utilizationData.replaceAll(UnaryOperator { series: SeriesData<Long> ->
-      // Normalize the utilization time as a percent form 0-1 then scale up to 0-100.
-      series.value = (series.value / utilizationTotalTime * 100.0).toLong()
-      series
-    })
+    utilizationData.replaceAll(
+      UnaryOperator { series: SeriesData<Long> ->
+        // Normalize the utilization time as a percent form 0-1 then scale up to 0-100.
+        series.value = (series.value / utilizationTotalTime * 100.0).toLong()
+        series
+      }
+    )
 
     return CpuStateData(schedData, utilizationData)
   }
@@ -250,21 +258,18 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val aggregatedPowerRails = aggregateCounters(filteredPoweredRails, powerRailGroupMap, normalizeStartTime = true)
     val deltaPowerRails = convertSeriesDataToDeltaSeries(aggregatedPowerRails)
 
-    return aggregatedPowerRails
-      .keys
+    return aggregatedPowerRails.keys
       .filter { deltaPowerRails.contains(it) }
       .associateWith { PowerCounterData(deltaPowerRails[it]!!, aggregatedPowerRails[it]!!) }
   }
 
   private fun buildBatteryDrainCountersData(): Map<String, List<SeriesData<Long>>> {
-    return model.getBatteryDrain().associate {
-      it.name to convertCounterToSeriesData(it)
-    }.toSortedMap()
+    return model.getBatteryDrain().associate { it.name to convertCounterToSeriesData(it) }.toSortedMap()
   }
 
   private fun buildCpuCountersData(): List<Map<String, List<SeriesData<Long>>>> {
-    return model.getCpuCores().map {
-      cpuCoreModel -> cpuCoreModel.countersMap.asSequence().associate { it.key to convertCounterToSeriesData(it.value) }
+    return model.getCpuCores().map { cpuCoreModel ->
+      cpuCoreModel.countersMap.asSequence().associate { it.key to convertCounterToSeriesData(it.value) }
     }
   }
 
@@ -273,10 +278,11 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
    * app process.
    */
   private fun buildBlastBufferQueueCounterData(mainProcessModel: ProcessModel): List<SeriesData<Long>> {
-    val counter = mainProcessModel.counterByName
-                    .filterKeys { it.matches(BLAST_BUFFER_QUEUE_COUNTER_REGEX) }.values
-                    .firstOrNull { it.valuesByTimestampUs.isNotEmpty() }
-                  ?: return emptyList()
+    val counter =
+      mainProcessModel.counterByName
+        .filterKeys { it.matches(BLAST_BUFFER_QUEUE_COUNTER_REGEX) }
+        .values
+        .firstOrNull { it.valuesByTimestampUs.isNotEmpty() } ?: return emptyList()
     return convertCounterToSeriesData(counter)
   }
 }

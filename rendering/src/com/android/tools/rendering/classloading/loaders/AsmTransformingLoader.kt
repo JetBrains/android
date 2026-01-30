@@ -23,9 +23,8 @@ import org.jetbrains.org.objectweb.asm.ClassWriter
 /**
  * A [DelegatingClassLoader.Loader] that applies the given [transform] to the loaded classes.
  *
- * The [pseudoClassLocator] is needed for ASM to be able to apply certain transformations without
- * having to fully load the class in the class loader. [asmFlags] includes the flags needed to apply
- * the transformation. See [ClassWriter].
+ * The [pseudoClassLocator] is needed for ASM to be able to apply certain transformations without having to fully load the class in the
+ * class loader. [asmFlags] includes the flags needed to apply the transformation. See [ClassWriter].
  *
  * [onRewrite] will be called after a class has been successfully transformed.
  */

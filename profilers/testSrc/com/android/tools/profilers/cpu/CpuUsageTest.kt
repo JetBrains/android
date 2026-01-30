@@ -22,19 +22,18 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.systemtrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 
 class CpuUsageTest {
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, true)
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuUsageTest", transportService)
+  @get:Rule var grpcChannel = FakeGrpcChannel("CpuUsageTest", transportService)
 
   private val services = FakeIdeProfilerServices()
   private val profilers by lazy { StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer) }

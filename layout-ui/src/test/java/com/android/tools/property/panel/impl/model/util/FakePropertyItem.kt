@@ -36,9 +36,7 @@ open class FakePropertyItem(
   override var isReference: Boolean = false
 
   override val namespaceIcon: Icon?
-    get() =
-      if (namespace == SdkConstants.TOOLS_URI) StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE
-      else null
+    get() = if (namespace == SdkConstants.TOOLS_URI) StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE else null
 
   private var _value: String? = initialValue
 

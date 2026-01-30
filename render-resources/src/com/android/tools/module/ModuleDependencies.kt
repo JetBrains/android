@@ -15,7 +15,6 @@
  */
 package com.android.tools.module
 
-import com.android.SdkConstants
 import com.android.ide.common.repository.GoogleMavenArtifactId
 
 /** Information about module dependencies required for rendering. */

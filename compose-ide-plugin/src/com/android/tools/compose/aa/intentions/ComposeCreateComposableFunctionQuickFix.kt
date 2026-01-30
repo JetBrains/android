@@ -31,8 +31,8 @@ import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KaTypeRendererForSo
 import org.jetbrains.kotlin.analysis.api.types.KaFunctionType
 import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.analysis.api.types.builtinTypes
-import org.jetbrains.kotlin.analysis.api.types.classId
 import org.jetbrains.kotlin.analysis.api.types.KaStandardTypeClassIds
+import org.jetbrains.kotlin.analysis.api.types.classId
 import org.jetbrains.kotlin.idea.base.resources.KotlinBundle
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.quickfixes.QuickFixActionBase
@@ -63,10 +63,9 @@ import org.jetbrains.kotlin.types.Variance
  *
  * @Composable fun newFunction() {
  *
- * b/267429486: This quickfix should make use of [CreateCallableFromUsageFix] when that machinery is
- * available on K2. For now, this implementation will e.g. always extract the newFunction as a
- * sibling to the calling compose Function, and have fewer smarts in terms of parameter names and
- * types.
+ * b/267429486: This quickfix should make use of [CreateCallableFromUsageFix] when that machinery is available on K2. For now, this
+ * implementation will e.g. always extract the newFunction as a sibling to the calling compose Function, and have fewer smarts in terms of
+ * parameter names and types.
  *
  * TODO("Not yet implemented") }
  */
@@ -78,8 +77,7 @@ class ComposeCreateComposableFunctionQuickFix(
 
   override fun getFamilyName(): String = KotlinBundle.message("fix.create.from.usage.family")
 
-  override fun getText(): String =
-    ComposeBundle.message("create.composable.function") + " '${newFunction.name}'"
+  override fun getText(): String = ComposeBundle.message("create.composable.function") + " '${newFunction.name}'"
 
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
     sibling.addSiblingAfter(newFunction)
@@ -100,9 +98,7 @@ class ComposeCreateComposableFunctionQuickFix(
       val parentFunction = unresolvedCall.getStrictParentOfType<KtNamedFunction>() ?: return null
       if (!parentFunction.isComposableFunction()) return null
 
-      val unresolvedName =
-        (unresolvedCall.calleeExpression as? KtSimpleNameExpression)?.getReferencedName()
-          ?: return null
+      val unresolvedName = (unresolvedCall.calleeExpression as? KtSimpleNameExpression)?.getReferencedName() ?: return null
       if (unresolvedName.isBlank() || !unresolvedName[0].isUpperCase()) return null
 
       val fullCallExpression = unresolvedCall.getQualifiedExpressionForSelectorOrThis()
@@ -116,8 +112,8 @@ class ComposeCreateComposableFunctionQuickFix(
     }
 
     /**
-     * Budget-version of [CreateCallableFromUsageFix]: Constructs a plain function annotated with
-     * `@Composable`: infers (type) parameters from [unresolvedCall].
+     * Budget-version of [CreateCallableFromUsageFix]: Constructs a plain function annotated with `@Composable`: infers (type) parameters
+     * from [unresolvedCall].
      *
      * See b/267429486.
      */
@@ -139,8 +135,7 @@ class ComposeCreateComposableFunctionQuickFix(
                 val isLastLambdaArgument = index == lastIndex && arg is KtLambdaArgument
                 val type = arg.getArgumentExpression()?.expressionType ?: builtinTypes.any
                 val paramName =
-                  if (isLastLambdaArgument) "content"
-                  else arg.getArgumentName()?.referenceExpression?.getReferencedName() ?: "x$index"
+                  if (isLastLambdaArgument) "content" else arg.getArgumentName()?.referenceExpression?.getReferencedName() ?: "x$index"
                 @OptIn(KaExperimentalApi::class)
                 param(
                   paramName,
@@ -155,10 +150,7 @@ class ComposeCreateComposableFunctionQuickFix(
             .asString()
         )
 
-    /**
-     * For the purpose of creating Composable functions, optimistically guesses that [expression] is
-     * of type `Unit`.
-     */
+    /** For the purpose of creating Composable functions, optimistically guesses that [expression] is of type `Unit`. */
     context(session: KaSession)
     private fun guessReturnType(expression: KtExpression): KaType {
       return (expression.expressionType as? KaFunctionType)?.returnType ?: builtinTypes.unit

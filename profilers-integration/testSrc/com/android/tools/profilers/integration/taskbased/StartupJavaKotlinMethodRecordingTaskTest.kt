@@ -29,7 +29,8 @@ class StartupJavaKotlinMethodRecordingTaskTest : ProfilersStartupTaskTestBase() 
   override fun verifyTaskStarted(studio: AndroidStudio) {
     verifyIdeaLog(
       ".*Attempting\\sto\\sstart\\sthe\\s\\'Java\\/Kotlin Method Recording\\'\\stask\\sfrom\\sprocess\\sstart\\s\\(startup\\)\\.\$",
-      300)
+      300,
+    )
     waitForAppDeploymentStarted("com.example.minapp", 300)
     verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
   }
@@ -47,20 +48,19 @@ class StartupJavaKotlinMethodRecordingTaskTest : ProfilersStartupTaskTestBase() 
    * Validate live Java/Kotlin method recording workflow is working.
    *
    * Test Steps:
-   *  1. Import "minApp" in the testData directory of this module.
-   *  2. Select device -> process -> task (java/kotlin method recording) -> Set recording to Sample
-   *  3. Set recording state to process start
-   *  4. Start the task
-   *  5. Stop the task.
+   * 1. Import "minApp" in the testData directory of this module.
+   * 2. Select device -> process -> task (java/kotlin method recording) -> Set recording to Sample
+   * 3. Set recording state to process start
+   * 4. Start the task
+   * 5. Stop the task.
    *
    * Test Verifications:
-   *  1. Verify if the profiler tool window is opened and Transport proxy is created.
-   *  2. Verify if the app is deployed.
-   *  3. Verify task start succeeded.
-   *  4. Verify session stopped.
-   *  5. Verify if the capture is parsed successfully.
-   *  6. Verify UI components after capture is parsed.
+   * 1. Verify if the profiler tool window is opened and Transport proxy is created.
+   * 2. Verify if the app is deployed.
+   * 3. Verify task start succeeded.
+   * 4. Verify session stopped.
+   * 5. Verify if the capture is parsed successfully.
+   * 6. Verify UI components after capture is parsed.
    */
-  @Test
-  fun test() = testStartUpTask()
+  @Test fun test() = testStartUpTask()
 }

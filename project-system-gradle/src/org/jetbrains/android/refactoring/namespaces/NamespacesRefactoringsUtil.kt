@@ -67,11 +67,12 @@ private val LOG: Logger by lazy { Logger.getInstance("NamespaceRefactoringsUtil.
 /**
  * Information about an Android resource reference.
  *
- * Once they are all found, [inferredPackage] is computed in the context of the module being refactored. If it can be determined, it is
- * set to a non-null value by the time the refactoring processor performs the refactoring.
+ * Once they are all found, [inferredPackage] is computed in the context of the module being refactored. If it can be determined, it is set
+ * to a non-null value by the time the refactoring processor performs the refactoring.
  */
 internal abstract class ResourceUsageInfo : UsageInfo {
   constructor(element: PsiElement, startOffset: Int, endOffset: Int) : super(element, startOffset, endOffset)
+
   constructor(element: PsiElement) : super(element)
 
   abstract val resourceType: ResourceType
@@ -81,31 +82,29 @@ internal abstract class ResourceUsageInfo : UsageInfo {
 
 internal class PropertiesUsageInfo(val flag: String, psiElement: PsiElement) : UsageInfo(psiElement, true)
 
-/**
- * [ResourceUsageInfo] for references to R class fields in Java/Kotlin.
- */
+/** [ResourceUsageInfo] for references to R class fields in Java/Kotlin. */
 internal class CodeUsageInfo(
   /** The field reference, used in "find usages" view. */
   fieldReferenceExpression: PsiElement,
 
   /** The "R" reference itself, will be rebound to the right class. */
   val classReference: PsiReference,
-
   override val resourceType: ResourceType,
-  override val name: String
+  override val name: String,
 ) : ResourceUsageInfo(fieldReferenceExpression) {
   fun updateClassReference(psiMigration: PsiMigration) {
     val reference = classReference
 
-    val newRClass = findOrCreateClass(
-      classReference.element.project,
-      psiMigration,
-      packageToRClass(inferredPackage ?: return),
+    val newRClass =
+      findOrCreateClass(
+        classReference.element.project,
+        psiMigration,
+        packageToRClass(inferredPackage ?: return),
 
-      // We're dealing with light R classes, so need to pick the right scope here. This will be handled by
-      // AndroidResolveScopeEnlarger.
-      reference.element.resolveScope
-    )
+        // We're dealing with light R classes, so need to pick the right scope here. This will be handled by
+        // AndroidResolveScopeEnlarger.
+        reference.element.resolveScope,
+      )
 
     if (reference is KtSimpleNameReference) {
       // For Kotlin references, we want to not use reference shortening, this is because otherwise we get sporadic prepending of
@@ -117,87 +116,85 @@ internal class CodeUsageInfo(
   }
 
   /**
-   * Verifies if one of the calls on the stack comes from the [KotlinOptimizeImportsRefactoringHelper].
-   * We check the last 5 elements to allow for some future flow changes.
+   * Verifies if one of the calls on the stack comes from the [KotlinOptimizeImportsRefactoringHelper]. We check the last 5 elements to
+   * allow for some future flow changes.
    */
-  private fun isKotlinOptimizerCall(): Boolean = Thread.currentThread().stackTrace
-    .take(5)
-    .map { it.className }
-    .any { KotlinOptimizeImportsRefactoringHelper::class.qualifiedName == it }
+  private fun isKotlinOptimizerCall(): Boolean =
+    Thread.currentThread().stackTrace.take(5).map { it.className }.any { KotlinOptimizeImportsRefactoringHelper::class.qualifiedName == it }
 
-  override fun getFile(): PsiFile? = if (classReference.element.language is KotlinLanguage && isKotlinOptimizerCall()) {
-    null
-  }
-  else {
-    super.getFile()
-  }
+  override fun getFile(): PsiFile? =
+    if (classReference.element.language is KotlinLanguage && isKotlinOptimizerCall()) {
+      null
+    } else {
+      super.getFile()
+    }
 }
 
-/**
- * Finds usages of the R classes defined by the module corresponding to [facet]. This includes the `androidTest` R class.
- */
+/** Finds usages of the R classes defined by the module corresponding to [facet]. This includes the `androidTest` R class. */
 internal fun findUsagesOfRClassesFromModule(facet: AndroidFacet): Collection<CodeUsageInfo> {
   val result = mutableListOf<CodeUsageInfo>()
   val module = facet.module
   val moduleRepo = StudioResourceRepositoryManager.getModuleResources(facet)
   val project = module.project
 
-  val rClasses = project.getProjectSystem()
-    .getLightResourceClassService()
-    .getLightRClassesDefinedByModule(module)
+  val rClasses = project.getProjectSystem().getLightResourceClassService().getLightRClassesDefinedByModule(module)
 
   for (rClass in rClasses) {
     val useScopeSearchScope = rClass.useScope
-    val searchScope = if (useScopeSearchScope is GlobalSearchScope) {
-      NonGeneratedSearchScope(project, useScopeSearchScope)
-    } else {
-      if (LOG.isDebugEnabled) {
-        LOG.debug("GlobalSearchScope expected, instead got: ${useScopeSearchScope.javaClass.simpleName} for light class " +
-                  "type: ${rClass.javaClass.simpleName}")
+    val searchScope =
+      if (useScopeSearchScope is GlobalSearchScope) {
+        NonGeneratedSearchScope(project, useScopeSearchScope)
+      } else {
+        if (LOG.isDebugEnabled) {
+          LOG.debug(
+            "GlobalSearchScope expected, instead got: ${useScopeSearchScope.javaClass.simpleName} for light class " +
+              "type: ${rClass.javaClass.simpleName}"
+          )
+        }
+        useScopeSearchScope
       }
-      useScopeSearchScope
-    }
 
     referencesLoop@ for (psiReference in ReferencesSearch.search(rClass, searchScope).asIterable()) {
       val element = psiReference.element
-      val (nameRef, resource) = when (element.language) {
-        JavaLanguage.INSTANCE -> {
-          val classRef = element as? PsiReferenceExpression ?: continue@referencesLoop
-          val typeRef = classRef.parent as? PsiReferenceExpression ?: continue@referencesLoop
-          val typeName = typeRef.referenceName ?: continue@referencesLoop
-          val nameRef = typeRef.parent as? PsiReferenceExpression ?: continue@referencesLoop
+      val (nameRef, resource) =
+        when (element.language) {
+          JavaLanguage.INSTANCE -> {
+            val classRef = element as? PsiReferenceExpression ?: continue@referencesLoop
+            val typeRef = classRef.parent as? PsiReferenceExpression ?: continue@referencesLoop
+            val typeName = typeRef.referenceName ?: continue@referencesLoop
+            val nameRef = typeRef.parent as? PsiReferenceExpression ?: continue@referencesLoop
 
-          // Make sure the PSI structure is as expected for something like "R.string.app_name":
-          if (nameRef.qualifierExpression != typeRef || typeRef.qualifierExpression != classRef) continue@referencesLoop
+            // Make sure the PSI structure is as expected for something like "R.string.app_name":
+            if (nameRef.qualifierExpression != typeRef || typeRef.qualifierExpression != classRef) continue@referencesLoop
 
-          val resolvedResource = extractResourceFieldFromNameElement(nameRef) as? ResourceLightField
-          Pair(
-            nameRef as PsiElement,
-            ResourceReference(
-              ResourceNamespace.RES_AUTO,
-              ResourceType.fromClassName(typeName) ?: continue@referencesLoop,
-              resolvedResource?.resourceName ?: nameRef.referenceName ?: continue@referencesLoop
+            val resolvedResource = extractResourceFieldFromNameElement(nameRef) as? ResourceLightField
+            Pair(
+              nameRef as PsiElement,
+              ResourceReference(
+                ResourceNamespace.RES_AUTO,
+                ResourceType.fromClassName(typeName) ?: continue@referencesLoop,
+                resolvedResource?.resourceName ?: nameRef.referenceName ?: continue@referencesLoop,
+              ),
             )
-          )
-        }
-        KotlinLanguage.INSTANCE -> {
-          val classRef = element as? KtExpression ?: continue@referencesLoop
-          val typeRef = classRef.getNextInQualifiedChain() as? KtNameReferenceExpression ?: continue@referencesLoop
-          val typeName = typeRef.getReferencedName()
-          val nameRef = typeRef.getNextInQualifiedChain() as? KtNameReferenceExpression ?: continue@referencesLoop
+          }
+          KotlinLanguage.INSTANCE -> {
+            val classRef = element as? KtExpression ?: continue@referencesLoop
+            val typeRef = classRef.getNextInQualifiedChain() as? KtNameReferenceExpression ?: continue@referencesLoop
+            val typeName = typeRef.getReferencedName()
+            val nameRef = typeRef.getNextInQualifiedChain() as? KtNameReferenceExpression ?: continue@referencesLoop
 
-          val resolvedResource = extractResourceFieldFromNameElement(nameRef) as? ResourceLightField
-          Pair(
-            nameRef as PsiElement,
-            ResourceReference(
-              ResourceNamespace.RES_AUTO,
-              ResourceType.fromClassName(typeName) ?: continue@referencesLoop,
-              resolvedResource?.resourceName ?: nameRef.getReferencedName()
+            val resolvedResource = extractResourceFieldFromNameElement(nameRef) as? ResourceLightField
+            Pair(
+              nameRef as PsiElement,
+              ResourceReference(
+                ResourceNamespace.RES_AUTO,
+                ResourceType.fromClassName(typeName) ?: continue@referencesLoop,
+                resolvedResource?.resourceName ?: nameRef.getReferencedName(),
+              ),
             )
-          )
+          }
+          else -> continue@referencesLoop
         }
-        else -> continue@referencesLoop
-      }
 
       // Special case for styleable attr fields as they will not by default be found in ResourceRepository using expression text
       if (resource.resourceType == ResourceType.STYLEABLE) {
@@ -205,29 +202,33 @@ internal fun findUsagesOfRClassesFromModule(facet: AndroidFacet): Collection<Cod
         if (resourceField is StyleableAttrLightField) {
           val styleableAttrFieldUrl = resourceField.styleableAttrFieldUrl
           val resources = moduleRepo.getResources(styleableAttrFieldUrl.styleable)
-          if (!resources
+          if (
+            !resources
               .map { it.resourceValue }
               .filterIsInstance<StyleableResourceValue>()
               .flatMap { it.allAttributes }
-              .any { it.name == styleableAttrFieldUrl.attr.name }) {
-            result += CodeUsageInfo(
-              fieldReferenceExpression = nameRef,
-              classReference = psiReference,
-              resourceType = resource.resourceType,
-              name = styleableAttrFieldUrl.styleable.name
-            )
+              .any { it.name == styleableAttrFieldUrl.attr.name }
+          ) {
+            result +=
+              CodeUsageInfo(
+                fieldReferenceExpression = nameRef,
+                classReference = psiReference,
+                resourceType = resource.resourceType,
+                name = styleableAttrFieldUrl.styleable.name,
+              )
           }
           continue@referencesLoop
         }
       }
 
       if (!moduleRepo.hasResources(resource.namespace, resource.resourceType, resource.name)) {
-        result += CodeUsageInfo(
-          fieldReferenceExpression = nameRef,
-          classReference = psiReference,
-          resourceType = resource.resourceType,
-          name = resource.name
-        )
+        result +=
+          CodeUsageInfo(
+            fieldReferenceExpression = nameRef,
+            classReference = psiReference,
+            resourceType = resource.resourceType,
+            name = resource.name,
+          )
       }
     }
   }
@@ -240,10 +241,7 @@ private fun extractResourceFieldFromNameElement(resourceNameElement: PsiElement)
   return PsiMultiReference(references, references[references.size - 1].element).resolve() as? AndroidLightField
 }
 
-internal fun inferPackageNames(
-  result: Collection<ResourceUsageInfo>,
-  progressIndicator: ProgressIndicator?
-) {
+internal fun inferPackageNames(result: Collection<ResourceUsageInfo>, progressIndicator: ProgressIndicator?) {
 
   val inferredNamespaces: Table<ResourceType, String, String> =
     Tables.newCustomTable(Maps.newEnumMap(ResourceType::class.java)) { mutableMapOf<String, String>() }
@@ -277,9 +275,7 @@ internal fun inferPackageNames(
   }
 }
 
-/**
- * Search scope that intersects a provided scope with non-generated files in a Gradle project. ie. no files under the build/ folder.
- */
+/** Search scope that intersects a provided scope with non-generated files in a Gradle project. ie. no files under the build/ folder. */
 private class NonGeneratedSearchScope(project: Project, baseScope: GlobalSearchScope) : DelegatingGlobalSearchScope(project, baseScope) {
   override fun contains(file: VirtualFile): Boolean {
     return super.contains(file) && !GeneratedSourcesFilter.isGeneratedSourceByAnyFilter(file, project!!)

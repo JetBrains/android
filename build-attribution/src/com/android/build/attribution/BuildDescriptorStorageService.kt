@@ -26,30 +26,25 @@ import com.intellij.util.containers.ContainerUtil
 data class BuildDescriptorImpl(
   override var buildSessionID: String,
   override var buildFinishedTimestamp: Long,
-  override var totalBuildTimeMs: Long
+  override var totalBuildTimeMs: Long,
 ) : BuildDescriptor {
-  /**
-   * Default constructor is needed for serialization
-   */
+  /** Default constructor is needed for serialization */
   private constructor() : this("", 0, 0)
 }
 
-@State(name = "BuildDescriptorStorageService",
-       storages = [Storage("buildDescriptorStorageService.xml", roamingType = RoamingType.DISABLED)])
-class BuildDescriptorStorageService(
-  val project: Project
-) : PersistentStateComponent<BuildDescriptorStorageService.State> {
+@State(
+  name = "BuildDescriptorStorageService",
+  storages = [Storage("buildDescriptorStorageService.xml", roamingType = RoamingType.DISABLED)],
+)
+class BuildDescriptorStorageService(val project: Project) : PersistentStateComponent<BuildDescriptorStorageService.State> {
   private var buildDescriptorsState = State()
 
   companion object {
     @JvmStatic
-    fun getInstance(project: Project): BuildDescriptorStorageService =
-      project.getService(BuildDescriptorStorageService::class.java)
+    fun getInstance(project: Project): BuildDescriptorStorageService = project.getService(BuildDescriptorStorageService::class.java)
   }
 
-  data class State(
-    var descriptors: ConcurrentList<BuildDescriptorImpl> = ContainerUtil.createConcurrentList()
-  )
+  data class State(var descriptors: ConcurrentList<BuildDescriptorImpl> = ContainerUtil.createConcurrentList())
 
   override fun getState(): State = buildDescriptorsState
 

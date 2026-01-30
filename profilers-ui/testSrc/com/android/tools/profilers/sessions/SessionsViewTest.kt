@@ -19,7 +19,6 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.stdui.CommonAction
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -50,15 +49,14 @@ import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent.VK_BACK_SPACE
+import java.awt.event.KeyEvent.VK_ENTER
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent.VK_BACK_SPACE
-import java.awt.event.KeyEvent.VK_ENTER
-import java.nio.file.Files
-import java.util.concurrent.TimeUnit
 
 @RunsInEdt
 class SessionsViewTest {
@@ -67,10 +65,8 @@ class SessionsViewTest {
   private val myTransportService = FakeTransportService(myTimer, false)
   private val myIdeProfilerServices = FakeIdeProfilerServices()
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("SessionsViewTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("SessionsViewTestChannel", myTransportService, FakeEventService())
   @get:Rule val myEdtRule = EdtRule()
-
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var mySessionsManager: SessionsManager
@@ -123,22 +119,25 @@ class SessionsViewTest {
     val heapDumpTimestamp = 10L
     val cpuTraceTimestamp = 20L
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
-    val cpuTraceInfo = Trace.TraceInfo.newBuilder()
-      .setConfiguration(Trace.TraceConfiguration.newBuilder())
-      .setFromTimestamp(cpuTraceTimestamp)
-      .setToTimestamp(cpuTraceTimestamp + 1)
-      .build()
+    val cpuTraceInfo =
+      Trace.TraceInfo.newBuilder()
+        .setConfiguration(Trace.TraceConfiguration.newBuilder())
+        .setFromTimestamp(cpuTraceTimestamp)
+        .setToTimestamp(cpuTraceTimestamp + 1)
+        .build()
     val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(heapDumpInfo.startTime, heapDumpInfo.startTime, heapDumpInfo)
     myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(session1.pid).build())
     myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(session2.pid).build())
 
-    val cpuTraceEvent = Common.Event.newBuilder()
-      .setGroupId(cpuTraceTimestamp)
-      .setKind(Common.Event.Kind.CPU_TRACE)
-      .setTimestamp(cpuTraceTimestamp)
-      .setIsEnded(true)
-      .setTraceData(Trace.TraceData.newBuilder()
-                     .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+    val cpuTraceEvent =
+      Common.Event.newBuilder()
+        .setGroupId(cpuTraceTimestamp)
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTimestamp(cpuTraceTimestamp)
+        .setIsEnded(true)
+        .setTraceData(
+          Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build())
+        )
     myTransportService.addEventToStream(device.deviceId, cpuTraceEvent.setPid(session1.pid).build())
     myTransportService.addEventToStream(device.deviceId, cpuTraceEvent.setPid(session2.pid).build())
     mySessionsManager.update()
@@ -160,11 +159,33 @@ class SessionsViewTest {
 
   @Test
   fun testProcessDropdownUpToDateForProfileables() {
-    val device1 = onlineDevice { deviceId = NEW_DEVICE_ID_1; manufacturer = "Manufacturer1"; model = "Model1" }
-    val device2 = onlineDevice { deviceId = NEW_DEVICE_ID_2; manufacturer = "Manufacturer2"; model = "Model2" }
-    val process1 = debuggableProcess { pid = 10; deviceId = NEW_DEVICE_ID_1; name = "Process1"; exposureLevel = PROFILEABLE }
-    val otherProcess1 = debuggableProcess { pid = 20; deviceId = NEW_DEVICE_ID_1; name = "Other1" }
-    val otherProcess2 = debuggableProcess { pid = 30; deviceId = NEW_DEVICE_ID_2; name = "Other2"; exposureLevel = PROFILEABLE }
+    val device1 = onlineDevice {
+      deviceId = NEW_DEVICE_ID_1
+      manufacturer = "Manufacturer1"
+      model = "Model1"
+    }
+    val device2 = onlineDevice {
+      deviceId = NEW_DEVICE_ID_2
+      manufacturer = "Manufacturer2"
+      model = "Model2"
+    }
+    val process1 = debuggableProcess {
+      pid = 10
+      deviceId = NEW_DEVICE_ID_1
+      name = "Process1"
+      exposureLevel = PROFILEABLE
+    }
+    val otherProcess1 = debuggableProcess {
+      pid = 20
+      deviceId = NEW_DEVICE_ID_1
+      name = "Other1"
+    }
+    val otherProcess2 = debuggableProcess {
+      pid = 30
+      deviceId = NEW_DEVICE_ID_2
+      name = "Other2"
+      exposureLevel = PROFILEABLE
+    }
     // Process* is preferred, Other* should be in the other processes flyout.
     myProfilers.setPreferredProcess("Manufacturer1 Model1", "Process", null)
 
@@ -203,16 +224,20 @@ class SessionsViewTest {
     myTransportService.addProcess(device1, otherProcess1)
     try {
       myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    } catch (e: NullPointerException) { /* Ignore error from HelpToolTip in test but not in production */ }
+    } catch (e: NullPointerException) {
+      /* Ignore error from HelpToolTip in test but not in production */
+    }
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isEnabled).isTrue()
-    assertThat(deviceAction1.childrenActionCount).isEqualTo(4)  // process1 + separator + "other debuggables" + "other profileables"
+    assertThat(deviceAction1.childrenActionCount).isEqualTo(4) // process1 + separator + "other debuggables" + "other profileables"
     processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1 (10) (profileable)" }
     assertThat(deviceAction1.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
-    var processAction2 = deviceAction1.childrenActions
-      .first { c -> c.text == "Other debuggable processes" }.childrenActions
-      .first { c -> c.text == "Other1 (20)" }
+    var processAction2 =
+      deviceAction1.childrenActions
+        .first { c -> c.text == "Other debuggable processes" }
+        .childrenActions
+        .first { c -> c.text == "Other1 (20)" }
 
     // Test the reverse case of having only "other" processes
     myTransportService.addDevice(device2)
@@ -221,24 +246,33 @@ class SessionsViewTest {
     assertThat(selectionAction.childrenActionCount).isEqualTo(4)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isEnabled).isTrue()
-    assertThat(deviceAction1.childrenActionCount).isEqualTo(4)  // process1 + separator + "other debuggables" + "other profileables"
+    assertThat(deviceAction1.childrenActionCount).isEqualTo(4) // process1 + separator + "other debuggables" + "other profileables"
     processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1 (10) (profileable)" }
     assertThat(deviceAction1.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
-    processAction2 = deviceAction1.childrenActions
-      .first { c -> c.text == "Other debuggable processes" }.childrenActions
-      .first { c -> c.text == "Other1 (20)" }
+    processAction2 =
+      deviceAction1.childrenActions
+        .first { c -> c.text == "Other debuggable processes" }
+        .childrenActions
+        .first { c -> c.text == "Other1 (20)" }
     var deviceAction2 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer2 Model2" }
     assertThat(deviceAction2.isEnabled).isTrue()
     assertThat(deviceAction2.childrenActionCount).isEqualTo(2) // No separator + "no other debuggables" + "other profileables"
-    var processAction3 = deviceAction2.childrenActions
-      .first { c -> c.text == "Other profileable processes" }.childrenActions
-      .first { c -> c.text == "Other2 (30)" }
+    var processAction3 =
+      deviceAction2.childrenActions
+        .first { c -> c.text == "Other profileable processes" }
+        .childrenActions
+        .first { c -> c.text == "Other2 (30)" }
   }
 
   @Test
   fun testUnsupportedDeviceDropdown() {
     val unsupportedReasonText = "Unsupported"
-    val device = onlineDevice { deviceId = NEW_DEVICE_ID_1; manufacturer = "Manufacturer1"; model = "Model1"; unsupportedReason = unsupportedReasonText }
+    val device = onlineDevice {
+      deviceId = NEW_DEVICE_ID_1
+      manufacturer = "Manufacturer1"
+      model = "Model1"
+      unsupportedReason = unsupportedReasonText
+    }
     myTransportService.addDevice(device)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
@@ -257,13 +291,45 @@ class SessionsViewTest {
 
   @Test
   fun testProcessDropdownHideDeadDevicesAndProcesses() {
-    val deadDevice = newDevice(Common.Device.State.DISCONNECTED) { deviceId = NEW_DEVICE_ID_1; manufacturer = "Manufacturer1"; model = "Model1" }
-    val onlineDevice = onlineDevice { deviceId = NEW_DEVICE_ID_2; manufacturer = "Manufacturer2"; model = "Model2" }
-    val deadProcess1 = debuggableProcess { pid = 10; deviceId = NEW_DEVICE_ID_1; name = "Process1"; state = Common.Process.State.DEAD }
-    val aliveProcess1 = debuggableProcess { pid = 20; deviceId = NEW_DEVICE_ID_1; name = "Process2" }
-    val deadProcess2 = debuggableProcess { pid = 30; deviceId = NEW_DEVICE_ID_2; name = "Process3"; state = Common.Process.State.DEAD }
-    val aliveProcess2 = debuggableProcess { pid = 40; deviceId = NEW_DEVICE_ID_2; name = "Process4" }
-    val deadProcess3 = debuggableProcess { pid = 50; deviceId = NEW_DEVICE_ID_2; name = "Dead"; state = Common.Process.State.DEAD }
+    val deadDevice =
+      newDevice(Common.Device.State.DISCONNECTED) {
+        deviceId = NEW_DEVICE_ID_1
+        manufacturer = "Manufacturer1"
+        model = "Model1"
+      }
+    val onlineDevice = onlineDevice {
+      deviceId = NEW_DEVICE_ID_2
+      manufacturer = "Manufacturer2"
+      model = "Model2"
+    }
+    val deadProcess1 = debuggableProcess {
+      pid = 10
+      deviceId = NEW_DEVICE_ID_1
+      name = "Process1"
+      state = Common.Process.State.DEAD
+    }
+    val aliveProcess1 = debuggableProcess {
+      pid = 20
+      deviceId = NEW_DEVICE_ID_1
+      name = "Process2"
+    }
+    val deadProcess2 = debuggableProcess {
+      pid = 30
+      deviceId = NEW_DEVICE_ID_2
+      name = "Process3"
+      state = Common.Process.State.DEAD
+    }
+    val aliveProcess2 = debuggableProcess {
+      pid = 40
+      deviceId = NEW_DEVICE_ID_2
+      name = "Process4"
+    }
+    val deadProcess3 = debuggableProcess {
+      pid = 50
+      deviceId = NEW_DEVICE_ID_2
+      name = "Dead"
+      state = Common.Process.State.DEAD
+    }
     // Also test processes that can be grouped in the fly-out menu.
     myProfilers.setPreferredProcess("Manufacturer2 Model2", "Process4", null)
 
@@ -285,11 +351,31 @@ class SessionsViewTest {
 
   @Test
   fun testDropdownActionsTriggerProcessChange() {
-    val device1 = onlineDevice { deviceId = NEW_DEVICE_ID_1; manufacturer = "Manufacturer1"; model = "Model1" }
-    val device2 = onlineDevice { deviceId = NEW_DEVICE_ID_2; manufacturer = "Manufacturer2"; model = "Model2" }
-    val process1 = debuggableProcess { pid = 10; deviceId = NEW_DEVICE_ID_1; name = "Process1" }
-    val process2 = debuggableProcess { pid = 20; deviceId = NEW_DEVICE_ID_1; name = "Process2" }
-    val process3 = debuggableProcess { pid = 10; deviceId = NEW_DEVICE_ID_2; name = "Process3" }
+    val device1 = onlineDevice {
+      deviceId = NEW_DEVICE_ID_1
+      manufacturer = "Manufacturer1"
+      model = "Model1"
+    }
+    val device2 = onlineDevice {
+      deviceId = NEW_DEVICE_ID_2
+      manufacturer = "Manufacturer2"
+      model = "Model2"
+    }
+    val process1 = debuggableProcess {
+      pid = 10
+      deviceId = NEW_DEVICE_ID_1
+      name = "Process1"
+    }
+    val process2 = debuggableProcess {
+      pid = 20
+      deviceId = NEW_DEVICE_ID_1
+      name = "Process2"
+    }
+    val process3 = debuggableProcess {
+      pid = 10
+      deviceId = NEW_DEVICE_ID_2
+      name = "Process3"
+    }
     // Mark all process as preferred processes as we are not testing the other processes flyout here.
     myProfilers.setPreferredProcess(null, "Process", null)
 
@@ -300,9 +386,11 @@ class SessionsViewTest {
     myTransportService.addProcess(device1, process2)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     var selectionAction = mySessionsView.processSelectionAction
-    var processAction2 = selectionAction.childrenActions
-      .first { c -> c.text == "Manufacturer1 Model1" }.childrenActions
-      .first { c -> c.text == "Process2 (20) (debuggable)" }
+    var processAction2 =
+      selectionAction.childrenActions
+        .first { c -> c.text == "Manufacturer1 Model1" }
+        .childrenActions
+        .first { c -> c.text == "Process2 (20) (debuggable)" }
     processAction2.actionPerformed(ActionEvent(processAction2, 0, ""))
     assertThat(myProfilers.device).isEqualTo(device1)
     assertThat(myProfilers.process).isEqualTo(process2)
@@ -310,9 +398,11 @@ class SessionsViewTest {
     myTransportService.addDevice(device2)
     myTransportService.addProcess(device2, process3)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    var processAction3 = selectionAction.childrenActions
-      .first { c -> c.text == "Manufacturer2 Model2" }.childrenActions
-      .first { c -> c.text == "Process3 (10) (debuggable)" }
+    var processAction3 =
+      selectionAction.childrenActions
+        .first { c -> c.text == "Manufacturer2 Model2" }
+        .childrenActions
+        .first { c -> c.text == "Process3 (10) (debuggable)" }
     processAction3.actionPerformed(ActionEvent(processAction3, 0, ""))
     assertThat(myProfilers.device).isEqualTo(device2)
     assertThat(myProfilers.process).isEqualTo(process3)
@@ -322,8 +412,16 @@ class SessionsViewTest {
   fun testStopProfiling() {
     myIdeProfilerServices.enableTaskBasedUx(false)
 
-    val device1 = onlineDevice { deviceId = NEW_DEVICE_ID_1; manufacturer = "Manufacturer1"; model = "Model1" }
-    val process1 = debuggableProcess { pid = 10; deviceId = NEW_DEVICE_ID_1; name = "Process1" }
+    val device1 = onlineDevice {
+      deviceId = NEW_DEVICE_ID_1
+      manufacturer = "Manufacturer1"
+      model = "Model1"
+    }
+    val process1 = debuggableProcess {
+      pid = 10
+      deviceId = NEW_DEVICE_ID_1
+      name = "Process1"
+    }
 
     val stopProfilingButton = mySessionsView.stopProfilingButton
     assertThat(stopProfilingButton.isEnabled).isFalse()
@@ -350,15 +448,19 @@ class SessionsViewTest {
     assertThat(sessionsPanel.componentCount).isEqualTo(0)
 
     val device = onlineDevice { deviceId = NEW_DEVICE_ID_1 }
-    val process1 = debuggableProcess { deviceId = NEW_DEVICE_ID_1; pid = 10 }
+    val process1 = debuggableProcess {
+      deviceId = NEW_DEVICE_ID_1
+      pid = 10
+    }
     startSession(device, process1)
     val session1 = mySessionsManager.selectedSession
     assertThat(sessionsPanel.componentCount).isEqualTo(1)
     assertThat((sessionsPanel.getComponent(0) as SessionItemView).artifact.session).isEqualTo(session1)
 
-    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 2, 1,
-                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE,
-                                                                                       1).build())
+    myTransportService.addEventToStream(
+      1,
+      ProfilersTestData.generateSessionStartEvent(1, 2, 1, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 1).build(),
+    )
     myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 2, 2).build())
     mySessionsManager.update()
     assertThat(sessionsPanel.componentCount).isEqualTo(2)
@@ -376,23 +478,22 @@ class SessionsViewTest {
     val process1 = debuggableProcess { pid = 10 }
     val process2 = debuggableProcess { pid = 20 }
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(10).setEndTime(11).build()
-    val cpuTraceInfo = Trace.TraceInfo.newBuilder()
-      .setConfiguration(Trace.TraceConfiguration.newBuilder())
-      .setFromTimestamp(20)
-      .setToTimestamp(21)
-      .build()
+    val cpuTraceInfo =
+      Trace.TraceInfo.newBuilder().setConfiguration(Trace.TraceConfiguration.newBuilder()).setFromTimestamp(20).setToTimestamp(21).build()
 
     val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(heapDumpInfo.startTime, heapDumpInfo.startTime, heapDumpInfo)
     myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(process1.pid).build())
     myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(process2.pid).build())
 
-    val cpuTraceEvent = Common.Event.newBuilder()
-      .setGroupId(cpuTraceInfo.fromTimestamp)
-      .setKind(Common.Event.Kind.CPU_TRACE)
-      .setTimestamp(cpuTraceInfo.fromTimestamp)
-      .setIsEnded(true)
-      .setTraceData(Trace.TraceData.newBuilder()
-                     .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+    val cpuTraceEvent =
+      Common.Event.newBuilder()
+        .setGroupId(cpuTraceInfo.fromTimestamp)
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTimestamp(cpuTraceInfo.fromTimestamp)
+        .setIsEnded(true)
+        .setTraceData(
+          Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build())
+        )
     myTransportService.addEventToStream(device.deviceId, cpuTraceEvent.setPid(process1.pid).build())
     myTransportService.addEventToStream(device.deviceId, cpuTraceEvent.setPid(process2.pid).build())
 
@@ -518,23 +619,29 @@ class SessionsViewTest {
     val process = debuggableProcess { pid = 10 }
     val traceInfoId = 13L
 
-    val cpuTraceInfo = Trace.TraceInfo.newBuilder()
-      .setTraceId(traceInfoId)
-      .setFromTimestamp(TimeUnit.MINUTES.toNanos(1))
-      .setToTimestamp(TimeUnit.MINUTES.toNanos(2))
-      .setConfiguration(Trace.TraceConfiguration.newBuilder()
-                          .setArtOptions(Trace.ArtOptions.newBuilder().setTraceMode(Trace.TraceMode.SAMPLED)))
-      .build()
+    val cpuTraceInfo =
+      Trace.TraceInfo.newBuilder()
+        .setTraceId(traceInfoId)
+        .setFromTimestamp(TimeUnit.MINUTES.toNanos(1))
+        .setToTimestamp(TimeUnit.MINUTES.toNanos(2))
+        .setConfiguration(
+          Trace.TraceConfiguration.newBuilder().setArtOptions(Trace.ArtOptions.newBuilder().setTraceMode(Trace.TraceMode.SAMPLED))
+        )
+        .build()
 
-    myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
-      .setGroupId(cpuTraceInfo.fromTimestamp)
-      .setPid(process.pid)
-      .setKind(Common.Event.Kind.CPU_TRACE)
-      .setTimestamp(cpuTraceInfo.fromTimestamp)
-      .setIsEnded(true)
-      .setTraceData(Trace.TraceData.newBuilder()
-                     .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
-      .build())
+    myTransportService.addEventToStream(
+      device.deviceId,
+      Common.Event.newBuilder()
+        .setGroupId(cpuTraceInfo.fromTimestamp)
+        .setPid(process.pid)
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTimestamp(cpuTraceInfo.fromTimestamp)
+        .setIsEnded(true)
+        .setTraceData(
+          Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build())
+        )
+        .build(),
+    )
     myTransportService.addFile(traceInfoId.toString(), resolveWorkspacePath(VALID_TRACE_PATH).toFile().absolutePath)
 
     myTimer.currentTimeNs = 0
@@ -564,7 +671,7 @@ class SessionsViewTest {
     assertThat(myProfilers.stage).isInstanceOf(CpuCaptureStage::class.java) // Makes sure CPU capture stage is now open
     assertThat(myProfilers.timeline.isStreaming).isFalse()
     // Makes sure artifact's proto selection is saved
-    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(cpuCaptureItem.artifact.artifactProto);
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(cpuCaptureItem.artifact.artifactProto)
 
     // Make sure clicking the export label does not select the session.
     mySessionsManager.setSession(Common.Session.getDefaultInstance())
@@ -577,7 +684,7 @@ class SessionsViewTest {
     ui.mouse.click(cpuCaptureItem.bounds.x + exportLabel.bounds.x + 1, cpuCaptureItem.bounds.y + exportLabel.bounds.y + 1)
     assertThat(mySessionsManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
     // Makes sure selected artifact's proto stayed the same
-    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(cpuCaptureItem.artifact.artifactProto);
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(cpuCaptureItem.artifact.artifactProto)
   }
 
   @Test
@@ -593,22 +700,26 @@ class SessionsViewTest {
     val sessionStartNs = 1L
 
     // Sets an ongoing trace info in the service
-    val cpuTraceInfo = Trace.TraceInfo.newBuilder()
-      .setTraceId(1)
-      .setConfiguration(Trace.TraceConfiguration.newBuilder()
-                          .setAtraceOptions(Trace.AtraceOptions.getDefaultInstance()))
-      .setFromTimestamp(sessionStartNs + 1)
-      .setToTimestamp(-1)
-      .build()
-    myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
-      .setGroupId(cpuTraceInfo.fromTimestamp)
-      .setPid(process.getPid())
-      .setKind(Common.Event.Kind.CPU_TRACE)
-      .setTimestamp(cpuTraceInfo.fromTimestamp)
-      .setIsEnded(true)
-      .setTraceData(Trace.TraceData.newBuilder()
-                     .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
-      .build())
+    val cpuTraceInfo =
+      Trace.TraceInfo.newBuilder()
+        .setTraceId(1)
+        .setConfiguration(Trace.TraceConfiguration.newBuilder().setAtraceOptions(Trace.AtraceOptions.getDefaultInstance()))
+        .setFromTimestamp(sessionStartNs + 1)
+        .setToTimestamp(-1)
+        .build()
+    myTransportService.addEventToStream(
+      device.deviceId,
+      Common.Event.newBuilder()
+        .setGroupId(cpuTraceInfo.fromTimestamp)
+        .setPid(process.getPid())
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTimestamp(cpuTraceInfo.fromTimestamp)
+        .setIsEnded(true)
+        .setTraceData(
+          Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build())
+        )
+        .build(),
+    )
     myTimer.currentTimeNs = sessionStartNs
     mySessionsManager.beginSession(device.deviceId, device, process)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -631,12 +742,12 @@ class SessionsViewTest {
     assertThat(myProfilers.stage).isInstanceOf(CpuProfilerStage::class.java) // Makes sure CPU profiler stage is now open
     assertThat(myProfilers.timeline.isStreaming).isTrue()
     // Makes sure artifact's proto selection is saved
-    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(cpuCaptureItem.artifact.artifactProto);
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(cpuCaptureItem.artifact.artifactProto)
     // Selects the CPUCaptureSessionArtifact again
     ui.layout()
     ui.mouse.click(cpuCaptureItem.bounds.x + 1, cpuCaptureItem.bounds.y + 1)
     // Makes sure selected artifact's proto stayed the same
-    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(cpuCaptureItem.artifact.artifactProto);
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(cpuCaptureItem.artifact.artifactProto)
   }
 
   @Ignore("b/138573206")
@@ -674,7 +785,8 @@ class SessionsViewTest {
     // Makes sure memory profiler stage is now open.
     assertThat(myProfilers.stage).isInstanceOf(MainMemoryProfilerStage::class.java)
     // Makes sure a HeapDumpCaptureObject is loaded.
-    assertThat((myProfilers.stage as MainMemoryProfilerStage).captureSelection.selectedCapture).isInstanceOf(HeapDumpCaptureObject::class.java)
+    assertThat((myProfilers.stage as MainMemoryProfilerStage).captureSelection.selectedCapture)
+      .isInstanceOf(HeapDumpCaptureObject::class.java)
 
     // Make sure clicking the export label does not select the session.
     mySessionsManager.setSession(Common.Session.getDefaultInstance())
@@ -724,12 +836,12 @@ class SessionsViewTest {
     assertThat((myProfilers.stage as MainMemoryProfilerStage).captureSelection.selectedCapture).isNull()
     assertThat(myProfilers.timeline.isStreaming).isTrue()
     // Makes sure artifact's proto selection is saved
-    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(hprofItem.artifact.artifactProto);
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(hprofItem.artifact.artifactProto)
     // Selects the HprofSessionArtifact again
     ui.layout()
     ui.mouse.click(hprofItem.bounds.x + 1, hprofItem.bounds.y + 1)
     // Makes sure selected artifact's proto stayed the same
-    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(hprofItem.artifact.artifactProto);
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(hprofItem.artifact.artifactProto)
   }
 
   @Test
@@ -745,7 +857,9 @@ class SessionsViewTest {
 
     val allocationInfo = AllocationsInfo.newBuilder().setStartTime(10).setEndTime(11).setLegacy(true).setSuccess(true).build()
     myTransportService.addEventToStream(
-      device.deviceId, ProfilersTestData.generateMemoryAllocationInfoData(allocationInfo.startTime, process.pid, allocationInfo).build())
+      device.deviceId,
+      ProfilersTestData.generateMemoryAllocationInfoData(allocationInfo.startTime, process.pid, allocationInfo).build(),
+    )
 
     mySessionsManager.beginSession(device.deviceId, device, process)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -767,10 +881,10 @@ class SessionsViewTest {
     // Makes sure memory capture stage is now open.
     assertThat(myProfilers.stage).isInstanceOf(MemoryCaptureStage::class.java)
     // Makes sure a LegacyAllocationCaptureObject is loaded.
-    assertThat((myProfilers.stage as MemoryCaptureStage).captureSelection.selectedCapture).isInstanceOf(
-      LegacyAllocationCaptureObject::class.java)
+    assertThat((myProfilers.stage as MemoryCaptureStage).captureSelection.selectedCapture)
+      .isInstanceOf(LegacyAllocationCaptureObject::class.java)
     // Makes sure artifact's proto selection is saved
-    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(allocationItem.artifact.artifactProto);
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(allocationItem.artifact.artifactProto)
 
     // Make sure clicking the export label does not select the session.
     mySessionsManager.setSession(Common.Session.getDefaultInstance())
@@ -786,7 +900,7 @@ class SessionsViewTest {
     ui.layout()
     ui.mouse.click(allocationItem.bounds.x + 1, allocationItem.bounds.y + 1)
     // Makes sure selected artifact's proto stayed the same
-    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(allocationItem.artifact.artifactProto);
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(allocationItem.artifact.artifactProto)
   }
 
   @Test
@@ -802,7 +916,9 @@ class SessionsViewTest {
 
     val allocationInfo = AllocationsInfo.newBuilder().setStartTime(10).setEndTime(Long.MAX_VALUE).setLegacy(true).build()
     myTransportService.addEventToStream(
-      device.deviceId, ProfilersTestData.generateMemoryAllocationInfoData(allocationInfo.startTime, process.pid, allocationInfo).build())
+      device.deviceId,
+      ProfilersTestData.generateMemoryAllocationInfoData(allocationInfo.startTime, process.pid, allocationInfo).build(),
+    )
 
     mySessionsManager.beginSession(device.deviceId, device, process)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -825,12 +941,12 @@ class SessionsViewTest {
     assertThat((myProfilers.stage as MainMemoryProfilerStage).captureSelection.selectedCapture).isNull()
     assertThat(myProfilers.timeline.isStreaming).isTrue()
     // Makes sure artifact's proto selection is saved
-    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(allocationItem.artifact.artifactProto);
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(allocationItem.artifact.artifactProto)
     // Selects the LegacyAllocationsSessionArtifact again
     ui.layout()
     ui.mouse.click(allocationItem.bounds.x + 1, allocationItem.bounds.y + 1)
     // Makes sure selected artifact's proto stayed the same
-    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(allocationItem.artifact.artifactProto);
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(allocationItem.artifact.artifactProto)
   }
 
   private fun startSession(device: Common.Device, process: Common.Process) {

@@ -23,14 +23,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioPatchUpdaterEvent
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.rules.TempDirectory
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import java.io.BufferedInputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitResult
@@ -39,18 +31,25 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 /**
  * Integration test for the studio updater.
  *
- * This is formulated to check the packaging of the updater that may be changed by intellij merges,
- * hence uses the final binary, rather than being run as a unit test.
+ * This is formulated to check the packaging of the updater that may be changed by intellij merges, hence uses the final binary, rather than
+ * being run as a unit test.
  */
 @RunWith(JUnit4::class)
 class StudioPatchUpdaterIntegrationTest {
 
-  @get:Rule
-  var myTempDirectory = TempDirectory()
+  @get:Rule var myTempDirectory = TempDirectory()
 
   private lateinit var java: Path
   private lateinit var patchJar: Path
@@ -79,16 +78,18 @@ class StudioPatchUpdaterIntegrationTest {
 
     private fun readDir(dir: Path): Map<String, String> {
       val actual = HashMap<String, String>()
-      Files.walkFileTree(dir, object : SimpleFileVisitor<Path>() {
-        override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-          val filePath = dir.relativize(file).toString().replace(dir.fileSystem.separator, "/")
-          actual[filePath] = Files.readAllLines(file).joinToString("\n")
-          return FileVisitResult.CONTINUE
-        }
-      })
+      Files.walkFileTree(
+        dir,
+        object : SimpleFileVisitor<Path>() {
+          override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
+            val filePath = dir.relativize(file).toString().replace(dir.fileSystem.separator, "/")
+            actual[filePath] = Files.readAllLines(file).joinToString("\n")
+            return FileVisitResult.CONTINUE
+          }
+        },
+      )
       return actual
     }
-
   }
 
   @Before
@@ -98,16 +99,25 @@ class StudioPatchUpdaterIntegrationTest {
 
     // Build the patch
 
-    val createPatcher = arrayOf(java.toString(), "-cp", updaterFullJar.toString(), UPDATER_MAIN_CLASS, "create", "v1", "v2",
-                                ExampleDirectory.V1.createExampleDir(myTempDirectory).toString(),
-                                ExampleDirectory.V2.createExampleDir(myTempDirectory).toString(), patchJar.toString(), "--strict")
+    val createPatcher =
+      arrayOf(
+        java.toString(),
+        "-cp",
+        updaterFullJar.toString(),
+        UPDATER_MAIN_CLASS,
+        "create",
+        "v1",
+        "v2",
+        ExampleDirectory.V1.createExampleDir(myTempDirectory).toString(),
+        ExampleDirectory.V2.createExampleDir(myTempDirectory).toString(),
+        patchJar.toString(),
+        "--strict",
+      )
     runExpectingOk(createPatcher, mapOf())
     assertTrue(Files.isRegularFile(patchJar))
   }
 
-  /**
-   * Smoke test for patch being correctly applied
-   */
+  /** Smoke test for patch being correctly applied */
   @Test
   fun patchApplicationSmokeTest() {
     val analyticsHome = createAnalyticsHome()
@@ -128,16 +138,17 @@ class StudioPatchUpdaterIntegrationTest {
     for (event in events) {
       assertEquals(AndroidStudioEvent.EventKind.STUDIO_PATCH_UPDATER, event.kind)
     }
-    val expectedEventSequence = listOf(
-      StudioPatchUpdaterEvent.Kind.START,
-      StudioPatchUpdaterEvent.Kind.PHASE_EXTRACTING_PATCH_FILES,
-      StudioPatchUpdaterEvent.Kind.PATCH_DETAILS_SHOW,
-      StudioPatchUpdaterEvent.Kind.PHASE_VALIDATING_INSTALLATION,
-      StudioPatchUpdaterEvent.Kind.PHASE_BACKING_UP_FILES,
-      StudioPatchUpdaterEvent.Kind.PHASE_APPLYING_PATCH,
-      StudioPatchUpdaterEvent.Kind.PHASE_CLEANING_UP,
-      StudioPatchUpdaterEvent.Kind.EXIT_OK
-    )
+    val expectedEventSequence =
+      listOf(
+        StudioPatchUpdaterEvent.Kind.START,
+        StudioPatchUpdaterEvent.Kind.PHASE_EXTRACTING_PATCH_FILES,
+        StudioPatchUpdaterEvent.Kind.PATCH_DETAILS_SHOW,
+        StudioPatchUpdaterEvent.Kind.PHASE_VALIDATING_INSTALLATION,
+        StudioPatchUpdaterEvent.Kind.PHASE_BACKING_UP_FILES,
+        StudioPatchUpdaterEvent.Kind.PHASE_APPLYING_PATCH,
+        StudioPatchUpdaterEvent.Kind.PHASE_CLEANING_UP,
+        StudioPatchUpdaterEvent.Kind.EXIT_OK,
+      )
     assertEquals(expectedEventSequence, events.map { it.studioPatchUpdaterEvent.kind })
 
     val details = events.map { it.studioPatchUpdaterEvent }.find { it.kind == StudioPatchUpdaterEvent.Kind.PATCH_DETAILS_SHOW }!!
@@ -145,9 +156,7 @@ class StudioPatchUpdaterIntegrationTest {
     assertEquals("v2", details.patch.studioVersionTo)
   }
 
-  /**
-   * Smoke test for patch failing to be applied.
-   */
+  /** Smoke test for patch failing to be applied. */
   @Test
   fun patchApplicationFailureTest() {
 
@@ -183,9 +192,7 @@ class StudioPatchUpdaterIntegrationTest {
   private fun createAnalyticsHome(): Path {
     val path = myTempDirectory.newDirectory().toPath()
     val json = "{ userId: \"a4d47d92-8d4c-44bb-a8a4-d2483b6e0c16\", hasOptedIn: true }"
-    Files.write(
-      path.resolve("").resolve("analytics.settings"),
-      json.toByteArray(StandardCharsets.UTF_8))
+    Files.write(path.resolve("").resolve("analytics.settings"), json.toByteArray(StandardCharsets.UTF_8))
     return path
   }
 
@@ -203,9 +210,8 @@ class StudioPatchUpdaterIntegrationTest {
   }
 
   private fun run(createPatcher: Array<String>, env: Map<String, String>): Int {
-    val builder = ProcessBuilder(*createPatcher)
-      .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-      .redirectError(ProcessBuilder.Redirect.INHERIT)
+    val builder =
+      ProcessBuilder(*createPatcher).redirectOutput(ProcessBuilder.Redirect.INHERIT).redirectError(ProcessBuilder.Redirect.INHERIT)
     builder.environment().putAll(env)
     return builder.start().waitFor()
   }
@@ -223,5 +229,4 @@ class StudioPatchUpdaterIntegrationTest {
       }
       throw RuntimeException("Unable to find updater deploy jar. Perhaps run cd tools/idea && ant fullupdater")
     }
-
 }

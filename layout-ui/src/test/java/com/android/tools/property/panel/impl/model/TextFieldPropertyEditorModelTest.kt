@@ -42,9 +42,7 @@ class TextFieldPropertyEditorModelTest {
     return createModel(property)
   }
 
-  private fun createModel(
-    property: PropertyItem
-  ): Pair<TextFieldPropertyEditorModel, ValueChangedListener> {
+  private fun createModel(property: PropertyItem): Pair<TextFieldPropertyEditorModel, ValueChangedListener> {
     val model = TextFieldPropertyEditorModel(property, true)
     val listener = mock(ValueChangedListener::class.java)
     model.addListener(listener)
@@ -78,9 +76,7 @@ class TextFieldPropertyEditorModelTest {
           "hello",
           editingSupport =
             object : EditingSupport {
-              override val validation: EditingValidation = {
-                Pair(EditingErrorCategory.ERROR, "Error")
-              }
+              override val validation: EditingValidation = { Pair(EditingErrorCategory.ERROR, "Error") }
             },
         )
       )

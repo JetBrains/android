@@ -31,19 +31,14 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.separator
 
 /**
- * This sample composable showcasing the different dropdown components was adapted from the public
- * Jewel repository standalone sample. See: https://github.com/JetBrains/jewel
+ * This sample composable showcasing the different dropdown components was adapted from the public Jewel repository standalone sample. See:
+ * https://github.com/JetBrains/jewel
  */
 @Composable
 fun Dropdowns() {
   GroupHeader("Dropdowns")
-  Row(
-    horizontalArrangement = Arrangement.spacedBy(10.dp),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    val items = remember {
-      listOf("Light", "Dark", "---", "High Contrast", "Darcula", "IntelliJ Light")
-    }
+  Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+    val items = remember { listOf("Light", "Dark", "---", "High Contrast", "Darcula", "IntelliJ Light") }
     var selected by remember { mutableStateOf(items.first()) }
 
     Dropdown(enabled = false, menuContent = {}) { Text("Disabled") }

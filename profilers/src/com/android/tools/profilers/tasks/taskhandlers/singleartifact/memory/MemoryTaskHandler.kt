@@ -23,12 +23,12 @@ import com.android.tools.profilers.tasks.taskhandlers.singleartifact.SingleArtif
  * This class defines the task handlers that produce single memory artifacts. The key augmentation of this class is the setting up of the
  * MainMemoryProfilerStage (its respective InterimStage) to facilitate the task handler's starting, stopping, and loading of the task.
  */
-abstract class MemoryTaskHandler(private val sessionsManager: SessionsManager) : SingleArtifactTaskHandler<MainMemoryProfilerStage>(
-  sessionsManager) {
+abstract class MemoryTaskHandler(private val sessionsManager: SessionsManager) :
+  SingleArtifactTaskHandler<MainMemoryProfilerStage>(sessionsManager) {
 
   /**
-   * To perform the memory task start, stop, and load, the MainMemoryProfilerStage (an implementation of an InterimStage is instantiated
-   * and set to be the current stage both inside this task handler, and in the StudioProfiler stage manager.
+   * To perform the memory task start, stop, and load, the MainMemoryProfilerStage (an implementation of an InterimStage is instantiated and
+   * set to be the current stage both inside this task handler, and in the StudioProfiler stage manager.
    */
   override fun setupStage() {
     val studioProfilers = sessionsManager.studioProfilers

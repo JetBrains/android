@@ -59,12 +59,7 @@ class PropertyLink(private val model: LinkPropertyEditorModel) : JPanel(BorderLa
   private fun updateFromModel() {
     label.text = expandableText(model.value, model.tableExpansionState)
     label.foreground = model.displayedForeground(UIUtil.getLabelForeground())
-    link.text =
-      expandableText(
-        model.linkProperty.link.templateText,
-        model.tableExpansionState,
-        underlined = true,
-      )
+    link.text = expandableText(model.linkProperty.link.templateText, model.tableExpansionState, underlined = true)
     link.foreground = model.displayedForeground(link.normalForegroundColor)
     background = model.displayedBackground(UIUtil.TRANSPARENT_COLOR)
     isOpaque = model.isUsedInRendererWithSelection
@@ -75,14 +70,7 @@ class PropertyLink(private val model: LinkPropertyEditorModel) : JPanel(BorderLa
     val presentation = action.templatePresentation.clone()
     val dataContext = DataManager.getInstance().getDataContext(this)
     val manager = ActionManager.getInstance()
-    val actionEvent =
-      AnActionEvent.createEvent(
-        dataContext,
-        presentation,
-        ActionPlaces.UNKNOWN,
-        ActionUiKind.NONE,
-        null,
-      )
+    val actionEvent = AnActionEvent.createEvent(dataContext, presentation, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
     action.actionPerformed(actionEvent)
   }
 }

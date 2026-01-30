@@ -18,6 +18,8 @@ package org.jetbrains.android
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
+import com.android.tools.idea.res.findStyleableAttrFieldsForAttr
+import com.android.tools.idea.res.findStyleableAttrFieldsForStyleable
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_ELEMENT
@@ -31,17 +33,13 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.Processor
-import com.android.tools.idea.res.findStyleableAttrFieldsForAttr
-import com.android.tools.idea.res.findStyleableAttrFieldsForStyleable
 
 /**
  * Provides a custom [FindUsagesHandler] that understands how to search for all relevant Android Resources.
  *
  * This works by creating a [ResourceReferencePsiElement] from the element in the editor, if not a [ResourceReferencePsiElement] already.
- * XML usages are found via a ReferencesSearch on the [ResourceReferencePsiElement].
- * File usages are manually added from [ResourceRepository] as they are not found in the ReferencesSearch. This is done in
- * processElementUsages().
- *
+ * XML usages are found via a ReferencesSearch on the [ResourceReferencePsiElement]. File usages are manually added from
+ * [ResourceRepository] as they are not found in the ReferencesSearch. This is done in processElementUsages().
  */
 class AndroidResourcesFindUsagesHandlerFactory : FindUsagesHandlerFactory() {
   override fun canFindUsages(element: PsiElement): Boolean = ResourceReferencePsiElement.create(element) != null
@@ -71,9 +69,9 @@ class AndroidResourcesFindUsagesHandlerFactory : FindUsagesHandlerFactory() {
           // Add any file based resources not found in a ReferencesSearch
           if (contextElement != null) {
             runReadAction {
-              AndroidResourceToPsiResolver.getInstance()
-                .getGotoDeclarationFileBasedTargets(resourceReference, contextElement)
-                .forEach { processor.process(UsageInfo(it, false)) }
+              AndroidResourceToPsiResolver.getInstance().getGotoDeclarationFileBasedTargets(resourceReference, contextElement).forEach {
+                processor.process(UsageInfo(it, false))
+              }
             }
           }
 

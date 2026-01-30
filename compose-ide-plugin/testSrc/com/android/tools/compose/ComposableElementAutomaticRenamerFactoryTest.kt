@@ -31,9 +31,7 @@ import org.junit.Test
 class ComposableElementAutomaticRenamerFactoryTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
-  private val myFixture: CodeInsightTestFixtureImpl by lazy {
-    projectRule.fixture as CodeInsightTestFixtureImpl
-  }
+  private val myFixture: CodeInsightTestFixtureImpl by lazy { projectRule.fixture as CodeInsightTestFixtureImpl }
 
   @Before
   fun setUp() {
@@ -49,13 +47,13 @@ class ComposableElementAutomaticRenamerFactoryTest {
         "/scr/com/example/Greeting.kt",
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      fun Greeting() {}
-    """
+        @Composable
+        fun Greeting() {}
+        """
           .trimIndent(),
       )
 
@@ -64,14 +62,14 @@ class ComposableElementAutomaticRenamerFactoryTest {
         "src/com/example/MyClass.java",
         // language=Java
         """
-      package com.example;
+        package com.example;
 
-      public class MyClass {
-        public static void callComposable() {
-          GreetingKt.Greeting();
+        public class MyClass {
+          public static void callComposable() {
+            GreetingKt.Greeting();
+          }
         }
-      }
-    """
+        """
           .trimIndent(),
       )
 

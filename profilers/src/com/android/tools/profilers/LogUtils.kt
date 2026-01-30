@@ -18,17 +18,16 @@ package com.android.tools.profilers
 import com.intellij.openapi.diagnostic.Logger
 
 /**
- * A utility class that logs message with the prefix "PROFILER: ", to make it easy to programmatically
- * extract profiler related logs for various purposes including testing.
+ * A utility class that logs message with the prefix "PROFILER: ", to make it easy to programmatically extract profiler related logs for
+ * various purposes including testing.
  */
 class LogUtils {
   companion object {
-    @JvmStatic
-    fun log(clazz: Class<*>, message: String) = log(true, clazz, message)
+    @JvmStatic fun log(clazz: Class<*>, message: String) = log(true, clazz, message)
 
     @JvmStatic
-    fun logIfInTestingMode(ideServices: IdeProfilerServices, clazz: Class<*>, message: String) = log(
-      ideServices.featureConfig.isTestingModeEnabled, clazz, message)
+    fun logIfInTestingMode(ideServices: IdeProfilerServices, clazz: Class<*>, message: String) =
+      log(ideServices.featureConfig.isTestingModeEnabled, clazz, message)
 
     private fun log(enabled: Boolean, clazz: Class<*>, message: String) {
       if (!enabled) return

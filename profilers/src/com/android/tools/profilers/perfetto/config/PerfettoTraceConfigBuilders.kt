@@ -24,13 +24,33 @@ object PerfettoTraceConfigBuilders {
   private val cpuFreqFtraceEvents = listOf("power/cpu_frequency", "power/cpu_idle")
   private val taskTrackingFtraceEvents = listOf("task/task_rename", "task/task_newtask")
 
-  private val standardAtraceCategories = listOf("gfx", "input", "view", "wm", "am", "sm", "camera", "hal", "res", "pm", "ss", "power",
-                                                "database", "dalvik", "audio",
-                                                "binder_driver", "binder_lock")
+  private val standardAtraceCategories =
+    listOf(
+      "gfx",
+      "input",
+      "view",
+      "wm",
+      "am",
+      "sm",
+      "camera",
+      "hal",
+      "res",
+      "pm",
+      "ss",
+      "power",
+      "database",
+      "dalvik",
+      "audio",
+      "binder_driver",
+      "binder_lock",
+    )
   private val verboseAtraceCategories = listOf("sched", "freq")
-  private val batteryCounters = listOf(PerfettoConfig.AndroidPowerConfig.BatteryCounters.BATTERY_COUNTER_CAPACITY_PERCENT,
-                                       PerfettoConfig.AndroidPowerConfig.BatteryCounters.BATTERY_COUNTER_CHARGE,
-                                       PerfettoConfig.AndroidPowerConfig.BatteryCounters.BATTERY_COUNTER_CURRENT)
+  private val batteryCounters =
+    listOf(
+      PerfettoConfig.AndroidPowerConfig.BatteryCounters.BATTERY_COUNTER_CAPACITY_PERCENT,
+      PerfettoConfig.AndroidPowerConfig.BatteryCounters.BATTERY_COUNTER_CHARGE,
+      PerfettoConfig.AndroidPowerConfig.BatteryCounters.BATTERY_COUNTER_CURRENT,
+    )
 
   // Ftrace config values.
   private const val FTRACE_DRAIN_PERIOD_MS = 170
@@ -66,12 +86,9 @@ object PerfettoTraceConfigBuilders {
   // Small helper method to do conversion from mb to kb.
   private fun Int.mbToKb(): Int = this * 1024
 
-  @JvmStatic
-  fun getBatteryCountersCount() = batteryCounters.size
+  @JvmStatic fun getBatteryCountersCount() = batteryCounters.size
 
-  /**
-   * Constructs a Perfetto TraceConfig utilized for cpu tracing (System Trace).
-   */
+  /** Constructs a Perfetto TraceConfig utilized for cpu tracing (System Trace). */
   fun getCpuTraceConfig(bufferSizeMb: Int): TraceConfig {
     var config = buildCommonTraceConfig()
     val configBuilder = config.toBuilder()
@@ -168,7 +185,7 @@ object PerfettoTraceConfigBuilders {
 
     // In P and above "*" is supported, if we move to support O we will want to
     // pass in the |app_pkg_name|
-    ftraceConfig.addAtraceApps("*");
+    ftraceConfig.addAtraceApps("*")
 
     ftraceDataConfig.ftraceConfig = ftraceConfig.build()
 
@@ -209,9 +226,7 @@ object PerfettoTraceConfigBuilders {
     return powerDataConfig.build()
   }
 
-  /**
-   * Constructs a Perfetto TraceConfig utilized for memory tracing (Native Allocation Tracking).
-   */
+  /** Constructs a Perfetto TraceConfig utilized for memory tracing (Native Allocation Tracking). */
   fun getMemoryTraceConfig(appPkgNameOrPid: String, samplingIntervalBytes: Long): TraceConfig {
     var config = buildCommonTraceConfig()
     val configBuilder = config.toBuilder()
@@ -220,15 +235,13 @@ object PerfettoTraceConfigBuilders {
     // allows us a reasonable size  to not overflow.
     configBuilder.addBuffers(TraceConfig.BufferConfig.newBuilder().setSizeKb(MEMORY_TRACE_CONFIG_BUFFER_0_SIZE_KB))
 
-    val heapProfdDataSource = TraceConfig.DataSource.newBuilder().setConfig(
-      getHeapProfdDataConfig(appPkgNameOrPid, samplingIntervalBytes))
+    val heapProfdDataSource = TraceConfig.DataSource.newBuilder().setConfig(getHeapProfdDataConfig(appPkgNameOrPid, samplingIntervalBytes))
     configBuilder.addDataSources(heapProfdDataSource)
 
     return configBuilder.build()
   }
 
-  private fun getHeapProfdDataConfig(appPkgNameOrPid: String,
-                                     samplingIntervalBytes: Long): PerfettoConfig.DataSourceConfig {
+  private fun getHeapProfdDataConfig(appPkgNameOrPid: String, samplingIntervalBytes: Long): PerfettoConfig.DataSourceConfig {
     val heapProfdDataConfig = PerfettoConfig.DataSourceConfig.newBuilder().setName("android.heapprofd")
     val heapProfdConfig = heapProfdDataConfig.heapprofdConfig.toBuilder()
     heapProfdConfig.samplingIntervalBytes = samplingIntervalBytes

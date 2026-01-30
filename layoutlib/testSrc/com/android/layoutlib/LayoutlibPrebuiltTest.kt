@@ -16,12 +16,12 @@
 package com.android.layoutlib
 
 import com.android.layoutlib.bridge.BridgeConstants
-import org.junit.Test
 import java.net.URL
 import java.util.jar.JarFile
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.Test
 
 class LayoutPrebuiltTest {
   // Regression test for b/109738602
@@ -31,17 +31,13 @@ class LayoutPrebuiltTest {
     assertEquals("jar", classUrl.protocol)
     val jarUrl = URL(classUrl.path.substringBefore("!"))
     val jarFile = JarFile(jarUrl.file)
-    val jarEntryNames = jarFile.entries().asSequence()
-      .map { it.name }
-      .toSet()
+    val jarEntryNames = jarFile.entries().asSequence().map { it.name }.toSet()
 
     // Sanity check to make sure the file contains some data
     assertTrue(jarEntryNames.contains("android/R.class"))
     assertTrue(jarEntryNames.contains("android/R\$layout.class"))
 
     // Check that the jar does not contain classes in sun.** or java.**zs
-    assertFalse(jarEntryNames.any {
-      it.startsWith("sun/") || it.startsWith("java/")
-    })
+    assertFalse(jarEntryNames.any { it.startsWith("sun/") || it.startsWith("java/") })
   }
 }

@@ -23,38 +23,43 @@ import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.testFramework.LoggedErrorProcessor
+import java.util.EnumSet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.util.EnumSet
 
 class WindowsDefenderCheckServiceTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   var notificationCounter = 0
 
   @Before
   fun setup() {
-    projectRule.project.messageBus.connect(projectRule.testRootDisposable).subscribe(Notifications.TOPIC, object : Notifications {
-      override fun notify(notification: Notification) {
-        if (notification.groupId == "WindowsDefender") {
-          notificationCounter++
-        }
-      }
-    })
+    projectRule.project.messageBus
+      .connect(projectRule.testRootDisposable)
+      .subscribe(
+        Notifications.TOPIC,
+        object : Notifications {
+          override fun notify(notification: Notification) {
+            if (notification.groupId == "WindowsDefender") {
+              notificationCounter++
+            }
+          }
+        },
+      )
   }
 
   @Test
   fun testServiceCreatedWithoutCheckOnProjectOpen() {
-    val service = WindowsDefenderCheckService(projectRule.project) {
-      Truth.assert_().fail("Checker should not be requested in this test case.")
-      mock<WindowsDefenderChecker>()
-    }
+    val service =
+      WindowsDefenderCheckService(projectRule.project) {
+        Truth.assert_().fail("Checker should not be requested in this test case.")
+        mock<WindowsDefenderChecker>()
+      }
     Truth.assertThat(service.warningData).isEqualTo(WindowsDefenderCheckService.NO_WARNING)
   }
 
@@ -92,15 +97,17 @@ class WindowsDefenderCheckServiceTest {
     val service = WindowsDefenderCheckService(projectRule.project) { checkerMock }
     // Expect exception to be caught and logged.
     var exceptionWasLogged = false
-    LoggedErrorProcessor.executeWith<MyMockTestException>(object : LoggedErrorProcessor() {
-      override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): Set<Action> {
-        if (t is MyMockTestException) {
-          exceptionWasLogged = true
-          return EnumSet.noneOf(Action::class.java)
+    LoggedErrorProcessor.executeWith<MyMockTestException>(
+      object : LoggedErrorProcessor() {
+        override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): Set<Action> {
+          if (t is MyMockTestException) {
+            exceptionWasLogged = true
+            return EnumSet.noneOf(Action::class.java)
+          }
+          return super.processError(category, message, details, t)
         }
-        return super.processError(category, message, details, t)
       }
-    }) {
+    ) {
       service.checkRealTimeProtectionStatus()
     }
 

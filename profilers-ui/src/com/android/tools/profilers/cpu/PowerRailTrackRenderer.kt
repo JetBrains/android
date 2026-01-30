@@ -25,18 +25,17 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * Track renderer for System Trace power rail counters.
- */
+/** Track renderer for System Trace power rail counters. */
 class PowerRailTrackRenderer : TrackRenderer<PowerRailTrackModel> {
   override fun render(trackModel: TrackModel<PowerRailTrackModel, *>): JComponent {
     return JPanel(BorderLayout()).apply {
       val lineChartModel = trackModel.dataModel
-      val lineChart = LineChart(lineChartModel).apply {
-        val backgroundColor = DataVisualizationColors.paletteManager.getBackgroundColor(trackModel.title.hashCode())
-        configure(lineChartModel.primaryPowerRailCounterSeries, LineConfig(backgroundColor).setFilled(true).setStepped(true))
-        setFillEndGap(true)
-      }
+      val lineChart =
+        LineChart(lineChartModel).apply {
+          val backgroundColor = DataVisualizationColors.paletteManager.getBackgroundColor(trackModel.title.hashCode())
+          configure(lineChartModel.primaryPowerRailCounterSeries, LineConfig(backgroundColor).setFilled(true).setStepped(true))
+          setFillEndGap(true)
+        }
       add(lineChart)
     }
   }

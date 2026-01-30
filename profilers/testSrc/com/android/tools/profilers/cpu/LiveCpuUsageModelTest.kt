@@ -143,7 +143,7 @@ class LiveCpuUsageModelTest {
 
   @Test
   fun testEnter() {
-    val mockDetailedCpuUsage = mock<DetailedCpuUsage>();
+    val mockDetailedCpuUsage = mock<DetailedCpuUsage>()
     whenever(mockCpuDataProvider.cpuUsage).thenReturn(mockDetailedCpuUsage)
     val mockLegendsCpu: CpuStageLegends = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
     val mockRangeSelectionModel: RangeSelectionModel = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
@@ -158,7 +158,7 @@ class LiveCpuUsageModelTest {
 
   @Test
   fun testExit() {
-    val mockDetailedCpuUsage = mock<DetailedCpuUsage>();
+    val mockDetailedCpuUsage = mock<DetailedCpuUsage>()
     whenever(mockCpuDataProvider.cpuUsage).thenReturn(mockDetailedCpuUsage)
     val mockLegendsCpu: CpuStageLegends = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
     val mockRangeSelectionModel: RangeSelectionModel = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)

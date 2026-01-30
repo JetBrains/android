@@ -34,23 +34,32 @@ object TaskSelectionVerificationUtils {
 
   private fun isDeviceSelectionValid(device: ProcessListModel.ProfilerDeviceSelection?) = device != null
 
-  private fun isDeviceSelectionOnline(device: ProcessListModel.ProfilerDeviceSelection) = device.device != Common.Device.getDefaultInstance()
+  private fun isDeviceSelectionOnline(device: ProcessListModel.ProfilerDeviceSelection) =
+    device.device != Common.Device.getDefaultInstance()
 
-  private fun isTaskSupportedByProcess(selectedTaskType: ProfilerTaskType,
-                                       taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
-                                       selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
-                                       selectedProcess: Common.Process) = isTaskSelectionValid(selectedTaskType) && isDeviceSelectionValid(
-    selectedDevice) && isDeviceSelectionOnline(selectedDevice!!) && taskHandlers[selectedTaskType]!!.checkSupportForDeviceAndProcess(
-    selectedDevice.device, selectedProcess) == null
+  private fun isTaskSupportedByProcess(
+    selectedTaskType: ProfilerTaskType,
+    taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
+    selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
+    selectedProcess: Common.Process,
+  ) =
+    isTaskSelectionValid(selectedTaskType) &&
+      isDeviceSelectionValid(selectedDevice) &&
+      isDeviceSelectionOnline(selectedDevice!!) &&
+      taskHandlers[selectedTaskType]!!.checkSupportForDeviceAndProcess(selectedDevice.device, selectedProcess) == null
 
   fun isSelectedProcessPreferred(selectedProcess: Common.Process, profilers: StudioProfilers) =
     selectedProcess.name == profilers.preferredProcessName
 
-  fun isProfileablePreferredButNotPresent(taskType: ProfilerTaskType,
-                                          process: Common.Process,
-                                          profilingProcessStartingPoint: TaskHomeTabModel.ProfilingProcessStartingPoint) =
-    taskType.prefersProfileable && isProcessAlive(
-      process) && !process.isProfileable() && profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.NOW
+  fun isProfileablePreferredButNotPresent(
+    taskType: ProfilerTaskType,
+    process: Common.Process,
+    profilingProcessStartingPoint: TaskHomeTabModel.ProfilingProcessStartingPoint,
+  ) =
+    taskType.prefersProfileable &&
+      isProcessAlive(process) &&
+      !process.isProfileable() &&
+      profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.NOW
 
   /**
    * Determines if starting a task from process start is enabled. This method is utilized to determine whether the PROCESS_START option is
@@ -72,56 +81,62 @@ object TaskSelectionVerificationUtils {
    * enabled (see isTaskStartFromProcessStartEnabled), and if the user selected the preferred process and startup-capable task.
    *
    * Note: This method sets the criteria for enabling the start profiler task button and is invoked only if the user has selected
-   * PROCESS_START from the task starting point dropdown. The criteria for enabling the PROCESS_START option
-   * (see TaskHomeTabModel.isTaskStartFromProcessStartEnabled) is a subset of the criteria needed to enable the start profiler task button.
-   * Thus, the user can have the PROCESS_START option enabled and/or selected, but the start profiler task button may be disabled.
+   * PROCESS_START from the task starting point dropdown. The criteria for enabling the PROCESS_START option (see
+   * TaskHomeTabModel.isTaskStartFromProcessStartEnabled) is a subset of the criteria needed to enable the start profiler task button. Thus,
+   * the user can have the PROCESS_START option enabled and/or selected, but the start profiler task button may be disabled.
    */
-  fun canTaskStartFromProcessStart(selectedTaskType: ProfilerTaskType,
-                                   selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
-                                   selectedProcess: Common.Process,
-                                   profilers: StudioProfilers) =
+  fun canTaskStartFromProcessStart(
+    selectedTaskType: ProfilerTaskType,
+    selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
+    selectedProcess: Common.Process,
+    profilers: StudioProfilers,
+  ) =
     isTaskStartFromProcessStartEnabled(selectedTaskType, selectedProcess, profilers) &&
-    selectedDevice?.let { TaskSupportUtils.doesDeviceSupportProfilingTaskFromProcessStart(selectedTaskType, it.featureLevel) } ?: false
+      selectedDevice?.let { TaskSupportUtils.doesDeviceSupportProfilingTaskFromProcessStart(selectedTaskType, it.featureLevel) } ?: false
 
   /**
    * Determines whether the user can start the task from now, considering if the NOW dropdown option is currently enabled (see
    * isTaskStartFromNowEnabled), and if the user selected a running device and device-compatible task.
    *
    * Note: This method sets the criteria for enabling the start profiler task button and is invoked only if the user has selected NOW from
-   * the task starting point dropdown. The criteria for enabling the NOW option (see TaskHomeTabModel.isTaskStartFromNowEnabled) is a
-   * subset of the criteria needed to enable the start profiler task button. Thus, the user can have the NOW option enabled and/or selected,
-   * but the start profiler task button may be disabled.
+   * the task starting point dropdown. The criteria for enabling the NOW option (see TaskHomeTabModel.isTaskStartFromNowEnabled) is a subset
+   * of the criteria needed to enable the start profiler task button. Thus, the user can have the NOW option enabled and/or selected, but
+   * the start profiler task button may be disabled.
    */
-  fun canTaskStartFromNow(selectedTaskType: ProfilerTaskType,
-                          selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
-                          selectedProcess: Common.Process,
-                          taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>) =
-    isTaskStartFromNowEnabled(selectedProcess) &&
-    isTaskSupportedByProcess(selectedTaskType, taskHandlers, selectedDevice, selectedProcess)
+  fun canTaskStartFromNow(
+    selectedTaskType: ProfilerTaskType,
+    selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
+    selectedProcess: Common.Process,
+    taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
+  ) =
+    isTaskStartFromNowEnabled(selectedProcess) && isTaskSupportedByProcess(selectedTaskType, taskHandlers, selectedDevice, selectedProcess)
 
   /**
-   * Based on the user's task starting point dropdown selection, returns whether the task can start. This method controls the enablement
-   * of the start profiler task button.
+   * Based on the user's task starting point dropdown selection, returns whether the task can start. This method controls the enablement of
+   * the start profiler task button.
    */
-  fun canStartTask(selectedTaskType: ProfilerTaskType,
-                   selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
-                   selectedProcess: Common.Process,
-                   profilingProcessStartingPoint: TaskHomeTabModel.ProfilingProcessStartingPoint,
-                   profilers: StudioProfilers): Boolean =
+  fun canStartTask(
+    selectedTaskType: ProfilerTaskType,
+    selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
+    selectedProcess: Common.Process,
+    profilingProcessStartingPoint: TaskHomeTabModel.ProfilingProcessStartingPoint,
+    profilers: StudioProfilers,
+  ): Boolean =
     when (profilingProcessStartingPoint) {
-      TaskHomeTabModel.ProfilingProcessStartingPoint.NOW -> canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess,
-                                                                                profilers.taskHandlers)
+      TaskHomeTabModel.ProfilingProcessStartingPoint.NOW ->
+        canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess, profilers.taskHandlers)
 
-      TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START -> canTaskStartFromProcessStart(selectedTaskType, selectedDevice,
-                                                                                                   selectedProcess, profilers)
+      TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START ->
+        canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, profilers)
 
       else -> false
     }
 
-  private fun areSelectionsValid(selectedTaskType: ProfilerTaskType,
-                                 selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
-                                 selectedProcess: Common.Process) = isDeviceSelectionValid(selectedDevice) && isProcessSelectionValid(
-    selectedProcess) && isTaskSelectionValid(selectedTaskType)
+  private fun areSelectionsValid(
+    selectedTaskType: ProfilerTaskType,
+    selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
+    selectedProcess: Common.Process,
+  ) = isDeviceSelectionValid(selectedDevice) && isProcessSelectionValid(selectedProcess) && isTaskSelectionValid(selectedTaskType)
 
   /**
    * Assuming an error with starting a task from 'process start', this method returns an error indicating which selection is causing such
@@ -129,37 +144,40 @@ object TaskSelectionVerificationUtils {
    *
    * Also assumes/asserts that by the time this method is called, all selections (i.e. device, process, and task type) made are valid.
    */
-  private fun getStartTaskFromProcessStartError(selectedTaskType: ProfilerTaskType,
-                                                selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
-                                                selectedProcess: Common.Process,
-                                                profilers: StudioProfilers): StartTaskSelectionError {
+  private fun getStartTaskFromProcessStartError(
+    selectedTaskType: ProfilerTaskType,
+    selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
+    selectedProcess: Common.Process,
+    profilers: StudioProfilers,
+  ): StartTaskSelectionError {
     assert(!canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, profilers))
     assert(areSelectionsValid(selectedTaskType, selectedDevice, selectedProcess))
     return if (!isSelectedProcessPreferred(selectedProcess, profilers)) {
       StartTaskSelectionError(StartTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK)
-    }
-    else if (!profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)) {
+    } else if (!profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)) {
       StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP)
-    }
-    else if (!TaskSupportUtils.doesDeviceSupportProfilingTaskFromProcessStart(selectedTaskType, selectedDevice!!.featureLevel)) {
-      return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN,
-                                     getMinApiStartTaskErrorMessage(TaskSupportUtils.getProcessStartMinApi(selectedTaskType)))
-    }
-    else {
+    } else if (!TaskSupportUtils.doesDeviceSupportProfilingTaskFromProcessStart(selectedTaskType, selectedDevice!!.featureLevel)) {
+      return StartTaskSelectionError(
+        StartTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN,
+        getMinApiStartTaskErrorMessage(TaskSupportUtils.getProcessStartMinApi(selectedTaskType)),
+      )
+    } else {
       StartTaskSelectionError(StartTaskSelectionErrorCode.GENERAL_ERROR)
     }
   }
 
   /**
-   * Assuming an error with starting a task from 'now', this method returns an error indicating which selection is causing such
-   * failure. If the reason is not caught by the conditions outlined, null is returned, allowing the caller to handle such result.
+   * Assuming an error with starting a task from 'now', this method returns an error indicating which selection is causing such failure. If
+   * the reason is not caught by the conditions outlined, null is returned, allowing the caller to handle such result.
    *
    * Also assumes/asserts that by the time this method is called, all selections (i.e. device, process, and task type) made are valid.
    */
-  private fun getStartTaskFromNowStartError(selectedTaskType: ProfilerTaskType,
-                                            selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
-                                            selectedProcess: Common.Process,
-                                            taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>): StartTaskSelectionError {
+  private fun getStartTaskFromNowStartError(
+    selectedTaskType: ProfilerTaskType,
+    selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
+    selectedProcess: Common.Process,
+    taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
+  ): StartTaskSelectionError {
     assert(!canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess, taskHandlers))
     assert(areSelectionsValid(selectedTaskType, selectedDevice, selectedProcess))
     if (!isDeviceSelectionOnline(selectedDevice!!)) {
@@ -179,26 +197,26 @@ object TaskSelectionVerificationUtils {
   }
 
   /**
-   * This method assumes that the user cannot start the task and thus should only be called when an error is certain. That said, this
-   * method inspects the user's selections and returns a respective an error enum.
+   * This method assumes that the user cannot start the task and thus should only be called when an error is certain. That said, this method
+   * inspects the user's selections and returns a respective an error enum.
    *
    * It is possible to have multiple errors (e.g. user does not have a process or task selected), but this method only returns one error as
    * the UI can only display one error at a time.
    */
-  fun getStartTaskError(selectedTaskType: ProfilerTaskType,
-                        selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
-                        selectedProcess: Common.Process,
-                        profilingProcessStartingPoint: TaskHomeTabModel.ProfilingProcessStartingPoint,
-                        profilers: StudioProfilers): StartTaskSelectionError {
+  fun getStartTaskError(
+    selectedTaskType: ProfilerTaskType,
+    selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
+    selectedProcess: Common.Process,
+    profilingProcessStartingPoint: TaskHomeTabModel.ProfilingProcessStartingPoint,
+    profilers: StudioProfilers,
+  ): StartTaskSelectionError {
     // The rest of the code can now assume there is some error.
     assert(!canStartTask(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint, profilers))
     return if (!isDeviceSelectionValid(selectedDevice)) {
       StartTaskSelectionError(StartTaskSelectionErrorCode.INVALID_DEVICE)
-    }
-    else if (!isProcessSelectionValid(selectedProcess)) {
+    } else if (!isProcessSelectionValid(selectedProcess)) {
       StartTaskSelectionError(StartTaskSelectionErrorCode.INVALID_PROCESS)
-    }
-    else if (!isTaskSelectionValid(selectedTaskType)) {
+    } else if (!isTaskSelectionValid(selectedTaskType)) {
       StartTaskSelectionError(StartTaskSelectionErrorCode.INVALID_TASK)
     }
     // Errors when attempting to perform a startup task.
@@ -208,26 +226,24 @@ object TaskSelectionVerificationUtils {
     // Errors when attempting to perform a task from "now".
     else if (profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.NOW) {
       getStartTaskFromNowStartError(selectedTaskType, selectedDevice, selectedProcess, profilers.taskHandlers)
-    }
-    else if (profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.UNSPECIFIED) {
+    } else if (profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.UNSPECIFIED) {
       StartTaskSelectionError(StartTaskSelectionErrorCode.NO_STARTING_POINT_SELECTED)
-    }
-    else {
+    } else {
       StartTaskSelectionError(StartTaskSelectionErrorCode.GENERAL_ERROR)
     }
   }
 
   fun getMinApiStartTaskErrorMessage(minApi: Int) = "Selected task requires API $minApi or higher"
 
-  val STARTUP_TASK_ERRORS = listOf(StartTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK,
-                                   StartTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP,
-                                   StartTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN)
+  val STARTUP_TASK_ERRORS =
+    listOf(
+      StartTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK,
+      StartTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP,
+      StartTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN,
+    )
 }
 
-data class StartTaskSelectionError(
-  val startTaskSelectionErrorCode: StartTaskSelectionErrorCode,
-  val actionableInfo: String? = null
-) {
+data class StartTaskSelectionError(val startTaskSelectionErrorCode: StartTaskSelectionErrorCode, val actionableInfo: String? = null) {
   enum class StartTaskSelectionErrorCode {
     INVALID_DEVICE,
     INVALID_PROCESS,
@@ -241,6 +257,6 @@ data class StartTaskSelectionError(
     TASK_REQUIRES_DEBUGGABLE_PROCESS,
     NO_STARTING_POINT_SELECTED,
     // Generalized error to cover the rest of task start errors.
-    GENERAL_ERROR;
+    GENERAL_ERROR,
   }
 }

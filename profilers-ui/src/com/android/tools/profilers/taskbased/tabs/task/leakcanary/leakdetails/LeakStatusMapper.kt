@@ -48,16 +48,14 @@ fun getLeakStatusColor(leakingStatus: LeakingStatus): Color {
 
 @Composable
 fun LeakIcon(status: LeakingStatus) {
-  Icon(
-    getLeakStatusIcon(status),
-    contentDescription = status.name,
-  )
+  Icon(getLeakStatusIcon(status), contentDescription = status.name)
 }
 
 @Composable
 fun VerticalLeakStatusLine(status: LeakingStatus) {
-  Divider(orientation = Orientation.Vertical,
-          modifier = Modifier.fillMaxHeight().heightIn(min = 10.dp).testTag("verticalLeakLine"),
-          color = getLeakStatusColor(status)
+  Divider(
+    orientation = Orientation.Vertical,
+    modifier = Modifier.fillMaxHeight().heightIn(min = 10.dp).testTag("verticalLeakLine"),
+    color = getLeakStatusColor(status),
   )
 }

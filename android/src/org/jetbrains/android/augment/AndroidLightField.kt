@@ -27,22 +27,20 @@ import com.intellij.psi.impl.light.LightModifierList
 import com.intellij.psi.javadoc.PsiDocComment
 import com.intellij.ui.IconManager
 import com.intellij.ui.PlatformIcons
-import org.jetbrains.annotations.NonNls
 import javax.swing.Icon
+import org.jetbrains.annotations.NonNls
 
 open class AndroidLightField(
   @Volatile protected var _name: String,
   private val myContext: PsiClass,
   private val myType: PsiType,
   fieldModifier: FieldModifier,
-  private val myConstantValue: Any?
+  private val myConstantValue: Any?,
 ) : LightElement(myContext.manager, JavaLanguage.INSTANCE), PsiField, PsiVariableEx, NavigationItem {
-  /**
-   * Possible modifiers for the generated fields. R classes for non-namespaced apps use final fields, all other R classes don't.
-   */
+  /** Possible modifiers for the generated fields. R classes for non-namespaced apps use final fields, all other R classes don't. */
   enum class FieldModifier {
     FINAL,
-    NON_FINAL
+    NON_FINAL,
   }
 
   @Volatile private var _initializer: PsiExpression? = null
@@ -58,25 +56,47 @@ open class AndroidLightField(
   }
 
   override fun isEquivalentTo(another: PsiElement) = PsiClassImplUtil.isFieldEquivalentTo(this, another)
+
   override fun getParent() = myContext
+
   override fun getContainingFile(): PsiFile? = myContext.containingFile
+
   override fun computeConstantValue(visitedVars: Set<PsiVariable>) = computeConstantValue()
+
   override fun computeConstantValue() = myConstantValue
+
   override fun getContainingClass() = myContext
+
   override fun toString() = "AndroidLightField:$_name"
+
   override fun getType() = myType
+
   override fun getModifierList() = _modifierList
+
   override fun hasModifierProperty(@NonNls name: String) = _modifierList.hasModifierProperty(name)
+
   override fun getInitializer() = _initializer
-  override fun setInitializer(initializer: PsiExpression?) { _initializer = initializer }
+
+  override fun setInitializer(initializer: PsiExpression?) {
+    _initializer = initializer
+  }
+
   override fun getNameIdentifier() = LightIdentifier(manager, _name)
+
   override fun getTextRange(): TextRange = TextRange.EMPTY_RANGE
+
   override fun getTypeElement(): PsiTypeElement? = null
+
   override fun hasInitializer() = false
+
   override fun isVisibilitySupported() = true
+
   override fun normalizeDeclaration() {}
+
   override fun getDocComment(): PsiDocComment? = null
+
   override fun isDeprecated() = false
+
   override fun getName() = _name
 
   override fun setName(name: String): PsiElement {
@@ -85,8 +105,13 @@ open class AndroidLightField(
   }
 
   public override fun getElementIcon(flags: Int): Icon? {
-    val baseIcon = IconManager.getInstance().createLayeredIcon(
-      this, IconManager.getInstance().getPlatformIcon(PlatformIcons.Field), ElementPresentationUtil.getFlags(this, false))
+    val baseIcon =
+      IconManager.getInstance()
+        .createLayeredIcon(
+          this,
+          IconManager.getInstance().getPlatformIcon(PlatformIcons.Field),
+          ElementPresentationUtil.getFlags(this, false),
+        )
     return ElementPresentationUtil.addVisibilityIcon(this, flags, baseIcon)
   }
 }
@@ -97,34 +122,33 @@ class ResourceLightField(
   myType: PsiType,
   fieldModifier: FieldModifier,
   myConstantValue: Any?,
-  val resourceVisibility: ResourceVisibility
+  val resourceVisibility: ResourceVisibility,
 ) : AndroidLightField(resourceName, myContext, myType, fieldModifier, myConstantValue) {
 
   override fun getNameIdentifier(): LightIdentifier = LightIdentifier(manager, resourceNameToFieldName(_name))
+
   override fun getName(): String = resourceNameToFieldName(_name)
+
   override fun toString(): String = "ResourceLightField:$_name"
 
-  val resourceName: String get() = super._name
-  val resourceType: ResourceType get() = ResourceType.fromClassName(containingClass.name!!)!!
+  val resourceName: String
+    get() = super._name
+
+  val resourceType: ResourceType
+    get() = ResourceType.fromClassName(containingClass.name!!)!!
 }
 
-class ManifestLightField(
-  name: String,
-  myContext: PsiClass,
-  myType: PsiType,
-  fieldModifier: FieldModifier,
-  myConstantValue: Any?) : AndroidLightField(name, myContext, myType, fieldModifier, myConstantValue) {
+class ManifestLightField(name: String, myContext: PsiClass, myType: PsiType, fieldModifier: FieldModifier, myConstantValue: Any?) :
+  AndroidLightField(name, myContext, myType, fieldModifier, myConstantValue) {
   override fun toString(): String = "ManifestLightField:$_name"
 }
 
-/**
- * Subclass of [AndroidLightField] to store extra information specific to styleable attribute fields.
- */
+/** Subclass of [AndroidLightField] to store extra information specific to styleable attribute fields. */
 class StyleableAttrLightField(
   val styleableAttrFieldUrl: StyleableAttrFieldUrl,
   myContext: PsiClass,
   fieldModifier: FieldModifier,
-  myConstantValue: Any?
+  myConstantValue: Any?,
 ) : AndroidLightField(styleableAttrFieldUrl.toFieldName(), myContext, PsiTypes.intType(), fieldModifier, myConstantValue) {
 
   override fun toString(): String {

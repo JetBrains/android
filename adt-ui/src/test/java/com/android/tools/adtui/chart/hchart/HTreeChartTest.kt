@@ -58,8 +58,7 @@ class HTreeChartTest {
         .setOrientation(orientation)
         .build()
     val contentHeight =
-      (myChart.defaultFontMetrics.height + HTreeChart.PADDING) * /* Default padding */
-        treeHeight /* Height of tree node. */
+      (myChart.defaultFontMetrics.height + HTreeChart.PADDING) * /* Default padding */ treeHeight /* Height of tree node. */
     myTotalHeight = contentHeight + HTreeChart.HEIGHT_PADDING
 
     myChart.size = Dimension(100, myViewHeight)
@@ -70,8 +69,8 @@ class HTreeChartTest {
   }
 
   /**
-   * Returns the root of a complete tree of DefaultHNode<String>. The root is at the given depth,
-   * and the subtree has the given height and branch factor.
+   * Returns the root of a complete tree of DefaultHNode<String>. The root is at the given depth, and the subtree has the given height and
+   * branch factor.
    */
   private fun HNodeTree(depth: Int, height: Int, branch: Int): DefaultHNode<String> {
     val subroot = DefaultHNode("")
@@ -355,11 +354,7 @@ class HTreeChartTest {
   class FakeRenderer : DefaultHRenderer<String>() {
     override fun getFillColor(nodeData: String) = Color.white
 
-    override fun generateFittingText(
-      nodeData: String,
-      rect: Rectangle2D,
-      fontMetrics: FontMetrics,
-    ) = ""
+    override fun generateFittingText(nodeData: String, rect: Rectangle2D, fontMetrics: FontMetrics) = ""
   }
 
   companion object {

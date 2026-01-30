@@ -56,8 +56,13 @@ open class TrackingThread : Thread {
     reportIllegalThread()
   }
 
-  constructor(group: ThreadGroup, target: Runnable, name: String, stackSize: Long, inheritThreadLocals: Boolean) :
-    super(group, target, name, stackSize, inheritThreadLocals) {
+  constructor(
+    group: ThreadGroup,
+    target: Runnable,
+    name: String,
+    stackSize: Long,
+    inheritThreadLocals: Boolean,
+  ) : super(group, target, name, stackSize, inheritThreadLocals) {
     reportIllegalThread()
   }
 
@@ -75,7 +80,7 @@ open class TrackingThread : Thread {
     try {
       val logger = getLogger()
       logger.warning(ILayoutLog.TAG_THREAD_CREATION, "Do not create Threads in the preview", null, throwable)
-    } catch (ignore: Throwable) { }
+    } catch (ignore: Throwable) {}
   }
 
   private fun getLogger(): ILayoutLog {

@@ -19,112 +19,113 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.BuildToolInfo
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.OptionalLibrary
+import java.nio.file.Path
+import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import java.nio.file.Path
-import java.util.Locale
 
 class EmbeddedRenderTargetTest {
-  private val fakeTarget = object : IAndroidTarget {
-    override fun compareTo(other: IAndroidTarget?): Int {
-      TODO("Not yet implemented")
-    }
+  private val fakeTarget =
+    object : IAndroidTarget {
+      override fun compareTo(other: IAndroidTarget?): Int {
+        TODO("Not yet implemented")
+      }
 
-    override fun getLocation(): String {
-      TODO("Not yet implemented")
-    }
+      override fun getLocation(): String {
+        TODO("Not yet implemented")
+      }
 
-    override fun getVendor(): String {
-      TODO("Not yet implemented")
-    }
+      override fun getVendor(): String {
+        TODO("Not yet implemented")
+      }
 
-    override fun getName(): String {
-      TODO("Not yet implemented")
-    }
+      override fun getName(): String {
+        TODO("Not yet implemented")
+      }
 
-    override fun getFullName(): String {
-      TODO("Not yet implemented")
-    }
+      override fun getFullName(): String {
+        TODO("Not yet implemented")
+      }
 
-    override fun getClasspathName(): String {
-      TODO("Not yet implemented")
-    }
+      override fun getClasspathName(): String {
+        TODO("Not yet implemented")
+      }
 
-    override fun getShortClasspathName(): String {
-      TODO("Not yet implemented")
-    }
+      override fun getShortClasspathName(): String {
+        TODO("Not yet implemented")
+      }
 
-    override fun getVersion() = AndroidVersion(34)
+      override fun getVersion() = AndroidVersion(34)
 
-    override fun getVersionName(): String {
-      TODO("Not yet implemented")
-    }
+      override fun getVersionName(): String {
+        TODO("Not yet implemented")
+      }
 
-    override fun getRevision(): Int {
-      TODO("Not yet implemented")
-    }
+      override fun getRevision(): Int {
+        TODO("Not yet implemented")
+      }
 
-    override fun isPlatform(): Boolean {
-      TODO("Not yet implemented")
-    }
+      override fun isPlatform(): Boolean {
+        TODO("Not yet implemented")
+      }
 
-    override fun getParent(): IAndroidTarget? {
-      TODO("Not yet implemented")
-    }
+      override fun getParent(): IAndroidTarget? {
+        TODO("Not yet implemented")
+      }
 
-    override fun getPath(pathId: Int): Path {
-      TODO("Not yet implemented")
-    }
+      override fun getPath(pathId: Int): Path {
+        TODO("Not yet implemented")
+      }
 
-    override fun getBuildToolInfo(): BuildToolInfo? {
-      TODO("Not yet implemented")
-    }
+      override fun getBuildToolInfo(): BuildToolInfo? {
+        TODO("Not yet implemented")
+      }
 
-    override fun getBootClasspath(): MutableList<String> {
-      TODO("Not yet implemented")
-    }
+      override fun getBootClasspath(): MutableList<String> {
+        TODO("Not yet implemented")
+      }
 
-    override fun getOptionalLibraries(): MutableList<OptionalLibrary> {
-      TODO("Not yet implemented")
-    }
+      override fun getOptionalLibraries(): MutableList<OptionalLibrary> {
+        TODO("Not yet implemented")
+      }
 
-    override fun getAdditionalLibraries(): MutableList<OptionalLibrary> {
-      TODO("Not yet implemented")
-    }
+      override fun getAdditionalLibraries(): MutableList<OptionalLibrary> {
+        TODO("Not yet implemented")
+      }
 
-    override fun hasRenderingLibrary(): Boolean {
-      TODO("Not yet implemented")
-    }
+      override fun hasRenderingLibrary(): Boolean {
+        TODO("Not yet implemented")
+      }
 
-    override fun getSkins(): MutableList<Path> {
-      TODO("Not yet implemented")
-    }
+      override fun getSkins(): MutableList<Path> {
+        TODO("Not yet implemented")
+      }
 
-    override fun getDefaultSkin(): Path? {
-      TODO("Not yet implemented")
-    }
+      override fun getDefaultSkin(): Path? {
+        TODO("Not yet implemented")
+      }
 
-    override fun getPlatformLibraries(): Array<String> {
-      TODO("Not yet implemented")
-    }
+      override fun getPlatformLibraries(): Array<String> {
+        TODO("Not yet implemented")
+      }
 
-    override fun getProperty(name: String?): String {
-      TODO("Not yet implemented")
-    }
+      override fun getProperty(name: String?): String {
+        TODO("Not yet implemented")
+      }
 
-    override fun getProperties(): MutableMap<String, String> {
-      TODO("Not yet implemented")
-    }
+      override fun getProperties(): MutableMap<String, String> {
+        TODO("Not yet implemented")
+      }
 
-    override fun canRunOn(target: IAndroidTarget?): Boolean {
-      TODO("Not yet implemented")
-    }
+      override fun canRunOn(target: IAndroidTarget?): Boolean {
+        TODO("Not yet implemented")
+      }
 
-    override fun hashString(): String {
-      TODO("Not yet implemented")
+      override fun hashString(): String {
+        TODO("Not yet implemented")
+      }
     }
-  }
 
   private val isWindows = System.getProperty("os.name").lowercase(Locale.getDefault()).startsWith("win")
 

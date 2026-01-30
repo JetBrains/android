@@ -19,18 +19,19 @@ package com.android.ide.gradle.model.impl
 import com.android.ide.gradle.model.GradlePluginModel
 import java.io.Serializable
 
-/**
- * Implementation of the [GradlePluginModel] model object.
- */
+/** Implementation of the [GradlePluginModel] model object. */
 data class GradlePluginModelImpl(
   private val hasSafeArgsJava: Boolean,
   private val hasSafeArgsKotlin: Boolean,
   private val hasKotlinMultiPlatform: Boolean,
-  private val hasFtlPlugin: Boolean
+  private val hasFtlPlugin: Boolean,
 ) : GradlePluginModel, Serializable {
   override fun hasSafeArgsJava(): Boolean = hasSafeArgsJava
+
   override fun hasSafeArgsKotlin(): Boolean = hasSafeArgsKotlin
+
   override fun hasKotlinMultiPlatform(): Boolean = hasKotlinMultiPlatform
+
   override fun hasFtlPlugin(): Boolean = hasFtlPlugin
 
   companion object {

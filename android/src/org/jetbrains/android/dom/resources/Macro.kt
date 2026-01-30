@@ -37,5 +37,4 @@ import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 @Convert(MacroResourceReferenceConverter::class) interface Macro : ResourceElement
 
 /** Converter for macro tags, which can have any other reference as the tag value. */
-class MacroResourceReferenceConverter :
-  ResourceReferenceConverter(ResourceType.REFERENCEABLE_TYPES)
+class MacroResourceReferenceConverter : ResourceReferenceConverter(ResourceType.REFERENCEABLE_TYPES)

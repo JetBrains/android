@@ -26,35 +26,17 @@ import com.android.tools.preview.config.PARAMETER_WALLPAPER
 import com.android.tools.preview.config.PARAMETER_WIDTH
 import com.android.tools.preview.config.PARAMETER_WIDTH_DP
 
-/**
- * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the
- * values.
- */
-fun attributesToConfiguration(
-  attributesProvider: AnnotationAttributesProvider
-): PreviewConfiguration {
+/** Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the values. */
+fun attributesToConfiguration(attributesProvider: AnnotationAttributesProvider): PreviewConfiguration {
   val apiLevel = attributesProvider.getIntAttribute(PARAMETER_API_LEVEL)
   // Both width and height have to support old ("width") and new ("widthDp") conventions
-  val width =
-    attributesProvider.getIntAttribute(PARAMETER_WIDTH)
-      ?: attributesProvider.getIntAttribute(PARAMETER_WIDTH_DP)
-  val height =
-    attributesProvider.getIntAttribute(PARAMETER_HEIGHT)
-      ?: attributesProvider.getIntAttribute(PARAMETER_HEIGHT_DP)
+  val width = attributesProvider.getIntAttribute(PARAMETER_WIDTH) ?: attributesProvider.getIntAttribute(PARAMETER_WIDTH_DP)
+  val height = attributesProvider.getIntAttribute(PARAMETER_HEIGHT) ?: attributesProvider.getIntAttribute(PARAMETER_HEIGHT_DP)
   val fontScale = attributesProvider.getFloatAttribute(PARAMETER_FONT_SCALE)
   val uiMode = attributesProvider.getIntAttribute(PARAMETER_UI_MODE)
   val device = attributesProvider.getStringAttribute(PARAMETER_DEVICE)
   val locale = attributesProvider.getStringAttribute(PARAMETER_LOCALE)
   val wallpaper = attributesProvider.getIntAttribute(PARAMETER_WALLPAPER)
 
-  return PreviewConfiguration.cleanAndGet(
-    apiLevel,
-    width,
-    height,
-    locale,
-    fontScale,
-    uiMode,
-    device,
-    wallpaper,
-  )
+  return PreviewConfiguration.cleanAndGet(apiLevel, width, height, locale, fontScale, uiMode, device, wallpaper)
 }

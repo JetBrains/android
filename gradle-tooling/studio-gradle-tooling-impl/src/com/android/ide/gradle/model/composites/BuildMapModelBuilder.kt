@@ -1,10 +1,10 @@
 package com.android.ide.gradle.model.composites
 
+import java.io.File
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.util.GradleVersion
-import java.io.File
 
 class BuildMapModelBuilder : ToolingModelBuilder {
   override fun canBuild(modelName: String): Boolean {

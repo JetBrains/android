@@ -37,20 +37,22 @@ import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * A view containing a [StageWithToolbarView] and a [ViewBinder] that binds [Stage]s and [StageView]s.
- */
-class TaskProfilersView(override val studioProfilers: StudioProfilers,
-                        override val ideProfilerComponents: IdeProfilerComponents,
-                        parentDisposable: Disposable) : StudioProfilersView {
+/** A view containing a [StageWithToolbarView] and a [ViewBinder] that binds [Stage]s and [StageView]s. */
+class TaskProfilersView(
+  override val studioProfilers: StudioProfilers,
+  override val ideProfilerComponents: IdeProfilerComponents,
+  parentDisposable: Disposable,
+) : StudioProfilersView {
 
   override val stageComponent = JPanel(BorderLayout())
   private val layeredPane = TooltipLayeredPane(stageComponent)
   override val component: JComponent
     get() = layeredPane
+
   override val stageWithToolbarView: StageWithToolbarView
   override val stageView: StageView<*>?
     get() = stageWithToolbarView.stageView
+
   private val binder: ViewBinder<TaskProfilersView, Stage<*>, StageView<*>> = ViewBinder()
 
   init {
@@ -63,11 +65,14 @@ class TaskProfilersView(override val studioProfilers: StudioProfilers,
     binder.bind(LiveStage::class.java, ::LiveStageView)
     binder.bind(LeakCanaryModel::class.java, ::LeakCanaryTaskView)
 
-    stageWithToolbarView = StageWithToolbarView(studioProfilers,
-                                                stageComponent,
-                                                ideProfilerComponents,
-                                                { stage: Stage<*> -> buildStageView(stage) },
-                                                stageComponent)
+    stageWithToolbarView =
+      StageWithToolbarView(
+        studioProfilers,
+        stageComponent,
+        ideProfilerComponents,
+        { stage: Stage<*> -> buildStageView(stage) },
+        stageComponent,
+      )
 
     Disposer.register(parentDisposable, this)
   }
@@ -83,12 +88,11 @@ class TaskProfilersView(override val studioProfilers: StudioProfilers,
     return binder.build(this, stage)
   }
 
-  /**
-   * Installs the [ContextMenuItem] common to all profilers.
-   */
+  /** Installs the [ContextMenuItem] common to all profilers. */
   override fun installCommonMenuItems(component: JComponent) {
     val contextMenuInstaller = ideProfilerComponents.createContextMenuInstaller()
-    ProfilerContextMenu.createIfAbsent(stageComponent).contextMenuItems.forEach(
-      Consumer { item: ContextMenuItem? -> contextMenuInstaller.installGenericContextMenu(component, item!!) })
+    ProfilerContextMenu.createIfAbsent(stageComponent)
+      .contextMenuItems
+      .forEach(Consumer { item: ContextMenuItem? -> contextMenuInstaller.installGenericContextMenu(component, item!!) })
   }
 }

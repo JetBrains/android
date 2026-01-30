@@ -29,20 +29,23 @@ import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import org.jetbrains.jewel.ui.component.Dropdown
 
 @Composable
-fun TaskRecordingTypeDropdown(taskRecordingType: TaskHomeTabModel.TaskRecordingType,
-                              setProfilingProcessStartingPoint: (TaskHomeTabModel.TaskRecordingType) -> Unit) {
+fun TaskRecordingTypeDropdown(
+  taskRecordingType: TaskHomeTabModel.TaskRecordingType,
+  setProfilingProcessStartingPoint: (TaskHomeTabModel.TaskRecordingType) -> Unit,
+) {
 
-  Row(verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(DROPDOWN_PROMPT_HORIZONTAL_SPACE_DP)) {
+  Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(DROPDOWN_PROMPT_HORIZONTAL_SPACE_DP)) {
     EllipsisText(text = TaskBasedUxStrings.RECORDING_TYPE_DROPDOWN_TITLE)
-    Dropdown(modifier = Modifier.testTag("TaskRecordingTypeDropdown"), menuContent = {
-      TaskHomeTabModel.TaskRecordingType.values().forEach {
-        selectableItem(selected = it == taskRecordingType,
-                       onClick = { setProfilingProcessStartingPoint(it) }) {
-          TaskRecordingTypeOption(it, Modifier.testTag("TaskRecordingTypeOption"))
+    Dropdown(
+      modifier = Modifier.testTag("TaskRecordingTypeDropdown"),
+      menuContent = {
+        TaskHomeTabModel.TaskRecordingType.values().forEach {
+          selectableItem(selected = it == taskRecordingType, onClick = { setProfilingProcessStartingPoint(it) }) {
+            TaskRecordingTypeOption(it, Modifier.testTag("TaskRecordingTypeOption"))
+          }
         }
-      }
-    }) {
+      },
+    ) {
       TaskRecordingTypeOption(taskRecordingType)
     }
   }
@@ -51,13 +54,15 @@ fun TaskRecordingTypeDropdown(taskRecordingType: TaskHomeTabModel.TaskRecordingT
 @Composable
 private fun TaskRecordingTypeOption(taskRecordingType: TaskHomeTabModel.TaskRecordingType, modifier: Modifier = Modifier) {
   when (taskRecordingType) {
-    TaskHomeTabModel.TaskRecordingType.SAMPLED -> DropdownOptionText(modifier,
-                                                                     TaskBasedUxStrings.ART_SAMPLED_RECORDING_TYPE_OPTION_PRIMARY_TEXT,
-                                                                     TaskBasedUxStrings.ART_SAMPLED_RECORDING_TYPE_OPTION_SECONDARY_TEXT,
-                                                                     true)
+    TaskHomeTabModel.TaskRecordingType.SAMPLED ->
+      DropdownOptionText(
+        modifier,
+        TaskBasedUxStrings.ART_SAMPLED_RECORDING_TYPE_OPTION_PRIMARY_TEXT,
+        TaskBasedUxStrings.ART_SAMPLED_RECORDING_TYPE_OPTION_SECONDARY_TEXT,
+        true,
+      )
 
-    TaskHomeTabModel.TaskRecordingType.INSTRUMENTED -> DropdownOptionText(modifier,
-                                                                          TaskBasedUxStrings.ART_INSTRUMENTED_RECORDING_TYPE_OPTION, null,
-                                                                          true)
+    TaskHomeTabModel.TaskRecordingType.INSTRUMENTED ->
+      DropdownOptionText(modifier, TaskBasedUxStrings.ART_INSTRUMENTED_RECORDING_TYPE_OPTION, null, true)
   }
 }

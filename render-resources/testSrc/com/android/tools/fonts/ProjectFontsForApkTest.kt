@@ -32,7 +32,7 @@ class ProjectFontsForApkTest {
     val apkRes = ApkResourceRepository(path.toString()) { idManager.findById(it) }
 
     val manager = SingleRepoResourceRepositoryManager(apkRes)
-    val fontService = object : DownloadableFontCacheServiceImpl(FontDownloader.NOOP_FONT_DOWNLOADER, { null }) { }
+    val fontService = object : DownloadableFontCacheServiceImpl(FontDownloader.NOOP_FONT_DOWNLOADER, { null }) {}
 
     val projectFonts = ProjectFonts(fontService, manager, idManager.resolver)
 

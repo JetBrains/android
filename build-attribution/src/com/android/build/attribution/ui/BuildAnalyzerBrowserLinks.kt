@@ -17,56 +17,47 @@ package com.android.build.attribution.ui
 
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 
-enum class BuildAnalyzerBrowserLinks(
-  val urlTarget: String,
-  val analyticsValue: BuildAttributionUiEvent.OutgoingLinkTarget
-) {
+enum class BuildAnalyzerBrowserLinks(val urlTarget: String, val analyticsValue: BuildAttributionUiEvent.OutgoingLinkTarget) {
   NON_INCREMENTAL_ANNOTATION_PROCESSORS(
     "https://d.android.com/r/tools/build-attribution/incremental-annotation-processor-support",
-    BuildAttributionUiEvent.OutgoingLinkTarget.NON_INCREMENTAL_ANNOTATION_PROCESSORS_HELP
+    BuildAttributionUiEvent.OutgoingLinkTarget.NON_INCREMENTAL_ANNOTATION_PROCESSORS_HELP,
   ),
   CRITICAL_PATH(
     "https://developer.android.com/r/tools/build-attribution/critical-path",
-    BuildAttributionUiEvent.OutgoingLinkTarget.CRITICAL_PATH_HELP
+    BuildAttributionUiEvent.OutgoingLinkTarget.CRITICAL_PATH_HELP,
   ),
   DUPLICATE_OUTPUT_FOLDER_ISSUE(
     "https://d.android.com/r/tools/build-attribution/duplicate-output-folder",
-    BuildAttributionUiEvent.OutgoingLinkTarget.DUPLICATE_OUTPUT_FOLDER_ISSUE_HELP
+    BuildAttributionUiEvent.OutgoingLinkTarget.DUPLICATE_OUTPUT_FOLDER_ISSUE_HELP,
   ),
   NO_OUTPUTS_DECLARED_ISSUE(
     "https://d.android.com/r/tools/build-attribution/no-task-outputs-declared",
-    BuildAttributionUiEvent.OutgoingLinkTarget.NO_OUTPUTS_DECLARED_ISSUE_HELP
+    BuildAttributionUiEvent.OutgoingLinkTarget.NO_OUTPUTS_DECLARED_ISSUE_HELP,
   ),
   UP_TO_DATE_EQUALS_FALSE_ISSUE(
     "https://d.android.com/r/tools/build-attribution/upToDateWhen-equals-false",
-    BuildAttributionUiEvent.OutgoingLinkTarget.UP_TO_DATE_EQUALS_FALSE_ISSUE_HELP
+    BuildAttributionUiEvent.OutgoingLinkTarget.UP_TO_DATE_EQUALS_FALSE_ISSUE_HELP,
   ),
   OPTIMIZE_CONFIGURATION_PHASE(
     "https://d.android.com/r/tools/build-attribution/optimize-configuration-phase",
-    BuildAttributionUiEvent.OutgoingLinkTarget.OPTIMIZE_CONFIGURATION_PHASE_HELP
+    BuildAttributionUiEvent.OutgoingLinkTarget.OPTIMIZE_CONFIGURATION_PHASE_HELP,
   ),
-  CONFIGURE_GC(
-    "https://d.android.com/r/tools/build-attribution/configure-gc",
-    BuildAttributionUiEvent.OutgoingLinkTarget.CONFIGURE_GC
-  ),
+  CONFIGURE_GC("https://d.android.com/r/tools/build-attribution/configure-gc", BuildAttributionUiEvent.OutgoingLinkTarget.CONFIGURE_GC),
   CONFIGURATION_CACHING(
     "https://d.android.com/r/tools/build-attribution/configuration-cache",
-    BuildAttributionUiEvent.OutgoingLinkTarget.CONFIGURATION_CACHING
+    BuildAttributionUiEvent.OutgoingLinkTarget.CONFIGURATION_CACHING,
   ),
   JETIIFER_MIGRATE(
     "https://d.android.com/r/tools/build-attribution/migrate-to-androidx",
-    BuildAttributionUiEvent.OutgoingLinkTarget.JETIFIER_MIGRATION
+    BuildAttributionUiEvent.OutgoingLinkTarget.JETIFIER_MIGRATION,
   ),
-  DOWNLOADS(
-    "https://d.android.com/r/tools/build-attribution/downloads",
-    BuildAttributionUiEvent.OutgoingLinkTarget.DOWNLOADS_INFO
-  ),
+  DOWNLOADS("https://d.android.com/r/tools/build-attribution/downloads", BuildAttributionUiEvent.OutgoingLinkTarget.DOWNLOADS_INFO),
   NON_TRANSITIVE_R_CLASS(
     "https://d.android.com/r/tools/build-attribution/non-transitive-r-classes",
-    BuildAttributionUiEvent.OutgoingLinkTarget.NON_TRANSITIVE_R_CLASS
+    BuildAttributionUiEvent.OutgoingLinkTarget.NON_TRANSITIVE_R_CLASS,
   ),
   WINDOWS_DEFENDER(
     "https://d.android.com/r/tools/build-attribution/antivirus-check-learn-more",
-    BuildAttributionUiEvent.OutgoingLinkTarget.WINDOWS_DEFENDER_INSTRUCTIONS
-  )
+    BuildAttributionUiEvent.OutgoingLinkTarget.WINDOWS_DEFENDER_INSTRUCTIONS,
+  ),
 }

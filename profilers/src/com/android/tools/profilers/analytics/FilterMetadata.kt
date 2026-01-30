@@ -15,9 +15,7 @@
  */
 package com.android.tools.profilers.analytics
 
-/**
- * Class with metadata related to filter operations, used for analytics purposes.
- */
+/** Class with metadata related to filter operations, used for analytics purposes. */
 class FilterMetadata {
   enum class View {
     UNKNOWN_FILTER_VIEW,
@@ -29,7 +27,7 @@ class FilterMetadata {
     MEMORY_CLASS,
     MEMORY_CALLSTACK,
     NETWORK_THREADS,
-    NETWORK_CONNECTIONS
+    NETWORK_CONNECTIONS,
   }
 
   var view = View.UNKNOWN_FILTER_VIEW

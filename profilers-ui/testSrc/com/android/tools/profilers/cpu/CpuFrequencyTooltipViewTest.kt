@@ -20,9 +20,9 @@ import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTooltip
 import com.google.common.truth.Truth
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
+import org.junit.Test
 
 class CpuFrequencyTooltipViewTest {
 
@@ -47,9 +47,11 @@ class CpuFrequencyTooltipViewTest {
   }
 
   private companion object {
-    val CPU_FREQUENCY_VALUES = listOf(
-      SeriesData(0, 0L),
-      SeriesData(TimeUnit.MILLISECONDS.toMicros(1), 1500L),
-      SeriesData(TimeUnit.MILLISECONDS.toMicros(2), 2 * 1000 * 1000L))
+    val CPU_FREQUENCY_VALUES =
+      listOf(
+        SeriesData(0, 0L),
+        SeriesData(TimeUnit.MILLISECONDS.toMicros(1), 1500L),
+        SeriesData(TimeUnit.MILLISECONDS.toMicros(2), 2 * 1000 * 1000L),
+      )
   }
 }

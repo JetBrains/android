@@ -26,13 +26,12 @@ import org.jetbrains.kotlin.psi.KtFile
 /**
  * Compute the name of the ComposableSingletons class for the given file.
  *
- * The Compose compiler plugin creates per-file ComposableSingletons classes to cache composable
- * lambdas without captured variables. We need to locate these classes in order to search them for
- * breakpoint locations.
+ * The Compose compiler plugin creates per-file ComposableSingletons classes to cache composable lambdas without captured variables. We need
+ * to locate these classes in order to search them for breakpoint locations.
  *
  * NOTE: The pattern for ComposableSingletons classes needs to be kept in sync with the code in
- * `ComposerLambdaMemoization.getOrCreateComposableSingletonsClass`. The optimization was introduced
- * in I8c967b14c5d9bf67e5646e60f630f2e29e006366
+ * `ComposerLambdaMemoization.getOrCreateComposableSingletonsClass`. The optimization was introduced in
+ * I8c967b14c5d9bf67e5646e60f630f2e29e006366
  */
 internal fun computeComposableSingletonsClassName(file: KtFile): String = CachedValuesManager.getCachedValue(file) {
   // The code in `ComposerLambdaMemoization` always uses the file short name and
@@ -41,8 +40,7 @@ internal fun computeComposableSingletonsClassName(file: KtFile): String = Cached
   val filePath = file.virtualFile?.path ?: file.name
   val fileName = filePath.split('/').last()
   val shortName = PackagePartClassUtils.getFilePartShortName(fileName)
-  val fileClassFqName =
-    runReadAction { JvmFileClassUtil.getFileClassInfoNoResolve(file) }.facadeClassFqName
+  val fileClassFqName = runReadAction { JvmFileClassUtil.getFileClassInfoNoResolve(file) }.facadeClassFqName
 
   val className = buildString {
     val pgk = fileClassFqName.parent()

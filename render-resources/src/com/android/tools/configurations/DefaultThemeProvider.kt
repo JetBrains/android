@@ -23,15 +23,14 @@ import com.android.tools.environment.Logger
 import com.intellij.openapi.application.runReadAction
 
 /** [ResourceReference] to the postSplashScreenTheme. */
-private val postSplashAttrReference = ResourceReference.attr(
-  ResourceNamespace.RES_AUTO, "postSplashScreenTheme"
-)
+private val postSplashAttrReference = ResourceReference.attr(ResourceNamespace.RES_AUTO, "postSplashScreenTheme")
 
 /**
- * Finds the post splash theme if there is any. Themes used in splash screens can have a post splash theme declared.
- * When a splash screen theme is used in the manifest, the tools should probably not use that one unless the user has explicitly selected
- * it. For "preferred theme" computation purposes, we try to find the post splash screen theme.
- * See [splash screen documentation.](https://developer.android.com/reference/kotlin/androidx/core/splashscreen/SplashScreen)
+ * Finds the post splash theme if there is any. Themes used in splash screens can have a post splash theme declared. When a splash screen
+ * theme is used in the manifest, the tools should probably not use that one unless the user has explicitly selected it. For "preferred
+ * theme" computation purposes, we try to find the post splash screen theme. See
+ * [splash screen documentation.](https://developer.android.com/reference/kotlin/androidx/core/splashscreen/SplashScreen)
+ *
  * @param themeStyle the default theme found in the manifest.
  * @return the post activity splash screen if any or `themeStyle` otherwise.
  */
@@ -42,20 +41,16 @@ private fun findPostSplashTheme(themeStyle: String, configuration: Configuration
     if (log.isDebugEnabled) log.debug(String.format("Unable to parse theme %s", themeStyle))
     return themeStyle
   }
-  val namespace = ResourceNamespace.fromNamespacePrefix(
-    themeUrl.namespace, ResourceNamespace.RES_AUTO, ResourceNamespace.Resolver.EMPTY_RESOLVER
-  )
-  val reference = themeUrl.resolve(
-    namespace ?: ResourceNamespace.RES_AUTO,
-    ResourceNamespace.Resolver.EMPTY_RESOLVER
-  )
+  val namespace =
+    ResourceNamespace.fromNamespacePrefix(themeUrl.namespace, ResourceNamespace.RES_AUTO, ResourceNamespace.Resolver.EMPTY_RESOLVER)
+  val reference = themeUrl.resolve(namespace ?: ResourceNamespace.RES_AUTO, ResourceNamespace.Resolver.EMPTY_RESOLVER)
   if (reference == null) {
     if (log.isDebugEnabled) log.debug(String.format("Unable to resolve reference for theme %s", themeUrl))
     return themeStyle
   }
   val resolverCache: ResourceResolverCache = configuration.settings.resolverCache
-  val resourceResolver = resolverCache.getResourceResolver(configuration.target, themeUrl.toString(), configuration.fullConfig,
-                                                           configuration.overlays)
+  val resourceResolver =
+    resolverCache.getResourceResolver(configuration.target, themeUrl.toString(), configuration.fullConfig, configuration.overlays)
   val theme = resourceResolver.getStyle(reference)
   if (theme == null) {
     if (log.isDebugEnabled) log.debug(String.format("Unable to resolve theme %s", themeUrl))
@@ -82,7 +77,7 @@ object DefaultThemeProvider {
         val packageName: String? = configuration.settings.configModule.resourcePackage
         activityFqcn = packageName + activityName
       }
-      val theme = themeInfo.getThemeNameForActivity(activityFqcn);
+      val theme = themeInfo.getThemeNameForActivity(activityFqcn)
       if (theme != null) {
         return theme
       }
@@ -91,9 +86,9 @@ object DefaultThemeProvider {
     // Returns an app theme if possible
     val manifestTheme =
       runReadAction { themeInfo.appThemeName }
-      // Look up the default/fallback theme to use for this project (which depends on the screen size when no particular
-      // theme is specified in the manifest).
-      ?: themeInfo.getDeviceDefaultTheme(configuration.target, configuration.screenSize, configuration.cachedDevice)
+        // Look up the default/fallback theme to use for this project (which depends on the screen size when no particular
+        // theme is specified in the manifest).
+        ?: themeInfo.getDeviceDefaultTheme(configuration.target, configuration.screenSize, configuration.cachedDevice)
 
     return findPostSplashTheme(manifestTheme, configuration)
   }

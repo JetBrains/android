@@ -30,67 +30,66 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 
 interface BuildEventsAnalysisResult {
-  fun getBuildRequestData() : GradleBuildInvoker.Request.RequestData
-  fun getBuildFinishedTimestamp() : Long
+  fun getBuildRequestData(): GradleBuildInvoker.Request.RequestData
+
+  fun getBuildFinishedTimestamp(): Long
+
   fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData>
+
   fun getTotalBuildTimeMs(): Long
+
   fun getConfigurationPhaseTimeMs(): Long
+
   fun getCriticalPathTasks(): List<TaskData>
+
   fun getTasksDeterminingBuildDuration(): List<TaskData>
+
   fun getPluginsDeterminingBuildDuration(): List<PluginBuildData>
 
-  /**
-   * Total configuration data summed over all subprojects.
-   */
+  /** Total configuration data summed over all subprojects. */
   fun getTotalConfigurationData(): ProjectConfigurationData
 
-  /**
-   * List of subprojects individual configuration data.
-   */
+  /** List of subprojects individual configuration data. */
   fun getProjectsConfigurationData(): List<ProjectConfigurationData>
+
   fun getAlwaysRunTasks(): List<AlwaysRunTaskData>
+
   fun getTasksSharingOutput(): List<TasksSharingOutputData>
 
-  /**
-   * returns a list of all applied plugins for each configured project.
-   * May contain internal plugins
-   */
+  /** returns a list of all applied plugins for each configured project. May contain internal plugins */
   fun getAppliedPlugins(): Map<String, List<PluginData>>
 
-  /**
-   * Result of configuration cache compatibility analysis, describes the state and incompatible plugins if any.
-   */
+  /** Result of configuration cache compatibility analysis, describes the state and incompatible plugins if any. */
   fun getConfigurationCachingCompatibility(): ConfigurationCachingCompatibilityProjectResult
 
-  /**
-   * Result Jetifier usage analyzer, describes the state of jetifier flags and AndroidX incompatible libraries if any.
-   */
+  /** Result Jetifier usage analyzer, describes the state of jetifier flags and AndroidX incompatible libraries if any. */
   fun getJetifierUsageResult(): JetifierUsageAnalyzerResult
 
-  /**
-   * List of garbage collection data for this build.
-   */
+  /** List of garbage collection data for this build. */
   fun getGarbageCollectionData(): List<GarbageCollectionData>
-  /**
-   * Total time spent in garbage collection for this build.
-   */
+
+  /** Total time spent in garbage collection for this build. */
   fun getTotalGarbageCollectionTimeMs(): Long
+
   fun getJavaVersion(): Int?
+
   fun isGCSettingSet(): Boolean?
+
   fun buildUsesConfigurationCache(): Boolean
+
   fun getDownloadsAnalyzerResult(): DownloadsAnalyzer.Result
 
   fun getTaskCategoryWarningsAnalyzerResult(): TaskCategoryWarningsAnalyzer.Result
 }
 
 /**
- * A way of interaction between the build events analyzers and the build attribution manager.
- * Used to fetch the final data from the analyzers after the build is complete.
+ * A way of interaction between the build events analyzers and the build attribution manager. Used to fetch the final data from the
+ * analyzers after the build is complete.
  */
 class BuildEventsAnalyzersProxy(
   val taskContainer: TaskContainer,
   val pluginContainer: PluginContainer,
-  storageManager: BuildAnalyzerStorageManager
+  storageManager: BuildAnalyzerStorageManager,
 ) {
   val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(taskContainer, pluginContainer)
   val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(taskContainer, pluginContainer)
@@ -108,16 +107,17 @@ class BuildEventsAnalyzersProxy(
   }
 
   val buildAnalyzers: List<BaseAnalyzer<*>>
-    get() = listOfNotNull(
-      alwaysRunTasksAnalyzer,
-      annotationProcessorsAnalyzer,
-      criticalPathAnalyzer,
-      garbageCollectionAnalyzer,
-      projectConfigurationAnalyzer,
-      tasksConfigurationIssuesAnalyzer,
-      configurationCachingCompatibilityAnalyzer,
-      jetifierUsageAnalyzer,
-      downloadsAnalyzer,
-      taskCategoryWarningsAnalyzer
-    )
+    get() =
+      listOfNotNull(
+        alwaysRunTasksAnalyzer,
+        annotationProcessorsAnalyzer,
+        criticalPathAnalyzer,
+        garbageCollectionAnalyzer,
+        projectConfigurationAnalyzer,
+        tasksConfigurationIssuesAnalyzer,
+        configurationCachingCompatibilityAnalyzer,
+        jetifierUsageAnalyzer,
+        downloadsAnalyzer,
+        taskCategoryWarningsAnalyzer,
+      )
 }

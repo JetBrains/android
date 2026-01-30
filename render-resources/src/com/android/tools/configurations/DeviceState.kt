@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("DeviceState")
+
 package com.android.tools.configurations
 
 import com.android.sdklib.devices.Device
@@ -21,7 +22,5 @@ import com.android.sdklib.devices.State
 
 /** Returns the [State] by the given name for the given [Device]. */
 fun Device?.getDeviceState(name: String?): State? {
-  return this?.let { device ->
-    name?.let { device.getState(it) } ?: device.defaultState
-  }
+  return this?.let { device -> name?.let { device.getState(it) } ?: device.defaultState }
 }

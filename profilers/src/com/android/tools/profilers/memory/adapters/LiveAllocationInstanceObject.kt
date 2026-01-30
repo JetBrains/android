@@ -20,17 +20,20 @@ import com.android.tools.inspectors.common.api.stacktrace.ThreadId
 import com.android.tools.profiler.proto.Memory.AllocationStack
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 
-class LiveAllocationInstanceObject(private val captureObject: LiveAllocationCaptureObject,
-                                   private val classEntry: ClassDb.ClassEntry,
-                                   private val threadId: ThreadId,
-                                   private val callstack: AllocationStack?,
-                                   private val size: Long,
-                                   private val heapId: Int) : InstanceObject {
-  private val valueType = when {
-    classEntry.className == "java.lang.String" -> ValueObject.ValueType.STRING
-    classEntry.className.endsWith("[]") -> ValueObject.ValueType.ARRAY
-    else -> ValueObject.ValueType.OBJECT
-  }
+class LiveAllocationInstanceObject(
+  private val captureObject: LiveAllocationCaptureObject,
+  private val classEntry: ClassDb.ClassEntry,
+  private val threadId: ThreadId,
+  private val callstack: AllocationStack?,
+  private val size: Long,
+  private val heapId: Int,
+) : InstanceObject {
+  private val valueType =
+    when {
+      classEntry.className == "java.lang.String" -> ValueObject.ValueType.STRING
+      classEntry.className.endsWith("[]") -> ValueObject.ValueType.ARRAY
+      else -> ValueObject.ValueType.OBJECT
+    }
   private var allocTime = Long.MIN_VALUE
   private var deallocTime = Long.MAX_VALUE
   private var jniRefs: Long2ObjectOpenHashMap<JniReferenceInstanceObject>? = null
@@ -48,28 +51,37 @@ class LiveAllocationInstanceObject(private val captureObject: LiveAllocationCapt
   }
 
   override fun getDeallocTime() = deallocTime
+
   override fun hasTimeData() = hasAllocTime() || hasDeallocTime()
+
   override fun hasAllocTime() = allocTime != Long.MIN_VALUE
+
   override fun hasDeallocTime() = deallocTime != Long.MAX_VALUE
+
   override fun getName() = ""
+
   override fun getHeapId() = heapId
+
   override fun getShallowSize() = size.toInt()
+
   override fun getAllocationCallStack() = callstack
 
-  override fun getAllocationCodeLocations() = when (callstack?.frameCase) {
-    AllocationStack.FrameCase.ENCODED_STACK -> callstack.encodedStack.framesList.map { frame ->
-      val resolvedFrame = captureObject.getStackFrame(frame.methodId)
-      CodeLocation.Builder(resolvedFrame.className)
-        .setMethodName(resolvedFrame.methodName)
-        .setLineNumber(frame.lineNumber - 1)
-        .build()
+  override fun getAllocationCodeLocations() =
+    when (callstack?.frameCase) {
+      AllocationStack.FrameCase.ENCODED_STACK ->
+        callstack.encodedStack.framesList.map { frame ->
+          val resolvedFrame = captureObject.getStackFrame(frame.methodId)
+          CodeLocation.Builder(resolvedFrame.className).setMethodName(resolvedFrame.methodName).setLineNumber(frame.lineNumber - 1).build()
+        }
+      else -> listOf()
     }
-    else -> listOf()
-  }
 
   override fun getAllocationThreadId() = threadId
+
   override fun getClassEntry() = classEntry
+
   override fun getValueType() = valueType
+
   override fun getValueText() = classEntry.simpleClassName
 
   fun getJniRefByValue(refValue: Long) = jniRefs?.get(refValue)

@@ -28,35 +28,30 @@ import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.TopBa
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid.TaskGrid
 
 @Composable
-private fun TaskGridAndBarsContainer(taskGrid: @Composable () -> Unit,
-                                     topBar: @Composable () -> Unit,
-                                     taskActionBar: @Composable () -> Unit,
-                                     modifier: Modifier = Modifier) {
+private fun TaskGridAndBarsContainer(
+  taskGrid: @Composable () -> Unit,
+  topBar: @Composable () -> Unit,
+  taskActionBar: @Composable () -> Unit,
+  modifier: Modifier = Modifier,
+) {
   Column(modifier = modifier) {
     topBar()
     ToolWindowHorizontalDivider()
-    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-      taskGrid()
-    }
+    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) { taskGrid() }
     ToolWindowHorizontalDivider()
     taskActionBar()
   }
 }
 
 @Composable
-fun TaskGridAndBars(taskHomeTabModel: TaskHomeTabModel,
-                    ideProfilerComponents: IdeProfilerComponents) {
+fun TaskGridAndBars(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) {
   val taskTypes = taskHomeTabModel.taskHandlers.keys.toList()
   val profilers = taskHomeTabModel.profilers
   val taskGridModel = taskHomeTabModel.taskGridModel
 
   TaskGridAndBarsContainer(
-    taskGrid = {
-      TaskGrid(taskGridModel = taskGridModel, taskTypes = taskTypes)
-    },
+    taskGrid = { TaskGrid(taskGridModel = taskGridModel, taskTypes = taskTypes) },
     topBar = { TopBar(profilers, ideProfilerComponents) },
-    taskActionBar = {
-      TaskActionBar(taskHomeTabModel)
-    },
+    taskActionBar = { TaskActionBar(taskHomeTabModel) },
   )
 }

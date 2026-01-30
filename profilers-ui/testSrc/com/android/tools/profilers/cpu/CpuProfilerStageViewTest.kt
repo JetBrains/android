@@ -43,6 +43,10 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.JBSplitter
+import java.awt.Point
+import javax.swing.JButton
+import javax.swing.JLabel
+import javax.swing.SwingUtilities
 import org.junit.Assume.assumeFalse
 import org.junit.Assume.assumeTrue
 import org.junit.Before
@@ -50,10 +54,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.awt.Point
-import javax.swing.JButton
-import javax.swing.JLabel
-import javax.swing.SwingUtilities
 
 // Path to trace file. Used in test to build AtraceParser.
 private const val TOOLTIP_TRACE_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
@@ -64,22 +64,18 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
   private val myTimer = FakeTimer()
   private val myComponents = FakeIdeProfilerComponents()
   private val myIdeServices = FakeIdeProfilerServices()
-  private val myTransportService = if (isTestingProfileable) {
-    FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
-  }
-  else FakeTransportService(myTimer)
+  private val myTransportService =
+    if (isTestingProfileable) {
+      FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
+    } else FakeTransportService(myTimer)
 
-  @get:Rule
-  val myGrpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", myTransportService, FakeEventService())
+  @get:Rule val myGrpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", myTransportService, FakeEventService())
 
-  @get:Rule
-  val myEdtRule = EdtRule()
+  @get:Rule val myEdtRule = EdtRule()
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var myStage: CpuProfilerStage
 
@@ -121,7 +117,8 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
     CpuProfilerTestUtils.captureSuccessfully(
       myStage,
       myTransportService,
-      CpuProfilerTestUtils.traceFileToByteString(resolveWorkspacePath(TOOLTIP_TRACE_DATA_FILE).toFile()))
+      CpuProfilerTestUtils.traceFileToByteString(resolveWorkspacePath(TOOLTIP_TRACE_DATA_FILE).toFile()),
+    )
     myStage.studioProfilers.sessionsManager.endCurrentSession()
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
@@ -130,9 +127,8 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
     myStage.studioProfilers.stage = myStage
     myStage.studioProfilers.sessionsManager.endCurrentSession()
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
-    val recordButton = TreeWalker(stageView.component).descendants().filterIsInstance<JButton>().first {
-      it.text == RecordingOptionsView.START
-    }
+    val recordButton =
+      TreeWalker(stageView.component).descendants().filterIsInstance<JButton>().first { it.text == RecordingOptionsView.START }
     // When creating the stage view, the record button should be disabled as the current session is dead.
     assertThat(recordButton.isEnabled).isFalse()
   }
@@ -140,34 +136,28 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
   @Test
   fun stoppingAndStartingDisableRecordButton() {
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
-    val recordButton = TreeWalker(stageView.component).descendants().filterIsInstance<JButton>().first {
-      it.text == RecordingOptionsView.START
-    }
+    val recordButton =
+      TreeWalker(stageView.component).descendants().filterIsInstance<JButton>().first { it.text == RecordingOptionsView.START }
 
     myStage.captureState = CpuProfilerStage.CaptureState.CAPTURING
     // Setting the state to STARTING should disable the recording button
     assertThat(recordButton.text).isEqualTo(RecordingOptionsView.STOP)
-
   }
 
   @Test
   fun recordButtonShouldntHaveTooltip() {
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
-    val recordButton = TreeWalker(stageView.component).descendants().filterIsInstance<JButton>().first {
-      it.text == RecordingOptionsView.START
-    }
+    val recordButton =
+      TreeWalker(stageView.component).descendants().filterIsInstance<JButton>().first { it.text == RecordingOptionsView.START }
     assertThat(recordButton.toolTipText).isNull()
 
     myStage.captureState = CpuProfilerStage.CaptureState.CAPTURING
-    val stopButton = TreeWalker(stageView.component).descendants().filterIsInstance<JButton>().first {
-      it.text == RecordingOptionsView.STOP
-    }
+    val stopButton =
+      TreeWalker(stageView.component).descendants().filterIsInstance<JButton>().first { it.text == RecordingOptionsView.STOP }
     assertThat(stopButton.toolTipText).isNull()
   }
 
-  /**
-   * Checks that the menu items common to all profilers are installed in the CPU profiler context menu.
-   */
+  /** Checks that the menu items common to all profilers are installed in the CPU profiler context menu. */
   @Test
   fun testCommonProfilersMenuItems() {
     // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
@@ -175,12 +165,14 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
     // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
     CpuProfilerStageView(myProfilersView, myStage)
 
-    val expectedCommonMenus = listOf(
-      StageWithToolbarView.ATTACH_LIVE,
-      StageWithToolbarView.DETACH_LIVE,
-      ContextMenuItem.SEPARATOR.text,
-      StageWithToolbarView.ZOOM_IN,
-      StageWithToolbarView.ZOOM_OUT)
+    val expectedCommonMenus =
+      listOf(
+        StageWithToolbarView.ATTACH_LIVE,
+        StageWithToolbarView.DETACH_LIVE,
+        ContextMenuItem.SEPARATOR.text,
+        StageWithToolbarView.ZOOM_IN,
+        StageWithToolbarView.ZOOM_OUT,
+      )
     val items = myComponents.allContextMenuItems
     // CPU specific menus should be added.
     assertThat(items.size).isGreaterThan(expectedCommonMenus.size)
@@ -252,15 +244,16 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
   fun `disabled event banner not shown in profileable process`() {
     assumeTrue(isTestingProfileable)
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
-    assertThat(TreeWalker(stageView.component).descendantStream()
-                 .noneMatch { it is JLabel && it.text != null && it.text.contains("Additional profiling support is unavailable") })
+    assertThat(
+        TreeWalker(stageView.component).descendantStream().noneMatch {
+          it is JLabel && it.text != null && it.text.contains("Additional profiling support is unavailable")
+        }
+      )
       .isTrue()
   }
 
-  private fun getUsageView(stageView: CpuProfilerStageView) = TreeWalker(stageView.component)
-    .descendants()
-    .filterIsInstance<CpuUsageView>()
-    .first()
+  private fun getUsageView(stageView: CpuProfilerStageView) =
+    TreeWalker(stageView.component).descendants().filterIsInstance<CpuUsageView>().first()
 
   companion object {
     @Parameterized.Parameters

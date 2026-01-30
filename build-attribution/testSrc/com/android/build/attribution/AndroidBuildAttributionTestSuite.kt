@@ -21,14 +21,14 @@ import org.junit.runner.RunWith
 
 @RunWith(JarTestSuiteRunner::class)
 @JarTestSuiteRunner.ExcludeClasses(
-  AndroidBuildAttributionTestSuite::class,  // a suite mustn't contain itself
+  AndroidBuildAttributionTestSuite::class, // a suite mustn't contain itself
   AndroidBuildAttributionOldAgpTestSuite::class,
 )
 class AndroidBuildAttributionTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
       linkIntoOfflineMavenRepo("tools/adt/idea/build-attribution/test_deps.manifest")
-      unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
+      unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
       linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest")
       linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_latest_prebuilts.manifest")
     }

@@ -48,22 +48,16 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
      * they are notified early and the resources are up-to-date by the time that [TOPIC] is called.
      */
     @JvmField
-    internal val EARLY_TOPIC = Topic.create(ResourceFolderManager::class.qualifiedName!!, ResourceFolderListener::class.java,
-                                            Topic.BroadcastDirection.NONE)
+    internal val EARLY_TOPIC =
+      Topic.create(ResourceFolderManager::class.qualifiedName!!, ResourceFolderListener::class.java, Topic.BroadcastDirection.NONE)
 
-    @JvmField
-    @Topic.ProjectLevel
-    internal val TOPIC = Topic(ResourceFolderListener::class.java,
-                             Topic.BroadcastDirection.NONE)
+    @JvmField @Topic.ProjectLevel internal val TOPIC = Topic(ResourceFolderListener::class.java, Topic.BroadcastDirection.NONE)
   }
 
-  /** Listeners for resource folder changes  */
+  /** Listeners for resource folder changes */
   fun interface ResourceFolderListener {
-    /** The resource folders in this project has changed  */
-    fun foldersChanged(
-      facet: AndroidFacet,
-      folders: List<VirtualFile>
-    )
+    /** The resource folders in this project has changed */
+    fun foldersChanged(facet: AndroidFacet, folders: List<VirtualFile>)
   }
 
   @Volatile private var generation: Long = 0
@@ -88,16 +82,17 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
   /**
    * This returns the primary resource directory; the default location to place newly created resources etc.
    *
-   * This method is marked deprecated since we should be gradually adding in UI to allow users to choose specific resource folders among
-   * the available build variants (see [com.android.tools.idea.projectsystem.SourceProviders.currentSourceProviders] etc).
+   * This method is marked deprecated since we should be gradually adding in UI to allow users to choose specific resource folders among the
+   * available build variants (see [com.android.tools.idea.projectsystem.SourceProviders.currentSourceProviders] etc).
    *
    * @return the primary resource dir, if any.
    */
   @Suppress("DeprecatedCallableAddReplaceWith") // The method body is not the recommended replacement, see above.
   @Deprecated("Instead of calling this, ask the user which resource folder should be used.")
-  val primaryFolder get() = folders.firstOrNull()
+  val primaryFolder
+    get() = folders.firstOrNull()
 
-  /** Notifies the resource folder manager that the resource folder set may have changed.  */
+  /** Notifies the resource folder manager that the resource folder set may have changed. */
   fun checkForChanges() {
     if (module.isDisposed) return
     val facet = module.androidFacet ?: return
@@ -115,8 +110,7 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
   private fun computeFolders(facet: AndroidFacet): List<VirtualFile> {
     return if (!AndroidModel.isRequired(facet)) {
       SourceProviderManager.getInstance(facet).mainIdeaSourceProvider?.resDirectories?.toList() ?: emptyList()
-    }
-    else {
+    } else {
       readFromFacetState(facet)
     }
   }

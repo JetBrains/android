@@ -29,9 +29,10 @@ import com.android.resources.ResourceType
 internal class ApkResourceItem(
   private val resRef: ResourceReference,
   private val folderConfig: FolderConfiguration,
-  private val apkResValue: ResourceValue
+  private val apkResValue: ResourceValue,
 ) : ResourceItem {
   private val fileBased: Boolean = apkResValue.value?.let { isResourceFileReference(it, resRef.resourceType) } ?: false
+
   override fun getConfiguration(): FolderConfiguration = folderConfig
 
   override fun getName(): String = resRef.name
@@ -46,10 +47,11 @@ internal class ApkResourceItem(
 
   override fun getSource(): PathString? = null
 
-  override fun isFileBased(): Boolean  = fileBased
+  override fun isFileBased(): Boolean = fileBased
 }
 
 private const val RES_FOLDER_SLASH = "${SdkConstants.RES_FOLDER}/"
+
 /** Heuristic to determine whether the resource value is resource file reference. */
 internal fun isResourceFileReference(resValue: String, resType: ResourceType): Boolean =
   resType != ResourceType.STRING && resValue.startsWith(RES_FOLDER_SLASH)

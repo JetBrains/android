@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 @file:JvmName("SourceProviderUtil")
+
 package org.jetbrains.android.facet
 
 import com.android.tools.idea.projectsystem.SourceProviders
 
 fun createSourceProvidersForLegacyModule(facet: AndroidFacet): SourceProviders =
   com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule(facet)
-

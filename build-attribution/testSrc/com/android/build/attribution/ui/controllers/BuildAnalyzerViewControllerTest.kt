@@ -42,30 +42,26 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Dimension
+import java.util.UUID
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.eq
-import java.awt.Dimension
-import java.util.UUID
 
 class BuildAnalyzerViewControllerTest {
-  @get:Rule
-  val projectRule: ProjectRule = ProjectRule()
+  @get:Rule val projectRule: ProjectRule = ProjectRule()
 
-  @get:Rule
-  var disposableRule = DisposableRule()
+  @get:Rule var disposableRule = DisposableRule()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
-  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
-    issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-  }
+  val task1 =
+    mockTask(":app", "compile", "compiler.plugin", 2000).apply { issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this)) }
   val task2 = mockTask(":app", "resources", "resources.plugin", 1000)
   val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000)
 
@@ -106,10 +102,14 @@ class BuildAnalyzerViewControllerTest {
     // Verify metrics sent
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
 
-    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
-      from = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
-      to = BuildAttributionUiEvent.Page.PageType.TASK_CATEGORY_CRITICAL_PATH_TASKS_ROOT
-    )
+    buildAttributionEvents
+      .single()
+      .studioEvent
+      .buildAttributionUiEvent
+      .verifyComboBoxPageChangeEvent(
+        from = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
+        to = BuildAttributionUiEvent.Page.PageType.TASK_CATEGORY_CRITICAL_PATH_TASKS_ROOT,
+      )
   }
 
   @Test
@@ -125,11 +125,15 @@ class BuildAnalyzerViewControllerTest {
     // Verify metrics sent
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
 
-    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
-      from = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
-      // No selection in warnings page
-      to = BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT
-    )
+    buildAttributionEvents
+      .single()
+      .studioEvent
+      .buildAttributionUiEvent
+      .verifyComboBoxPageChangeEvent(
+        from = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
+        // No selection in warnings page
+        to = BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT,
+      )
   }
 
   @Test
@@ -145,11 +149,15 @@ class BuildAnalyzerViewControllerTest {
     // Verify metrics sent
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
 
-    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
-      from = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
-      // No selection in warnings page
-      to = BuildAttributionUiEvent.Page.PageType.DOWNLOADS_INFO
-    )
+    buildAttributionEvents
+      .single()
+      .studioEvent
+      .buildAttributionUiEvent
+      .verifyComboBoxPageChangeEvent(
+        from = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
+        // No selection in warnings page
+        to = BuildAttributionUiEvent.Page.PageType.DOWNLOADS_INFO,
+      )
   }
 
   @Test
@@ -165,11 +173,15 @@ class BuildAnalyzerViewControllerTest {
     // Verify metrics sent
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
 
-    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
-      // First node in warnings tree
-      from = BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT,
-      to = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY
-    )
+    buildAttributionEvents
+      .single()
+      .studioEvent
+      .buildAttributionUiEvent
+      .verifyComboBoxPageChangeEvent(
+        // First node in warnings tree
+        from = BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT,
+        to = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
+      )
   }
 
   @Test
@@ -194,7 +206,11 @@ class BuildAnalyzerViewControllerTest {
   @Test
   @RunsInEdt
   fun testOpenTasksLinkClickedWithTaskCategoriesData() {
-    val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryInfo = true), warningSuppressions = warningSuppressions)
+    val model =
+      BuildAnalyzerViewModel(
+        MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryInfo = true),
+        warningSuppressions = warningSuppressions,
+      )
     val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
 
     // Act
@@ -208,7 +224,11 @@ class BuildAnalyzerViewControllerTest {
   @Test
   @RunsInEdt
   fun testOpenTasksLinkClickedWithNoTaskCategoriesData() {
-    val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryInfo = false), warningSuppressions = warningSuppressions)
+    val model =
+      BuildAnalyzerViewModel(
+        MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryInfo = false),
+        warningSuppressions = warningSuppressions,
+      )
     val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
 
     // Act
@@ -489,7 +509,7 @@ class BuildAnalyzerViewControllerTest {
 
   private fun BuildAttributionUiEvent.verifyComboBoxPageChangeEvent(
     from: BuildAttributionUiEvent.Page.PageType,
-    to: BuildAttributionUiEvent.Page.PageType
+    to: BuildAttributionUiEvent.Page.PageType,
   ) {
     assertThat(buildAttributionReportSessionId).isEqualTo(buildSessionId)
     assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.DATA_VIEW_COMBO_SELECTED)

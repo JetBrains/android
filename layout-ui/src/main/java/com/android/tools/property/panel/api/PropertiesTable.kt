@@ -80,7 +80,8 @@ interface PropertiesTable<P : PropertyItem> {
     private val EMPTY_TABLE = create(ImmutableTable.of())
 
     fun <T : PropertyItem> emptyTable(): PropertiesTable<T> {
-      @Suppress("UNCHECKED_CAST") return EMPTY_TABLE as PropertiesTable<T>
+      @Suppress("UNCHECKED_CAST")
+      return EMPTY_TABLE as PropertiesTable<T>
     }
   }
 }

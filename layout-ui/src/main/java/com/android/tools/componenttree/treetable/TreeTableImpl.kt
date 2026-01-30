@@ -39,7 +39,6 @@ import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.ui.treeStructure.treetable.TreeTableModelAdapter
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeUtil
-import org.jetbrains.annotations.TestOnly
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Point
@@ -65,6 +64,7 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.tree.ExpandVetoException
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
+import org.jetbrains.annotations.TestOnly
 
 private const val HOVER_CELL = "component.tree.hover.cell"
 const val TREE_OFFSET = "tree.offset"
@@ -81,10 +81,7 @@ internal var JTable.hoverCell: Cell?
     putClientProperty(HOVER_CELL, value)
   }
 
-/**
- * How much of the tree column is off-screen (how much it is offset from the beginning of the
- * column).
- */
+/** How much of the tree column is off-screen (how much it is offset from the beginning of the column). */
 internal var JTree.treeOffset: Int
   get() {
     return getClientProperty(TREE_OFFSET) as? Int ?: 0
@@ -148,15 +145,9 @@ class TreeTableImpl(
       addMouseMotionListener(it)
     }
 
-    if (
-      autoScroll && !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_HORIZONTAL_SCROLLABLE_COMPONENT_TREE.get()
-    ) {
+    if (autoScroll && !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_HORIZONTAL_SCROLLABLE_COMPONENT_TREE.get()) {
       treeTableSelectionModel.addAutoScrollListener {
-        invokeLater {
-          selectionModel.selectedIndices.singleOrNull()?.let {
-            scrollRectToVisible(getCellRect(it, 0, true))
-          }
-        }
+        invokeLater { selectionModel.selectedIndices.singleOrNull()?.let { scrollRectToVisible(getCellRect(it, 0, true)) } }
       }
     }
     if (installTreeSearch) {
@@ -170,34 +161,19 @@ class TreeTableImpl(
     for (index in extraColumns.indices) {
       val columnInfo = extraColumns[index]
       val dataWidth =
-        columnInfo.width.takeIf { it > 0 }
-          ?: columnInfo.computeWidth(this, tableModel.allNodes).takeIf { it > 0 }
-          ?: JBUIScale.scale(10)
-      val component =
-        columnInfo.headerRenderer?.getTableCellRendererComponent(
-          this,
-          null,
-          false,
-          false,
-          0,
-          index + 1,
-        )
+        columnInfo.width.takeIf { it > 0 } ?: columnInfo.computeWidth(this, tableModel.allNodes).takeIf { it > 0 } ?: JBUIScale.scale(10)
+      val component = columnInfo.headerRenderer?.getTableCellRendererComponent(this, null, false, false, 0, index + 1)
       val width = max(dataWidth, component?.preferredSize?.width ?: 0)
       setColumnWidth(index + 1, width, columnInfo.headerRenderer)
     }
   }
 
-  private fun setColumnWidth(
-    columnIndex: Int,
-    wantedWidth: Int,
-    wantedHeaderRenderer: TableCellRenderer?,
-  ) {
+  private fun setColumnWidth(columnIndex: Int, wantedWidth: Int, wantedHeaderRenderer: TableCellRenderer?) {
     val width = if (hiddenColumns.contains(columnIndex)) 0 else wantedWidth
     columnModel.getColumn(columnIndex).apply {
       maxWidth = width
       minWidth = width
-      maxWidth =
-        width // set maxWidth twice, since implementation of setMaxWidth depends on the value of
+      maxWidth = width // set maxWidth twice, since implementation of setMaxWidth depends on the value of
       // minWidth and vice versa
       preferredWidth = width
       headerRenderer = wantedHeaderRenderer
@@ -242,10 +218,7 @@ class TreeTableImpl(
     }
   }
 
-  /**
-   * Override JTable.getDragEnabled() to avoid calling JTable.setDragEnabled(true) in tests, since
-   * that would cause a HeadlessException.
-   */
+  /** Override JTable.getDragEnabled() to avoid calling JTable.setDragEnabled(true) in tests, since that would cause a HeadlessException. */
   override fun getDragEnabled(): Boolean {
     return enableDrags
   }
@@ -254,8 +227,7 @@ class TreeTableImpl(
     val treeTransferHandler = TreeTableTransferHandler(merger)
     enableDrags = true
     transferHandler = treeTransferHandler
-    dropTargetHandler =
-      TreeTableDropTargetHandler(this, deleteOriginOfInternalMove, treeTransferHandler.draggedItems)
+    dropTargetHandler = TreeTableDropTargetHandler(this, deleteOriginOfInternalMove, treeTransferHandler.draggedItems)
   }
 
   override fun getTableModel(): TreeTableModelImpl {
@@ -322,22 +294,12 @@ class TreeTableImpl(
     if (cell.column > 0) {
       return extraColumns[cell.column - 1].getTooltipText(item)
     } else {
-      val component =
-        tree.cellRenderer.getTreeCellRendererComponent(
-          tree,
-          item,
-          false,
-          false,
-          false,
-          cell.row,
-          false,
-        ) as? JComponent
+      val component = tree.cellRenderer.getTreeCellRendererComponent(tree, item, false, false, false, cell.row, false) as? JComponent
       return component?.toolTipText
     }
   }
 
-  override fun adapt(treeTableModel: TreeTableModel): TreeTableModelAdapter =
-    TreeTableModelAdapterImpl(tableModel, tree, this)
+  override fun adapt(treeTableModel: TreeTableModel): TreeTableModelAdapter = TreeTableModelAdapterImpl(tableModel, tree, this)
 
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
@@ -360,8 +322,7 @@ class TreeTableImpl(
   }
 
   /** Compute the max render width which is the width of the tree minus indents. */
-  fun computeMaxRenderWidth(nodeDepth: Int): Int =
-    tree.width - tree.insets.right - computeLeftOffset(nodeDepth) + tree.treeOffset
+  fun computeMaxRenderWidth(nodeDepth: Int): Int = tree.width - tree.insets.right - computeLeftOffset(nodeDepth) + tree.treeOffset
 
   /** Return the depth of a given pixel distance from the left edge of the table tree. */
   fun findDepthFromOffset(x: Int): Int {
@@ -373,8 +334,7 @@ class TreeTableImpl(
   /**
    * Compute the left offset of a row with the specified [nodeDepth] in the tree.
    *
-   * Note: This code is based on the internals of the UI for the tree e.g. the method
-   * [BasicTreeUI.getRowX].
+   * Note: This code is based on the internals of the UI for the tree e.g. the method [BasicTreeUI.getRowX].
    */
   @VisibleForTesting
   fun computeLeftOffset(nodeDepth: Int): Int {
@@ -395,8 +355,7 @@ class TreeTableImpl(
     when (this) {
       TreeSelectionModel.SINGLE_TREE_SELECTION -> ListSelectionModel.SINGLE_SELECTION
       TreeSelectionModel.CONTIGUOUS_TREE_SELECTION -> ListSelectionModel.SINGLE_INTERVAL_SELECTION
-      TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION ->
-        ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
+      TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION -> ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
       else -> ListSelectionModel.SINGLE_SELECTION
     }
 
@@ -407,10 +366,7 @@ class TreeTableImpl(
     return if (row >= 0 && column >= 0) Cell(row, column) else null
   }
 
-  /**
-   * Determines if a mouse click at a given x-coordinate occurred within the expand/collapse icon
-   * area of a tree cell.
-   */
+  /** Determines if a mouse click at a given x-coordinate occurred within the expand/collapse icon area of a tree cell. */
   private fun isClickWithinToggleIcon(cell: Cell, xCoord: Int): Boolean {
     val path = tree.getPathForRow(cell.row)
     val node = path?.lastPathComponent
@@ -434,8 +390,7 @@ class TreeTableImpl(
     return xCoord >= leftX && xCoord <= rightX
   }
 
-  private inner class DataUpdateHandler(private val selectionModel: TreeTableSelectionModelImpl) :
-    TreeTableModelImplAdapter() {
+  private inner class DataUpdateHandler(private val selectionModel: TreeTableSelectionModelImpl) : TreeTableModelImplAdapter() {
     override fun treeChanged(event: TreeModelEvent) {
       initExtraColumns()
       selectionModel.keepSelectionDuring {
@@ -486,18 +441,11 @@ class TreeTableImpl(
     }
 
     override fun mouseClicked(event: MouseEvent) {
-      if (
-        event.button == MouseEvent.BUTTON1 &&
-          !event.isPopupTrigger &&
-          !event.isShiftDown &&
-          !event.isControlDown &&
-          !event.isMetaDown
-      ) {
+      if (event.button == MouseEvent.BUTTON1 && !event.isPopupTrigger && !event.isShiftDown && !event.isControlDown && !event.isMetaDown) {
         val cell = position(event.x, event.y) ?: return
         val item = getValueAt(cell.row, cell.column)
         when {
-          cell.column == 0 && event.clickCount == 2 && !isClickWithinToggleIcon(cell, event.x) ->
-            doubleClick(item)
+          cell.column == 0 && event.clickCount == 2 && !isClickWithinToggleIcon(cell, event.x) -> doubleClick(item)
           cell.column > 0 && event.clickCount == 1 -> {
             val bounds = getCellRect(cell.row, cell.column, true)
             extraColumns[cell.column - 1].performAction(item, this@TreeTableImpl, bounds)
@@ -543,8 +491,7 @@ class TreeTableImpl(
     override fun getSourceActions(component: JComponent): Int = DnDConstants.ACTION_COPY_OR_MOVE
 
     @TestOnly // Give access to the protected function createTransferable in tests
-    fun createTransferableForTests(component: JComponent): Transferable? =
-      createTransferable(component)
+    fun createTransferableForTests(component: JComponent): Transferable? = createTransferable(component)
 
     override fun createTransferable(component: JComponent): Transferable? {
       val rows = selectedRows
@@ -557,8 +504,7 @@ class TreeTableImpl(
         if (combinedTransferable == null || dndMerger != null) {
           val item = getValueAt(row, 0)
           tableModel.createTransferable(item)?.let { transferable ->
-            combinedTransferable =
-              combinedTransferable?.let { dndMerger?.invoke(it, transferable) } ?: transferable
+            combinedTransferable = combinedTransferable?.let { dndMerger?.invoke(it, transferable) } ?: transferable
             draggedItems.add(item)
           }
         }

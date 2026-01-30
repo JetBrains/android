@@ -22,9 +22,8 @@ import java.util.concurrent.TimeUnit
 import org.junit.rules.ExternalResource
 
 /**
- * This rule connects `AndroidDebugBridge` to an existing ADB server running on the default port
- * (5037). This is useful for integration tests that start a real ADB server process and need the
- * test environment to use it.
+ * This rule connects `AndroidDebugBridge` to an existing ADB server running on the default port (5037). This is useful for integration
+ * tests that start a real ADB server process and need the test environment to use it.
  */
 class InitAdbLibApplicationServiceRule() : ExternalResource() {
 
@@ -38,8 +37,7 @@ class InitAdbLibApplicationServiceRule() : ExternalResource() {
     val adbInitOptions = AdbInitOptions.builder().setClientSupportEnabled(true)
     AndroidDebugBridge.init(adbInitOptions.build())
 
-    AndroidDebugBridge.createBridge(10, TimeUnit.SECONDS)
-      ?: error("TestRule could not create ADB bridge ")
+    AndroidDebugBridge.createBridge(10, TimeUnit.SECONDS) ?: error("TestRule could not create ADB bridge ")
   }
 
   override fun after() {

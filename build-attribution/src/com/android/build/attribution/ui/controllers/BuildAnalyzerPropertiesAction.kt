@@ -22,15 +22,12 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.options.ShowSettingsUtil
 
 /** Action to open Build Analyzer properties from BA UI. */
-class BuildAnalyzerPropertiesAction: AnAction(
-  { "${BuildAnalyzerConfigurableProvider.DISPLAY_NAME} Properties" },
-  AllIcons.General.Settings
-) {
+class BuildAnalyzerPropertiesAction :
+  AnAction({ "${BuildAnalyzerConfigurableProvider.DISPLAY_NAME} Properties" }, AllIcons.General.Settings) {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project
     if (project != null) {
       ShowSettingsUtil.getInstance().showSettingsDialog(project, BuildAnalyzerConfigurableProvider.DISPLAY_NAME)
     }
   }
-
 }

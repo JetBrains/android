@@ -18,32 +18,11 @@ package com.android.tools.rendering.classloading
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 
-/**
- * [ClassVisitor] that ensures that every class version number is between [minVersion] and
- * [maxVersion].
- */
-class VersionClassTransform(
-  delegate: ClassVisitor,
-  private val maxVersion: Int,
-  private val minVersion: Int,
-) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
-  override val uniqueId: String =
-    "${VersionClassTransform::class.qualifiedName},$maxVersion,$minVersion"
+/** [ClassVisitor] that ensures that every class version number is between [minVersion] and [maxVersion]. */
+class VersionClassTransform(delegate: ClassVisitor, private val maxVersion: Int, private val minVersion: Int) :
+  ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
+  override val uniqueId: String = "${VersionClassTransform::class.qualifiedName},$maxVersion,$minVersion"
 
-  override fun visit(
-    version: Int,
-    access: Int,
-    name: String,
-    signature: String?,
-    superName: String?,
-    interfaces: Array<String>?,
-  ) =
-    super.visit(
-      version.coerceIn(minVersion, maxVersion),
-      access,
-      name,
-      signature,
-      superName,
-      interfaces,
-    )
+  override fun visit(version: Int, access: Int, name: String, signature: String?, superName: String?, interfaces: Array<String>?) =
+    super.visit(version.coerceIn(minVersion, maxVersion), access, name, signature, superName, interfaces)
 }

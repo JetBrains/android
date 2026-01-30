@@ -34,21 +34,18 @@ private fun isSupportedSymbol(charTyped: Char) = charTyped == '@' || charTyped =
 /**
  * Handler for typed characters in Android XML files.
  *
- * This handler overrides the default behavior for "@" and "?" characters, triggering
- * auto-completion popups for resources and IDs.
+ * This handler overrides the default behavior for "@" and "?" characters, triggering auto-completion popups for resources and IDs.
  */
 class AndroidXmlTypedHandler : TypedHandlerDelegate() {
   /** Overrides the default `charTyped` function to show auto-completion popups. */
   override fun charTyped(charTyped: Char, project: Project, editor: Editor, file: PsiFile): Result {
-    if (!isSupportedSymbol(charTyped) || file !is XmlFile)
-      return super.charTyped(charTyped, project, editor, file)
+    if (!isSupportedSymbol(charTyped) || file !is XmlFile) return super.charTyped(charTyped, project, editor, file)
 
     // Possibly show auto-completion popup for member lookup.
     AutoPopupController.getInstance(project).autoPopupMemberLookup(editor) { psiFile ->
       val facet = AndroidFacet.getInstance(file) ?: return@autoPopupMemberLookup false
       // Get element before the caret.
-      val lastElement =
-        psiFile.findElementAt(editor.caretModel.offset - 1) ?: return@autoPopupMemberLookup false
+      val lastElement = psiFile.findElementAt(editor.caretModel.offset - 1) ?: return@autoPopupMemberLookup false
 
       // Check conditions for showing the popup:
       // - First character of last element is "@" or "?".

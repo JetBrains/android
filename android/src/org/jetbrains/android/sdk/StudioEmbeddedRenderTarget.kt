@@ -24,12 +24,10 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PluginPathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.util.SlowOperations
 import java.io.File
 
 class StudioEmbeddedRenderTarget {
@@ -51,21 +49,17 @@ class StudioEmbeddedRenderTarget {
       ourDisableEmbeddedTargetForTesting = value
     }
 
-    /**
-     * Returns a CompatibilityRenderTarget that will use StudioEmbeddedRenderTarget to do the rendering.
-     */
+    /** Returns a CompatibilityRenderTarget that will use StudioEmbeddedRenderTarget to do the rendering. */
     @JvmStatic
     fun getCompatibilityTarget(target: IAndroidTarget): CompatibilityRenderTarget {
       if (ourDisableEmbeddedTargetForTesting) {
-        return CompatibilityRenderTarget (target, target.version.apiLevel, target)
+        return CompatibilityRenderTarget(target, target.version.apiLevel, target)
       }
 
       return EmbeddedRenderTarget.getCompatibilityTarget(target) { ourEmbeddedLayoutlibPath }
     }
 
-    /**
-     * Returns the URL for the embedded layoutlib distribution.
-     */
+    /** Returns the URL for the embedded layoutlib distribution. */
     private fun getEmbeddedLayoutLibPath(): String? {
       val homePath = FileUtil.toSystemIndependentName(PluginPathManager.getPluginHomePath("design-tools"))
       var path = FileUtil.join(homePath, "/resources/layoutlib/")
@@ -73,7 +67,7 @@ class StudioEmbeddedRenderTarget {
         path = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/layoutlib/").toString()
       }
       val root =
-          VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL).findFileByPath(FileUtil.toSystemIndependentName(path))
+        VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL).findFileByPath(FileUtil.toSystemIndependentName(path))
       if (root != null) {
         val rootFile = VfsUtilCore.virtualToIoFile(root)
         if (rootFile.exists() && rootFile.isDirectory) {

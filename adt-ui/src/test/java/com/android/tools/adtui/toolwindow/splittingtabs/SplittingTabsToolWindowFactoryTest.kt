@@ -68,8 +68,7 @@ class SplittingTabsToolWindowFactoryTest {
   @Test
   fun createToolWindowContent_noState_createsNewTab() {
     val component = JLabel("TabContents")
-    val splittingTabsToolWindowFactory =
-      TestSplittingTabsToolWindowFactory({ "TabName" }, { component })
+    val splittingTabsToolWindowFactory = TestSplittingTabsToolWindowFactory({ "TabName" }, { component })
 
     splittingTabsToolWindowFactory.createToolWindowContent(projectRule.project, toolWindow)
 
@@ -84,11 +83,7 @@ class SplittingTabsToolWindowFactoryTest {
   fun createToolWindowContent_noState_shouldNotCreateNewTabWhenEmpty_doesNotCreateNewTab() {
     val component = JLabel("TabContents")
     val splittingTabsToolWindowFactory =
-      TestSplittingTabsToolWindowFactory(
-        { "TabName" },
-        { component },
-        shouldCreateNewTabWhenEmpty = false,
-      )
+      TestSplittingTabsToolWindowFactory({ "TabName" }, { component }, shouldCreateNewTabWhenEmpty = false)
 
     splittingTabsToolWindowFactory.createToolWindowContent(projectRule.project, toolWindow)
 
@@ -98,14 +93,11 @@ class SplittingTabsToolWindowFactoryTest {
   @Test
   fun toolWindowShown_empty_createsNewTab() {
     val component = JLabel("TabContents")
-    val splittingTabsToolWindowFactory =
-      TestSplittingTabsToolWindowFactory({ "TabName" }, { component })
+    val splittingTabsToolWindowFactory = TestSplittingTabsToolWindowFactory({ "TabName" }, { component })
     splittingTabsToolWindowFactory.createToolWindowContent(projectRule.project, toolWindow)
     toolWindow.contentManager.removeAllContents(true)
 
-    projectRule.project.messageBus
-      .syncPublisher(ToolWindowManagerListener.TOPIC)
-      .toolWindowShown(toolWindow)
+    projectRule.project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).toolWindowShown(toolWindow)
 
     assertThat(toolWindow.contentManager.contents.map { it.displayName }).containsExactly("TabName")
   }
@@ -114,17 +106,11 @@ class SplittingTabsToolWindowFactoryTest {
   fun toolWindowShown_empty_shouldNotCreateNewTabWhenEmpty_doesNotCreateNewTab() {
     val component = JLabel("TabContents")
     val splittingTabsToolWindowFactory =
-      TestSplittingTabsToolWindowFactory(
-        { "TabName" },
-        { component },
-        shouldCreateNewTabWhenEmpty = false,
-      )
+      TestSplittingTabsToolWindowFactory({ "TabName" }, { component }, shouldCreateNewTabWhenEmpty = false)
     splittingTabsToolWindowFactory.createToolWindowContent(projectRule.project, toolWindow)
     toolWindow.contentManager.removeAllContents(true)
 
-    projectRule.project.messageBus
-      .syncPublisher(ToolWindowManagerListener.TOPIC)
-      .toolWindowShown(toolWindow)
+    projectRule.project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).toolWindowShown(toolWindow)
 
     assertThat(toolWindow.contentManager.contents).isEmpty()
   }
@@ -132,21 +118,15 @@ class SplittingTabsToolWindowFactoryTest {
   @Test
   fun toolWindowShown_notEmpty_doesNotCreateNewTab() {
     val component = JLabel("TabContents")
-    val splittingTabsToolWindowFactory =
-      TestSplittingTabsToolWindowFactory({ "TabName" }, { component })
+    val splittingTabsToolWindowFactory = TestSplittingTabsToolWindowFactory({ "TabName" }, { component })
     splittingTabsToolWindowFactory.createToolWindowContent(projectRule.project, toolWindow)
 
-    projectRule.project.messageBus
-      .syncPublisher(ToolWindowManagerListener.TOPIC)
-      .toolWindowShown(toolWindow)
+    projectRule.project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).toolWindowShown(toolWindow)
 
     assertThat(toolWindow.contentManager.contents.map { it.displayName }).containsExactly("TabName")
   }
 
-  /**
-   * A basic restore state test. No split content is used. More comprehensive tests are in
-   * SplittingPanelTest
-   */
+  /** A basic restore state test. No split content is used. More comprehensive tests are in SplittingPanelTest */
   @Test
   fun createToolWindowContent_withState_restoresState() {
     val toolWindow = FakeToolWindow(projectRule.project, "toolWindowId")
@@ -155,15 +135,9 @@ class SplittingTabsToolWindowFactoryTest {
         listOf(
           ToolWindowState(
             "toolWindowId",
-            listOf(
-              TabState("Tab1", PanelState("clientState1")),
-              TabState("Tab2", PanelState("clientState2")),
-            ),
+            listOf(TabState("Tab1", PanelState("clientState1")), TabState("Tab2", PanelState("clientState2"))),
           ),
-          ToolWindowState(
-            "anotherToolWindowId",
-            listOf(TabState("Tab3", PanelState("clientState3"))),
-          ),
+          ToolWindowState("anotherToolWindowId", listOf(TabState("Tab3", PanelState("clientState3")))),
         )
       )
     )
@@ -186,9 +160,7 @@ class SplittingTabsToolWindowFactoryTest {
     assertThat(toolWindow.tabActionList[0].templatePresentation.text).isEqualTo("New Tab")
     assertThat(toolWindow.tabActionList[0].shortcutSet.shortcuts)
       .asList()
-      .containsExactly(
-        KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK), null)
-      )
+      .containsExactly(KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK), null))
   }
 
   @Test
@@ -196,10 +168,7 @@ class SplittingTabsToolWindowFactoryTest {
     var tabNameCount = 1
     var tabContentCount = 1
     val splittingTabsToolWindowFactory =
-      TestSplittingTabsToolWindowFactory(
-        { "TabName-${tabNameCount++}" },
-        { JLabel("TabContents-${tabContentCount++}") },
-      )
+      TestSplittingTabsToolWindowFactory({ "TabName-${tabNameCount++}" }, { JLabel("TabContents-${tabContentCount++}") })
     splittingTabsToolWindowFactory.createToolWindowContent(projectRule.project, toolWindow)
 
     toolWindow.tabActionList[0].actionPerformed(mock())
@@ -213,8 +182,7 @@ class SplittingTabsToolWindowFactoryTest {
   @Test
   fun removeContent_disposesTabComponent() {
     val disposableComponent = DisposableComponent()
-    val splittingTabsToolWindowFactory =
-      TestSplittingTabsToolWindowFactory(generateChild = { disposableComponent })
+    val splittingTabsToolWindowFactory = TestSplittingTabsToolWindowFactory(generateChild = { disposableComponent })
     splittingTabsToolWindowFactory.createToolWindowContent(projectRule.project, toolWindow)
 
     toolWindow.contentManager.removeContent(toolWindow.contentManager.contents[0], true)
@@ -223,9 +191,7 @@ class SplittingTabsToolWindowFactoryTest {
   }
 
   private fun assertContent(content: Content, expectedTabName: String, expectedContent: String) {
-    val component1 =
-      (content.component as? SplittingPanel)?.component as? JLabel
-        ?: fail("Expected a JLabel object")
+    val component1 = (content.component as? SplittingPanel)?.component as? JLabel ?: fail("Expected a JLabel object")
     assertThat(content.displayName).isEqualTo(expectedTabName)
     assertThat(component1.text).isEqualTo(expectedContent)
   }
@@ -238,17 +204,13 @@ class SplittingTabsToolWindowFactoryTest {
 
     override fun generateTabName(tabNames: Set<String>): String = generateName()
 
-    override fun createChildComponent(
-      project: Project,
-      popupActionGroup: DefaultActionGroup,
-      clientState: String?,
-    ): JComponent = generateChild(clientState)
+    override fun createChildComponent(project: Project, popupActionGroup: DefaultActionGroup, clientState: String?): JComponent =
+      generateChild(clientState)
 
     override fun shouldCreateNewTabWhenEmpty() = shouldCreateNewTabWhenEmpty
   }
 
-  private class FakeToolWindow(project: Project, val toolWindowId: String) :
-    MockToolWindow(project) {
+  private class FakeToolWindow(project: Project, val toolWindowId: String) : MockToolWindow(project) {
     var hideOnEmpty: Boolean = false
     var tabActionList: MutableList<AnAction> = mutableListOf()
 

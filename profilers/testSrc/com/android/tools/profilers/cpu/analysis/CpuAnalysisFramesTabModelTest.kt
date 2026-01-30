@@ -18,9 +18,9 @@ package com.android.tools.profilers.cpu.analysis
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.analysis.MockCaptureUtils.CPU_CAPTURE
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import javax.swing.RowSorter
 import javax.swing.SortOrder
+import org.junit.Test
 
 class CpuAnalysisFramesTabModelTest {
   @Test
@@ -31,12 +31,13 @@ class CpuAnalysisFramesTabModelTest {
 
     assertThat(tableModel.rowCount).isEqualTo(4)
     assertThat(tableModel.columnCount).isEqualTo(5)
-    assertThat(tableModel.rows).containsExactly(
-      FrameEventRow(1, 0, 10, 5, 1, 3),
-      FrameEventRow(2, 10, 27, 10, 2, 2),
-      FrameEventRow(3, 20, 33, 3, 3, 3),
-      FrameEventRow(4, 30, 42, 4, 4, 2)
-    )
+    assertThat(tableModel.rows)
+      .containsExactly(
+        FrameEventRow(1, 0, 10, 5, 1, 3),
+        FrameEventRow(2, 10, 27, 10, 2, 2),
+        FrameEventRow(3, 20, 33, 3, 3, 3),
+        FrameEventRow(4, 30, 42, 4, 4, 2),
+      )
     assertThat(tableModel.getColumnName(0)).isEqualTo("Frame #")
     assertThat(tableModel.getColumnName(1)).isEqualTo("Frame Duration")
     assertThat(tableModel.getColumnName(2)).isEqualTo("Application")

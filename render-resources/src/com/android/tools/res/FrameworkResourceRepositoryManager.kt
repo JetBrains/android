@@ -22,15 +22,13 @@ import java.util.ServiceConfigurationError
 import java.util.ServiceLoader
 import java.util.function.Supplier
 
-/**
- * Provides an instance of [ResourceRepository] containing framework resources with specific parameters.
- */
+/** Provides an instance of [ResourceRepository] containing framework resources with specific parameters. */
 fun interface FrameworkResourceRepositoryManager {
   fun getFrameworkResources(
     resourceJarFile: Path,
     useCompiled9Patches: Boolean,
     languages: Set<String>,
-    overlays: List<FrameworkOverlay>
+    overlays: List<FrameworkOverlay>,
   ): ResourceRepository
 
   /** Interface for Java Service that provides [FrameworkResourceRepositoryManager] instance. */

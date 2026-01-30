@@ -17,16 +17,11 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiModifier
 
-class AndroidInternalRClass(
-  psiManager: PsiManager,
-  private val platform: AndroidPlatform,
-  sdk: Sdk,
-) :
+class AndroidInternalRClass(psiManager: PsiManager, private val platform: AndroidPlatform, sdk: Sdk) :
   AndroidLightClassBase(
     psiManager,
     ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL),
-    ContainingFileProvider.Builder(AndroidInternalRClassFinder.INTERNAL_PACKAGE_QNAME, "R")
-      .setContents(""),
+    ContainingFileProvider.Builder(AndroidInternalRClassFinder.INTERNAL_PACKAGE_QNAME, "R").setContents(""),
     AndroidLightClassModuleInfo.from(sdk),
   ) {
   private val innerClasses: Array<PsiClass>
@@ -44,13 +39,12 @@ class AndroidInternalRClass(
 
   override fun getInnerClasses() = innerClasses
 
-  private inner class MyInnerClass(resourceType: ResourceType) :
-    InnerRClassBase(this@AndroidInternalRClass, resourceType) {
+  private inner class MyInnerClass(resourceType: ResourceType) : InnerRClassBase(this@AndroidInternalRClass, resourceType) {
     @Slow
     override fun doGetFields(): Array<PsiField> {
       val repository =
-        AndroidTargetData.get(platform.sdkData, platform.target)
-          .getFrameworkResources(emptySet(), emptyList()) ?: return PsiField.EMPTY_ARRAY
+        AndroidTargetData.get(platform.sdkData, platform.target).getFrameworkResources(emptySet(), emptyList())
+          ?: return PsiField.EMPTY_ARRAY
       return buildResourceFields(
         repository,
         ResourceNamespace.ANDROID,
@@ -66,8 +60,6 @@ class AndroidInternalRClass(
   companion object {
     private val ANDROID_INTERNAL_R = Key.create<Sdk>("ANDROID_INTERNAL_R")
 
-    @JvmStatic
-    fun isAndroidInternalR(file: VirtualFile, sdk: Sdk) =
-      sdk == file.getUserData(ANDROID_INTERNAL_R)
+    @JvmStatic fun isAndroidInternalR(file: VirtualFile, sdk: Sdk) = sdk == file.getUserData(ANDROID_INTERNAL_R)
   }
 }

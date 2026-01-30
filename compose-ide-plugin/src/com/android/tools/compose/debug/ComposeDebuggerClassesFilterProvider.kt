@@ -24,7 +24,6 @@ class ComposeDebuggerClassesFilterProvider : DebuggerClassFilterProvider {
   }
 
   override fun getFilters(): List<ClassFilter> {
-    return if (ComposeDebuggerSettings.getInstance().filterComposeRuntimeClasses) FILTERS
-    else listOf()
+    return if (ComposeDebuggerSettings.getInstance().filterComposeRuntimeClasses) FILTERS else listOf()
   }
 }

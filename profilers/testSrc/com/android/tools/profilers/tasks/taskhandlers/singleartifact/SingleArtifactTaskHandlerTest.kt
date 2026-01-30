@@ -38,23 +38,16 @@ import org.mockito.kotlin.whenever
 class SingleArtifactTaskHandlerTest {
 
   private val myTimer = FakeTimer()
-  private val ideProfilerServices = FakeIdeProfilerServices().apply {
-    enableTaskBasedUx(true)
-  }
-  private val myTransportService = FakeTransportService(myTimer, false,  ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
+  private val ideProfilerServices = FakeIdeProfilerServices().apply { enableTaskBasedUx(true) }
+  private val myTransportService = FakeTransportService(myTimer, false, ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("SingleArtifactTaskHandlerTestChannel", myTransportService, FakeEventService())
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("SingleArtifactTaskHandlerTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
 
   @Before
   fun setup() {
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      ideProfilerServices,
-      myTimer
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
   }
 
   /**
@@ -63,13 +56,11 @@ class SingleArtifactTaskHandlerTest {
    * Configured to call the real SingleArtifactTaskHandler#enter method if invoked via the mock.
    */
   private fun createMockSingleArtifactTaskHandler(): SingleArtifactTaskHandler<InterimStage> {
-    val mockSessionsManager = mock<SessionsManager>().apply {
-      whenever(this.studioProfilers).thenReturn(myProfilers)
-    }
-    val mockSingleArtifactTaskHandler = mock<SingleArtifactTaskHandler<InterimStage>>(
-      useConstructor = UseConstructor.withArguments(mockSessionsManager)).apply {
-      whenever(enter(any())).thenCallRealMethod()
-    }
+    val mockSessionsManager = mock<SessionsManager>().apply { whenever(this.studioProfilers).thenReturn(myProfilers) }
+    val mockSingleArtifactTaskHandler =
+      mock<SingleArtifactTaskHandler<InterimStage>>(useConstructor = UseConstructor.withArguments(mockSessionsManager)).apply {
+        whenever(enter(any())).thenCallRealMethod()
+      }
     return mockSingleArtifactTaskHandler
   }
 

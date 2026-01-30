@@ -113,7 +113,7 @@ class AtraceParserTest {
       assertThat(data.value).isAtMost(100)
       avg += data.value.toDouble()
     }
-    assertThat(avg/dataSeries.size).isWithin(.01).of(23.05)
+    assertThat(avg / dataSeries.size).isWithin(.01).of(23.05)
   }
 
   @Test

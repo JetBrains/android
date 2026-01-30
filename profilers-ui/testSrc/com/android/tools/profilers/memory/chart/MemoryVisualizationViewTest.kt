@@ -47,14 +47,11 @@ import org.junit.Test
 class MemoryVisualizationViewTest {
   private val timer = FakeTimer()
 
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("MEMORY_TEST_CHANNEL", FakeTransportService(timer))
+  @get:Rule val grpcChannel = FakeGrpcChannel("MEMORY_TEST_CHANNEL", FakeTransportService(timer))
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var fakeIdeProfilerComponents: FakeIdeProfilerComponents
   private lateinit var stage: MainMemoryProfilerStage
@@ -94,7 +91,7 @@ class MemoryVisualizationViewTest {
     val component = visualizationView.component
     MemoryCaptureObjectTestUtils.createAndSelectHeapSet(stage)
     var hitCount = 0
-    stage.captureSelection.filterHandler.addMatchCountResultListener {  hitCount++}
+    stage.captureSelection.filterHandler.addMatchCountResultListener { hitCount++ }
     visualizationView.onSelectionChanged(true)
     assertThat(hitCount).isEqualTo(1) // Validate we refreshed the filter
     visualizationView.onSelectionChanged(false)
@@ -146,7 +143,7 @@ class MemoryVisualizationViewTest {
     // Select the "Total Count" filter from the dropdown to simulate a user click.
     selectItem(
       visualizationView.toolbarComponents[1] as ProfilerDropDownComponent<MemoryVisualizationModel.XAxisFilter>,
-      MemoryVisualizationModel.XAxisFilter.TOTAL_COUNT
+      MemoryVisualizationModel.XAxisFilter.TOTAL_COUNT,
     )
 
     axis = TreeWalker(component).descendants().filterIsInstance<AxisComponent>().first()

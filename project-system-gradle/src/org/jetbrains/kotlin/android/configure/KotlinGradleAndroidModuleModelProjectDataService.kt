@@ -33,55 +33,62 @@ import org.jetbrains.kotlin.idea.gradleJava.configuration.configureFacetByGradle
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 
 class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataService<GradleAndroidModelData, Void>() {
-    override fun getTargetDataKey() = ANDROID_MODEL
+  override fun getTargetDataKey() = ANDROID_MODEL
 
-    override fun postProcess(
-      toImport: Collection<DataNode<GradleAndroidModelData>>,
-      projectData: ProjectData?,
-      project: Project,
-      modelsProvider: IdeModifiableModelsProvider
-    ) {
-        super.postProcess(toImport, projectData, project, modelsProvider)
-        for (moduleModelNode in toImport) {
-            val moduleNode = ExternalSystemApiUtil.findParent(moduleModelNode, ProjectKeys.MODULE) ?: continue
-            val moduleData = moduleNode.data
-            val sourceSetNodes = ExternalSystemApiUtil.findAll(moduleNode, GradleSourceSetData.KEY)
-            val additionalVisibleSourceSetsForTests = getAdditionalVisibleModuleNames(moduleNode)
+  override fun postProcess(
+    toImport: Collection<DataNode<GradleAndroidModelData>>,
+    projectData: ProjectData?,
+    project: Project,
+    modelsProvider: IdeModifiableModelsProvider,
+  ) {
+    super.postProcess(toImport, projectData, project, modelsProvider)
+    for (moduleModelNode in toImport) {
+      val moduleNode = ExternalSystemApiUtil.findParent(moduleModelNode, ProjectKeys.MODULE) ?: continue
+      val moduleData = moduleNode.data
+      val sourceSetNodes = ExternalSystemApiUtil.findAll(moduleNode, GradleSourceSetData.KEY)
+      val additionalVisibleSourceSetsForTests = getAdditionalVisibleModuleNames(moduleNode)
 
-            // If module per source set is enabled then we will have source set data nodes
-            if (sourceSetNodes.isNotEmpty()) {
-              sourceSetNodes.forEach { sourceSetNode ->
-                val ideModule = modelsProvider.findIdeModule(sourceSetNode.data) ?: return@forEach
-                val kotlinSourceSetName = moduleModelNode.data.selectedVariantName +
-                                          (sourceSetNode.data.moduleName.takeUnless { it == "main" }?.usLocaleCapitalize() ?: "")
-                val kotlinFacet = configureFacetByGradleModule(ideModule, modelsProvider, moduleNode, sourceSetNode, kotlinSourceSetName)
-                                  ?: return@forEach
-                // Set up the additionalVisibleModuleNames for all the test sourceSets.
-                if (sourceSetNode.data.moduleName != IdeModuleWellKnownSourceSet.MAIN.sourceSetName &&
-                    sourceSetNode.data.moduleName != IdeModuleWellKnownSourceSet.TEST_FIXTURES.sourceSetName) {
-                  kotlinFacet.configuration.settings.additionalVisibleModuleNames = additionalVisibleSourceSetsForTests
-                }
-                GradleProjectImportHandler.getInstances(project).forEach { it.importBySourceSet(kotlinFacet, sourceSetNode) }
-              }
-              continue
-            }
-
-            val ideModule = modelsProvider.findIdeModule(moduleData) ?: continue
-            val sourceSetName = moduleModelNode.data.selectedVariantName
-            val kotlinFacet = configureFacetByGradleModule(moduleNode, sourceSetName, ideModule, modelsProvider) ?: continue
-            GradleProjectImportHandler.getInstances(project).forEach { it.importByModule(kotlinFacet, moduleNode) }
+      // If module per source set is enabled then we will have source set data nodes
+      if (sourceSetNodes.isNotEmpty()) {
+        sourceSetNodes.forEach { sourceSetNode ->
+          val ideModule = modelsProvider.findIdeModule(sourceSetNode.data) ?: return@forEach
+          val kotlinSourceSetName =
+            moduleModelNode.data.selectedVariantName +
+              (sourceSetNode.data.moduleName.takeUnless { it == "main" }?.usLocaleCapitalize() ?: "")
+          val kotlinFacet =
+            configureFacetByGradleModule(ideModule, modelsProvider, moduleNode, sourceSetNode, kotlinSourceSetName) ?: return@forEach
+          // Set up the additionalVisibleModuleNames for all the test sourceSets.
+          if (
+            sourceSetNode.data.moduleName != IdeModuleWellKnownSourceSet.MAIN.sourceSetName &&
+              sourceSetNode.data.moduleName != IdeModuleWellKnownSourceSet.TEST_FIXTURES.sourceSetName
+          ) {
+            kotlinFacet.configuration.settings.additionalVisibleModuleNames = additionalVisibleSourceSetsForTests
+          }
+          GradleProjectImportHandler.getInstances(project).forEach { it.importBySourceSet(kotlinFacet, sourceSetNode) }
         }
+        continue
+      }
+
+      val ideModule = modelsProvider.findIdeModule(moduleData) ?: continue
+      val sourceSetName = moduleModelNode.data.selectedVariantName
+      val kotlinFacet = configureFacetByGradleModule(moduleNode, sourceSetName, ideModule, modelsProvider) ?: continue
+      GradleProjectImportHandler.getInstances(project).forEach { it.importByModule(kotlinFacet, moduleNode) }
     }
+  }
 
   /**
-   * Get the List of "friends" srcSet modules that are visible to other sourceSets of the project.
-   * This is used to extend the visibility between sourceSets of their internals for example.
+   * Get the List of "friends" srcSet modules that are visible to other sourceSets of the project. This is used to extend the visibility
+   * between sourceSets of their internals for example.
    */
   private fun getAdditionalVisibleModuleNames(moduleNode: DataNode<ModuleData>): Set<String> {
-    return moduleNode.children.map { it.data }
-      .filterIsInstance<GradleSourceSetData>().filter { otherGradleSourceSetData ->
+    return moduleNode.children
+      .map { it.data }
+      .filterIsInstance<GradleSourceSetData>()
+      .filter { otherGradleSourceSetData ->
         otherGradleSourceSetData.moduleName.contains(IdeModuleWellKnownSourceSet.MAIN.sourceSetName) ||
-        otherGradleSourceSetData.moduleName.contains(IdeModuleWellKnownSourceSet.TEST_FIXTURES.sourceSetName)
-      }.map { it.id }.toSet()
+          otherGradleSourceSetData.moduleName.contains(IdeModuleWellKnownSourceSet.TEST_FIXTURES.sourceSetName)
+      }
+      .map { it.id }
+      .toSet()
   }
 }

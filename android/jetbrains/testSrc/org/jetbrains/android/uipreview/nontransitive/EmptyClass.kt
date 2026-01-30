@@ -16,8 +16,7 @@
 package org.jetbrains.android.uipreview.nontransitive
 
 /**
- * Without this class, fully-qualified references to [org.jetbrains.android.uipreview.nontransitive.lib.R] fail to resolve,
- * seemingly due to a Kotlin compiler bug in which a package is considered "missing" if it has no classes.
+ * Without this class, fully-qualified references to [org.jetbrains.android.uipreview.nontransitive.lib.R] fail to resolve, seemingly due to
+ * a Kotlin compiler bug in which a package is considered "missing" if it has no classes.
  */
-@Suppress("unused")
-class EmptyClass
+@Suppress("unused") class EmptyClass

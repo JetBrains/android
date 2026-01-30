@@ -44,8 +44,7 @@ interface CommonTextFieldModel {
   /**
    * The current value seen in the TextField.
    *
-   * Note: this is updated for every key stroke. It is up to the implementation of this model when
-   * [value] should be updated.
+   * Note: this is updated for every key stroke. It is up to the implementation of this model when [value] should be updated.
    */
   var text: String
 

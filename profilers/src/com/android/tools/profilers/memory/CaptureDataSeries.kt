@@ -39,42 +39,57 @@ import java.util.concurrent.TimeUnit
 object CaptureDataSeries {
   @JvmStatic
   fun ofLegacyAllocationInfos(client: ProfilerClient, session: Common.Session, tracker: FeatureTracker, stage: BaseMemoryProfilerStage) =
-    of({ getAllocationInfosForSession(client, session, it) },
-       { it.startTime }, { it.endTime },
-       { LegacyAllocationCaptureObject(client, session, it, tracker) },
-       { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, LegacyAllocationCaptureObject::class.java)})
+    of(
+      { getAllocationInfosForSession(client, session, it) },
+      { it.startTime },
+      { it.endTime },
+      { LegacyAllocationCaptureObject(client, session, it, tracker) },
+      { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, LegacyAllocationCaptureObject::class.java) },
+    )
 
   @JvmStatic
   fun ofAllocationInfos(client: ProfilerClient, session: Common.Session, tracker: FeatureTracker, stage: BaseMemoryProfilerStage) =
-    of({ getAllocationInfosForSession(client, session, it) },
-       { it.startTime }, { it.endTime },
-       { LiveAllocationCaptureObject(client, session, it.startTime, null, stage) },
-       { durUs, _, entry -> CaptureDurationData(durUs, true, true, entry, LiveAllocationCaptureObject::class.java)})
+    of(
+      { getAllocationInfosForSession(client, session, it) },
+      { it.startTime },
+      { it.endTime },
+      { LiveAllocationCaptureObject(client, session, it.startTime, null, stage) },
+      { durUs, _, entry -> CaptureDurationData(durUs, true, true, entry, LiveAllocationCaptureObject::class.java) },
+    )
 
   @JvmStatic
   fun ofHeapDumpSamples(client: ProfilerClient, session: Common.Session, tracker: FeatureTracker, stage: BaseMemoryProfilerStage) =
-    of({ getHeapDumpsForSession(client, session, it) },
-       { it.startTime }, { it.endTime },
-       { HeapDumpCaptureObject(client, session, it, null, tracker, stage.studioProfilers.ideServices) },
-       { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, HeapDumpCaptureObject::class.java)})
+    of(
+      { getHeapDumpsForSession(client, session, it) },
+      { it.startTime },
+      { it.endTime },
+      { HeapDumpCaptureObject(client, session, it, null, tracker, stage.studioProfilers.ideServices) },
+      { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, HeapDumpCaptureObject::class.java) },
+    )
 
   @JvmStatic
   fun ofNativeAllocationSamples(client: ProfilerClient, session: Common.Session, tracker: FeatureTracker, stage: BaseMemoryProfilerStage) =
-    of({ getNativeHeapSamplesForSession(client, session, it) },
-       { it.fromTimestamp }, { it.toTimestamp },
-       { NativeAllocationSampleCaptureObject(client, session, it, stage) },
-       { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, NativeAllocationSampleCaptureObject::class.java)})
+    of(
+      { getNativeHeapSamplesForSession(client, session, it) },
+      { it.fromTimestamp },
+      { it.toTimestamp },
+      { NativeAllocationSampleCaptureObject(client, session, it, stage) },
+      { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, NativeAllocationSampleCaptureObject::class.java) },
+    )
 
-  private fun<C: CaptureObject,T> of(getSamples: (Range) -> List<T>,
-                                     startTimeNs: (T) -> Long, endTimeNs: (T) -> Long,
-                                     makeCapture: (T) -> C,
-                                     makeDurationData: (Long, T, CaptureEntry<C>) -> CaptureDurationData<out CaptureObject>) =
+  private fun <C : CaptureObject, T> of(
+    getSamples: (Range) -> List<T>,
+    startTimeNs: (T) -> Long,
+    endTimeNs: (T) -> Long,
+    makeCapture: (T) -> C,
+    makeDurationData: (Long, T, CaptureEntry<C>) -> CaptureDurationData<out CaptureObject>,
+  ) =
     DataSeries.using { range ->
       getSamples(range).map {
         val startNs = startTimeNs(it)
         val endNs = endTimeNs(it)
         val durUs = if (endNs == Long.MAX_VALUE) Long.MAX_VALUE else (endNs - startNs).nanosToMicros()
-        SeriesData(startNs.nanosToMicros(), makeDurationData(durUs, it, CaptureEntry(it!!) {makeCapture(it)}))
+        SeriesData(startNs.nanosToMicros(), makeDurationData(durUs, it, CaptureEntry(it!!) { makeCapture(it) }))
       }
     }
 }

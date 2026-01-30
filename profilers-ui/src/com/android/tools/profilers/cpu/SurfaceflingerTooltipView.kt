@@ -27,11 +27,9 @@ import javax.swing.JPanel
 class SurfaceflingerTooltipView(parent: JComponent, val tooltip: SurfaceflingerTooltip) : TooltipView(tooltip.timeline) {
   private val content = JPanel(TabularLayout("*").setVGap(12))
 
-  @VisibleForTesting
-  val eventNameLabel = createTooltipLabel()
+  @VisibleForTesting val eventNameLabel = createTooltipLabel()
 
-  @VisibleForTesting
-  val durationLabel = createTooltipLabel()
+  @VisibleForTesting val durationLabel = createTooltipLabel()
 
   override fun createTooltip(): JComponent {
     return content

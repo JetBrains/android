@@ -38,14 +38,8 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
 
     val contentManager = toolWindow.contentManager
     val newTabAction =
-      NewTabAction(SplittingTabsBundle.lazyMessage("SplittingTabsToolWindow.newTab")) {
-        createNewTab(project, contentManager)
-      }
-    newTabAction.registerCustomShortcutSet(
-      KeyEvent.VK_T,
-      KeyEvent.CTRL_DOWN_MASK,
-      toolWindow.component,
-    )
+      NewTabAction(SplittingTabsBundle.lazyMessage("SplittingTabsToolWindow.newTab")) { createNewTab(project, contentManager) }
+    newTabAction.registerCustomShortcutSet(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK, toolWindow.component)
     (toolWindow as ToolWindowEx).setTabActions(newTabAction)
 
     val toolWindowState = stateManager.getToolWindowState(toolWindow.id)
@@ -64,12 +58,7 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
         object : ToolWindowManagerListener {
           override fun toolWindowShown(shownToolWindow: ToolWindow) {
             // open a new session if all tabs were closed manually
-            if (
-              shouldCreateNewTabWhenEmpty() &&
-                toolWindow === shownToolWindow &&
-                toolWindow.isVisible &&
-                contentManager.isEmpty
-            ) {
+            if (shouldCreateNewTabWhenEmpty() && toolWindow === shownToolWindow && toolWindow.isVisible && contentManager.isEmpty) {
               createNewTab(project, contentManager)
             }
           }
@@ -81,21 +70,11 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
 
   abstract fun generateTabName(tabNames: Set<String>): String
 
-  abstract fun createChildComponent(
-    project: Project,
-    popupActionGroup: DefaultActionGroup,
-    clientState: String?,
-  ): JComponent
+  abstract fun createChildComponent(project: Project, popupActionGroup: DefaultActionGroup, clientState: String?): JComponent
 
-  private fun restoreTabs(
-    project: Project,
-    contentManager: ContentManager,
-    toolwindowState: ToolWindowState,
-  ) {
+  private fun restoreTabs(project: Project, contentManager: ContentManager, toolwindowState: ToolWindowState) {
     toolwindowState.run {
-      tabStates.forEachIndexed { index, state ->
-        createNewTab(project, contentManager, state, index == selectedTabIndex)
-      }
+      tabStates.forEachIndexed { index, state -> createNewTab(project, contentManager, state, index == selectedTabIndex) }
     }
   }
 
@@ -111,27 +90,13 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
     return content
   }
 
-  protected fun createNewTab(
-    toolWindow: ToolWindowEx,
-    tabName: String,
-    clientState: String?,
-  ): Content {
+  protected fun createNewTab(toolWindow: ToolWindowEx, tabName: String, clientState: String?): Content {
     val contentManager = toolWindow.contentManager
-    return createNewTab(
-      toolWindow.project,
-      contentManager,
-      TabState(tabName, PanelState(clientState)),
-    )
+    return createNewTab(toolWindow.project, contentManager, TabState(tabName, PanelState(clientState)))
   }
 
-  private fun createContent(
-    project: Project,
-    contentManager: ContentManager,
-    tabState: TabState?,
-  ): Content {
-    val tabName =
-      tabState?.tabName
-        ?: generateTabName(contentManager.contents.mapTo(hashSetOf()) { it.displayName })
+  private fun createContent(project: Project, contentManager: ContentManager, tabState: TabState?): Content {
+    val tabName = tabState?.tabName ?: generateTabName(contentManager.contents.mapTo(hashSetOf()) { it.displayName })
     return contentManager.factory.createContent(null, tabName, false).also { content ->
       content.isCloseable = true
       content.component =
@@ -139,10 +104,8 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
           content,
           tabState?.panelState,
           object : ChildComponentFactory {
-            override fun createChildComponent(
-              state: String?,
-              popupActionGroup: DefaultActionGroup,
-            ): JComponent = createChildComponent(project, popupActionGroup, state)
+            override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent =
+              createChildComponent(project, popupActionGroup, state)
           },
         )
     }

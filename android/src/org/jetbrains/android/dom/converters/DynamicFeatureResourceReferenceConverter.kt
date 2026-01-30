@@ -15,9 +15,7 @@
  */
 package org.jetbrains.android.dom.converters
 
-/**
- * A subclass of [ResourceReferenceConverter] for resource references that include dynamic features.
- */
+/** A subclass of [ResourceReferenceConverter] for resource references that include dynamic features. */
 class DynamicFeatureResourceReferenceConverter : ResourceReferenceConverter() {
   init {
     setIncludeDynamicFeatures(true)

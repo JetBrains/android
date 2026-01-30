@@ -38,8 +38,7 @@ class LegendComponentTest {
     val legend1 = FakeLegend("Name1")
     val legend2 = FakeLegend("Name2")
     val legend3 = FakeLegend("Name3", "Value3")
-    val legendComponent =
-      LegendComponent.Builder(model).setVerticalPadding(0).setHorizontalPadding(0).build()
+    val legendComponent = LegendComponent.Builder(model).setVerticalPadding(0).setHorizontalPadding(0).build()
     // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
     // early-return during an update if
     // isShowing() == false, as an optimization to reduce the number of queries made to the
@@ -102,8 +101,7 @@ class LegendComponentTest {
     val croppedIcon = LegendComponent.cropAndCacheIcon(icon)
     val config4 = LegendConfig({ s -> if ("Value4" == s) icon else null }, Color.RED)
 
-    val legendComponent =
-      LegendComponent.Builder(model).setVerticalPadding(0).setHorizontalPadding(0).build()
+    val legendComponent = LegendComponent.Builder(model).setVerticalPadding(0).setHorizontalPadding(0).build()
     // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
     // early-return during an update if
     // isShowing() == false, as an optimization to reduce the number of queries made to the
@@ -130,8 +128,7 @@ class LegendComponentTest {
 
     model.add(legend4)
     modifyRange(range)
-    assertThat(legendComponent.instructions.filterIsInstance<IconInstruction>().map { it.icon })
-      .containsExactly(croppedIcon)
+    assertThat(legendComponent.instructions.filterIsInstance<IconInstruction>().map { it.icon }).containsExactly(croppedIcon)
   }
 
   @Test
@@ -142,8 +139,7 @@ class LegendComponentTest {
     val legend2 = FakeLegend("Test2", "Value2")
     val legend3 = FakeLegend("Test3", "Value3")
 
-    val legendComponent =
-      LegendComponent.Builder(model).setOrientation(LegendComponent.Orientation.VERTICAL).build()
+    val legendComponent = LegendComponent.Builder(model).setOrientation(LegendComponent.Orientation.VERTICAL).build()
     // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
     // early-return during an update if
     // isShowing() == false, as an optimization to reduce the number of queries made to the
@@ -173,10 +169,7 @@ class LegendComponentTest {
     val CRAZY_LARGE_X_PADDING = 123
     val CRAZY_LARGE_Y_PADDING = 321
     val legendComponent =
-      LegendComponent.Builder(model)
-        .setHorizontalPadding(CRAZY_LARGE_X_PADDING)
-        .setVerticalPadding(CRAZY_LARGE_Y_PADDING)
-        .build()
+      LegendComponent.Builder(model).setHorizontalPadding(CRAZY_LARGE_X_PADDING).setVerticalPadding(CRAZY_LARGE_Y_PADDING).build()
 
     assertThat(legendComponent.preferredSize.width).isEqualTo(CRAZY_LARGE_X_PADDING * 2)
     assertThat(legendComponent.preferredSize.height).isEqualTo(CRAZY_LARGE_Y_PADDING * 2)
@@ -210,32 +203,27 @@ class LegendComponentTest {
     // Gap needed to maintain max size
     legend1.setValue("0 b/s")
     modifyRange(range)
-    assertThat(legendComponent.instructions.count { it is GapInstruction })
-      .isEqualTo(gapBaseline + 1)
+    assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
 
     // Gap still needed to maintain max size
     legend1.setValue("123 b/s")
     modifyRange(range)
-    assertThat(legendComponent.instructions.count { it is GapInstruction })
-      .isEqualTo(gapBaseline + 1)
+    assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
 
     // Long text makes for a new max size (in legend 2)
     legend2.setValue("9001 b/s")
     modifyRange(range)
-    assertThat(legendComponent.instructions.count { it is GapInstruction })
-      .isEqualTo(gapBaseline + 1)
+    assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
 
     // Now both legends have gaps
     legend2.setValue("0 b/s")
     modifyRange(range)
-    assertThat(legendComponent.instructions.count { it is GapInstruction })
-      .isEqualTo(gapBaseline + 2)
+    assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 2)
 
     // Gap no longer needed in legend 1
     legend1.setValue("123456789 b/s")
     modifyRange(range)
-    assertThat(legendComponent.instructions.count { it is GapInstruction })
-      .isEqualTo(gapBaseline + 1)
+    assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
   }
 
   @Test
@@ -245,8 +233,7 @@ class LegendComponentTest {
     val legend = FakeLegend("Test1", "0 b/s")
     model.add(legend)
 
-    val legendComponent =
-      LegendComponent.Builder(model).setOrientation(Orientation.VERTICAL).build()
+    val legendComponent = LegendComponent.Builder(model).setOrientation(Orientation.VERTICAL).build()
     // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
     // early-return during an update if
     // isShowing() == false, as an optimization to reduce the number of queries made to the
@@ -304,8 +291,7 @@ class LegendComponentTest {
   fun gapAndIconTotalWidthForVerticalLegendsKeepTheSame() {
     val range = Range(0.0, 0.0)
     val model = LegendComponentModel(range)
-    val legendComponent =
-      LegendComponent.Builder(model).setOrientation(Orientation.VERTICAL).build()
+    val legendComponent = LegendComponent.Builder(model).setOrientation(Orientation.VERTICAL).build()
     // Hack to force legendComponent's isShowing() to return true. The LegendComponent always
     // early-return during an update if
     // isShowing() == false, as an optimization to reduce the number of queries made to the
@@ -316,8 +302,7 @@ class LegendComponentTest {
       if (type != LegendConfig.IconType.NONE) {
         val legend = FakeLegend(type.name, "1 b/s")
         val legendConfig =
-          if (type == LegendConfig.IconType.CUSTOM)
-            LegendConfig({ _ -> AllIcons.General.Add }, Color.RED)
+          if (type == LegendConfig.IconType.CUSTOM) LegendConfig({ _ -> AllIcons.General.Add }, Color.RED)
           else LegendConfig(type, Color.BLUE)
         legendComponent.configure(legend, legendConfig)
         model.add(legend)
@@ -329,8 +314,7 @@ class LegendComponentTest {
     val first = instructions.first { it is LegendIconInstruction }
     val getNext = { item: RenderInstruction -> instructions.get(instructions.indexOf(item) + 1) }
     instructions.filterIsInstance<LegendIconInstruction>().forEach {
-      assertThat(it.size.width + getNext(it).size.width)
-        .isEqualTo(first.size.width + getNext(first).size.width)
+      assertThat(it.size.width + getNext(it).size.width).isEqualTo(first.size.width + getNext(first).size.width)
     }
   }
 
@@ -368,8 +352,7 @@ class LegendComponentTest {
     val range = Range(0.0, 0.0)
     val model = LegendComponentModel(range)
     val legend = FakeLegend("Name", "Value")
-    val legendComponent =
-      LegendComponent.Builder(model).setVerticalPadding(0).setHorizontalPadding(0).build()
+    val legendComponent = LegendComponent.Builder(model).setVerticalPadding(0).setHorizontalPadding(0).build()
 
     model.add(legend)
     modifyRange(range) // Some valid range that is different from what it was before (0.0, 0.0).
@@ -446,15 +429,11 @@ class LegendComponentTest {
   private fun makeSimpleLegends(n: Int) = (1..n).map { FakeLegend("Test$it", "Value$it") }
 
   private fun assertText(legend: LegendComponent, text: List<String>) {
-    assertThat(legend.instructions.filterIsInstance<TextInstruction>().map { it.text })
-      .containsExactlyElementsIn(text)
-      .inOrder()
+    assertThat(legend.instructions.filterIsInstance<TextInstruction>().map { it.text }).containsExactlyElementsIn(text).inOrder()
   }
 
   private fun assertIcons(legend: LegendComponent, icons: List<LegendConfig.IconType>) {
-    assertThat(legend.instructions.filterIsInstance<LegendIconInstruction>().map { it.myType })
-      .containsExactlyElementsIn(icons)
-      .inOrder()
+    assertThat(legend.instructions.filterIsInstance<LegendIconInstruction>().map { it.myType }).containsExactlyElementsIn(icons).inOrder()
   }
 
   // Modifies the Range such that it will change the Range.

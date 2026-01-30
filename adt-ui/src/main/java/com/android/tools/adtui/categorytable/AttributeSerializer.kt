@@ -18,11 +18,7 @@ package com.android.tools.adtui.categorytable
 import com.intellij.util.xmlb.Converter
 
 /** Metadata about an [Attribute] needed to serialize the attribute and its values. */
-class AttributeSerializer<C>(
-  val name: String,
-  val attribute: Attribute<*, C>,
-  val converter: Converter<C>,
-)
+class AttributeSerializer<C>(val name: String, val attribute: Attribute<*, C>, val converter: Converter<C>)
 
 private object StringConverter : Converter<String>() {
   override fun fromString(value: String): String = value
@@ -37,8 +33,6 @@ inline fun <reified E : Enum<E>> enumConverter() =
     override fun toString(value: E): String = value.name
   }
 
-fun Attribute<*, String>.stringSerializer(name: String) =
-  AttributeSerializer(name, this, StringConverter)
+fun Attribute<*, String>.stringSerializer(name: String) = AttributeSerializer(name, this, StringConverter)
 
-inline fun <reified E : Enum<E>> Attribute<*, E>.enumSerializer(name: String) =
-  AttributeSerializer(name, this, enumConverter<E>())
+inline fun <reified E : Enum<E>> Attribute<*, E>.enumSerializer(name: String) = AttributeSerializer(name, this, enumConverter<E>())

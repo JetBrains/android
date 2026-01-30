@@ -24,13 +24,12 @@ import org.junit.Rule
 import org.junit.Test
 
 class GradleSourceProviderManagerTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun selfDisposesOnFacetConfigurationChange() {
     projectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
-    val facet = AndroidFacet.getInstance(projectRule.project.findAppModule() )!!
+    val facet = AndroidFacet.getInstance(projectRule.project.findAppModule())!!
     val sourceProviderManagerBeforeNotification = facet.sourceProviders
     projectRule.requestSyncAndWait()
     val sourceProviderManagerAfterNotification = facet.sourceProviders

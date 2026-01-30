@@ -26,9 +26,7 @@ import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartT
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.HeapDumpTaskArgs
 
-/**
- * This class defines the task handler to perform a heap dump task.
- */
+/** This class defines the task handler to perform a heap dump task. */
 class HeapDumpTaskHandler(sessionsManager: SessionsManager) : MemoryTaskHandler(sessionsManager) {
   override fun startCapture(stage: MainMemoryProfilerStage) {
     stage.startHeapDumpCapture()

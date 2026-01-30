@@ -15,8 +15,5 @@
  */
 package com.android.tools.rendering
 
-/**
- * Exception that is thrown when the [Configuration] without [Device] is passed to the rendering
- * pipeline.
- */
+/** Exception that is thrown when the [Configuration] without [Device] is passed to the rendering pipeline. */
 class NoDeviceException : Exception()

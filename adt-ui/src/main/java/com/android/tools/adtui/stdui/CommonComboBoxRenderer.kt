@@ -32,8 +32,7 @@ open class CommonComboBoxRenderer : BasicComboBoxRenderer() {
     isSelected: Boolean,
     cellHasFocus: Boolean,
   ): Component {
-    val component =
-      super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus) as JComponent
+    val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus) as JComponent
     component.componentOrientation = list.componentOrientation
     if (list.componentOrientation.isLeftToRight) {
       component.border = JBUI.Borders.emptyLeft(padding(index))

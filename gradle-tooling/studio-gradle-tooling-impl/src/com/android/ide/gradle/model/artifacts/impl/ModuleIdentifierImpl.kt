@@ -17,10 +17,7 @@ package com.android.ide.gradle.model.artifacts.impl
 
 import org.gradle.api.artifacts.ModuleIdentifier
 
-data class ModuleIdentifierImpl(
-  private val group: String,
-  private val name: String
-) : ModuleIdentifier {
+data class ModuleIdentifierImpl(private val group: String, private val name: String) : ModuleIdentifier {
   override fun getGroup() = group
 
   override fun getName() = name

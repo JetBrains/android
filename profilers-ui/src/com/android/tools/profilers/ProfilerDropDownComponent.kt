@@ -15,9 +15,9 @@
  */
 package com.android.tools.profilers
 
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import javax.swing.Icon
 import javax.swing.JPanel
@@ -32,22 +32,12 @@ class ProfilerDropDownComponent<T>(
   getIconForValue: ((T) -> Icon?)?,
   onSelect: (T) -> Unit,
   getDisplayTitle: (T?) -> String = { it.toString() },
-) : JPanel()
-{
-  @get:VisibleForTesting
-  internal val dropDownAction: ProfilerDropDownAction<T>
+) : JPanel() {
+  @get:VisibleForTesting internal val dropDownAction: ProfilerDropDownAction<T>
 
   init {
     layout = java.awt.BorderLayout()
-    dropDownAction = ProfilerDropDownAction(
-      text,
-      description,
-      icon,
-      flow,
-      getIconForValue,
-      onSelect,
-      getDisplayTitle
-    )
+    dropDownAction = ProfilerDropDownAction(text, description, icon, flow, getIconForValue, onSelect, getDisplayTitle)
 
     val group = DefaultActionGroup()
     group.add(dropDownAction)

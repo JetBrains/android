@@ -33,13 +33,14 @@ import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import org.jetbrains.plugins.gradle.util.TasksToRun
 
 /**
- * A configuration producer for creating Gradle run configurations for screenshot tests
- * for a given class in the screenshot test source set. This class extends {@link TestClassGradleConfigurationProducer}
- * to provide specialized configuration for screenshot testing. The configuration is only produced
- * if there is at least one method within the class that is annotated with a Preview or multi-Preview annotation
+ * A configuration producer for creating Gradle run configurations for screenshot tests for a given class in the screenshot test source set.
+ * This class extends {@link TestClassGradleConfigurationProducer} to provide specialized configuration for screenshot testing. The
+ * configuration is only produced if there is at least one method within the class that is annotated with a Preview or multi-Preview
+ * annotation
  */
-class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurationProducer() {
+class ScreenshotTestClassGradleConfigurationProducer : TestClassGradleConfigurationProducer() {
   private val visitedAnnotation = mutableMapOf<String, Boolean>()
+
   override fun suggestConfigurationName(context: ConfigurationContext, element: PsiClass, chosenElements: List<PsiClass>): String {
     return "Screenshot Tests in ${element.qualifiedName}"
   }
@@ -66,11 +67,12 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
           psiClass.qualifiedName?.let { qualifiedNames.add(it) }
         }
       }
-      val hasTopLevelTests = ktFile.declarations.any { declaration ->
-        (declaration as? KtNamedFunction)?.toLightMethods()?.any { method ->
-          isMethodDeclarationPreviewTestAnnotated(method, visitedAnnotation)
-        } == true
-      }
+      val hasTopLevelTests =
+        ktFile.declarations.any { declaration ->
+          (declaration as? KtNamedFunction)?.toLightMethods()?.any { method ->
+            isMethodDeclarationPreviewTestAnnotated(method, visitedAnnotation)
+          } == true
+        }
       if (hasTopLevelTests) {
         qualifiedNames.add(ktFile.javaFileFacadeFqName.asString())
       }
@@ -90,9 +92,11 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
     return configuration.settings.taskNames == expectedTasks
   }
 
-  override fun getAllTestsTaskToRun(context: ConfigurationContext,
-                                    element: PsiClass,
-                                    chosenElements: List<PsiClass>): List<TestTasksToRun> {
+  override fun getAllTestsTaskToRun(
+    context: ConfigurationContext,
+    element: PsiClass,
+    chosenElements: List<PsiClass>,
+  ): List<TestTasksToRun> {
     val tasksToRun = mutableListOf<TestTasksToRun>()
     val testFilter = "--tests \"${element.qualifiedName}\""
     val tasks = getScreenshotTestTaskNames(context) ?: return tasksToRun
@@ -100,9 +104,11 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
     return tasksToRun
   }
 
-  override fun doSetupConfigurationFromContext(configuration: GradleRunConfiguration,
-                                               context: ConfigurationContext,
-                                               sourceElement: Ref<PsiElement>): Boolean {
+  override fun doSetupConfigurationFromContext(
+    configuration: GradleRunConfiguration,
+    context: ConfigurationContext,
+    sourceElement: Ref<PsiElement>,
+  ): Boolean {
     if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()) {
       return false
     }
@@ -138,11 +144,12 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
       }
 
       // Also check for top-level functions.
-      val hasTopLevelTests = ktFile.declarations.any { declaration ->
-        (declaration as? KtNamedFunction)?.toLightMethods()?.any { method ->
-          isMethodDeclarationPreviewTestAnnotated(method, visitedAnnotation)
-        } == true
-      }
+      val hasTopLevelTests =
+        ktFile.declarations.any { declaration ->
+          (declaration as? KtNamedFunction)?.toLightMethods()?.any { method ->
+            isMethodDeclarationPreviewTestAnnotated(method, visitedAnnotation)
+          } == true
+        }
       if (hasTopLevelTests) {
         qualifiedNames.add(ktFile.javaFileFacadeFqName.asString())
       }

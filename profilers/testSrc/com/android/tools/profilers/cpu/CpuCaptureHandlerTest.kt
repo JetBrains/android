@@ -37,8 +37,7 @@ class CpuCaptureHandlerTest {
   private val myTimer = FakeTimer()
   private val transportService = FakeTransportService(myTimer, false)
 
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("CpuCaptureHandlerTestChannel", transportService)
+  @get:Rule val grpcChannel = FakeGrpcChannel("CpuCaptureHandlerTestChannel", transportService)
 
   @Before
   fun setUp() {
@@ -47,16 +46,19 @@ class CpuCaptureHandlerTest {
 
   @Test
   fun updateUpdatesRange() {
-    val model = CpuCaptureHandler(myProfilers, CpuProfilerTestUtils.getTraceFile("simpleperf.trace"), 123,
-                                  ProfilersTestData.DEFAULT_CONFIG, null, 0)
+    val model =
+      CpuCaptureHandler(myProfilers, CpuProfilerTestUtils.getTraceFile("simpleperf.trace"), 123, ProfilersTestData.DEFAULT_CONFIG, null, 0)
     assertThat(model.range.isEmpty).isTrue()
     model.update(1234L)
     assertThat(model.range.isEmpty).isTrue()
-    model.parse({
-                  assertThat(it).isNotNull()
-                  assertThat(model.range.min).isEqualTo(0.0)
-                  assertThat(model.range.max).isEqualTo(0.0)
-                }, TaskTracker.createNullTaskTracker(myProfilers))
+    model.parse(
+      {
+        assertThat(it).isNotNull()
+        assertThat(model.range.min).isEqualTo(0.0)
+        assertThat(model.range.max).isEqualTo(0.0)
+      },
+      TaskTracker.createNullTaskTracker(myProfilers),
+    )
   }
 
   @Test
@@ -65,12 +67,15 @@ class CpuCaptureHandlerTest {
     val services = FakeIdeProfilerServices()
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
     val model = CpuCaptureHandler(myProfilers, CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"), 123, config, null, 0)
-    model.parse({
-                  assertThat(it).isNull()
-                  assertThat(services.notification).isNotNull()
-                  assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.status).isEqualTo(
-                    CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_FILE_HEADER_ERROR)
-                }, TaskTracker.createNullTaskTracker(myProfilers))
+    model.parse(
+      {
+        assertThat(it).isNull()
+        assertThat(services.notification).isNotNull()
+        assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.status)
+          .isEqualTo(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_FILE_HEADER_ERROR)
+      },
+      TaskTracker.createNullTaskTracker(myProfilers),
+    )
   }
 
   @Test
@@ -79,9 +84,12 @@ class CpuCaptureHandlerTest {
     val services = FakeIdeProfilerServices()
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
     val model = CpuCaptureHandler(myProfilers, CpuProfilerTestUtils.getTraceFile("simpleperf_callchain.trace"), 123, config, null, 1)
-    model.parse({
-                  assertThat(it).isNotNull()
-                  assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.profilingConfiguration).isEqualTo(config)
-                }, TaskTracker.createNullTaskTracker(myProfilers))
+    model.parse(
+      {
+        assertThat(it).isNotNull()
+        assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.profilingConfiguration).isEqualTo(config)
+      },
+      TaskTracker.createNullTaskTracker(myProfilers),
+    )
   }
 }

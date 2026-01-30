@@ -29,10 +29,8 @@ import com.intellij.refactoring.actions.BaseRefactoringAction
  *
  * Possible improvements:
  * * If resource declarations are preceded by comments, remove those too?
- * * Do textual scans of source sets for other variants to make sure this doesn't remove unused
- *   resources referenced in other variants
- * * Unused resources corresponding to Gradle model resValues don't have corresponding source
- *   locations, so these are currently not removed.
+ * * Do textual scans of source sets for other variants to make sure this doesn't remove unused resources referenced in other variants
+ * * Unused resources corresponding to Gradle model resValues don't have corresponding source locations, so these are currently not removed.
  */
 class UnusedResourcesAction : BaseRefactoringAction() {
   override fun update(e: AnActionEvent) {
@@ -48,6 +46,5 @@ class UnusedResourcesAction : BaseRefactoringAction() {
 
   public override fun isEnabledOnElements(elements: Array<PsiElement>) = true
 
-  public override fun getHandler(dataContext: DataContext): RefactoringActionHandler =
-    UnusedResourcesHandler()
+  public override fun getHandler(dataContext: DataContext): RefactoringActionHandler = UnusedResourcesHandler()
 }

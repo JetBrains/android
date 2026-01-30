@@ -19,16 +19,18 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.EventProfiler
 import com.android.tools.profiler.proto.Interaction
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.util.function.Consumer
+import org.junit.Test
 
 class EventsTest : DatabaseTest<EventsTable>() {
   override fun getTableQueryMethodsForVerification(): MutableList<Consumer<EventsTable>> {
     val methodCalls = mutableListOf<Consumer<EventsTable>>()
     methodCalls.add(
-      Consumer { t -> t.insertOrReplace(0, Common.Session.getDefaultInstance(), EventProfiler.ActivityData.getDefaultInstance()) })
+      Consumer { t -> t.insertOrReplace(0, Common.Session.getDefaultInstance(), EventProfiler.ActivityData.getDefaultInstance()) }
+    )
     methodCalls.add(
-      Consumer { t -> t.insertOrReplace(0, Common.Session.getDefaultInstance(), EventProfiler.SystemData.getDefaultInstance()) })
+      Consumer { t -> t.insertOrReplace(0, Common.Session.getDefaultInstance(), EventProfiler.SystemData.getDefaultInstance()) }
+    )
     methodCalls.add(Consumer { t -> assertThat(t.findActivityDataOrNull(Common.Session.getDefaultInstance(), 0)).isNull() })
     methodCalls.add(Consumer { t -> assertThat(t.getActivityDataBySession(Common.Session.getDefaultInstance())).isEmpty() })
     methodCalls.add(Consumer { t -> assertThat(t.getSystemDataByRequest(EventProfiler.EventDataRequest.getDefaultInstance())).isEmpty() })
@@ -43,19 +45,25 @@ class EventsTest : DatabaseTest<EventsTable>() {
   fun insertAndGetSystemData() {
     // Test no end time alone.
     table.insertOrReplace(0, MAIN_SESSION, NO_END_SYSTEM_DATA)
-    var systemEvents = table.getSystemDataByRequest(
-      EventProfiler.EventDataRequest.newBuilder().setSession(MAIN_SESSION).setStartTimestamp(0).setEndTimestamp(Long.MAX_VALUE).build())
+    var systemEvents =
+      table.getSystemDataByRequest(
+        EventProfiler.EventDataRequest.newBuilder().setSession(MAIN_SESSION).setStartTimestamp(0).setEndTimestamp(Long.MAX_VALUE).build()
+      )
     assertThat(systemEvents).containsExactly(NO_END_SYSTEM_DATA)
 
     // Test no end time, and an event that ends
     table.insertOrReplace(1, MAIN_SESSION, LONG_SYSTEM_DATA)
-    systemEvents = table.getSystemDataByRequest(
-      EventProfiler.EventDataRequest.newBuilder().setSession(MAIN_SESSION).setStartTimestamp(0).setEndTimestamp(Long.MAX_VALUE).build())
+    systemEvents =
+      table.getSystemDataByRequest(
+        EventProfiler.EventDataRequest.newBuilder().setSession(MAIN_SESSION).setStartTimestamp(0).setEndTimestamp(Long.MAX_VALUE).build()
+      )
     assertThat(systemEvents).containsExactly(NO_END_SYSTEM_DATA, LONG_SYSTEM_DATA)
 
     // Test getting the no end time event after an event has already ended.
-    systemEvents = table.getSystemDataByRequest(
-      EventProfiler.EventDataRequest.newBuilder().setSession(MAIN_SESSION).setStartTimestamp(200).setEndTimestamp(Long.MAX_VALUE).build())
+    systemEvents =
+      table.getSystemDataByRequest(
+        EventProfiler.EventDataRequest.newBuilder().setSession(MAIN_SESSION).setStartTimestamp(200).setEndTimestamp(Long.MAX_VALUE).build()
+      )
     assertThat(systemEvents).containsExactly(NO_END_SYSTEM_DATA)
   }
 
@@ -92,44 +100,24 @@ class EventsTest : DatabaseTest<EventsTable>() {
     protected val TEST_APP_ID = 5678
     private val ACTION_ID = 1234
     private val MAIN_SESSION = Common.Session.newBuilder().setSessionId(1L).setStreamId(1234).build()
-    private val NO_END_SYSTEM_DATA = EventProfiler.SystemData
-      .newBuilder()
-      .setActionId(ACTION_ID)
-      .setStartTimestamp(0)
-      .setEndTimestamp(0)
-      .setEventId(1)
-      .build()
-    private val LONG_SYSTEM_DATA = EventProfiler.SystemData
-      .newBuilder()
-      .setActionId(ACTION_ID)
-      .setStartTimestamp(0)
-      .setEndTimestamp(100)
-      .setEventId(2)
-      .build()
-    private val SIMPLE_ACTIVITY_DATA = EventProfiler.ActivityData
-      .newBuilder()
-      .setName("Test")
-      .setHash("Test".hashCode().toLong())
-      .addStateChanges(
-        EventProfiler.ActivityStateData
-          .newBuilder().setState(Interaction.ViewData.State.CREATED).setTimestamp(0).build()
-      ).build()
-    private val ACTIVITY_DATA_UPDATE = EventProfiler.ActivityData
-      .newBuilder()
-      .setName("Test")
-      .setHash("Test".hashCode().toLong())
-      .addStateChanges(
-        EventProfiler.ActivityStateData
-          .newBuilder().setState(Interaction.ViewData.State.STARTED).setTimestamp(10).build())
-      .addStateChanges(
-        EventProfiler.ActivityStateData
-          .newBuilder().setState(Interaction.ViewData.State.PAUSED).setTimestamp(20).build())
-      .addStateChanges(
-        EventProfiler.ActivityStateData
-          .newBuilder().setState(Interaction.ViewData.State.RESUMED).setTimestamp(30).build())
-      .addStateChanges(
-        EventProfiler.ActivityStateData
-          .newBuilder().setState(Interaction.ViewData.State.PAUSED).setTimestamp(40).build())
-      .build()
+    private val NO_END_SYSTEM_DATA =
+      EventProfiler.SystemData.newBuilder().setActionId(ACTION_ID).setStartTimestamp(0).setEndTimestamp(0).setEventId(1).build()
+    private val LONG_SYSTEM_DATA =
+      EventProfiler.SystemData.newBuilder().setActionId(ACTION_ID).setStartTimestamp(0).setEndTimestamp(100).setEventId(2).build()
+    private val SIMPLE_ACTIVITY_DATA =
+      EventProfiler.ActivityData.newBuilder()
+        .setName("Test")
+        .setHash("Test".hashCode().toLong())
+        .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(Interaction.ViewData.State.CREATED).setTimestamp(0).build())
+        .build()
+    private val ACTIVITY_DATA_UPDATE =
+      EventProfiler.ActivityData.newBuilder()
+        .setName("Test")
+        .setHash("Test".hashCode().toLong())
+        .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(Interaction.ViewData.State.STARTED).setTimestamp(10).build())
+        .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(Interaction.ViewData.State.PAUSED).setTimestamp(20).build())
+        .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(Interaction.ViewData.State.RESUMED).setTimestamp(30).build())
+        .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(Interaction.ViewData.State.PAUSED).setTimestamp(40).build())
+        .build()
   }
 }

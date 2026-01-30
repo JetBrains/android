@@ -40,8 +40,7 @@ class CpuThreadTrackModelTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("CpuCaptureParserTest", transportService)
+  @get:Rule val grpcChannel = FakeGrpcChannel("CpuCaptureParserTest", transportService)
 
   @Before
   fun setUp() {
@@ -52,18 +51,14 @@ class CpuThreadTrackModelTest {
   @Test
   fun noThreadStatesFromArtTrace() {
     val capture = CpuProfilerTestUtils.getValidCapture(myProfilers)
-    val threadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(516, "Foo"), DefaultTimeline(), MultiSelectionModel(),
-                                               Utils::runOnUi)
+    val threadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(516, "Foo"), DefaultTimeline(), MultiSelectionModel(), Utils::runOnUi)
     assertThat(threadTrackModel.threadStateChartModel.series).isEmpty()
   }
 
   @Test
   fun analysisTabs() {
-    val capture = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(this.range).thenReturn(Range())
-    }
-    val threadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(1, "Foo"), DefaultTimeline(), MultiSelectionModel(),
-                                               Utils::runOnUi)
+    val capture = Mockito.mock(CpuCapture::class.java).apply { whenever(this.range).thenReturn(Range()) }
+    val threadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(1, "Foo"), DefaultTimeline(), MultiSelectionModel(), Utils::runOnUi)
     val analysisTabModels = threadTrackModel.analysisModel.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()
     assertThat(analysisTabModels).containsExactly(Type.SUMMARY, Type.FLAME_CHART, Type.TOP_DOWN, Type.BOTTOM_UP, Type.EVENTS)
   }
@@ -71,8 +66,7 @@ class CpuThreadTrackModelTest {
   @Test
   fun testNameToNodes() {
     val capture = CpuProfilerTestUtils.getValidCapture(myProfilers)
-    val threadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(516, "Foo"), DefaultTimeline(), MultiSelectionModel(),
-                                               Utils::runOnUi)
+    val threadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(516, "Foo"), DefaultTimeline(), MultiSelectionModel(), Utils::runOnUi)
     val node = threadTrackModel.callChartModel.node
 
     val nameToNodes = CpuThreadTrackModel.getNameToNodesMapping(node)

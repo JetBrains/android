@@ -64,10 +64,8 @@ class FlagPropertyEditorTest {
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication()
-      .replaceService(ActionManager::class.java, mock(), disposableRule.disposable)
-    whenever(ActionManager.getInstance().getAction(IdeActions.ACTION_CLEAR_TEXT))
-      .thenReturn(SomeAction("ClearText"))
+    ApplicationManager.getApplication().replaceService(ActionManager::class.java, mock(), disposableRule.disposable)
+    whenever(ActionManager.getInstance().getAction(IdeActions.ACTION_CLEAR_TEXT)).thenReturn(SomeAction("ClearText"))
   }
 
   @Test
@@ -118,9 +116,7 @@ class FlagPropertyEditorTest {
     val tableEditor = createTableWithFlagEditors()
     val table = tableEditor.component
     val renderer = table.getCellRenderer(0, 1)
-    val component =
-      renderer.getTableCellRendererComponent(table, table.getValueAt(0, 1), false, false, 0, 1)
-        as? JComponent
+    val component = renderer.getTableCellRendererComponent(table, table.getValueAt(0, 1), false, false, 0, 1) as? JComponent
     val flagEditor = component?.components?.single() as? FlagPropertyEditor ?: error("unexpected")
     // The flag renderer should have a PropertyLabel and not a JTextField:
     assertThat(flagEditor.components.single { it is PropertyLabel }).isNotNull()
@@ -154,8 +150,7 @@ class FlagPropertyEditorTest {
     clickFlag(ui, panel, "eight")
 
     val checked = findCheckedCheckBoxes(panel)
-    assertThat(checked.map { it.text })
-      .containsExactly("one", "two", "three", "eight", "nine", "ten", "eleven")
+    assertThat(checked.map { it.text }).containsExactly("one", "two", "three", "eight", "nine", "ten", "eleven")
     val disabled = findDisabledCheckBoxes(panel)
     assertThat(disabled.map { it.text }).containsExactly("three", "nine", "ten", "eleven")
   }
@@ -180,40 +175,13 @@ class FlagPropertyEditorTest {
   }
 
   private fun createTableWithFlagEditors(): TableEditor {
-    val flag1 =
-      FakeFlagsPropertyItem(
-        ANDROID_URI,
-        ATTR_INPUT_TYPE,
-        listOf("text", "date", "datetime"),
-        listOf(1, 6, 2),
-      )
-    val flag2 =
-      FakeFlagsPropertyItem(
-        ANDROID_URI,
-        "autoLink",
-        listOf("none", "web", "email", "phone", "all"),
-        listOf(0, 1, 2, 4, 7),
-      )
+    val flag1 = FakeFlagsPropertyItem(ANDROID_URI, ATTR_INPUT_TYPE, listOf("text", "date", "datetime"), listOf(1, 6, 2))
+    val flag2 = FakeFlagsPropertyItem(ANDROID_URI, "autoLink", listOf("none", "web", "email", "phone", "all"), listOf(0, 1, 2, 4, 7))
     val flag3 =
       FakeFlagsPropertyItem(
         ANDROID_URI,
         "long",
-        listOf(
-          "one",
-          "two",
-          "three",
-          "four",
-          "five",
-          "six",
-          "seven",
-          "eight",
-          "nine",
-          "ten",
-          "eleven",
-          "twelve",
-          "thirteen",
-          "fourteen",
-        ),
+        listOf("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen"),
         listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14),
       )
     val tableModel = PTableTestModel(flag1, flag2, flag3)
@@ -228,11 +196,7 @@ class FlagPropertyEditorTest {
     val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
     val uiProvider = TableUIProvider(controlTypeProvider, editorProvider)
 
-    return TableEditor(
-      lineModel,
-      uiProvider.tableCellRendererProvider,
-      uiProvider.tableCellEditorProvider,
-    )
+    return TableEditor(lineModel, uiProvider.tableCellRendererProvider, uiProvider.tableCellEditorProvider)
   }
 
   private fun getEditorFromTable(table: TableEditor, row: Int): FlagPropertyEditor {

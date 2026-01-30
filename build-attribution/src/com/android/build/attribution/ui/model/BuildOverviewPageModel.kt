@@ -20,17 +20,15 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.DownloadsSummaryUIData
 
-class BuildOverviewPageModel(
-  val reportUiData: BuildAttributionReportUiData,
-  val warningSuppressions: BuildAttributionWarningsFilter
-) {
+class BuildOverviewPageModel(val reportUiData: BuildAttributionReportUiData, val warningSuppressions: BuildAttributionWarningsFilter) {
   val shouldWarnAboutGC: Boolean
     get() = reportUiData.buildSummary.garbageCollectionTime.percentage > 10.0
 
   val shouldWarnAboutNoGCSetting: Boolean
-    get() = !warningSuppressions.suppressNoGCSettingWarning
-            && reportUiData.buildSummary.isGarbageCollectorSettingSet == false
-            && reportUiData.buildSummary.javaVersionUsed?.let { it >= 9 } ?: false
+    get() =
+      !warningSuppressions.suppressNoGCSettingWarning &&
+        reportUiData.buildSummary.isGarbageCollectorSettingSet == false &&
+        reportUiData.buildSummary.javaVersionUsed?.let { it >= 9 } ?: false
 
   val downloadsSummaryUiData: DownloadsSummaryUIData?
     get() = (reportUiData.downloadsData as? DownloadsAnalyzer.ActiveResult)?.let { DownloadsSummaryUIData(it) }

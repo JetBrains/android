@@ -56,8 +56,11 @@ import java.util.function.Consumer
 
 class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
   private val myAspectObserver = AspectObserver()
-  private val sessionsManager get() = profilers.sessionsManager
-  private val featureTracker get() = profilers.ideServices.featureTracker
+  private val sessionsManager
+    get() = profilers.sessionsManager
+
+  private val featureTracker
+    get() = profilers.ideServices.featureTracker
 
   init {
     this.profilers.addDependency(myAspectObserver).onChange(ProfilerAspect.AGENT, ::agentStatusChanged)
@@ -78,19 +81,18 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
   }
 
   override fun newMonitor() = MemoryMonitor(profilers)
+
   override fun startProfiling(session: Common.Session) {}
+
   override fun stopProfiling(session: Common.Session) =
     try {
       // Stop any ongoing allocation tracking sessions (either legacy or jvmti-based).
       trackAllocations(profilers, session, false, false, null)
-    }
-    catch (e: StatusRuntimeException) {
+    } catch (e: StatusRuntimeException) {
       logger.info(e)
     }
 
-  /**
-   * Attempts to start live allocation tracking.
-   */
+  /** Attempts to start live allocation tracking. */
   private fun agentStatusChanged() {
     val session = profilers.session
     when {
@@ -98,32 +100,37 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
       Common.Session.getDefaultInstance() == session || session.endTimestamp != Long.MAX_VALUE -> {}
       // Early return if JVMTI agent is not attached.
       !profilers.isAgentAttached -> {
-        if (Common.AgentData.Status.UNATTACHABLE == profilers.agentData.status &&
+        if (
+          Common.AgentData.Status.UNATTACHABLE == profilers.agentData.status &&
             profilers.sessionsManager.isSessionAlive &&
-            profilers.stage is AllocationStage && !(profilers.stage as AllocationStage).hasStartedTracking) {
+            profilers.stage is AllocationStage &&
+            !(profilers.stage as AllocationStage).hasStartedTracking
+        ) {
           // Agent is currently unattachable. This indicates that the allocation stage has not begun allocation tracking, suggesting the
           // agent has moved from unspecified to unattachable state.
           (profilers.stage as AllocationStage).stopTrackingDueToUnattachableAgent()
         }
       }
 
-      else -> try {
-        if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled &&
-            profilers.sessionsManager.isSessionAlive &&
-            profilers.sessionsManager.currentTaskType == ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS &&
-            profilers.stage is AllocationStage && !(profilers.stage as AllocationStage).hasStartedTracking) {
-          // If, current stage is allocation stage and tracking has not started, then start the tracking
-          (profilers.stage as AllocationStage).startTracking()
+      else ->
+        try {
+          if (
+            profilers.ideServices.featureConfig.isTaskBasedUxEnabled &&
+              profilers.sessionsManager.isSessionAlive &&
+              profilers.sessionsManager.currentTaskType == ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS &&
+              profilers.stage is AllocationStage &&
+              !(profilers.stage as AllocationStage).hasStartedTracking
+          ) {
+            // If, current stage is allocation stage and tracking has not started, then start the tracking
+            (profilers.stage as AllocationStage).startTracking()
+          } else {
+            // Attempts to stop an existing tracking session.
+            // This should only happen if we are restarting Studio and reconnecting to an app that already has an agent attached.
+            trackAllocations(profilers, session, false, false, null)
+          }
+        } catch (e: StatusRuntimeException) {
+          logger.info(e)
         }
-        else {
-          // Attempts to stop an existing tracking session.
-          // This should only happen if we are restarting Studio and reconnecting to an app that already has an agent attached.
-          trackAllocations(profilers, session, false, false, null)
-        }
-      }
-      catch (e: StatusRuntimeException) {
-        logger.info(e)
-      }
     }
   }
 
@@ -141,13 +148,8 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
     importFileWithArtifactEvent(sessionsManager, file, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE) { start, end ->
       makeEndedEvent(start, start, Common.Event.Kind.MEMORY_TRACE) {
         setTraceData(
-          Trace.TraceData.newBuilder().setTraceEnded(
-            TraceEnded.newBuilder().setTraceInfo(
-              TraceInfo.newBuilder()
-                .setFromTimestamp(start)
-                .setToTimestamp(end)
-            )
-          )
+          Trace.TraceData.newBuilder()
+            .setTraceEnded(TraceEnded.newBuilder().setTraceInfo(TraceInfo.newBuilder().setFromTimestamp(start).setToTimestamp(end)))
         )
       }
     }
@@ -155,8 +157,7 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
   }
 
   private fun importLegacyAllocations(file: File) {
-    fun makeInfo(start: Long, end: Long) =
-      AllocationsInfo.newBuilder().setStartTime(start).setEndTime(end).setLegacy(true).setSuccess(true)
+    fun makeInfo(start: Long, end: Long) = AllocationsInfo.newBuilder().setStartTime(start).setEndTime(end).setLegacy(true).setSuccess(true)
     importFileWithArtifactEvent(sessionsManager, file, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE) { start, end ->
       makeEndedEvent(start, start, Common.Event.Kind.MEMORY_ALLOC_TRACKING) {
         setMemoryAllocTracking(Memory.MemoryAllocTrackingData.newBuilder().setInfo(makeInfo(start, end)))
@@ -171,10 +172,12 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
 
     @JvmStatic
     fun importAllocations(profilers: StudioProfilers, file: File) {
-      importEventBasedArtifact(profilers.sessionsManager,
-                               file,
-                               Common.SessionData.SessionStarted.SessionType.FULL,
-                               Common.SessionMetaData.SessionType.FULL) { start, end ->
+      importEventBasedArtifact(
+        profilers.sessionsManager,
+        file,
+        Common.SessionData.SessionStarted.SessionType.FULL,
+        Common.SessionMetaData.SessionType.FULL,
+      ) { start, end ->
         val startInfo = AllocationsInfo.newBuilder().setStartTime(start).setEndTime(Long.MAX_VALUE).build()
         val endInfo = AllocationsInfo.newBuilder().setStartTime(start).setEndTime(end).setSuccess(true).build()
         listOf(
@@ -183,91 +186,107 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
           },
           makeEndedEvent(start, end, Common.Event.Kind.MEMORY_ALLOC_TRACKING) {
             setMemoryAllocTracking(Memory.MemoryAllocTrackingData.newBuilder().setInfo(endInfo))
-          }
+          },
         )
       }
-      profilers.ideServices.featureTracker.trackCreateSession(Common.SessionMetaData.SessionType.MEMORY_CAPTURE, SessionsManager.SessionCreationSource.MANUAL)
+      profilers.ideServices.featureTracker.trackCreateSession(
+        Common.SessionMetaData.SessionType.MEMORY_CAPTURE,
+        SessionsManager.SessionCreationSource.MANUAL,
+      )
     }
 
-    /**
-     * @return whether live allocation is active for the specified session.
-     */
+    /** @return whether live allocation is active for the specified session. */
     @JvmStatic
     fun isUsingLiveAllocation(profilers: StudioProfilers, session: Common.Session) =
       getAllocationInfosForSession(profilers.client, session, profilers.timeline.dataRange).let { it.isNotEmpty() && !it[0].legacy }
 
-    /**
-     * @return True if live allocation tracking is in FULL mode throughout the entire input time range, false otherwise.
-     */
+    /** @return True if live allocation tracking is in FULL mode throughout the entire input time range, false otherwise. */
     @JvmStatic
-    fun hasOnlyFullAllocationTrackingWithinRegion(profilers: StudioProfilers,
-                                                  session: Common.Session, startTimeUs: Long, endTimeUs: Long): Boolean {
+    fun hasOnlyFullAllocationTrackingWithinRegion(
+      profilers: StudioProfilers,
+      session: Common.Session,
+      startTimeUs: Long,
+      endTimeUs: Long,
+    ): Boolean {
       val series = AllocationSamplingRateDataSeries(profilers.client, session)
       val samplingModes = series.getDataForRange(Range(startTimeUs.toDouble(), endTimeUs.toDouble()))
       return samplingModes.size == 1 && samplingModes[0].value.currentRate.samplingNumInterval == FULL.value
     }
 
     @JvmStatic
-    fun saveHeapDumpToFile(client: ProfilerClient,
-                           session: Common.Session,
-                           info: HeapDumpInfo,
-                           outputStream: OutputStream,
-                           featureTracker: FeatureTracker) =
-      saveToFile(client, session, info.startTime, outputStream, featureTracker::trackExportHeap, "Failed to export heap dump file")
+    fun saveHeapDumpToFile(
+      client: ProfilerClient,
+      session: Common.Session,
+      info: HeapDumpInfo,
+      outputStream: OutputStream,
+      featureTracker: FeatureTracker,
+    ) = saveToFile(client, session, info.startTime, outputStream, featureTracker::trackExportHeap, "Failed to export heap dump file")
 
     @JvmStatic
-    fun saveAllocationToFile(client: ProfilerClient,
-                             session: Common.Session,
-                             outputStream: OutputStream,
-                             featureTracker: FeatureTracker) =
-      saveToFile(client, session, session.startTimestamp, outputStream, featureTracker::trackExportAllocation,
-                 "Failed to export heap dump file")
+    fun saveAllocationToFile(client: ProfilerClient, session: Common.Session, outputStream: OutputStream, featureTracker: FeatureTracker) =
+      saveToFile(
+        client,
+        session,
+        session.startTimestamp,
+        outputStream,
+        featureTracker::trackExportAllocation,
+        "Failed to export heap dump file",
+      )
 
     @JvmStatic
-    fun saveLegacyAllocationToFile(client: ProfilerClient,
-                                   session: Common.Session,
-                                   info: AllocationsInfo,
-                                   outputStream: OutputStream,
-                                   featureTracker: FeatureTracker) =
-      saveToFile(client, session, info.startTime, outputStream, featureTracker::trackExportAllocation,
-                 "Failed to export legacy allocation records")
+    fun saveLegacyAllocationToFile(
+      client: ProfilerClient,
+      session: Common.Session,
+      info: AllocationsInfo,
+      outputStream: OutputStream,
+      featureTracker: FeatureTracker,
+    ) =
+      saveToFile(
+        client,
+        session,
+        info.startTime,
+        outputStream,
+        featureTracker::trackExportAllocation,
+        "Failed to export legacy allocation records",
+      )
 
     @JvmStatic
-    fun saveHeapProfdSampleToFile(client: ProfilerClient,
-                                  session: Common.Session,
-                                  info: TraceInfo,
-                                  outputStream: OutputStream) =
+    fun saveHeapProfdSampleToFile(client: ProfilerClient, session: Common.Session, info: TraceInfo, outputStream: OutputStream) =
       saveToFile(client, session, info.fromTimestamp, outputStream, {}, "Failed to export native allocation records")
 
-    private fun saveToFile(client: ProfilerClient, session: Common.Session, startTime: Long, outputStream: OutputStream,
-                           onFinished: () -> Unit, errorMsg: String) {
-      val response = client.transportClient
-        .getFile(Transport.BytesRequest.newBuilder().setStreamId(session.streamId).setId(startTime.toString()).build())
+    private fun saveToFile(
+      client: ProfilerClient,
+      session: Common.Session,
+      startTime: Long,
+      outputStream: OutputStream,
+      onFinished: () -> Unit,
+      errorMsg: String,
+    ) {
+      val response =
+        client.transportClient.getFile(
+          Transport.BytesRequest.newBuilder().setStreamId(session.streamId).setId(startTime.toString()).build()
+        )
 
       if (response.filePath.isNotEmpty()) {
         try {
           File(response.filePath).inputStream().use { it.copyTo(outputStream) }
           onFinished()
-        }
-        catch (exception: IOException) {
+        } catch (exception: IOException) {
           logger.warn("$errorMsg:\n$exception")
         }
       }
     }
 
     /**
-     * Generate a default name for a memory capture to be exported. The name suggested is based on the current timestamp and the capture type.
+     * Generate a default name for a memory capture to be exported. The name suggested is based on the current timestamp and the capture
+     * type.
      */
-    @JvmStatic
-    fun generateCaptureFileName() =
-      "memory-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss"))}"
+    @JvmStatic fun generateCaptureFileName() = "memory-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss"))}"
 
     @JvmStatic
     fun getNativeHeapSamplesForSession(client: ProfilerClient, session: Common.Session, rangeUs: Range) =
-      getForSession(client, session, rangeUs,
-                    Common.Event.Kind.MEMORY_TRACE) {
-        if (it.last().traceData.hasTraceStarted()) it.last().traceData.traceStarted.traceInfo
-        else it.last().traceData.traceEnded.traceInfo
+      getForSession(client, session, rangeUs, Common.Event.Kind.MEMORY_TRACE) {
+        if (it.last().traceData.hasTraceStarted()) it.last().traceData.traceStarted.traceInfo else it.last().traceData.traceEnded.traceInfo
       }
 
     @JvmStatic
@@ -295,8 +314,13 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
         info
       }
 
-    private fun <T> getForSession(client: ProfilerClient, session: Common.Session, rangeUs: Range,
-                                  eventKind: Common.Event.Kind, mapper: (Transport.EventGroup) -> T): List<T> =
+    private fun <T> getForSession(
+      client: ProfilerClient,
+      session: Common.Session,
+      rangeUs: Range,
+      eventKind: Common.Event.Kind,
+      mapper: (Transport.EventGroup) -> T,
+    ): List<T> =
       GetEventGroupsRequest.newBuilder()
         .setStreamId(session.streamId)
         .setPid(session.pid)
@@ -306,53 +330,60 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
         .build()
         .let { client.transportClient.getEventGroups(it).groupsList.map(mapper) }
 
-
     @JvmStatic
-    fun trackAllocations(profilers: StudioProfilers,
-                         session: Common.Session,
-                         enable: Boolean,
-                         endSession: Boolean,
-                         responseHandler: Consumer<TrackStatus?>?) {
-      val timeNs = profilers.client.transportClient
-        .getCurrentTime(TimeRequest.newBuilder().setStreamId(session.streamId).build())
-        .timestampNs
-      val trackCommand = Commands.Command.newBuilder().apply {
-        streamId = session.streamId
-        pid = session.pid
-        if (enable) {
-          type = Commands.Command.CommandType.START_ALLOC_TRACKING
-          setStartAllocTracking(Memory.StartAllocTracking.newBuilder().setRequestTime(timeNs))
-        }
-        else {
-          type = Commands.Command.CommandType.STOP_ALLOC_TRACKING
-          // To indicate to the STOP_ALLOC_TRACKING command handler to end the current session, we set the session id.
-          // TODO(b/336569520): Remove "Profiler: End session .*" logs once the issue is fixed.
-          logger.info("Profiler: End session " + sessionId.toString() + " track allocations log, if allocation stop tracking requested; " +
-                      "isSessionAlive = " + profilers.sessionsManager.isSessionAlive.toString())
-          if (endSession) {
-            sessionId = session.sessionId
-            logger.info("Profiler: End session " + sessionId + " track allocations log, if end session is true; isSessionAlive = " +
-                        profilers.sessionsManager.isSessionAlive.toString())
+    fun trackAllocations(
+      profilers: StudioProfilers,
+      session: Common.Session,
+      enable: Boolean,
+      endSession: Boolean,
+      responseHandler: Consumer<TrackStatus?>?,
+    ) {
+      val timeNs =
+        profilers.client.transportClient.getCurrentTime(TimeRequest.newBuilder().setStreamId(session.streamId).build()).timestampNs
+      val trackCommand =
+        Commands.Command.newBuilder().apply {
+          streamId = session.streamId
+          pid = session.pid
+          if (enable) {
+            type = Commands.Command.CommandType.START_ALLOC_TRACKING
+            setStartAllocTracking(Memory.StartAllocTracking.newBuilder().setRequestTime(timeNs))
+          } else {
+            type = Commands.Command.CommandType.STOP_ALLOC_TRACKING
+            // To indicate to the STOP_ALLOC_TRACKING command handler to end the current session, we set the session id.
+            // TODO(b/336569520): Remove "Profiler: End session .*" logs once the issue is fixed.
+            logger.info(
+              "Profiler: End session " +
+                sessionId.toString() +
+                " track allocations log, if allocation stop tracking requested; " +
+                "isSessionAlive = " +
+                profilers.sessionsManager.isSessionAlive.toString()
+            )
+            if (endSession) {
+              sessionId = session.sessionId
+              logger.info(
+                "Profiler: End session " +
+                  sessionId +
+                  " track allocations log, if end session is true; isSessionAlive = " +
+                  profilers.sessionsManager.isSessionAlive.toString()
+              )
+            }
+            if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled && endSession) {
+              shouldEndSession = true
+            }
+            setStopAllocTracking(Memory.StopAllocTracking.newBuilder().setRequestTime(timeNs))
           }
-          if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled && endSession) {
-             shouldEndSession = true
-          }
-          setStopAllocTracking(Memory.StopAllocTracking.newBuilder().setRequestTime(timeNs))
         }
-      }
-      val response = profilers.client.transportClient.execute(
-        Transport.ExecuteRequest.newBuilder().setCommand(trackCommand).build())
+      val response = profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(trackCommand).build())
       if (responseHandler != null) {
-        val statusListener = TransportEventListener(Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS,
-                                                    profilers.ideServices.mainExecutor,
-                                                    { event -> event.commandId == response.commandId },
-                                                    { session.streamId },
-                                                    { session.pid },
-                                                    callback = { event ->
-                                                      true.also {
-                                                        responseHandler.accept(event.memoryAllocTrackingStatus.status)
-                                                      }
-                                                    })
+        val statusListener =
+          TransportEventListener(
+            Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS,
+            profilers.ideServices.mainExecutor,
+            { event -> event.commandId == response.commandId },
+            { session.streamId },
+            { session.pid },
+            callback = { event -> true.also { responseHandler.accept(event.memoryAllocTrackingStatus.status) } },
+          )
         profilers.transportPoller.registerListener(statusListener)
       }
     }
@@ -360,7 +391,10 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
 }
 
 private fun Transport.EventGroup.last() = getEvents(eventsCount - 1)
-private fun Double.microsToNanos() = when (val us = this.toLong()) {
-  Long.MIN_VALUE, Long.MAX_VALUE -> us
-  else -> TimeUnit.MICROSECONDS.toNanos(us)
-}
+
+private fun Double.microsToNanos() =
+  when (val us = this.toLong()) {
+    Long.MIN_VALUE,
+    Long.MAX_VALUE -> us
+    else -> TimeUnit.MICROSECONDS.toNanos(us)
+  }

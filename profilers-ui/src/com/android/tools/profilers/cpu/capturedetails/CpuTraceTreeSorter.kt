@@ -19,11 +19,13 @@ import com.android.tools.adtui.common.ColumnTreeBuilder.TreeSorter
 import javax.swing.JTree
 import javax.swing.SortOrder
 
-class CpuTraceTreeSorter<T: Aggregate<T>>(private val tree: JTree,
-                                          private val model: CpuTreeModel<T>,
-                                          private var comparator: Comparator<CpuTreeNode<T>>) : TreeSorter<CpuTreeNode<*>> {
+class CpuTraceTreeSorter<T : Aggregate<T>>(
+  private val tree: JTree,
+  private val model: CpuTreeModel<T>,
+  private var comparator: Comparator<CpuTreeNode<T>>,
+) : TreeSorter<CpuTreeNode<*>> {
   init {
-    sort(comparator as Comparator<CpuTreeNode<*>>, SortOrder.UNSORTED) //SortOrder Parameter is not used.
+    sort(comparator as Comparator<CpuTreeNode<*>>, SortOrder.UNSORTED) // SortOrder Parameter is not used.
     tree.invalidate()
   }
 

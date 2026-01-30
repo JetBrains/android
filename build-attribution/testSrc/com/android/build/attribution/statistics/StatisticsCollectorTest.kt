@@ -28,8 +28,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class StatisticsCollectorTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   private lateinit var previousSettingsState: BuildAnalyzerSettings.State
 
@@ -51,17 +50,22 @@ class StatisticsCollectorTest {
     val statisticsCollector = StatisticsCollector(projectRule.project)
     val singleCollector = SimpleSingleStatisticsCollector()
     val limitSizeHistory = BuildAnalyzerSettings.getInstance(projectRule.project).settingsState.maxNumberOfBuildsStored
-    repeat(limitSizeHistory) {
-      storeBuildAnalyzerResultData(projectRule.project).get()
-    }
+    repeat(limitSizeHistory) { storeBuildAnalyzerResultData(projectRule.project).get() }
     statisticsCollector.collectStatistics(singleCollector)
-    Truth.assertThat(singleCollector.resultsIds).isEqualTo(
-      BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildDescriptors().toList().sortedBy { it.buildFinishedTimestamp }.map { it.buildSessionID })
+    Truth.assertThat(singleCollector.resultsIds)
+      .isEqualTo(
+        BuildAnalyzerStorageManager.getInstance(projectRule.project)
+          .getListOfHistoricBuildDescriptors()
+          .toList()
+          .sortedBy { it.buildFinishedTimestamp }
+          .map { it.buildSessionID }
+      )
   }
 }
 
 class SimpleSingleStatisticsCollector : SingleStatisticsCollector() {
   val resultsIds = mutableListOf<String>()
+
   override fun accept(t: HistoricBuildAnalysisResults) {
     resultsIds.add(t.buildSessionID)
   }

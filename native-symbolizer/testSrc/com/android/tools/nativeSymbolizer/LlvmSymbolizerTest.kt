@@ -18,12 +18,11 @@ package com.android.tools.nativeSymbolizer
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
+import java.io.File
+import java.io.IOException
 import org.junit.Assert
 import org.junit.Assume
 import org.junit.Test
-import java.io.File
-import java.io.IOException
-
 
 class LlvmSymbolizerTest {
 
@@ -31,8 +30,7 @@ class LlvmSymbolizerTest {
   val architectures = listOf("arm", "arm64", "x86", "x86_64")
 
   private val libFileName = File("libnative-lib.so")
-  private val modulePath = File("/data/app/com.someapp.name-abcd09876abds==/lib/arm64/",
-                                libFileName.name)
+  private val modulePath = File("/data/app/com.someapp.name-abcd09876abds==/lib/arm64/", libFileName.name)
 
   @Test
   fun testLlvmSymbolizerFound() {
@@ -57,8 +55,7 @@ class LlvmSymbolizerTest {
         val symbol = symbolizer.symbolize(arch, modulePath, offsetWithinFunction)!!
         Assert.assertNotNull(symbol)
         Assert.assertEquals(name, symbol.name)
-        Assert.assertEquals(sanitizeFilePathForComparison(sourceFile),
-                            sanitizeFilePathForComparison(symbol.sourceFile))
+        Assert.assertEquals(sanitizeFilePathForComparison(sourceFile), sanitizeFilePathForComparison(symbol.sourceFile))
         Assert.assertTrue(symbol.lineNumber >= lineNumber)
       }
     }
@@ -88,8 +85,7 @@ class LlvmSymbolizerTest {
       val symbol = symbolizer.symbolize(arch, modulePath, offsetWithinFunction)!!
       Assert.assertNotNull(symbol)
       Assert.assertEquals(name, symbol.name)
-      Assert.assertEquals(sanitizeFilePathForComparison(sourceFile),
-                          sanitizeFilePathForComparison(symbol.sourceFile))
+      Assert.assertEquals(sanitizeFilePathForComparison(sourceFile), sanitizeFilePathForComparison(symbol.sourceFile))
       Assert.assertTrue(symbol.lineNumber >= lineNumber)
     }
   }
@@ -116,8 +112,7 @@ class LlvmSymbolizerTest {
       val symbol = symbolizer.symbolize(arch, modulePath, offsetWithinFunction)!!
       Assert.assertNotNull(symbol)
       Assert.assertEquals(name, symbol.name)
-      Assert.assertEquals(sanitizeFilePathForComparison(sourceFile),
-                          sanitizeFilePathForComparison(symbol.sourceFile))
+      Assert.assertEquals(sanitizeFilePathForComparison(sourceFile), sanitizeFilePathForComparison(symbol.sourceFile))
       Assert.assertTrue(symbol.lineNumber >= lineNumber)
     }
   }
@@ -190,7 +185,7 @@ class LlvmSymbolizerTest {
   }
 
   /** Converts a file path relative to the test directory to an absolute file path. */
-  private fun getTestPath(vararg part:String): File {
+  private fun getTestPath(vararg part: String): File {
     var testDataDir = resolveWorkspacePath("tools/adt/idea/native-symbolizer/testData/bin/")
 
     for (p in part) {
@@ -201,9 +196,8 @@ class LlvmSymbolizerTest {
   }
 
   /**
-   * Converts platform-specific path separators to a single common separator, making path
-   * comparisons easier. This function is ONLY for comparing two paths and should be applied to both
-   * values in the comparison.
+   * Converts platform-specific path separators to a single common separator, making path comparisons easier. This function is ONLY for
+   * comparing two paths and should be applied to both values in the comparison.
    */
   private fun sanitizeFilePathForComparison(path: String): String {
     return File(path).normalize().absolutePath.replace('\\', '/')

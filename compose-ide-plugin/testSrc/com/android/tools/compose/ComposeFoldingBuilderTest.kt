@@ -30,9 +30,7 @@ import org.junit.Test
 class ComposeFoldingBuilderTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  private val myFixture: CodeInsightTestFixtureImpl by lazy {
-    projectRule.fixture as CodeInsightTestFixtureImpl
-  }
+  private val myFixture: CodeInsightTestFixtureImpl by lazy { projectRule.fixture as CodeInsightTestFixtureImpl }
 
   @Before
   fun setUp() {
@@ -84,18 +82,18 @@ class ComposeFoldingBuilderTest {
     assertThat(res)
       .isEqualTo(
         """
-      package com.example
+        package com.example
 
-      import <fold text='...'>androidx.compose.runtime.Composable
-      import androidx.compose.ui.Modifier</fold>
+        import <fold text='...'>androidx.compose.runtime.Composable
+        import androidx.compose.ui.Modifier</fold>
 
-      @Composable
-      fun HomeScreen() <fold text='{...}'>{
-        val m = <fold text='Modifier.(...)'>Modifier
-          .adjust()
-          .adjust()</fold>
-      }</fold>
-    """
+        @Composable
+        fun HomeScreen() <fold text='{...}'>{
+          val m = <fold text='Modifier.(...)'>Modifier
+            .adjust()
+            .adjust()</fold>
+        }</fold>
+        """
           .trimIndent()
       )
   }

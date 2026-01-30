@@ -25,8 +25,7 @@ import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 
 @OptIn(ExperimentalJewelApi::class)
-class LeakCanaryTaskView(profilersView: StudioProfilersView,
-                         model: LeakCanaryModel) : StageView<LeakCanaryModel>(profilersView, model) {
+class LeakCanaryTaskView(profilersView: StudioProfilersView, model: LeakCanaryModel) : StageView<LeakCanaryModel>(profilersView, model) {
   init {
     enableNewSwingCompositing()
 
@@ -36,5 +35,6 @@ class LeakCanaryTaskView(profilersView: StudioProfilersView,
   }
 
   override fun getToolbar() = JPanel()
+
   override fun isToolbarVisible() = false
 }

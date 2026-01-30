@@ -24,7 +24,6 @@ import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
-import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.CompletableFuture
@@ -35,47 +34,39 @@ import java.util.function.Function
 import java.util.function.Supplier
 
 interface IdeProfilerServices {
-  /**
-   * Executor to run the tasks that should get back to the main thread.
-   */
+  /** Executor to run the tasks that should get back to the main thread. */
   val mainExecutor: Executor
 
-  /**
-   * Executor to run the tasks that should run in a thread from the pool.
-   */
+  /** Executor to run the tasks that should run in a thread from the pool. */
   val poolExecutor: Executor
 
-  /**
-   * Compute expensive intermediate value on "pool", then resume it on "main"
-   */
+  /** Compute expensive intermediate value on "pool", then resume it on "main" */
   fun <R> runAsync(supplier: Supplier<R>, consumer: Consumer<R>, timeoutMs: Long) {
-    CompletableFuture
-      .supplyAsync(supplier, poolExecutor).orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
-      .whenComplete { result: R , action -> mainExecutor.execute { consumer.accept(result) } }
+    CompletableFuture.supplyAsync(supplier, poolExecutor).orTimeout(timeoutMs, TimeUnit.MILLISECONDS).whenComplete { result: R, action ->
+      mainExecutor.execute { consumer.accept(result) }
+    }
   }
 
   fun <R> runAsync(supplier: Supplier<R>, consumer: Consumer<R>) {
     runAsync(supplier, consumer, Long.MAX_VALUE)
   }
 
-  /**
-   * @return all classes that belong to the current project (excluding dependent libraries).
-   */
+  /** @return all classes that belong to the current project (excluding dependent libraries). */
   val allProjectClasses: Set<String>
 
   /**
    * Saves a file to the file system and have IDE internal state reflect this file addition.
    *
-   * @param file                     File to save to.
+   * @param file File to save to.
    * @param fileOutputStreamConsumer [Consumer] to write the file contents into the supplied [FileOutputStream].
-   * @param postRunnable             A callback for when the system finally finishes writing to and synchronizing the file.
+   * @param postRunnable A callback for when the system finally finishes writing to and synchronizing the file.
    */
   fun saveFile(file: File, fileOutputStreamConsumer: Consumer<FileOutputStream>, postRunnable: Runnable?)
 
   /**
-   * This method ensures the file is recognized by the Virtual File System and
-   * delegates to the [com.intellij.openapi.fileEditor.FileEditorManager] to display it using the appropriate
-   * registered editor (e.g., Unified Profiler).
+   * This method ensures the file is recognized by the Virtual File System and delegates to the
+   * [com.intellij.openapi.fileEditor.FileEditorManager] to display it using the appropriate registered editor (e.g., Unified Profiler).
+   *
    * @param file The physical file on disk to be opened.
    * @return true if the open request was successfully initiated.
    */
@@ -90,47 +81,37 @@ interface IdeProfilerServices {
   /**
    * Returns a service that can navigate to a target code location.
    *
-   *
-   * Implementors of this method should be sure to return the same instance each time, not a new
-   * instance per call.
+   * Implementors of this method should be sure to return the same instance each time, not a new instance per call.
    */
   val codeNavigator: CodeNavigator
 
   /**
    * Returns an opt-in service that can report when certain features were used.
    *
-   *
-   * Implementors of this method should be sure to return the same instance each time, not a new
-   * instance per call.
+   * Implementors of this method should be sure to return the same instance each time, not a new instance per call.
    */
   val featureTracker: FeatureTracker
 
   /**
    * Either enable advanced profiling or present the user with UI to make enabling it easy.
    *
+   * By default, advanced profiling features are not turned on, as they require instrumenting the user's code, which at the very least
+   * requires a rebuild. Moreover, this may even potentially interfere with the user's app logic or slow it down.
    *
-   * By default, advanced profiling features are not turned on, as they require instrumenting the
-   * user's code, which at the very least requires a rebuild. Moreover, this may even potentially
-   * interfere with the user's app logic or slow it down.
-   *
-   *
-   * If this method is called, it means the user has expressed an intention to enable advanced
-   * profiling. It is up to the implementor of this method to help the user accomplish this
-   * request.
+   * If this method is called, it means the user has expressed an intention to enable advanced profiling. It is up to the implementor of
+   * this method to help the user accomplish this request.
    */
   fun enableAdvancedProfiling()
+
   val featureConfig: FeatureConfig
 
   /**
-   * Allows the profiler to cache settings within the current studio session.
-   * e.g. settings are only preserved across profiling sessions within the same studio instance.
+   * Allows the profiler to cache settings within the current studio session. e.g. settings are only preserved across profiling sessions
+   * within the same studio instance.
    */
   val temporaryProfilerPreferences: ProfilerPreferences
 
-  /**
-   * Allows the profiler to cache settings across multiple studio sessions.
-   * e.g. settings are preserved when studio restarts.
-   */
+  /** Allows the profiler to cache settings across multiple studio sessions. e.g. settings are preserved when studio restarts. */
   val persistentProfilerPreferences: ProfilerPreferences
 
   /**
@@ -139,7 +120,7 @@ interface IdeProfilerServices {
    * @param message the message content
    * @param title the title
    * @param yesCallback callback to be run if user clicks "Yes"
-   * @param noCallback  callback to be run if user clicks "No"
+   * @param noCallback callback to be run if user clicks "No"
    */
   fun openYesNoDialog(message: String, title: String, yesCallback: Runnable, noCallback: Runnable)
 
@@ -156,9 +137,9 @@ interface IdeProfilerServices {
   /**
    * Opens a dialog asking the user to select items from the listbox.
    *
-   * @param title                      tile to be provided to the dialog box.
-   * @param message                    optional message to be provided to the user about contents of listbox.
-   * @param options                    options used to populate the listbox. The list should not be empty.
+   * @param title tile to be provided to the dialog box.
+   * @param message optional message to be provided to the user about contents of listbox.
+   * @param options options used to populate the listbox. The list should not be empty.
    * @param listBoxPresentationAdapter adapter that takes in an option and returns a string to be presented to the user.
    * @return The option the user selected. If the user cancels the return value will be null.
    */
@@ -166,94 +147,82 @@ interface IdeProfilerServices {
     title: String,
     message: String?,
     options: List<@JvmSuppressWildcards T>,
-    listBoxPresentationAdapter: Function<T, String>
+    listBoxPresentationAdapter: Function<T, String>,
   ): T?
 
   /**
-   * Returns the profiling configurations saved by the user for a project.
-   * apiLevel is the Android API level for the selected device, so that it return only
-   * the appropriate configurations that are available to run on a particular device.
+   * Returns the profiling configurations saved by the user for a project. apiLevel is the Android API level for the selected device, so
+   * that it return only the appropriate configurations that are available to run on a particular device.
    */
   fun getUserCpuProfilerConfigs(apiLevel: Int): List<ProfilingConfiguration>
 
   /**
-   * Returns the profiling configurations saved by the user for a project in task-based UX.
-   * apiLevel is the Android API level for the selected device, and the apiLevel is used to return only
-   * the appropriate configurations that are available to run on a particular device.
+   * Returns the profiling configurations saved by the user for a project in task-based UX. apiLevel is the Android API level for the
+   * selected device, and the apiLevel is used to return only the appropriate configurations that are available to run on a particular
+   * device.
    */
   fun getTaskCpuProfilerConfigs(apiLevel: Int): List<ProfilingConfiguration>
 
   /**
-   * Returns the default profiling configurations.
-   * apiLevel is the Android API level for the selected device, so that it return only
-   * the appropriate configurations that are available to run on a particular device.
+   * Returns the default profiling configurations. apiLevel is the Android API level for the selected device, so that it return only the
+   * appropriate configurations that are available to run on a particular device.
    */
   fun getDefaultCpuProfilerConfigs(apiLevel: Int): List<ProfilingConfiguration>
 
-  /**
-   * Returns whether the provided task type can be performed on startup.
-   */
+  /** Returns whether the provided task type can be performed on startup. */
   fun isTaskSupportedOnStartup(taskType: ProfilerTaskType): Boolean
 
   /**
-   * Enabled startup profiling and sets the provided task to be performed on startup.
-   * This method assumes this task is supported on startup (isTaskSupportedOnStartup returns true).
+   * Enabled startup profiling and sets the provided task to be performed on startup. This method assumes this task is supported on startup
+   * (isTaskSupportedOnStartup returns true).
    */
   fun enableStartupTask(taskType: ProfilerTaskType, recordingType: TaskHomeTabModel.TaskRecordingType)
 
-  /**
-   * Disables startup profiling and clears the startup profiling configuration.
-   */
+  /** Disables startup profiling and clears the startup profiling configuration. */
   fun clearStartupTaskConfigs()
 
-  /**
-   * Closes the task tab associated with the given [ProfilerTaskType].
-   */
+  /** Closes the task tab associated with the given [ProfilerTaskType]. */
   fun closeTaskTab(taskType: ProfilerTaskType)
 
   /**
-   * Whether a native CPU profiling configuration is preferred over a Java one.
-   * Native configurations can be preferred for native projects, for instance.
+   * Whether a native CPU profiling configuration is preferred over a Java one. Native configurations can be preferred for native projects,
+   * for instance.
    */
   val isNativeProfilingConfigurationPreferred: Boolean
 
-  /**
-   * Get the native allocations memory sampling rate.
-   */
+  /** Get the native allocations memory sampling rate. */
   val nativeAllocationsMemorySamplingRate: Int
 
   /**
-   * Pops up a toast that contains information contained in the notification,
-   * which should particularly draw attention to warning and error messages.
+   * Pops up a toast that contains information contained in the notification, which should particularly draw attention to warning and error
+   * messages.
    */
   fun showNotification(notification: Notification)
 
-  /**
-   * Returns a list of symbol directories for a specific arch type.
-   */
+  /** Returns a list of symbol directories for a specific arch type. */
   val nativeSymbolsDirectories: List<String>
 
   /**
-   * Returns a instance for the [TraceProcessorService] to be used to communicate with the TraceProcessor daemon in order to
-   * parse and query Perfetto traces.
+   * Returns a instance for the [TraceProcessorService] to be used to communicate with the TraceProcessor daemon in order to parse and query
+   * Perfetto traces.
    */
   val traceProcessorService: TraceProcessorService
 
-  /**
-   * If profileableMode is true, performs the ProfileProfileableAction, otherwise performs the ProfileDebuggableAction.
-   */
+  /** If profileableMode is true, performs the ProfileProfileableAction, otherwise performs the ProfileDebuggableAction. */
   fun buildAndLaunchAction(profileableMode: Boolean, device: ProcessListModel.ProfilerDeviceSelection)
 
   /**
-   * Attempts to open a trace file directly if it's already backed by a local file in the EventStreamServer.
-   * This acts as an optimization for imported sessions to avoid duplicating the file from the transport pipeline.
+   * Attempts to open a trace file directly if it's already backed by a local file in the EventStreamServer. This acts as an optimization
+   * for imported sessions to avoid duplicating the file from the transport pipeline.
+   *
    * TODO(b/472667234) Revisit to check if openTrace file should be used
    */
   fun openFileFromEventStream(eventStreamServer: EventStreamServer, byteId: String): Boolean
 
   /**
-   * Returns a hash of the project home location (or other stable unique project identifier).
-   * This is used to create unique directories for storing temporary capture files per project.
+   * Returns a hash of the project home location (or other stable unique project identifier). This is used to create unique directories for
+   * storing temporary capture files per project.
    */
-  val projectHomeHash: String get() = ""
+  val projectHomeHash: String
+    get() = ""
 }

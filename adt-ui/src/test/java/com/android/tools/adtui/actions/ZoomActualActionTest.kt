@@ -35,9 +35,7 @@ import org.mockito.kotlin.whenever
 class ZoomActualActionTest {
   @get:Rule val applicationRule = ApplicationRule()
 
-  val dataContext: DataContext by lazy {
-    SimpleDataContext.getSimpleContext(ZOOMABLE_KEY, zoomable)
-  }
+  val dataContext: DataContext by lazy { SimpleDataContext.getSimpleContext(ZOOMABLE_KEY, zoomable) }
   val zoomable: Zoomable = mock(Zoomable::class.java)
 
   val zoomAction = ZoomActualAction.createInstance()

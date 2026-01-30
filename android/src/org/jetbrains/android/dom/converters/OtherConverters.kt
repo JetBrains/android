@@ -39,21 +39,15 @@ class StyleItemConverter : WrappingConverter() {
 
     val name = attributeName.stringValue.nullize(nullizeSpaces = true) ?: return null
     val reference = ResourceUrl.parseAttrReference(name)?.resolve(psiElement) ?: return null
-    val resourceManager =
-      ModuleResourceManagers.getInstance(facet).getResourceManager(reference.namespace.packageName)
-        ?: return null
-    val attrDefinition =
-      resourceManager.attributeDefinitions?.getAttrDefinition(reference) ?: return null
+    val resourceManager = ModuleResourceManagers.getInstance(facet).getResourceManager(reference.namespace.packageName) ?: return null
+    val attrDefinition = resourceManager.attributeDefinitions?.getAttrDefinition(reference) ?: return null
 
     return AndroidDomUtil.getConverter(attrDefinition)
   }
 }
 
-/**
- * Adapts a given [Converter] to treat any string starting with '@' as a string resource reference.
- */
-class StringResourceAdapterConverter(private val innerConverter: Converter<*>) :
-  WrappingConverter() {
+/** Adapts a given [Converter] to treat any string starting with '@' as a string resource reference. */
+class StringResourceAdapterConverter(private val innerConverter: Converter<*>) : WrappingConverter() {
   override fun getConverter(domElement: GenericDomValue<*>): Converter<*> {
     return if (domElement.rawText?.startsWith('@') == true) {
       ResourceReferenceConverter(ResourceType.STRING, true, true)

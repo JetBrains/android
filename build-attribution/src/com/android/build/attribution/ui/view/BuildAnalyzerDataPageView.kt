@@ -19,14 +19,12 @@ import javax.swing.JPanel
 
 interface BuildAnalyzerDataPageView {
 
-  /**
-   * The panel containing the page's main UI.
-   */
+  /** The panel containing the page's main UI. */
   val component: JPanel
 
   /**
-   * The panel containing the page's additional controls.
-   * Additional controls are added to the top bap of the main view next to the data page selector.
+   * The panel containing the page's additional controls. Additional controls are added to the top bap of the main view next to the data
+   * page selector.
    */
   val additionalControls: JPanel
 }

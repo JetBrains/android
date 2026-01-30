@@ -36,8 +36,7 @@ class TaskHandlerUtilsTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("TaskHandlerUtilsTestChannel", myTransportService)
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("TaskHandlerUtilsTestChannel", myTransportService)
 
   private val myIdeServices = FakeIdeProfilerServices()
   private val myProfilers by lazy { StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer) }
@@ -45,19 +44,15 @@ class TaskHandlerUtilsTest {
   @Before
   fun setup() {
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myProfilers.sessionsManager)
-    taskHandlers.forEach{ (type, handler)  -> myProfilers.addTaskHandler(type, handler) }
+    taskHandlers.forEach { (type, handler) -> myProfilers.addTaskHandler(type, handler) }
   }
 
   @Test
   fun `test executeTaskAction with non-null arg`() {
     var actionExecuted = false
-    val action = {
-      actionExecuted = true
-    }
+    val action = { actionExecuted = true }
     var errorMessage = ""
-    val errorHandler = { it: String ->
-      errorMessage = it
-    }
+    val errorHandler = { it: String -> errorMessage = it }
     TaskHandlerUtils.executeTaskAction(action, errorHandler)
     assertThat(actionExecuted).isTrue()
     assertThat(errorMessage).isEmpty()
@@ -72,9 +67,7 @@ class TaskHandlerUtilsTest {
       actionExecuted = true
     }
     var errorMessage = ""
-    val errorHandler = { it: String ->
-      errorMessage = it
-    }
+    val errorHandler = { it: String -> errorMessage = it }
     TaskHandlerUtils.executeTaskAction(action, errorHandler)
     assertThat(actionExecuted).isFalse()
     assertThat(errorMessage).isEqualTo("java.lang.NullPointerException")
@@ -83,20 +76,19 @@ class TaskHandlerUtilsTest {
   @Test
   fun `test findTaskArtifact where supportsTask is false`() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1, listOf(createCpuCaptureSessionArtifact(myProfilers, selectedSession, 1, 3))),
-    )
+    val sessionIdToSessionItems =
+      mapOf(
+        1L to
+          createSessionItem(myProfilers, selectedSession, 1, listOf(createCpuCaptureSessionArtifact(myProfilers, selectedSession, 1, 3)))
+      )
     val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionIdToSessionItems) { false }
     assertThat(artifact).isNull()
   }
 
   @Test
   fun `test findTaskArtifact when its Live View without artifacts`() {
-    val selectedSession = Common.Session.newBuilder()
-      .setSessionId(1).setEndTimestamp(100)
-      .build()
-    val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1, listOf() ))
+    val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
+    val sessionIdToSessionItems = mapOf(1L to createSessionItem(myProfilers, selectedSession, 1, listOf()))
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Utils.debuggableProcess { pid = 10 }
     myProfilers.sessionsManager.beginSession(device.deviceId, device, process1, Common.ProfilerTaskType.LIVE_VIEW, false)
@@ -107,11 +99,8 @@ class TaskHandlerUtilsTest {
 
   @Test
   fun `test findTaskArtifact when its not Live View without artifacts`() {
-    val selectedSession = Common.Session.newBuilder()
-      .setSessionId(1).setEndTimestamp(100)
-      .build()
-    val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1, listOf() ))
+    val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
+    val sessionIdToSessionItems = mapOf(1L to createSessionItem(myProfilers, selectedSession, 1, listOf()))
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Utils.debuggableProcess { pid = 10 }
     myProfilers.sessionsManager.beginSession(device.deviceId, device, process1, Common.ProfilerTaskType.HEAP_DUMP, false)
@@ -123,9 +112,11 @@ class TaskHandlerUtilsTest {
   @Test
   fun `test findTaskArtifact where valid artifact is present`() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1, listOf(createCpuCaptureSessionArtifact(myProfilers, selectedSession, 1, 3))),
-    )
+    val sessionIdToSessionItems =
+      mapOf(
+        1L to
+          createSessionItem(myProfilers, selectedSession, 1, listOf(createCpuCaptureSessionArtifact(myProfilers, selectedSession, 1, 3)))
+      )
     val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionIdToSessionItems) { true }
     assertThat(artifact).isNotNull()
     assertThat(artifact!!.session.sessionId).isEqualTo(1)
@@ -134,10 +125,19 @@ class TaskHandlerUtilsTest {
   @Test
   fun `test findTaskArtifact where selected session is not in session id to SessionItem mapping`() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      2L to createSessionItem(myProfilers, selectedSession, 2, listOf(
-        createCpuCaptureSessionArtifact(myProfilers, selectedSession, 2, 1), createCpuCaptureSessionArtifact(myProfilers, selectedSession, 2, 2)))
-    )
+    val sessionIdToSessionItems =
+      mapOf(
+        2L to
+          createSessionItem(
+            myProfilers,
+            selectedSession,
+            2,
+            listOf(
+              createCpuCaptureSessionArtifact(myProfilers, selectedSession, 2, 1),
+              createCpuCaptureSessionArtifact(myProfilers, selectedSession, 2, 2),
+            ),
+          )
+      )
     val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionIdToSessionItems) { true }
     assertThat(artifact).isNull()
   }
@@ -145,10 +145,19 @@ class TaskHandlerUtilsTest {
   @Test
   fun `test findTaskArtifact where session item has more than one child artifact`() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1, listOf(
-        createCpuCaptureSessionArtifact(myProfilers, selectedSession, 1, 1), createCpuCaptureSessionArtifact(myProfilers, selectedSession, 1, 2)))
-    )
+    val sessionIdToSessionItems =
+      mapOf(
+        1L to
+          createSessionItem(
+            myProfilers,
+            selectedSession,
+            1,
+            listOf(
+              createCpuCaptureSessionArtifact(myProfilers, selectedSession, 1, 1),
+              createCpuCaptureSessionArtifact(myProfilers, selectedSession, 1, 2),
+            ),
+          )
+      )
     val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionIdToSessionItems) { true }
     assertThat(artifact).isNull()
   }

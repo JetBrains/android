@@ -63,12 +63,14 @@ import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.stream.Stream
 
-open class HeapDumpCaptureObject(private val client: ProfilerClient,
-                                 private val _session: Common.Session,
-                                 private val heapDumpInfo: HeapDumpInfo,
-                                 private val proguardMap: ProguardMap?,
-                                 private val featureTracker: FeatureTracker,
-                                 private val ideProfilerServices: IdeProfilerServices) : CaptureObject {
+open class HeapDumpCaptureObject(
+  private val client: ProfilerClient,
+  private val _session: Common.Session,
+  private val heapDumpInfo: HeapDumpInfo,
+  private val proguardMap: ProguardMap?,
+  private val featureTracker: FeatureTracker,
+  private val ideProfilerServices: IdeProfilerServices,
+) : CaptureObject {
   private val logger = Logger.getInstance(HeapDumpCaptureObject::class.java)
 
   private val _heapSets: MutableMap<Int, HeapSet> = HashMap()
@@ -76,69 +78,78 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   // A load factor of 0.5 is used for performance reasons due to the interaction of two hash tables. See b/372321482 for details.
   private val instanceIndex = Long2ObjectOpenHashMap<InstanceObject>(16, Hash.FAST_LOAD_FACTOR)
 
-  @get:VisibleForTesting
-  val classDb = ClassDb()
+  @get:VisibleForTesting val classDb = ClassDb()
 
-  @Volatile
-  private var hasLoaded = false
+  @Volatile private var hasLoaded = false
 
-  @Volatile
-  private var isLoadingError = false
+  @Volatile private var isLoadingError = false
   var hasNativeAllocations = false
     private set
+
   private val activityFragmentLeakFilter = ActivityFragmentLeakInstanceFilter(classDb)
   private val bitmapDuplicationAnalyzer = BitmapDuplicationAnalyzer()
   private lateinit var bitmapDuplicationFilter: BitmapDuplicationInstanceFilter
-  private var supportedClassTypeFilters = setOf(
-    AllClassTypeFilter,
-    ProjectClassesInstanceFilter(ideProfilerServices),
-    SystemClassesInstanceFilter(ideProfilerServices),
-  )
+  private var supportedClassTypeFilters =
+    setOf(AllClassTypeFilter, ProjectClassesInstanceFilter(ideProfilerServices), SystemClassesInstanceFilter(ideProfilerServices))
   private lateinit var supportedIssueTypeFilters: Set<CaptureObjectInstanceFilter> // To be initialized after bitmap filter
   private var classTypeFilter: CaptureObjectInstanceFilter? = null
   private var issueTypeFilter: CaptureObjectInstanceFilter? = null
 
-  private val executorService = MoreExecutors.listeningDecorator(
-    Executors.newSingleThreadExecutor(ThreadFactoryBuilder().setNameFormat("memory-heapdump-instancefilters").build())
-  )
+  private val executorService =
+    MoreExecutors.listeningDecorator(
+      Executors.newSingleThreadExecutor(ThreadFactoryBuilder().setNameFormat("memory-heapdump-instancefilters").build())
+    )
 
   private val allInstances: Set<InstanceObject>
     get() = HashSet<InstanceObject>(instanceIndex.size).also { instanceIndex.values.forEach(it::add) }
 
   @VisibleForTesting
-  val instanceFilterExecutor get() = executorService
+  val instanceFilterExecutor
+    get() = executorService
 
   override fun getName() = "Heap Dump"
+
   override fun isExportable() = true
+
   override fun getExportableExtension() = "hprof"
+
   override fun saveToFile(outputStream: OutputStream) = saveHeapDumpToFile(client, _session, heapDumpInfo, outputStream, featureTracker)
+
   override fun getHeapSets() = if (hasLoaded) _heapSets.values else emptyList()
+
   override fun getHeapSet(heapId: Int) = _heapSets.getOrDefault(heapId, null)
+
   override fun getInstances(): Stream<InstanceObject> =
     if (hasLoaded) heapSets.find { it is AllHeapSet }!!.instancesStream else Stream.empty()
 
   override fun getStartTimeNs() = heapDumpInfo.startTime
+
   override fun getEndTimeNs() = heapDumpInfo.endTime
+
   override fun getClassDatabase() = classDb
+
   override fun getSession() = _session
 
-  override fun load(queryRange: Range?, queryJoiner: Executor?) = doGetBytesRequest().let { response ->
-    val file = if (response.filePath.isEmpty()) null else File(response.filePath)
+  override fun load(queryRange: Range?, queryJoiner: Executor?) =
+    doGetBytesRequest().let { response ->
+      val file = if (response.filePath.isEmpty()) null else File(response.filePath)
 
-    if (file == null || !file.exists() || file.length() == 0L) {
-      // If any check fails, enter the error state and return false.
-      logger.warn("Heap dump file is missing or empty. Path: ${response.filePath}")
-      false.also { isLoadingError = true }
-    }
-    else {
-      true.also {
-        ideProfilerServices.featureTracker.trackLoading(Loading.Type.HPROF, sizeKb = (file.length() / 1024).toInt(),
-                                                        measure = { instanceIndex.size.toLong() }) {
-          load(InMemoryBuffer(file))
+      if (file == null || !file.exists() || file.length() == 0L) {
+        // If any check fails, enter the error state and return false.
+        logger.warn("Heap dump file is missing or empty. Path: ${response.filePath}")
+        false.also { isLoadingError = true }
+      } else {
+        true.also {
+          ideProfilerServices.featureTracker.trackLoading(
+            Loading.Type.HPROF,
+            sizeKb = (file.length() / 1024).toInt(),
+            measure = { instanceIndex.size.toLong() },
+          ) {
+            load(InMemoryBuffer(file))
+          }
         }
       }
     }
-  }
 
   @VisibleForTesting
   fun load(buffer: InMemoryBuffer) {
@@ -157,16 +168,19 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
     // Iterate creating UI objects for some inspectable in the heap dump:
     // 1. If a class is in the image heap, include it only if it has instances.
     // 2. If a class is not in the image heap, include it always.
-    snapshot.heaps.asSequence().flatMap { it.classes.asSequence() }.forEach { classObj ->
-      classObj.makeEntry()
-      val isInImageHeap = classObj.heap?.name == CaptureObject.IMAGE_HEAP_NAME
-      if ((isInImageHeap && classObj.instanceCount > 0) || !isInImageHeap) {
-        val heapSet = heapSetMappings[classObj.heap]!!
-        // Create an InstanceObject for the ClassObj. The ID must be the real classObj.id
-        // so that findInstanceObject and other lookups work correctly.
-        addInstanceToRightHeap(heapSet, classObj.id, createClassObjectInstance(classObj))
+    snapshot.heaps
+      .asSequence()
+      .flatMap { it.classes.asSequence() }
+      .forEach { classObj ->
+        classObj.makeEntry()
+        val isInImageHeap = classObj.heap?.name == CaptureObject.IMAGE_HEAP_NAME
+        if ((isInImageHeap && classObj.instanceCount > 0) || !isInImageHeap) {
+          val heapSet = heapSetMappings[classObj.heap]!!
+          // Create an InstanceObject for the ClassObj. The ID must be the real classObj.id
+          // so that findInstanceObject and other lookups work correctly.
+          addInstanceToRightHeap(heapSet, classObj.id, createClassObjectInstance(classObj))
+        }
       }
-    }
 
     // Process all other instances (ClassInstance and ArrayInstance).
     heapSetMappings.forEach { (heap, heapSet) ->
@@ -184,11 +198,13 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
     bitmapDuplicationAnalyzer.analyze(allInstances)
     bitmapDuplicationFilter = BitmapDuplicationInstanceFilter(bitmapDuplicationAnalyzer.getDuplicateInstances())
     // Initialize supportedIssueTypeFilters now that bitmapDuplicationFilter is ready
-    supportedIssueTypeFilters = setOf(NoneFilter,
-                                     AllIssuesInstanceFilter(activityFragmentLeakFilter, bitmapDuplicationFilter),
-                                     activityFragmentLeakFilter,
-                                     bitmapDuplicationFilter
-    )
+    supportedIssueTypeFilters =
+      setOf(
+        NoneFilter,
+        AllIssuesInstanceFilter(activityFragmentLeakFilter, bitmapDuplicationFilter),
+        activityFragmentLeakFilter,
+        bitmapDuplicationFilter,
+      )
   }
 
   private fun addInstance(heapSet: HeapSet, id: Long, instObj: InstanceObject) {
@@ -198,7 +214,9 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   }
 
   override fun isDoneLoading() = hasLoaded || isLoadingError
+
   override fun isError() = isLoadingError
+
   override fun unload() {
     executorService.shutdownNow()
   }
@@ -208,9 +226,14 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
     else listOf(LABEL, ALLOCATIONS, SHALLOW_SIZE, RETAINED_SIZE)
 
   override fun getInstanceAttributes() =
-    if (hasNativeAllocations) listOf(
-      InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.NATIVE_SIZE, InstanceAttribute.SHALLOW_SIZE,
-      InstanceAttribute.RETAINED_SIZE)
+    if (hasNativeAllocations)
+      listOf(
+        InstanceAttribute.LABEL,
+        InstanceAttribute.DEPTH,
+        InstanceAttribute.NATIVE_SIZE,
+        InstanceAttribute.SHALLOW_SIZE,
+        InstanceAttribute.RETAINED_SIZE,
+      )
     else listOf(InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.SHALLOW_SIZE, InstanceAttribute.RETAINED_SIZE)
 
   open fun findInstanceObject(instance: Instance) = if (hasLoaded) instanceIndex.get(instance.id) else null
@@ -225,21 +248,26 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   }
 
   /**
-   * Finds an existing [InstanceObject] or creates one on-demand if the reference is a [ClassObj]
-   * that was filtered out during initial loading (e.g. a class on the image heap with no instances).
-   * The new instance is registered in the instance index and added to the correct heap.
+   * Finds an existing [InstanceObject] or creates one on-demand if the reference is a [ClassObj] that was filtered out during initial
+   * loading (e.g. a class on the image heap with no instances). The new instance is registered in the instance index and added to the
+   * correct heap.
    */
   fun getOrCreateInstanceObject(instance: Instance): InstanceObject? {
-    return findInstanceObject(instance) ?: when (instance) {
-      is ClassObj -> createClassObjectInstance(instance, true)
-      else -> null
-    }
+    return findInstanceObject(instance)
+      ?: when (instance) {
+        is ClassObj -> createClassObjectInstance(instance, true)
+        else -> null
+      }
   }
 
   override fun getActivityFragmentLeakFilter() = activityFragmentLeakFilter
+
   override fun getBitmapDuplicationFilter() = bitmapDuplicationFilter
+
   override fun getSupportedClassTypeFilters() = supportedClassTypeFilters
+
   override fun getSupportedIssueTypeFilters() = supportedIssueTypeFilters
+
   override fun getSelectedInstanceFilters(): Set<CaptureObjectInstanceFilter> = setOfNotNull(classTypeFilter, issueTypeFilter)
 
   override fun setClassTypeFilter(filter: CaptureObjectInstanceFilter?, analyzeJoiner: Executor): ListenableFuture<Void?> {
@@ -276,21 +304,21 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
 
   override fun canSafelyLoad(): Boolean {
     val response = doGetBytesRequest()
-    return if (response.filePath.isEmpty()) false
-    else MainMemoryProfilerStage.canSafelyLoadHprof(File(response.filePath).length())
+    return if (response.filePath.isEmpty()) false else MainMemoryProfilerStage.canSafelyLoadHprof(File(response.filePath).length())
   }
 
   override fun isGroupingSupported(grouping: ClassGrouping?): Boolean {
     return when (grouping) {
-      ClassGrouping.ARRANGE_BY_CLASS, ClassGrouping.ARRANGE_BY_PACKAGE -> true
+      ClassGrouping.ARRANGE_BY_CLASS,
+      ClassGrouping.ARRANGE_BY_PACKAGE -> true
       else -> false
     }
   }
 
-  private fun doGetBytesRequest() = client.transportClient.getFile(Transport.BytesRequest.newBuilder()
-                                                                     .setStreamId(_session.streamId)
-                                                                     .setId(heapDumpInfo.startTime.toString())
-                                                                     .build())
+  private fun doGetBytesRequest() =
+    client.transportClient.getFile(
+      Transport.BytesRequest.newBuilder().setStreamId(_session.streamId).setId(heapDumpInfo.startTime.toString()).build()
+    )
 
   private fun ClassObj.makeEntry(name: String = this.className) =
     if (superClassObj != null) classDb.registerClass(id, superClassObj!!.id, name, totalRetainedSize)

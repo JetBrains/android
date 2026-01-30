@@ -32,13 +32,12 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 /**
  * Custom [CompletionWeigher] which moves Composable functions up the completion list.
  *
- * It doesn't give Composable functions "absolute" priority, some weighers are hardcoded to run
- * first: specifically one that puts prefix matches above [LookupElement]s where the match is in the
- * middle of the name. Overriding this behavior would require an extension point in
+ * It doesn't give Composable functions "absolute" priority, some weighers are hardcoded to run first: specifically one that puts prefix
+ * matches above [LookupElement]s where the match is in the middle of the name. Overriding this behavior would require an extension point in
  * [org.jetbrains.kotlin.idea.completion.CompletionSession.createSorter].
  *
- * See [com.intellij.codeInsight.completion.PrioritizedLookupElement] for more information on how
- * ordering of [LookupElement]s works and how to debug it.
+ * See [com.intellij.codeInsight.completion.PrioritizedLookupElement] for more information on how ordering of [LookupElement]s works and how
+ * to debug it.
  */
 class ComposeCompletionWeigher : CompletionWeigher() {
   override fun weigh(element: LookupElement, location: CompletionLocation): Int {
@@ -73,26 +72,16 @@ class ComposeCompletionWeigher : CompletionWeigher() {
   }
 }
 
-/**
- * Set of fully-qualified names of non-Composable functions that should be promoted above standard
- * Composables in a statement.
- */
+/** Set of fully-qualified names of non-Composable functions that should be promoted above standard Composables in a statement. */
 private val PROMOTED_NON_COMPOSABLES_IN_STATEMENTS =
   setOf("androidx.compose.material.MaterialTheme", "androidx.compose.material3.MaterialTheme")
 
-/**
- * Set of fully-qualified names of non-Composable functions that should be promoted in a value
- * argument.
- */
+/** Set of fully-qualified names of non-Composable functions that should be promoted in a value argument. */
 private val PROMOTED_NON_COMPOSABLES_IN_ARGUMENTS =
   setOf("androidx.compose.material.MaterialTheme", "androidx.compose.material3.MaterialTheme")
 
-/**
- * Set of fully-qualified name prefixes of non-Composable functions that should be promoted in a
- * value argument.
- */
-private val PROMOTED_NON_COMPOSABLE_PREFIXES_IN_ARGUMENTS =
-  setOf("androidx.compose.material.icons.")
+/** Set of fully-qualified name prefixes of non-Composable functions that should be promoted in a value argument. */
+private val PROMOTED_NON_COMPOSABLE_PREFIXES_IN_ARGUMENTS = setOf("androidx.compose.material.icons.")
 
 private fun LookupElement.isPromotedInStatement(): Boolean {
   val fqName = (psiElement as? KtNamedDeclaration)?.fqName?.asString()
@@ -111,22 +100,13 @@ private fun LookupElement.isComposableFunction() = psiElement?.isComposableFunct
 /** Checks if the proposed completion would insert a named argument. */
 private fun LookupElement.isNamedArgumentCompletion() = lookupString.endsWith(" =")
 
-/**
- * Checks if this completion is for a statement (where Compose views are usually called) and not
- * part of another expression.
- */
+/** Checks if this completion is for a statement (where Compose views are usually called) and not part of another expression. */
 private fun BaseCompletionParameters.isForStatement() =
-  position is LeafPsiElement &&
-    position.node.elementType == KtTokens.IDENTIFIER &&
-    position.parent?.parent is KtBlockExpression
+  position is LeafPsiElement && position.node.elementType == KtTokens.IDENTIFIER && position.parent?.parent is KtBlockExpression
 
-/**
- * Checks if this completion is for a value argument, where Compose views are usually not called.
- */
+/** Checks if this completion is for a value argument, where Compose views are usually not called. */
 private fun BaseCompletionParameters.isForValueArgument() =
-  position is LeafPsiElement &&
-    position.node.elementType == KtTokens.IDENTIFIER &&
-    position.parentOfType<KtValueArgument>() != null
+  position is LeafPsiElement && position.node.elementType == KtTokens.IDENTIFIER && position.parentOfType<KtValueArgument>() != null
 
 /** Checks if the given completions parameters are in a Kotlin file in a Compose-enabled module. */
 private fun BaseCompletionParameters.isInComposeEnabledModuleAndFile() =

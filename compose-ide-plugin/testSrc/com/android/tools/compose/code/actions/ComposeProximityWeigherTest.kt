@@ -42,14 +42,12 @@ import org.junit.runners.JUnit4
 /**
  * Tests for [ComposeProximityWeigher].
  *
- * Unfortunately it's not possible to validate the order of items in the "Add Imports" list end to
- * end in a unit test, because most of the logic involved is internal in the Kotlin plugin. We can
- * execute the correct intention, but in a unit test it will not pop up a dialog, instead just
- * selecting the first item.
+ * Unfortunately it's not possible to validate the order of items in the "Add Imports" list end to end in a unit test, because most of the
+ * logic involved is internal in the Kotlin plugin. We can execute the correct intention, but in a unit test it will not pop up a dialog,
+ * instead just selecting the first item.
  *
- * This file contains some tests that validate that the Weigher is correctly wired up, by validating
- * that the intention results in an import being added that wouldn't have been used if
- * [ComposeProximityWeigher] isn't running. The remaining tests are more traditional unit tests,
+ * This file contains some tests that validate that the Weigher is correctly wired up, by validating that the intention results in an import
+ * being added that wouldn't have been used if [ComposeProximityWeigher] isn't running. The remaining tests are more traditional unit tests,
  * working directly with [ComposeProximityWeigher] outside the context of the intention.
  */
 @RunWith(JUnit4::class)
@@ -172,17 +170,17 @@ class ComposeProximityWeigherTest {
         "src/com/example/Test.kt",
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import androidx.compose.material.Surface
-      import androidx.compose.runtime.Composable
+        import androidx.compose.material.Surface
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      fun HomeScreen() {
-        Surface(color = Co<caret>lor.White) {
+        @Composable
+        fun HomeScreen() {
+          Surface(color = Co<caret>lor.White) {
+          }
         }
-      }
-      """
+        """
           .trimIndent(),
       )
 
@@ -215,13 +213,13 @@ class ComposeProximityWeigherTest {
         "src/com/example/composable/ComposableFunction.kt",
         // language=kotlin
         """
-      package com.example.composable
+        package com.example.composable
 
-      import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      fun ComposableFunction()
-      """
+        @Composable
+        fun ComposableFunction()
+        """
           .trimIndent(),
         "ComposableFunction",
         KtNamedFunction::class.java,
@@ -232,14 +230,14 @@ class ComposeProximityWeigherTest {
         "src/com/example/composable/DeprecatedComposableFunction.kt",
         // language=kotlin
         """
-      package com.example.composable
+        package com.example.composable
 
-      import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      @Deprecated
-      fun DeprecatedComposableFunction()
-      """
+        @Composable
+        @Deprecated
+        fun DeprecatedComposableFunction()
+        """
           .trimIndent(),
         "ComposableFunction",
         KtNamedFunction::class.java,
@@ -250,10 +248,10 @@ class ComposeProximityWeigherTest {
         "src/com/example/noncomposable/NonComposableFunction.kt",
         // language=kotlin
         """
-      package com.example.noncomposable
+        package com.example.noncomposable
 
-      fun NonComposableFunction()
-      """
+        fun NonComposableFunction()
+        """
           .trimIndent(),
         "NonComposableFunction",
         KtNamedFunction::class.java,
@@ -264,10 +262,10 @@ class ComposeProximityWeigherTest {
         "src/androidx/compose/ui/Modifier.kt",
         // language=kotlin
         """
-      package androidx.compose.ui
+        package androidx.compose.ui
 
-      object Modifier
-      """
+        object Modifier
+        """
           .trimIndent(),
         "Modifier",
         KtObjectDeclaration::class.java,
@@ -278,31 +276,21 @@ class ComposeProximityWeigherTest {
         "src/com/example/Test.kt",
         // language=kotlin
         """
-      package com.example
-      """
+        package com.example
+        """
           .trimIndent(),
       )
 
     val proximityLocation = ProximityLocation(locationFile, fixture.module)
     val sortedList = runReadAction {
-      listOf(
-          nonComposableFunction,
-          deprecatedComposableFunction,
-          composableFunction,
-          manuallyWeightedElement,
-        )
-        .sortedByDescending { element ->
-          ComposeProximityWeigher().weigh(element, proximityLocation)
-        }
+      listOf(nonComposableFunction, deprecatedComposableFunction, composableFunction, manuallyWeightedElement).sortedByDescending { element
+        ->
+        ComposeProximityWeigher().weigh(element, proximityLocation)
+      }
     }
 
     assertThat(sortedList)
-      .containsExactly(
-        manuallyWeightedElement,
-        composableFunction,
-        nonComposableFunction,
-        deprecatedComposableFunction,
-      )
+      .containsExactly(manuallyWeightedElement, composableFunction, nonComposableFunction, deprecatedComposableFunction)
       .inOrder()
   }
 
@@ -314,10 +302,7 @@ class ComposeProximityWeigherTest {
   ): T {
     val psiFile = fixture.addFileToProject(relativePath, fileText)
     return runReadAction {
-      PsiTreeUtil.getParentOfType(
-        psiFile.findElementAt(psiFile.text.indexOf(targetElementText)),
-        targetElementClass,
-      )!!
+      PsiTreeUtil.getParentOfType(psiFile.findElementAt(psiFile.text.indexOf(targetElementText)), targetElementClass)!!
     }
   }
 }

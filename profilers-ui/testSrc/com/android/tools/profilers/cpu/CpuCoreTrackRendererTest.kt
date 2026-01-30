@@ -38,8 +38,7 @@ class CpuCoreTrackRendererTest {
   private val services = FakeIdeProfilerServices()
   private val transportService = FakeTransportService(timer, true)
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuCoreTrackTestChannel", transportService)
+  @get:Rule var grpcChannel = FakeGrpcChannel("CpuCoreTrackTestChannel", transportService)
 
   private lateinit var profilers: StudioProfilers
 
@@ -51,12 +50,13 @@ class CpuCoreTrackRendererTest {
 
   @Test
   fun render() {
-    val coreTrackModel = TrackModel.newBuilder(
-      CpuCoreTrackModel(
-        LazyDataSeries { emptyList<SeriesData<CpuThreadSliceInfo>>() }, Range(), 123),
-      ProfilerTrackRendererType.CPU_CORE,
-      "Foo")
-      .build()
+    val coreTrackModel =
+      TrackModel.newBuilder(
+          CpuCoreTrackModel(LazyDataSeries { emptyList<SeriesData<CpuThreadSliceInfo>>() }, Range(), 123),
+          ProfilerTrackRendererType.CPU_CORE,
+          "Foo",
+        )
+        .build()
     assertThat(coreTrackModel.dataModel.appProcessId).isEqualTo(123)
     val component = CpuCoreTrackRenderer().render(coreTrackModel)
     assertThat(component).isInstanceOf(StateChart::class.java)

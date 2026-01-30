@@ -15,7 +15,5 @@
  */
 package com.android.build.attribution.data
 
-/**
- * Data about the garbage collection that happened during a build.
- */
+/** Data about the garbage collection that happened during a build. */
 data class GarbageCollectionData(val name: String, val collectionTimeMs: Long)

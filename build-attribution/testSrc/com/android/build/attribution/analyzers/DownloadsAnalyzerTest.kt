@@ -46,22 +46,19 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
+import java.net.InetSocketAddress
+import java.util.Base64
+import java.util.concurrent.CopyOnWriteArrayList
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.net.InetSocketAddress
-import java.util.Base64
-import java.util.concurrent.CopyOnWriteArrayList
 
 class DownloadsAnalyzerTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
-
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   private lateinit var server1: HttpServerWrapper
   private lateinit var server2: HttpServerWrapper
@@ -95,22 +92,26 @@ class DownloadsAnalyzerTest {
     addBuildFileContent(preparedProject)
     addBuildSrcFileContent(preparedProject)
 
-    preparedProject.runTest(updateOptions = { it.copy(syncViewEventHandler = { event ->
-      if (event is DownloadsInfoPresentableBuildEvent) {
-        val downloadsInfoExecutionConsole = event.presentationData.executionConsole as DownloadsInfoExecutionConsole
-        Disposer.register(projectRule.testRootDisposable, downloadsInfoExecutionConsole)
-        syncDownloadInfoExecutionConsoles.add(downloadsInfoExecutionConsole)
+    preparedProject.runTest(
+      updateOptions = {
+        it.copy(
+          syncViewEventHandler = { event ->
+            if (event is DownloadsInfoPresentableBuildEvent) {
+              val downloadsInfoExecutionConsole = event.presentationData.executionConsole as DownloadsInfoExecutionConsole
+              Disposer.register(projectRule.testRootDisposable, downloadsInfoExecutionConsole)
+              syncDownloadInfoExecutionConsoles.add(downloadsInfoExecutionConsole)
+            }
+          }
+        )
       }
-    })}) {
+    ) {
       if (!TestUtils.runningFromBazel()) {
-        //TODO (b/240887542): this section seems to be the root cause for the Directory not empty failure.
+        // TODO (b/240887542): this section seems to be the root cause for the Directory not empty failure.
         //      Changing gradle home starts a new daemon and it seems that sometimes it does not stop before test tries to clean this up.
         //      This actually only needed for running tests locally because gradle home is likely not clean in this case.
         //      Let's try like this and see if it indeed helps with the flake.
         invokeAndWaitIfNeeded {
-          ApplicationManager.getApplication().runWriteAction {
-            GradleSettings.getInstance(project).serviceDirectoryPath = gradleHome
-          }
+          ApplicationManager.getApplication().runWriteAction { GradleSettings.getInstance(project).serviceDirectoryPath = gradleHome }
         }
       }
 
@@ -127,16 +128,23 @@ class DownloadsAnalyzerTest {
       val result = results.getDownloadsAnalyzerResult()
 
       val testRepositoryResult = (result as DownloadsAnalyzer.ActiveResult).repositoryResults.map { TestingRepositoryResult(it) }
-      Truth.assertThat(testRepositoryResult).containsExactly(
-        // Only one missed because HEAD request is not reported by gradle currently.
-        TestingRepositoryResult(DownloadsAnalyzer.OtherRepository(server1.authority), 0, 1, 1),
-        TestingRepositoryResult(DownloadsAnalyzer.OtherRepository(server2.authority), 4, 0, 0),
-      )
+      Truth.assertThat(testRepositoryResult)
+        .containsExactly(
+          // Only one missed because HEAD request is not reported by gradle currently.
+          TestingRepositoryResult(DownloadsAnalyzer.OtherRepository(server1.authority), 0, 1, 1),
+          TestingRepositoryResult(DownloadsAnalyzer.OtherRepository(server2.authority), 4, 0, 0),
+        )
     }
   }
 
   private fun verifyDownloadsInformationOnSyncOutput() {
-    println(HttpServerWrapper.detectedHttpRequests.joinToString(separator = "\n", prefix = "==All Detected requests to local servers on Sync:\n", postfix = "\n===="))
+    println(
+      HttpServerWrapper.detectedHttpRequests.joinToString(
+        separator = "\n",
+        prefix = "==All Detected requests to local servers on Sync:\n",
+        postfix = "\n====",
+      )
+    )
     // Verify interaction with server was as expected.
     // Sometimes requests can change the order so compare without order.
     // There will be many failed requests for all dependencies, but we should check that expected ones are here.
@@ -146,22 +154,29 @@ class DownloadsAnalyzerTest {
     //  - platform model builder requests only sources by default for buildscript thus we should see only sources for D.
     // Duplicate request with error code for source is expected for `D`. That's because with IntelliJ 2025.2 the ArtifactView API
     // is used to resolve auxiliary dependencies by default causing IJPL-199548 issue
-    Truth.assertThat(HttpServerWrapper.detectedHttpRequests.filter { it.contains("/example/") }).containsExactlyElementsIn("""
-      Server1: GET on /example/C/1.0/C-1.0.pom - return error 404
-      Server1: HEAD on /example/C/1.0/C-1.0.jar - return error 404
-      Server2: GET on /example/C/1.0/C-1.0.pom - OK
-      Server2: GET on /example/C/1.0/C-1.0.jar - OK
-      Server2: GET on /example/D/1.0/D-1.0.pom - OK
-      Server2: GET on /example/D/1.0/D-1.0.jar - OK
-      Server2: HEAD on /example/C/1.0/C-1.0-sources.jar - return error 404
-      Server2: HEAD on /example/C/1.0/C-1.0-javadoc.jar - return error 404
-      Server2: HEAD on /example/D/1.0/D-1.0-sources.jar - return error 404
-      Server2: HEAD on /example/D/1.0/D-1.0-sources.jar - return error 404
-    """.trimIndent().split("\n"))
+    Truth.assertThat(HttpServerWrapper.detectedHttpRequests.filter { it.contains("/example/") })
+      .containsExactlyElementsIn(
+        """
+        Server1: GET on /example/C/1.0/C-1.0.pom - return error 404
+        Server1: HEAD on /example/C/1.0/C-1.0.jar - return error 404
+        Server2: GET on /example/C/1.0/C-1.0.pom - OK
+        Server2: GET on /example/C/1.0/C-1.0.jar - OK
+        Server2: GET on /example/D/1.0/D-1.0.pom - OK
+        Server2: GET on /example/D/1.0/D-1.0.jar - OK
+        Server2: HEAD on /example/C/1.0/C-1.0-sources.jar - return error 404
+        Server2: HEAD on /example/C/1.0/C-1.0-javadoc.jar - return error 404
+        Server2: HEAD on /example/D/1.0/D-1.0-sources.jar - return error 404
+        Server2: HEAD on /example/D/1.0/D-1.0-sources.jar - return error 404
+        """
+          .trimIndent()
+          .split("\n")
+      )
 
     // Verify metrics sent on Sync
-    val syncSetupStartedEvent = tracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_SETUP_STARTED }.studioEvent.gradleSyncStats
-    val syncEndedEvent = tracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED }.studioEvent.gradleSyncStats
+    val syncSetupStartedEvent =
+      tracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_SETUP_STARTED }.studioEvent.gradleSyncStats
+    val syncEndedEvent =
+      tracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED }.studioEvent.gradleSyncStats
     // In case of any failures with metrics check below consult with the content printed from here.
     println("==GRADLE_SYNC_SETUP_STARTED content:")
     println(syncSetupStartedEvent.toString())
@@ -169,18 +184,20 @@ class DownloadsAnalyzerTest {
     println(syncEndedEvent.toString())
     // There are requests to 3 repos, Server1 & Server2 defined below and 'repo.gradle.org'
     Truth.assertThat(syncSetupStartedEvent.downloadsData.repositoriesList).hasSize(3)
-    Truth.assertThat(syncSetupStartedEvent.downloadsData.repositoriesList.filter {
-      // Looking for content expected for Server2
-      it.successRequestsCount == 4 &&
-      it.missedRequestsCount == 3 &&
-      it.failedRequestsCount == 0
-    }).hasSize(1)
-    Truth.assertThat(syncSetupStartedEvent.downloadsData.repositoriesList.filter {
-      // Looking for content expected for Server1
-      it.successRequestsCount == 0 &&
-      it.missedRequestsCount == 4 &&
-      it.failedRequestsCount == 0
-    }).hasSize(1)
+    Truth.assertThat(
+        syncSetupStartedEvent.downloadsData.repositoriesList.filter {
+          // Looking for content expected for Server2
+          it.successRequestsCount == 4 && it.missedRequestsCount == 3 && it.failedRequestsCount == 0
+        }
+      )
+      .hasSize(1)
+    Truth.assertThat(
+        syncSetupStartedEvent.downloadsData.repositoriesList.filter {
+          // Looking for content expected for Server1
+          it.successRequestsCount == 0 && it.missedRequestsCount == 4 && it.failedRequestsCount == 0
+        }
+      )
+      .hasSize(1)
     Truth.assertThat(syncSetupStartedEvent.downloadsData).isEqualTo(syncEndedEvent.downloadsData)
 
     runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
@@ -195,15 +212,19 @@ class DownloadsAnalyzerTest {
     // Check all requests in the model are in finished state.
     Truth.assertThat(shownItems.filterNot { it.completed }).isEmpty()
 
-    //Note: Head requests are not reported on Tooling API currently. (See https://github.com/gradle/gradle/issues/20851)
+    // Note: Head requests are not reported on Tooling API currently. (See https://github.com/gradle/gradle/issues/20851)
     Truth.assertThat(shownItems.filter { it.requestKey.url.contains("/example/") }.map { it.toTestString() })
-      .containsExactlyElementsIn("""
+      .containsExactlyElementsIn(
+        """
         ${server1.url}/example/C/1.0/C-1.0.pom - Failed
         ${server2.url}/example/C/1.0/C-1.0.pom - OK
         ${server2.url}/example/C/1.0/C-1.0.jar - OK
         ${server2.url}/example/D/1.0/D-1.0.pom - OK
         ${server2.url}/example/D/1.0/D-1.0.jar - OK
-      """.trimIndent().split("\n"))
+      """
+          .trimIndent()
+          .split("\n")
+      )
   }
 
   private fun TestContext.runSecondSyncAndVerifyNoStaleDataIsPresent() {
@@ -214,55 +235,75 @@ class DownloadsAnalyzerTest {
   }
 
   private fun TestContext.invokeBuild() {
-    val invocationResult = project.buildAndWait(
-      eventHandler = { event ->
-        if (event is DownloadsInfoPresentableBuildEvent) {
-          val downloadsInfoExecutionConsole = event.presentationData.executionConsole as DownloadsInfoExecutionConsole
-          Disposer.register(projectRule.testRootDisposable, downloadsInfoExecutionConsole)
-          buildDownloadInfoExecutionConsoles.add(downloadsInfoExecutionConsole)
+    val invocationResult =
+      project.buildAndWait(
+        eventHandler = { event ->
+          if (event is DownloadsInfoPresentableBuildEvent) {
+            val downloadsInfoExecutionConsole = event.presentationData.executionConsole as DownloadsInfoExecutionConsole
+            Disposer.register(projectRule.testRootDisposable, downloadsInfoExecutionConsole)
+            buildDownloadInfoExecutionConsoles.add(downloadsInfoExecutionConsole)
+          }
         }
+      ) {
+        it.executeTasks(GradleBuildInvoker.Request.builder(project, projectDir, "myTestTask").build())
       }
-    ) {
-      it.executeTasks(GradleBuildInvoker.Request.builder(project, projectDir, "myTestTask").build())
-    }
 
     invocationResult.buildError?.let { throw it }
   }
 
   private fun verifyInformationOnBuildOutput() {
-    println(HttpServerWrapper.detectedHttpRequests.joinToString(separator = "\n", prefix = "==All Detected requests to local servers on Build:\n", postfix = "\n===="))
+    println(
+      HttpServerWrapper.detectedHttpRequests.joinToString(
+        separator = "\n",
+        prefix = "==All Detected requests to local servers on Build:\n",
+        postfix = "\n====",
+      )
+    )
     // Verify interaction with server was as expected.
     // Sometimes requests can change the order so compare without order.
-    Truth.assertThat(HttpServerWrapper.detectedHttpRequests).containsExactlyElementsIn("""
-      Server1: GET on /example/A/1.0/A-1.0.pom - return error 404
-      Server1: HEAD on /example/A/1.0/A-1.0.jar - return error 404
-      Server2: GET on /example/A/1.0/A-1.0.pom - OK
-      Server1: GET on /example/B/1.0/B-1.0.pom - return error 403
-      Server2: GET on /example/B/1.0/B-1.0.pom - OK
-      Server2: GET on /example/A/1.0/A-1.0.jar - OK
-      Server2: GET on /example/B/1.0/B-1.0.jar - OK
-    """.trimIndent().split("\n"))
+    Truth.assertThat(HttpServerWrapper.detectedHttpRequests)
+      .containsExactlyElementsIn(
+        """
+        Server1: GET on /example/A/1.0/A-1.0.pom - return error 404
+        Server1: HEAD on /example/A/1.0/A-1.0.jar - return error 404
+        Server2: GET on /example/A/1.0/A-1.0.pom - OK
+        Server1: GET on /example/B/1.0/B-1.0.pom - return error 403
+        Server2: GET on /example/B/1.0/B-1.0.pom - OK
+        Server2: GET on /example/A/1.0/A-1.0.jar - OK
+        Server2: GET on /example/B/1.0/B-1.0.jar - OK
+        """
+          .trimIndent()
+          .split("\n")
+      )
     Truth.assertThat(buildDownloadInfoExecutionConsoles).hasSize(1)
     val shownItems = buildDownloadInfoExecutionConsoles.single().uiModel.repositoriesTableModel.summaryItem.requests
     println(shownItems.joinToString(separator = "\n"))
     Truth.assertThat(shownItems.filterNot { it.completed }).isEmpty()
-    Truth.assertThat(shownItems.map { it.toTestString() }).containsExactlyElementsIn("""
+    Truth.assertThat(shownItems.map { it.toTestString() })
+      .containsExactlyElementsIn(
+        """
       ${server1.url}/example/A/1.0/A-1.0.pom - Failed
       ${server2.url}/example/A/1.0/A-1.0.pom - OK
       ${server1.url}/example/B/1.0/B-1.0.pom - Failed
       ${server2.url}/example/B/1.0/B-1.0.pom - OK
       ${server2.url}/example/A/1.0/A-1.0.jar - OK
       ${server2.url}/example/B/1.0/B-1.0.jar - OK
-    """.trimIndent().split("\n"))
+    """
+          .trimIndent()
+          .split("\n")
+      )
   }
 
   private fun DownloadRequestItem.toTestString(): String = "${requestKey.url} - ${if (failed) "Failed" else "OK"}"
 
   fun addBuildFileContent(preparedProject: PreparedTestProject) {
     FileUtils.join(preparedProject.root, "app", SdkConstants.FN_BUILD_GRADLE).let { file ->
-      val newContent = file.readText()
-        .plus("\n\n")
-        .plus("""
+      val newContent =
+        file
+          .readText()
+          .plus("\n\n")
+          .plus(
+            """
           repositories {
               maven {
                   url "${server1.url}"
@@ -296,17 +337,21 @@ class DownloadsAnalyzerTest {
                   println "classpath = ${'$'}{configurations.myExtraDependencies.collect { File file -> file.name }}"
               }
           }
-        """.trimIndent()
-        )
+        """
+              .trimIndent()
+          )
       FileUtil.writeToFile(file, newContent)
     }
   }
 
   fun addBuildSrcFileContent(preparedProject: PreparedTestProject) {
     FileUtils.join(preparedProject.root, "buildSrc", SdkConstants.FN_BUILD_GRADLE).let { file ->
-      val newContent = file.readText()
-        .plus("\n\n")
-        .plus("""
+      val newContent =
+        file
+          .readText()
+          .plus("\n\n")
+          .plus(
+            """
           repositories {
               maven {
                   url "${server2.url}"
@@ -321,16 +366,18 @@ class DownloadsAnalyzerTest {
               //Should be requested during sync
               api 'example:D:1.0'
           }
-        """.trimIndent()
-        )
+        """
+              .trimIndent()
+          )
       FileUtil.writeToFile(file, newContent)
     }
   }
 
   fun setupServerFiles() {
-    //Add files to server2. Server1 will return errors (404 for everything and 403 for one for a change).
+    // Add files to server2. Server1 will return errors (404 for everything and 403 for one for a change).
     val emptyJarBytes = Base64.getDecoder().decode("UEsFBgAAAAAAAAAAAAAAAAAAAAAAAA==")
-    val aPomBytes = """
+    val aPomBytes =
+      """
       <?xml version="1.0" encoding="UTF-8"?>
       <project
           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
@@ -349,8 +396,11 @@ class DownloadsAnalyzerTest {
           </dependency>
         </dependencies>
       </project>
-    """.trimIndent().encodeToByteArray()
-    val bPomBytes = """
+      """
+        .trimIndent()
+        .encodeToByteArray()
+    val bPomBytes =
+      """
       <?xml version="1.0" encoding="UTF-8"?>
       <project
           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
@@ -363,8 +413,11 @@ class DownloadsAnalyzerTest {
         <dependencies>
         </dependencies>
       </project>
-    """.trimIndent().encodeToByteArray()
-    val cPomBytes = """
+      """
+        .trimIndent()
+        .encodeToByteArray()
+    val cPomBytes =
+      """
       <?xml version="1.0" encoding="UTF-8"?>
       <project
           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
@@ -377,8 +430,11 @@ class DownloadsAnalyzerTest {
         <dependencies>
         </dependencies>
       </project>
-    """.trimIndent().encodeToByteArray()
-    val dPomBytes = """
+      """
+        .trimIndent()
+        .encodeToByteArray()
+    val dPomBytes =
+      """
       <?xml version="1.0" encoding="UTF-8"?>
       <project
           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
@@ -391,47 +447,17 @@ class DownloadsAnalyzerTest {
         <dependencies>
         </dependencies>
       </project>
-    """.trimIndent().encodeToByteArray()
-    server2.createFileContext(FileRequest(
-      path = "/example/A/1.0/A-1.0.jar",
-      mime = "application/java-archive",
-      bytes = emptyJarBytes
-    ))
-    server2.createFileContext(FileRequest(
-      path = "/example/A/1.0/A-1.0.pom",
-      mime = "application/xml",
-      bytes = aPomBytes
-    ))
-    server2.createFileContext(FileRequest(
-      path = "/example/B/1.0/B-1.0.jar",
-      mime = "application/java-archive",
-      bytes = emptyJarBytes
-    ))
-    server2.createFileContext(FileRequest(
-      path = "/example/B/1.0/B-1.0.pom",
-      mime = "application/xml",
-      bytes = bPomBytes
-    ))
-    server2.createFileContext(FileRequest(
-      path = "/example/C/1.0/C-1.0.jar",
-      mime = "application/java-archive",
-      bytes = emptyJarBytes
-    ))
-    server2.createFileContext(FileRequest(
-      path = "/example/C/1.0/C-1.0.pom",
-      mime = "application/xml",
-      bytes = cPomBytes
-    ))
-    server2.createFileContext(FileRequest(
-      path = "/example/D/1.0/D-1.0.jar",
-      mime = "application/java-archive",
-      bytes = emptyJarBytes
-    ))
-    server2.createFileContext(FileRequest(
-      path = "/example/D/1.0/D-1.0.pom",
-      mime = "application/xml",
-      bytes = dPomBytes
-    ))
+      """
+        .trimIndent()
+        .encodeToByteArray()
+    server2.createFileContext(FileRequest(path = "/example/A/1.0/A-1.0.jar", mime = "application/java-archive", bytes = emptyJarBytes))
+    server2.createFileContext(FileRequest(path = "/example/A/1.0/A-1.0.pom", mime = "application/xml", bytes = aPomBytes))
+    server2.createFileContext(FileRequest(path = "/example/B/1.0/B-1.0.jar", mime = "application/java-archive", bytes = emptyJarBytes))
+    server2.createFileContext(FileRequest(path = "/example/B/1.0/B-1.0.pom", mime = "application/xml", bytes = bPomBytes))
+    server2.createFileContext(FileRequest(path = "/example/C/1.0/C-1.0.jar", mime = "application/java-archive", bytes = emptyJarBytes))
+    server2.createFileContext(FileRequest(path = "/example/C/1.0/C-1.0.pom", mime = "application/xml", bytes = cPomBytes))
+    server2.createFileContext(FileRequest(path = "/example/D/1.0/D-1.0.jar", mime = "application/java-archive", bytes = emptyJarBytes))
+    server2.createFileContext(FileRequest(path = "/example/D/1.0/D-1.0.pom", mime = "application/xml", bytes = dPomBytes))
     server1.createErrorContext("/example/B/1.0/", 403, "Forbidden")
   }
 }
@@ -442,24 +468,14 @@ data class TestingRepositoryResult(
   val failedRequestsCount: Int,
   val missedRequestsCount: Int,
 ) {
-  constructor(realResult: DownloadsAnalyzer.RepositoryResult) : this(
-    realResult.repository,
-    realResult.successRequestsCount,
-    realResult.failedRequestsCount,
-    realResult.missedRequestsCount
-  )
+  constructor(
+    realResult: DownloadsAnalyzer.RepositoryResult
+  ) : this(realResult.repository, realResult.successRequestsCount, realResult.failedRequestsCount, realResult.missedRequestsCount)
 }
 
-class FileRequest(
-  val path: String,
-  val mime: String,
-  val bytes: ByteArray
-)
+class FileRequest(val path: String, val mime: String, val bytes: ByteArray)
 
-class HttpServerWrapper(
-  val name: String,
-  val parentDisposable: Disposable
-) : Disposable {
+class HttpServerWrapper(val name: String, val parentDisposable: Disposable) : Disposable {
   private val LOCALHOST = "127.0.0.1"
 
   val server: HttpServer = HttpServer.create()
@@ -474,32 +490,35 @@ class HttpServerWrapper(
     Disposer.register(parentDisposable, this)
   }
 
-  val authority: String get() = "$LOCALHOST:${server.address.port}"
-  val url: String get() = "http://$authority"
+  val authority: String
+    get() = "$LOCALHOST:${server.address.port}"
+
+  val url: String
+    get() = "http://$authority"
 
   companion object {
     val detectedHttpRequests = mutableListOf<String>()
   }
 
-  fun createFileContext(descriptor: FileRequest) = server.createContext(descriptor.path) { he: HttpExchange ->
-    he.responseHeaders["Content-Type"] = descriptor.mime
-    when (he.requestMethod) {
-      "HEAD" -> {
-        recordRequest(he, "OK")
-        he.sendResponseHeaders(200, -1)
+  fun createFileContext(descriptor: FileRequest) =
+    server.createContext(descriptor.path) { he: HttpExchange ->
+      he.responseHeaders["Content-Type"] = descriptor.mime
+      when (he.requestMethod) {
+        "HEAD" -> {
+          recordRequest(he, "OK")
+          he.sendResponseHeaders(200, -1)
+        }
+        "GET" -> {
+          recordRequest(he, "OK")
+          he.sendResponseHeaders(200, descriptor.bytes.size.toLong())
+          he.responseBody.use { it.write(descriptor.bytes) }
+        }
+        else -> sendError(he, 501, "Unsupported HTTP method")
       }
-      "GET" -> {
-        recordRequest(he, "OK")
-        he.sendResponseHeaders(200, descriptor.bytes.size.toLong())
-        he.responseBody.use { it.write(descriptor.bytes) }
-      }
-      else -> sendError(he, 501, "Unsupported HTTP method")
     }
-  }
 
-  fun createErrorContext(path: String, errorCode: Int, message: String) = server.createContext(path) { he: HttpExchange ->
-    sendError(he, errorCode, message)
-  }
+  fun createErrorContext(path: String, errorCode: Int, message: String) =
+    server.createContext(path) { he: HttpExchange -> sendError(he, errorCode, message) }
 
   private fun sendError(he: HttpExchange, rCode: Int, description: String) {
     recordRequest(he, "return error $rCode")

@@ -36,10 +36,6 @@ import com.intellij.openapi.util.io.toNioPathOrNull
 import com.intellij.ui.classFilter.ClassFilter
 import com.intellij.util.io.Compressor
 import com.intellij.util.io.delete
-import org.jetbrains.kotlin.android.debugger.AndroidDexerImpl
-import org.jetbrains.kotlin.idea.debugger.evaluate.classLoading.AndroidDexer
-import org.jetbrains.kotlin.idea.debugger.test.KotlinDescriptorTestCase
-import org.jetbrains.kotlin.idea.debugger.test.VmAttacher
 import java.lang.ProcessBuilder.Redirect.PIPE
 import java.lang.reflect.Method
 import java.net.URL
@@ -53,6 +49,10 @@ import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.pathString
+import org.jetbrains.kotlin.android.debugger.AndroidDexerImpl
+import org.jetbrains.kotlin.idea.debugger.evaluate.classLoading.AndroidDexer
+import org.jetbrains.kotlin.idea.debugger.test.KotlinDescriptorTestCase
+import org.jetbrains.kotlin.idea.debugger.test.VmAttacher
 
 private const val STUDIO_ROOT_ENV = "INTELLIJ_DEBUGGER_TESTS_STUDIO_ROOT"
 private const val STUDIO_ROOT_PROPERTY = "intellij.debugger.tests.studio.root"
@@ -76,24 +76,25 @@ private val D8_COMPILER by lazy(NONE) { loadD8Compiler() }
 
 /** Private in [FieldVisibilityProvider] */
 @Suppress("UnresolvedPluginConfigReference")
-private val FIELD_VISIBILITY_PROVIDER_EP = ExtensionPointName.create<FieldVisibilityProvider>(
-  "com.intellij.debugger.fieldVisibilityProvider")
+private val FIELD_VISIBILITY_PROVIDER_EP =
+  ExtensionPointName.create<FieldVisibilityProvider>("com.intellij.debugger.fieldVisibilityProvider")
 
 /** Attaches to an ART VM */
 @Suppress("unused")
 internal class ArtAttacher : VmAttacher {
   private lateinit var steppingFilters: Array<ClassFilter>
   private val disposable = Disposer.newDisposable("ArtAttacher")
-  
+
   override fun setUp() {
     steppingFilters = DebuggerSettings.getInstance().steppingFilters
-    DebuggerSettings.getInstance().steppingFilters += arrayOf(
-      ClassFilter("android.*"),
-      ClassFilter("com.android.*"),
-      ClassFilter("androidx.*"),
-      ClassFilter("libcore.*"),
-      ClassFilter("dalvik.*"),
-    )
+    DebuggerSettings.getInstance().steppingFilters +=
+      arrayOf(
+        ClassFilter("android.*"),
+        ClassFilter("com.android.*"),
+        ClassFilter("androidx.*"),
+        ClassFilter("libcore.*"),
+        ClassFilter("dalvik.*"),
+      )
   }
 
   override fun tearDown() {
@@ -104,7 +105,7 @@ internal class ArtAttacher : VmAttacher {
   override fun attachVirtualMachine(
     testCase: KotlinDescriptorTestCase,
     javaParameters: JavaParameters,
-    environment: ExecutionEnvironment
+    environment: ExecutionEnvironment,
   ): DebuggerSession {
     val project = testCase.project
     val application = ApplicationManager.getApplication()
@@ -127,27 +128,22 @@ internal class ArtAttacher : VmAttacher {
     val mainClass = javaParameters.mainClass
     val dexFiles = buildDexFiles(javaParameters.classPath.pathList)
     if (DEX_CACHE == null) {
-      @Suppress("UnstableApiUsage")
-      testCase.testRootDisposable.whenDisposed {
-        dexFiles.forEach { it.delete() }
-      }
+      @Suppress("UnstableApiUsage") testCase.testRootDisposable.whenDisposed { dexFiles.forEach { it.delete() } }
     }
     val command = buildCommandLine(dexFiles, mainClass)
-    val art = ProcessBuilder()
-      .command(command)
-      .redirectOutput(PIPE)
-      .start()
+    val art = ProcessBuilder().command(command).redirectOutput(PIPE).start()
 
-    val port: String = art.inputStream.bufferedReader().use {
-      while (true) {
-        val line = it.readLine() ?: break
-        if (line.startsWith("Listening for transport")) {
-          val port = line.substringAfterLast(" ")
-          return@use port
+    val port: String =
+      art.inputStream.bufferedReader().use {
+        while (true) {
+          val line = it.readLine() ?: break
+          if (line.startsWith("Listening for transport")) {
+            val port = line.substringAfterLast(" ")
+            return@use port
+          }
         }
+        throw IllegalStateException("Failed to read listening port from ART")
       }
-      throw IllegalStateException("Failed to read listening port from ART")
-    }
 
     return RemoteConnectionBuilder(false, DebuggerSettings.SOCKET_TRANSPORT, port)
       .checkValidity(true)
@@ -155,9 +151,7 @@ internal class ArtAttacher : VmAttacher {
       .create(javaParameters)
   }
 
-  /**
-   * Builds a DEX file from a list of dependencies
-   */
+  /** Builds a DEX file from a list of dependencies */
   private fun buildDexFiles(deps: List<String>): List<Path> {
     return deps.mapNotNull {
       val path = Path.of(it)
@@ -165,7 +159,6 @@ internal class ArtAttacher : VmAttacher {
         true -> buildDexFromDir(path)
         false -> buildDexFromJar(path)
       }
-
     }
   }
 
@@ -175,9 +168,7 @@ internal class ArtAttacher : VmAttacher {
     }
     val jarFile = Files.createTempFile(null, ".jar")
     try {
-      Compressor.Jar(jarFile).use { jar ->
-        jar.addDirectory("", dir)
-      }
+      Compressor.Jar(jarFile).use { jar -> jar.addDirectory("", dir) }
       return buildDexFromJar(jarFile)
     } finally {
       jarFile.delete()
@@ -188,28 +179,23 @@ internal class ArtAttacher : VmAttacher {
     val fileName = "${jar.generateHash()}-dex.jar"
     return synchronized(this) {
       val cached = DEX_CACHE?.resolve(fileName)
-      val path = when {
-        cached == null -> Files.createTempFile(null, fileName)
-        cached.exists() -> {
-          return@synchronized cached
+      val path =
+        when {
+          cached == null -> Files.createTempFile(null, fileName)
+          cached.exists() -> {
+            return@synchronized cached
+          }
+          else -> cached
         }
-        else -> cached
-      }
       D8_COMPILER.invoke(null, arrayOf("--output", path.pathString, "--min-api", "30", jar.pathString))
       path
     }
   }
 
-  /**
-   * Builds the command line to run the ART JVM
-   */
+  /** Builds the command line to run the ART JVM */
   private fun buildCommandLine(dexFiles: List<Path>, mainClass: String): List<String> {
     val artDir = ROOT.resolve(ART_ROOT)
-    val bootClasspath = listOf(
-      artDir.resolve(LIB_ART),
-      artDir.resolve(OJ),
-      artDir.resolve(ICU4J),
-    ).joinToString(":") { it.pathString }
+    val bootClasspath = listOf(artDir.resolve(LIB_ART), artDir.resolve(OJ), artDir.resolve(ICU4J)).joinToString(":") { it.pathString }
 
     val art = artDir.resolve(ART).pathString
     val jvmti = artDir.resolve(JVMTI).pathString
@@ -231,8 +217,7 @@ private fun getConfig(property: String, env: String): String? {
   return System.getProperty(property) ?: System.getenv(env)
 }
 
-private fun getTestTimeoutMillis() =
-  getConfig(TIMEOUT_MILLIS_PROPERTY, TIMEOUT_MILLIS_ENV)?.toIntOrNull()
+private fun getTestTimeoutMillis() = getConfig(TIMEOUT_MILLIS_PROPERTY, TIMEOUT_MILLIS_ENV)?.toIntOrNull()
 
 private fun getStudioRoot(): Path {
   val path = getConfig(STUDIO_ROOT_PROPERTY, STUDIO_ROOT_ENV) ?: throw IllegalStateException("Studio Root was not provided")

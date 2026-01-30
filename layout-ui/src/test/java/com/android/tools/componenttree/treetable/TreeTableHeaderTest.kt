@@ -35,10 +35,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
-import org.junit.ClassRule
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
 import java.awt.AWTEvent
 import java.awt.AWTKeyStroke
 import java.awt.BorderLayout
@@ -54,6 +50,10 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.table.TableCellRenderer
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
 class TreeTableHeaderTest {
   private val disposableRule = DisposableRule()
@@ -62,8 +62,7 @@ class TreeTableHeaderTest {
     @JvmField @ClassRule val rule = ApplicationRule()
   }
 
-  @get:Rule
-  val chain = RuleChain.outerRule(EdtRule()).around(IconLoaderRule()).around(disposableRule)!!
+  @get:Rule val chain = RuleChain.outerRule(EdtRule()).around(IconLoaderRule()).around(disposableRule)!!
 
   private val column1 = ColumnDefinition()
   private val column2 = ColumnDefinition()
@@ -134,14 +133,8 @@ class TreeTableHeaderTest {
     panel.add(icon1, BorderLayout.NORTH)
     panel.add(scrollPane, BorderLayout.CENTER)
     panel.add(icon2, BorderLayout.SOUTH)
-    panel.setFocusTraversalKeys(
-      KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
-      setOf(AWTKeyStroke.getAWTKeyStroke("shift TAB")),
-    )
-    panel.setFocusTraversalKeys(
-      KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
-      setOf(AWTKeyStroke.getAWTKeyStroke("TAB")),
-    )
+    panel.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, setOf(AWTKeyStroke.getAWTKeyStroke("shift TAB")))
+    panel.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, setOf(AWTKeyStroke.getAWTKeyStroke("TAB")))
     val ui = FakeUi(panel, createFakeWindow = true)
     val manager = FakeKeyboardFocusManager(disposableRule.disposable)
     manager.focusOwner = icon1
@@ -258,11 +251,7 @@ class TreeTableHeaderTest {
     }
 
     init {
-      Toolkit.getDefaultToolkit()
-        .addAWTEventListener(
-          listener,
-          AWTEvent.MOUSE_EVENT_MASK or AWTEvent.MOUSE_MOTION_EVENT_MASK,
-        )
+      Toolkit.getDefaultToolkit().addAWTEventListener(listener, AWTEvent.MOUSE_EVENT_MASK or AWTEvent.MOUSE_MOTION_EVENT_MASK)
       Disposer.register(disposable) { Toolkit.getDefaultToolkit().removeAWTEventListener(listener) }
     }
   }

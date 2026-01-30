@@ -36,9 +36,8 @@ import javax.swing.tree.TreePath
 import kotlin.math.max
 
 /**
- * This custom TreeUI handles horizontal scrolling for components within the tree by adjusting the
- * components dimensions created by each node. And ensures components extend to the right edge by
- * managing indentation, a value known to the UI via getRowX.
+ * This custom TreeUI handles horizontal scrolling for components within the tree by adjusting the components dimensions created by each
+ * node. And ensures components extend to the right edge by managing indentation, a value known to the UI via getRowX.
  */
 class ColumnTreeUI(
   private val table: TreeTableImpl,
@@ -105,8 +104,7 @@ class ColumnTreeUI(
 
     if (
       rowBounds == null ||
-        (rowBounds.y + rowBounds.height >= viewPosition.y &&
-          rowBounds.y <= viewPosition.y + scrollPane.viewport.extentSize.height)
+        (rowBounds.y + rowBounds.height >= viewPosition.y && rowBounds.y <= viewPosition.y + scrollPane.viewport.extentSize.height)
     ) {
       // Don't scroll if the selected node is already visible.
       return
@@ -130,26 +128,19 @@ class ColumnTreeUI(
     var selectRowPath = table.tree.getPathForRow(selectedRow)
     var path = selectRowPath
     // Get the furthest visible parent row in the tree viewport.
-    while (
-      isPathVisible(path?.parentPath) &&
-        isSelectedRowAtLeastHalfVisible(path?.parentPath, selectRowPath)
-    ) {
+    while (isPathVisible(path?.parentPath) && isSelectedRowAtLeastHalfVisible(path?.parentPath, selectRowPath)) {
       path = path?.parentPath
     }
     // Scroll horizontally to the furthest visible parent.
     path.let {
       val rec = getPathBounds(table.tree, path)
       if (rec != null) {
-        hScrollBarPanel.getModel().value =
-          max(0, rec.x + tree.treeOffset - max(expandedIcon.iconWidth, collapsedIcon.iconWidth))
+        hScrollBarPanel.getModel().value = max(0, rec.x + tree.treeOffset - max(expandedIcon.iconWidth, collapsedIcon.iconWidth))
       }
     }
   }
 
-  private fun isSelectedRowAtLeastHalfVisible(
-    ancestorPath: TreePath?,
-    selectRowPath: TreePath,
-  ): Boolean {
+  private fun isSelectedRowAtLeastHalfVisible(ancestorPath: TreePath?, selectRowPath: TreePath): Boolean {
     val ancestorBounds = table.tree.getPathBounds(ancestorPath)
     val selectRowBounds = table.tree.getPathBounds(selectRowPath)
     if (ancestorBounds == null || selectRowBounds == null) {
@@ -195,13 +186,7 @@ class ColumnTreeUI(
 
   override fun createNodeDimensions(): AbstractLayoutCache.NodeDimensions {
     return object : NodeDimensionsHandler() {
-      override fun getNodeDimensions(
-        value: Any,
-        row: Int,
-        depth: Int,
-        expanded: Boolean,
-        size: Rectangle,
-      ): Rectangle {
+      override fun getNodeDimensions(value: Any, row: Int, depth: Int, expanded: Boolean, size: Rectangle): Rectangle {
         val dimensions = super.getNodeDimensions(value, row, depth, expanded, size)
         treeNodesWidth[row] = getRowX(row, depth) + dimensions.width
         dimensions.x -= tree.treeOffset
@@ -241,22 +226,13 @@ class ColumnTreeUI(
       return
     }
 
-    val indent =
-      defaultPainter.getControlOffset(control, 2, false) -
-        defaultPainter.getControlOffset(control, 1, false)
+    val indent = defaultPainter.getControlOffset(control, 2, false) - defaultPainter.getControlOffset(control, 1, false)
     val spaceForControlLine = indent - control.width / 2 - JBUIScale.scale(ICON_DEFAULT_PADDING)
     if (depth > 1 && spaceForControlLine > JBUIScale.scale(ICON_DEFAULT_PADDING)) {
       val lineY = bounds.y + bounds.height / 2
-      val leftX =
-        table.tree
-          .getPathBounds(path.parentPath)
-          ?.bounds
-          ?.x
-          ?.minus(control.width / 2)
-          ?.minus(JBUIScale.scale(1))
+      val leftX = table.tree.getPathBounds(path.parentPath)?.bounds?.x?.minus(control.width / 2)?.minus(JBUIScale.scale(1))
       val rightX =
-        if (isLeaf) bounds.x - JBUIScale.scale(ICON_DEFAULT_PADDING)
-        else bounds.x - control.width - JBUIScale.scale(ICON_DEFAULT_PADDING)
+        if (isLeaf) bounds.x - JBUIScale.scale(ICON_DEFAULT_PADDING) else bounds.x - control.width - JBUIScale.scale(ICON_DEFAULT_PADDING)
 
       g.color = hashColor
       if (leftX != null && leftX < rightX) {
@@ -271,12 +247,7 @@ class ColumnTreeUI(
   }
 
   /** Copied from [BasicTreeUI] to control the support lines visibility. */
-  override fun paintVerticalPartOfLeg(
-    g: Graphics,
-    clipBounds: Rectangle,
-    insets: Insets,
-    path: TreePath,
-  ) {
+  override fun paintVerticalPartOfLeg(g: Graphics, clipBounds: Rectangle, insets: Insets, path: TreePath) {
     if (!showSupportLines.invoke()) {
       return
     }
@@ -316,10 +287,7 @@ class ColumnTreeUI(
             val firstChildPath = path.pathByAddingChild(model.getChild(root, 0))
             val firstChildBounds = getPathBounds(tree, firstChildPath)
             if (firstChildBounds != null)
-              top =
-                (insets.top + verticalLegBuffer).coerceAtLeast(
-                  firstChildBounds.y + firstChildBounds.height / 2
-                )
+              top = (insets.top + verticalLegBuffer).coerceAtLeast(firstChildBounds.y + firstChildBounds.height / 2)
           }
         }
       }

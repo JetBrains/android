@@ -25,14 +25,12 @@ import java.util.function.Function
 /**
  * Base custom renderer provider for rendering a given compose `StateObject` type object.
  *
- * [stateObjectClassRenderer] is the actual underlying renderer for the label and the children
- * nodes. Users can select the provided renderer by [rendererName] if applicable.
+ * [stateObjectClassRenderer] is the actual underlying renderer for the label and the children nodes. Users can select the provided renderer
+ * by [rendererName] if applicable.
  *
- * @param fqcn the fully qualified class name of the Compose State Object to apply the underlying
- *   custom renderer to.
+ * @param fqcn the fully qualified class name of the Compose State Object to apply the underlying custom renderer to.
  */
-sealed class ComposeStateObjectRendererProviderBase(private val fqcn: String) :
-  CompoundRendererProvider() {
+sealed class ComposeStateObjectRendererProviderBase(private val fqcn: String) : CompoundRendererProvider() {
   private val rendererName = "Compose State Object"
   private val stateObjectClassRenderer by lazy { ComposeStateObjectClassRenderer(fqcn) }
 
@@ -55,14 +53,11 @@ sealed class ComposeStateObjectRendererProviderBase(private val fqcn: String) :
   }
 }
 
-class SnapshotMutableStateImplRendererProvider :
-  ComposeStateObjectRendererProviderBase("androidx.compose.runtime.SnapshotMutableStateImpl")
+class SnapshotMutableStateImplRendererProvider : ComposeStateObjectRendererProviderBase("androidx.compose.runtime.SnapshotMutableStateImpl")
 
-class DerivedSnapshotStateRendererProvider :
-  ComposeStateObjectRendererProviderBase("androidx.compose.runtime.DerivedSnapshotState")
+class DerivedSnapshotStateRendererProvider : ComposeStateObjectRendererProviderBase("androidx.compose.runtime.DerivedSnapshotState")
 
 class ComposeStateObjectListRendererProvider :
   ComposeStateObjectRendererProviderBase("androidx.compose.runtime.snapshots.SnapshotStateList")
 
-class ComposeStateObjectMapRendererProvider :
-  ComposeStateObjectRendererProviderBase("androidx.compose.runtime.snapshots.SnapshotStateMap")
+class ComposeStateObjectMapRendererProvider : ComposeStateObjectRendererProviderBase("androidx.compose.runtime.snapshots.SnapshotStateMap")

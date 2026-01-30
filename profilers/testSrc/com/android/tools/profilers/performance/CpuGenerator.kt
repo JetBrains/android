@@ -19,7 +19,6 @@ import com.android.tools.datastore.database.CpuTable
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.Trace
-
 import java.sql.Connection
 
 class CpuGenerator(connection: Connection) : DataGenerator(connection) {
@@ -44,7 +43,6 @@ class CpuGenerator(connection: Connection) : DataGenerator(connection) {
       generateTraceInfo(timestamp, properties)
       lastTraceInfoTimestamp = timestamp
     }
-
   }
 
   private fun generateTraceInfo(timestamp: Long, properties: GeneratorProperties) {
@@ -52,56 +50,66 @@ class CpuGenerator(connection: Connection) : DataGenerator(connection) {
     for (i in 0..NUMBER_OF_THREADS) {
       threadIds.add(i)
     }
-    val trace = Trace.TraceInfo.newBuilder()
-      .setFromTimestamp((lastTraceInfoTimestamp + timestamp) / 2)
-      .setToTimestamp(timestamp)
-      .setTraceId(random.nextLong())
-      .setConfiguration(Trace.TraceConfiguration.newBuilder()
-                          .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_UI))
-      .build()
+    val trace =
+      Trace.TraceInfo.newBuilder()
+        .setFromTimestamp((lastTraceInfoTimestamp + timestamp) / 2)
+        .setToTimestamp(timestamp)
+        .setTraceId(random.nextLong())
+        .setConfiguration(Trace.TraceConfiguration.newBuilder().setInitiationType(Trace.TraceInitiationType.INITIATED_BY_UI))
+        .build()
     myTable.insertTraceInfo(properties.session, trace)
   }
 
   private fun generateThreadSnapshots(timestamp: Long, properties: GeneratorProperties) {
     val snapshots = mutableListOf<CpuProfiler.GetThreadsResponse.ThreadSnapshot.Snapshot>()
     for (i in 0..NUMBER_OF_THREADS) {
-      snapshots.add(CpuProfiler.GetThreadsResponse.ThreadSnapshot.Snapshot.newBuilder()
-                      .setName(i.toString())
-                      .setTid(i)
-                      .setState(Cpu.CpuThreadData.State.RUNNING)
-                      .build()
+      snapshots.add(
+        CpuProfiler.GetThreadsResponse.ThreadSnapshot.Snapshot.newBuilder()
+          .setName(i.toString())
+          .setTid(i)
+          .setState(Cpu.CpuThreadData.State.RUNNING)
+          .build()
       )
     }
     myTable.insertSnapshot(properties.session, timestamp, snapshots)
   }
 
   private fun generateUsage(timestamp: Long, properties: GeneratorProperties) {
-    val data = Cpu.CpuUsageData.newBuilder()
-      .addCores(Cpu.CpuCoreUsageData.newBuilder()
-                  .setCore(0)
-                  .setFrequencyInKhz(1024)
-                  .setElapsedTimeInMillisec(timestamp)
-                  .setSystemCpuTimeInMillisec(timestamp))
-      .addCores(Cpu.CpuCoreUsageData.newBuilder()
-                  .setCore(1)
-                  .setFrequencyInKhz(1024)
-                  .setElapsedTimeInMillisec(timestamp)
-                  .setSystemCpuTimeInMillisec(timestamp))
-      .addCores(Cpu.CpuCoreUsageData.newBuilder()
-                  .setCore(2)
-                  .setFrequencyInKhz(1024)
-                  .setElapsedTimeInMillisec(timestamp)
-                  .setSystemCpuTimeInMillisec(timestamp))
-      .addCores(Cpu.CpuCoreUsageData.newBuilder()
-                  .setCore(3)
-                  .setFrequencyInKhz(1024)
-                  .setElapsedTimeInMillisec(timestamp)
-                  .setSystemCpuTimeInMillisec(timestamp))
-      .setEndTimestamp(timestamp)
-      .setElapsedTimeInMillisec(timestamp)
-      .setSystemCpuTimeInMillisec(timestamp)
-      .setAppCpuTimeInMillisec(timestamp)
-      .build()
+    val data =
+      Cpu.CpuUsageData.newBuilder()
+        .addCores(
+          Cpu.CpuCoreUsageData.newBuilder()
+            .setCore(0)
+            .setFrequencyInKhz(1024)
+            .setElapsedTimeInMillisec(timestamp)
+            .setSystemCpuTimeInMillisec(timestamp)
+        )
+        .addCores(
+          Cpu.CpuCoreUsageData.newBuilder()
+            .setCore(1)
+            .setFrequencyInKhz(1024)
+            .setElapsedTimeInMillisec(timestamp)
+            .setSystemCpuTimeInMillisec(timestamp)
+        )
+        .addCores(
+          Cpu.CpuCoreUsageData.newBuilder()
+            .setCore(2)
+            .setFrequencyInKhz(1024)
+            .setElapsedTimeInMillisec(timestamp)
+            .setSystemCpuTimeInMillisec(timestamp)
+        )
+        .addCores(
+          Cpu.CpuCoreUsageData.newBuilder()
+            .setCore(3)
+            .setFrequencyInKhz(1024)
+            .setElapsedTimeInMillisec(timestamp)
+            .setSystemCpuTimeInMillisec(timestamp)
+        )
+        .setEndTimestamp(timestamp)
+        .setElapsedTimeInMillisec(timestamp)
+        .setSystemCpuTimeInMillisec(timestamp)
+        .setAppCpuTimeInMillisec(timestamp)
+        .build()
     myTable.insert(properties.session, data)
   }
 }

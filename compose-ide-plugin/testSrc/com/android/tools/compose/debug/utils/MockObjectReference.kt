@@ -23,10 +23,8 @@ import com.sun.jdi.Type
 import com.sun.jdi.VirtualMachine
 import org.mockito.kotlin.mock
 
-sealed class MockObjectReference(
-  private val referenceType: ReferenceType,
-  private val virtualMachine: VirtualMachine,
-) : ObjectReference by mock() {
+sealed class MockObjectReference(private val referenceType: ReferenceType, private val virtualMachine: VirtualMachine) :
+  ObjectReference by mock() {
   override fun toString(): String {
     return "instance of " + referenceType().name()
   }
@@ -38,29 +36,17 @@ sealed class MockObjectReference(
   override fun referenceType(): ReferenceType = referenceType
 }
 
-class MockClassObjectReference(
-  private val referenceType: ReferenceType,
-  private val virtualMachine: VirtualMachine,
-) : ClassObjectReference, MockObjectReference(referenceType, virtualMachine) {
+class MockClassObjectReference(private val referenceType: ReferenceType, private val virtualMachine: VirtualMachine) :
+  ClassObjectReference, MockObjectReference(referenceType, virtualMachine) {
   override fun reflectedType(): ReferenceType = referenceType
 
   override fun toString(): String {
-    return "instance of " +
-      referenceType().name() +
-      "(reflected class=" +
-      reflectedType().name() +
-      ", " +
-      "id=" +
-      "@fakeUniqueId" +
-      ")"
+    return "instance of " + referenceType().name() + "(reflected class=" + reflectedType().name() + ", " + "id=" + "@fakeUniqueId" + ")"
   }
 }
 
-class MockStringReference(
-  private val value: String,
-  referenceType: ReferenceType,
-  vm: VirtualMachine,
-) : StringReference, MockObjectReference(referenceType, vm) {
+class MockStringReference(private val value: String, referenceType: ReferenceType, vm: VirtualMachine) :
+  StringReference, MockObjectReference(referenceType, vm) {
   override fun value(): String = value
 
   override fun toString(): String = "\"$value\""

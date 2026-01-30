@@ -32,11 +32,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 /** Removes wrappers like Row, Column and Box around widgets. */
 class ComposeUnwrapAction : IntentionAction {
   private val WRAPPERS_FQ_NAMES =
-    setOf(
-      "androidx.compose.foundation.layout.Box",
-      "androidx.compose.foundation.layout.Row",
-      "androidx.compose.foundation.layout.Column",
-    )
+    setOf("androidx.compose.foundation.layout.Box", "androidx.compose.foundation.layout.Row", "androidx.compose.foundation.layout.Column")
 
   override fun startInWriteAction() = true
 
@@ -53,21 +49,16 @@ class ComposeUnwrapAction : IntentionAction {
   }
 
   private fun isCaretAtWrapper(editor: Editor, file: PsiFile): Boolean {
-    val elementAtCaret =
-      file.findElementAt(editor.caretModel.offset)?.parentOfType<KtNameReferenceExpression>()
-        ?: return false
+    val elementAtCaret = file.findElementAt(editor.caretModel.offset)?.parentOfType<KtNameReferenceExpression>() ?: return false
     val name = (elementAtCaret.mainReference.resolve() as? KtNamedFunction)?.fqName?.asString() ?: return false
     return WRAPPERS_FQ_NAMES.contains(name)
   }
 
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
     if (file == null || editor == null) return
-    val wrapper =
-      file.findElementAt(editor.caretModel.offset)?.parentOfType<KtNameReferenceExpression>()
-        ?: return
+    val wrapper = file.findElementAt(editor.caretModel.offset)?.parentOfType<KtNameReferenceExpression>() ?: return
     val outerBlock = wrapper.parent as? KtCallExpression ?: return
-    val lambdaBlock =
-      PsiTreeUtil.findChildOfType(outerBlock, KtBlockExpression::class.java, true) ?: return
+    val lambdaBlock = PsiTreeUtil.findChildOfType(outerBlock, KtBlockExpression::class.java, true) ?: return
     outerBlock.replace(lambdaBlock)
   }
 }

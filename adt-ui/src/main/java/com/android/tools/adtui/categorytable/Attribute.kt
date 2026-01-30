@@ -19,13 +19,12 @@ import java.text.Collator
 import javax.swing.SortOrder
 
 /**
- * An attribute of a [CategoryTable]'s value class that can be extracted, sorted, and possibly
- * grouped by. It provides the non-UI functionality of a [Column].
+ * An attribute of a [CategoryTable]'s value class that can be extracted, sorted, and possibly grouped by. It provides the non-UI
+ * functionality of a [Column].
  *
- * Note that the row type T is expected to be an immutable class with value-based equality, which
- * generally implies that its attribute types should be as well. However, it is possible for the
- * value type to be a stateful object with identity-based equality if its sort order, toString(),
- * and UI presentation (see [Column.updateValue]) are stable.
+ * Note that the row type T is expected to be an immutable class with value-based equality, which generally implies that its attribute types
+ * should be as well. However, it is possible for the value type to be a stateful object with identity-based equality if its sort order,
+ * toString(), and UI presentation (see [Column.updateValue]) are stable.
  *
  * @param T the value type we extract from (the row type of the CategoryTable)
  * @param C the type that is extracted (a column type of the CategoryTable)
@@ -36,18 +35,15 @@ interface Attribute<in T, C> {
   val sorter: Comparator<in C>?
 
   /**
-   * Extracts the attribute value from this row value. This function is expected to consistently
-   * return the same value for a given input and be quick to execute, like a getter for a data
-   * class.
+   * Extracts the attribute value from this row value. This function is expected to consistently return the same value for a given input and
+   * be quick to execute, like a getter for a data class.
    */
   fun value(t: T): C
 
   /**
-   * Indicates if the table should support grouping by this attribute. Currently, groupable columns
-   * must be sortable.
+   * Indicates if the table should support grouping by this attribute. Currently, groupable columns must be sortable.
    *
-   * TODO: Consider adding a grouping function to allow grouping into buckets for high-cardinality
-   *   attributes.
+   * TODO: Consider adding a grouping function to allow grouping into buckets for high-cardinality attributes.
    */
   val isGroupable: Boolean
     get() = sorter != null
@@ -74,9 +70,7 @@ interface Attribute<in T, C> {
   }
 }
 
-/**
- * A Category is a specific value of an attribute. For example, "Form factor: Tablet" or "API: 33".
- */
+/** A Category is a specific value of an attribute. For example, "Form factor: Tablet" or "API: 33". */
 data class Category<T, C>(val attribute: Attribute<T, C>, val value: C) {
   fun matches(t: T) = attribute.value(t) == value
 }
@@ -92,8 +86,7 @@ operator fun <T, C> CategoryList<T>.get(key: Attribute<T, C>): C? = findCategory
 
 /** Return the Category with the given Attribute in this CategoryList, if present. */
 @Suppress("UNCHECKED_CAST") // safe by construction
-fun <T, C> CategoryList<T>.findCategory(key: Attribute<T, C>): Category<T, C>? =
-  find { it.attribute === key } as? Category<T, C>?
+fun <T, C> CategoryList<T>.findCategory(key: Attribute<T, C>): Category<T, C>? = find { it.attribute === key } as? Category<T, C>?
 
 private fun <C> Comparator<C>?.withOrder(sortOrder: SortOrder): Comparator<C>? =
   this?.let {

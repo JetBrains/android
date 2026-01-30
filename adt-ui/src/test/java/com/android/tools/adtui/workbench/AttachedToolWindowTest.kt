@@ -76,14 +76,7 @@ class AttachedToolWindowTest {
   private val edtRule = EdtRule()
 
   @get:Rule
-  val chain =
-    RuleChain(
-      edtRule,
-      projectRule,
-      disposableRule,
-      popupRule,
-      FlagRule(StudioFlags.DETACHABLE_ATTACHED_TOOLWINDOWS, true),
-    )
+  val chain = RuleChain(edtRule, projectRule, disposableRule, popupRule, FlagRule(StudioFlags.DETACHABLE_ATTACHED_TOOLWINDOWS, true))
 
   private val project: Project
     get() = projectRule.project
@@ -100,8 +93,7 @@ class AttachedToolWindowTest {
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication()
-      .replaceService(PropertiesComponent::class.java, propertiesComponent, disposable)
+    ApplicationManager.getApplication().replaceService(PropertiesComponent::class.java, propertiesComponent, disposable)
 
     workBench = WorkBench(project, "DESIGNER", null, disposable, 0)
     toolWindow = AttachedToolWindow(definition, dragListener, workBench, model, false)
@@ -146,48 +138,17 @@ class AttachedToolWindowTest {
     assertThat(toolWindow.isAutoHide).isFalse()
     assertThat(toolWindow.isFloating).isFalse()
 
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.LEFT"
-        )
-      )
-      .isTrue()
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED"
-        )
-      )
-      .isFalse()
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.SPLIT"
-        )
-      )
-      .isFalse()
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.AUTO_HIDE"
-        )
-      )
-      .isFalse()
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING"
-        )
-      )
-      .isFalse()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.LEFT")).isTrue()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED")).isFalse()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.SPLIT")).isFalse()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.AUTO_HIDE")).isFalse()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING")).isFalse()
   }
 
   @Test
   fun testFloatingAndDetachedIgnoredWhenFlagIsOff() {
-    propertiesComponent.setValue(
-      AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING",
-      true,
-    )
-    propertiesComponent.setValue(
-      AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.DETACHED",
-      true,
-    )
+    propertiesComponent.setValue(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING", true)
+    propertiesComponent.setValue(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.DETACHED", true)
     StudioFlags.DETACHABLE_ATTACHED_TOOLWINDOWS.override(false)
 
     val window = toolWindow
@@ -199,86 +160,42 @@ class AttachedToolWindowTest {
   fun testGettersAndSetters() {
     toolWindow.isLeft = false
     assertThat(toolWindow.isLeft).isFalse()
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.LEFT"
-        )
-      )
-      .isFalse()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.LEFT")).isFalse()
 
     toolWindow.isMinimized = true
     assertThat(toolWindow.isMinimized).isTrue()
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED"
-        )
-      )
-      .isTrue()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED")).isTrue()
 
     toolWindow.isSplit = true
     assertThat(toolWindow.isSplit).isTrue()
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.SPLIT"
-        )
-      )
-      .isTrue()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.SPLIT")).isTrue()
 
     toolWindow.isAutoHide = true
     assertThat(toolWindow.isAutoHide).isTrue()
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.AUTO_HIDE"
-        )
-      )
-      .isTrue()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.AUTO_HIDE")).isTrue()
 
     toolWindow.isFloating = true
     assertThat(toolWindow.isFloating).isTrue()
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING"
-        )
-      )
-      .isTrue()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING")).isTrue()
   }
 
   @Test
   fun testDefinitionContext() {
     toolWindow.isMinimized = true
     assertThat(toolWindow.isMinimized).isTrue()
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED"
-        )
-      )
-      .isTrue()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED")).isTrue()
 
     workBench.context = "SPLIT"
     toolWindow.isMinimized = true
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.SPLIT.MINIMIZED"
-        )
-      )
-      .isTrue()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.SPLIT.MINIMIZED")).isTrue()
     // Changes to the MINIMIZED property in the SPLIT context should only affect this context
     toolWindow.isMinimized = false
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.SPLIT.MINIMIZED"
-        )
-      )
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.SPLIT.MINIMIZED"))
       .isFalse()
     assertThat(toolWindow.isMinimized).isFalse()
 
     // MINIMIZED property in the DEFAULT context remains true
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED"
-        )
-      )
-      .isTrue()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED")).isTrue()
     workBench.context = ""
     assertThat(toolWindow.isMinimized).isTrue()
   }
@@ -287,56 +204,31 @@ class AttachedToolWindowTest {
   fun testSetPropertyAndUpdateWillNotifyModelAndChangeContent() {
     toolWindow.setPropertyAndUpdate(AttachedToolWindow.PropertyType.LEFT, false)
     assertThat(toolWindow.isLeft).isFalse()
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.LEFT"
-        )
-      )
-      .isFalse()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.LEFT")).isFalse()
     assertThat(toolWindow.content).isNotNull()
     Mockito.verify(model).update(eq(toolWindow), eq(AttachedToolWindow.PropertyType.LEFT))
 
     toolWindow.setPropertyAndUpdate(AttachedToolWindow.PropertyType.MINIMIZED, true)
     assertThat(toolWindow.isMinimized).isTrue()
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED"
-        )
-      )
-      .isTrue()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED")).isTrue()
     assertThat(toolWindow.content).isNotNull()
     Mockito.verify(model).update(eq(toolWindow), eq(AttachedToolWindow.PropertyType.MINIMIZED))
 
     toolWindow.setPropertyAndUpdate(AttachedToolWindow.PropertyType.SPLIT, true)
     assertThat(toolWindow.isSplit).isTrue()
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.SPLIT"
-        )
-      )
-      .isTrue()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.SPLIT")).isTrue()
     assertThat(toolWindow.content).isNotNull()
     Mockito.verify(model).update(eq(toolWindow), eq(AttachedToolWindow.PropertyType.SPLIT))
 
     toolWindow.setPropertyAndUpdate(AttachedToolWindow.PropertyType.AUTO_HIDE, true)
     assertThat(toolWindow.isAutoHide).isTrue()
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.AUTO_HIDE"
-        )
-      )
-      .isTrue()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.AUTO_HIDE")).isTrue()
     assertThat(toolWindow.content).isNotNull()
     Mockito.verify(model).update(eq(toolWindow), eq(AttachedToolWindow.PropertyType.AUTO_HIDE))
 
     toolWindow.setPropertyAndUpdate(AttachedToolWindow.PropertyType.FLOATING, true)
     assertThat(toolWindow.isFloating).isTrue()
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING"
-        )
-      )
-      .isTrue()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING")).isTrue()
     assertThat(toolWindow.content).isNull()
     Mockito.verify(model).update(eq(toolWindow), eq(AttachedToolWindow.PropertyType.DETACHED))
   }
@@ -348,9 +240,7 @@ class AttachedToolWindowTest {
     // Change the workbench context to ensure we're getting a different property, and reset the tool
     // window
     workBench.context = "testMinimizeDefaultSetInConstructor"
-    val toolWindow = runInEdtAndGet {
-      AttachedToolWindow(definition, dragListener, workBench, model, true)
-    }
+    val toolWindow = runInEdtAndGet { AttachedToolWindow(definition, dragListener, workBench, model, true) }
     assertThat(toolWindow.isMinimized).isTrue()
   }
 
@@ -358,26 +248,11 @@ class AttachedToolWindowTest {
   fun testMinimizeAutoHideIsNotGlobal() {
     toolWindow.isAutoHide = true
     toolWindow.isMinimized = true
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED"
-        )
-      )
-      .isFalse()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED")).isFalse()
     toolWindow.isMinimized = false
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED"
-        )
-      )
-      .isFalse()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED")).isFalse()
     toolWindow.isMinimized = true
-    assertThat(
-        propertiesComponent.getBoolean(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED"
-        )
-      )
-      .isFalse()
+    assertThat(propertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED")).isFalse()
   }
 
   @Test
@@ -440,17 +315,7 @@ class AttachedToolWindowTest {
   fun testDraggedEvent() {
     val button = toolWindow.minimizedButton
     button.setSize(20, 50)
-    val event =
-      MouseEvent(
-        button,
-        MouseEvent.MOUSE_DRAGGED,
-        1,
-        InputEvent.BUTTON1_DOWN_MASK,
-        20,
-        150,
-        1,
-        false,
-      )
+    val event = MouseEvent(button, MouseEvent.MOUSE_DRAGGED, 1, InputEvent.BUTTON1_DOWN_MASK, 20, 150, 1, false)
     fireMouseDragged(button, event)
     val dragEventArgumentCaptor = ArgumentCaptor.forClass(AttachedToolWindow.DragEvent::class.java)
     Mockito.verify(dragListener).buttonDragged(eq(toolWindow), dragEventArgumentCaptor.capture())
@@ -467,29 +332,9 @@ class AttachedToolWindowTest {
   fun testDropEvent() {
     val button = toolWindow.minimizedButton
     button.setSize(20, 50)
-    val event1 =
-      MouseEvent(
-        button,
-        MouseEvent.MOUSE_DRAGGED,
-        1,
-        InputEvent.BUTTON1_DOWN_MASK,
-        20,
-        150,
-        1,
-        false,
-      )
+    val event1 = MouseEvent(button, MouseEvent.MOUSE_DRAGGED, 1, InputEvent.BUTTON1_DOWN_MASK, 20, 150, 1, false)
     fireMouseDragged(button, event1)
-    val event2 =
-      MouseEvent(
-        button,
-        MouseEvent.MOUSE_RELEASED,
-        1,
-        InputEvent.BUTTON1_DOWN_MASK,
-        800,
-        450,
-        1,
-        false,
-      )
+    val event2 = MouseEvent(button, MouseEvent.MOUSE_RELEASED, 1, InputEvent.BUTTON1_DOWN_MASK, 800, 450, 1, false)
     fireMouseReleased(button, event2)
     val dragEventArgumentCaptor = ArgumentCaptor.forClass(AttachedToolWindow.DragEvent::class.java)
     Mockito.verify(dragListener).buttonDropped(eq(toolWindow), dragEventArgumentCaptor.capture())
@@ -507,36 +352,15 @@ class AttachedToolWindowTest {
     toolWindow.isMinimized = false
     val button = toolWindow.minimizedButton
 
-    val event1 =
-      MouseEvent(
-        button,
-        MouseEvent.MOUSE_CLICKED,
-        1,
-        InputEvent.BUTTON1_DOWN_MASK,
-        20,
-        150,
-        1,
-        false,
-      )
+    val event1 = MouseEvent(button, MouseEvent.MOUSE_CLICKED, 1, InputEvent.BUTTON1_DOWN_MASK, 20, 150, 1, false)
     fireMouseClicked(button, event1)
     assertThat(toolWindow.isMinimized).isTrue()
     Mockito.verify(model).update(eq(toolWindow), eq(AttachedToolWindow.PropertyType.MINIMIZED))
 
-    val event2 =
-      MouseEvent(
-        button,
-        MouseEvent.MOUSE_CLICKED,
-        1,
-        InputEvent.BUTTON1_DOWN_MASK,
-        20,
-        150,
-        1,
-        false,
-      )
+    val event2 = MouseEvent(button, MouseEvent.MOUSE_CLICKED, 1, InputEvent.BUTTON1_DOWN_MASK, 20, 150, 1, false)
     fireMouseClicked(button, event2)
     assertThat(toolWindow.isMinimized).isFalse()
-    Mockito.verify(model, Mockito.times(2))
-      .update(eq(toolWindow), eq(AttachedToolWindow.PropertyType.MINIMIZED))
+    Mockito.verify(model, Mockito.times(2)).update(eq(toolWindow), eq(AttachedToolWindow.PropertyType.MINIMIZED))
   }
 
   @Test
@@ -629,8 +453,7 @@ class AttachedToolWindowTest {
     action.actionPerformed(createActionEvent(action))
 
     assertThat(toolWindow.isAutoHide).isFalse()
-    Mockito.verify(model, Mockito.times(2))
-      .update(eq(toolWindow), eq(AttachedToolWindow.PropertyType.AUTO_HIDE))
+    Mockito.verify(model, Mockito.times(2)).update(eq(toolWindow), eq(AttachedToolWindow.PropertyType.AUTO_HIDE))
   }
 
   @Test
@@ -764,8 +587,7 @@ class AttachedToolWindowTest {
     action.actionPerformed(createActionEvent(action))
 
     assertThat(toolWindow.isAutoHide).isFalse()
-    Mockito.verify(model, Mockito.times(2))
-      .update(eq(toolWindow), eq(AttachedToolWindow.PropertyType.AUTO_HIDE))
+    Mockito.verify(model, Mockito.times(2)).update(eq(toolWindow), eq(AttachedToolWindow.PropertyType.AUTO_HIDE))
   }
 
   @Test
@@ -848,11 +670,7 @@ class AttachedToolWindowTest {
     searchField.text = "contex"
     fireFocusLost(searchField.textEditor)
 
-    assertThat(
-        propertiesComponent.getValue(
-          AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.TEXT_SEARCH_HISTORY"
-        )
-      )
+    assertThat(propertiesComponent.getValue(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.TEXT_SEARCH_HISTORY"))
       .isEqualTo("contex\nvisible\neleva")
   }
 
@@ -917,16 +735,7 @@ class AttachedToolWindowTest {
 
     val dispatcher = IdeKeyEventDispatcher(null)
     runInEdtAndWait {
-      dispatcher.dispatchKeyEvent(
-        KeyEvent(
-          component,
-          KeyEvent.KEY_PRESSED,
-          0,
-          ourCommandF.modifiers,
-          ourCommandF.keyCode,
-          'F',
-        )
-      )
+      dispatcher.dispatchKeyEvent(KeyEvent(component, KeyEvent.KEY_PRESSED, 0, ourCommandF.modifiers, ourCommandF.keyCode, 'F'))
     }
     assertThat(toolWindow.searchField!!.isVisible).isTrue()
   }
@@ -947,17 +756,7 @@ class AttachedToolWindowTest {
     get() {
       val button = toolWindow.minimizedButton
 
-      val event1 =
-        MouseEvent(
-          button,
-          MouseEvent.MOUSE_CLICKED,
-          1,
-          InputEvent.META_DOWN_MASK,
-          20,
-          150,
-          1,
-          false,
-        )
+      val event1 = MouseEvent(button, MouseEvent.MOUSE_CLICKED, 1, InputEvent.META_DOWN_MASK, 20, 150, 1, false)
       fireMouseClicked(button, event1)
 
       return popupRule.lastPopupActions
@@ -1059,8 +858,7 @@ class AttachedToolWindowTest {
       return null
     }
 
-    private fun findRequiredButtonByName(container: Container, name: String): ActionButton =
-      findButtonByName(container, name)!!
+    private fun findRequiredButtonByName(container: Container, name: String): ActionButton = findButtonByName(container, name)!!
 
     private fun findButtonByName(container: Container, name: String): ActionButton? {
       for (component in container.components) {

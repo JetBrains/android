@@ -21,8 +21,8 @@ import com.android.tools.adtui.model.StateChartModel
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.model.TooltipModel
 
-class AndroidFrameTimelineTooltip(val timeline: Timeline, val model: AndroidFrameTimelineModel)
-  : TooltipModel, AspectModel<AndroidFrameTimelineTooltip.Aspect>() {
+class AndroidFrameTimelineTooltip(val timeline: Timeline, val model: AndroidFrameTimelineModel) :
+  TooltipModel, AspectModel<AndroidFrameTimelineTooltip.Aspect>() {
 
   var activeEvent: AndroidFrameTimelineEvent? = null
     private set(event) {
@@ -43,9 +43,10 @@ class AndroidFrameTimelineTooltip(val timeline: Timeline, val model: AndroidFram
   }
 
   private fun updateValue() {
-    activeEvent = model.activeSeriesIndex.takeIf(model.series.indices::contains)?.let {
-      model.series[it].getSeriesForRange(timeline.tooltipRange).firstOrNull()?.value
-    }
+    activeEvent =
+      model.activeSeriesIndex.takeIf(model.series.indices::contains)?.let {
+        model.series[it].getSeriesForRange(timeline.tooltipRange).firstOrNull()?.value
+      }
   }
 
   enum class Aspect {

@@ -70,8 +70,8 @@ import org.jetbrains.jewel.ui.util.isDark
 // goes away.
 
 /**
- * A variant of org.jetbrains.jewel.ui.component.Tooltip that lingers briefly after the mouse leaves
- * the content node, and remains present as long as the mouse is on the tooltip.
+ * A variant of org.jetbrains.jewel.ui.component.Tooltip that lingers briefly after the mouse leaves the content node, and remains present
+ * as long as the mouse is on the tooltip.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -101,10 +101,7 @@ fun LingeringTooltip(
                   ambientColor = style.colors.shadow,
                   spotColor = Color.Transparent,
                 )
-                .background(
-                  color = style.colors.background,
-                  shape = RoundedCornerShape(style.metrics.cornerSize),
-                )
+                .background(color = style.colors.background, shape = RoundedCornerShape(style.metrics.cornerSize))
                 .border(
                   width = style.metrics.borderWidth,
                   color = style.colors.border,
@@ -126,15 +123,13 @@ fun LingeringTooltip(
 }
 
 /**
- * Adjusts the link style in tooltips; since tooltips sometimes have a dark background like
- * notifications, we use the theme color for links in notifications.
+ * Adjusts the link style in tooltips; since tooltips sometimes have a dark background like notifications, we use the theme color for links
+ * in notifications.
  */
 @Composable
 private fun tooltipLinkStyle(): LinkStyle {
   val baseStyle = JewelTheme.linkStyle
-  val linkColor =
-    JBColor.namedColor("Notification.linkForeground", JBUI.CurrentTheme.Link.Foreground.ENABLED)
-      .toComposeColor()
+  val linkColor = JBColor.namedColor("Notification.linkForeground", JBUI.CurrentTheme.Link.Foreground.ENABLED).toComposeColor()
   return LinkStyle(
     LinkColors(linkColor, linkColor, linkColor, linkColor, linkColor, linkColor),
     baseStyle.metrics,
@@ -173,9 +168,7 @@ fun LingeringTooltipArea(
   var job: Job? by remember { mutableStateOf(null) }
 
   fun startChangingVisibility(show: Boolean) {
-    if (
-      jobIsShowing == show && job?.isActive == true
-    ) { // Don't restart the job if it's already active
+    if (jobIsShowing == show && job?.isActive == true) { // Don't restart the job if it's already active
       return
     }
     job?.cancel()
@@ -215,18 +208,13 @@ fun LingeringTooltipArea(
             startChangingVisibility(show = true)
           }
         }
-        .onPointerEvent(PointerEventType.Exit) {
-          startHidingIfNotHovered(parentBounds.topLeft + it.position)
-        }
+        .onPointerEvent(PointerEventType.Exit) { startHidingIfNotHovered(parentBounds.topLeft + it.position) }
         .onPointerEvent(PointerEventType.Press, pass = PointerEventPass.Initial) { hide() }
   ) {
     content()
     if (isVisible) {
       @OptIn(ExperimentalFoundationApi::class)
-      (Popup(
-        popupPositionProvider = tooltipPlacement.positionProvider(cursorPosition),
-        onDismissRequest = { isVisible = false },
-      ) {
+      (Popup(popupPositionProvider = tooltipPlacement.positionProvider(cursorPosition), onDismissRequest = { isVisible = false }) {
         var popupPosition by remember { mutableStateOf(Offset.Zero) }
         Box(
           Modifier.onGloballyPositioned {
@@ -243,9 +231,7 @@ fun LingeringTooltipArea(
               it.changes.forEach { e -> e.consume() }
               startHidingIfNotHovered(popupPosition + it.position)
             }
-            .onPointerEvent(PointerEventType.Exit) {
-              startHidingIfNotHovered(popupPosition + it.position)
-            }
+            .onPointerEvent(PointerEventType.Exit) { startHidingIfNotHovered(popupPosition + it.position) }
         ) {
           tooltip()
         }

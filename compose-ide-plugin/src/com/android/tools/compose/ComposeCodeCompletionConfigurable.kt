@@ -32,8 +32,7 @@ class ComposeCodeCompletionConfigurable : BoundConfigurable("Compose") {
     return panel {
       group("Compose") {
         row {
-          checkBox(ComposeBundle.message("compose.enable.insertion.handler"))
-            .bindSelected(settings.state::isComposeInsertHandlerEnabled)
+          checkBox(ComposeBundle.message("compose.enable.insertion.handler")).bindSelected(settings.state::isComposeInsertHandlerEnabled)
         }
       }
     }

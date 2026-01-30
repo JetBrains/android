@@ -19,9 +19,7 @@ import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabMod
 import com.android.tools.profilers.taskbased.tabs.pastrecordings.TaskPastRecordingsTabComponent
 import javax.swing.JPanel
 
-/**
- * The top-level view of the past recordings tab in the Profiler tool window.
- */
+/** The top-level view of the past recordings tab in the Profiler tool window. */
 class StudioProfilersPastRecordingsTabView(pastRecordingsTabModel: PastRecordingsTabModel, ideProfilerComponents: IdeProfilerComponents) {
   val panel: JPanel = TaskPastRecordingsTabComponent(pastRecordingsTabModel, ideProfilerComponents)
 }

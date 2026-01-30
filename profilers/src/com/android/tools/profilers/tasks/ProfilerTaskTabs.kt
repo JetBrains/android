@@ -20,9 +20,7 @@ import com.android.tools.profilers.taskbased.task.OpenProfilerTaskTabListener
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.intellij.openapi.project.Project
 
-/**
- * Helper for opening Profiler tabs.
- */
+/** Helper for opening Profiler tabs. */
 object ProfilerTaskTabs {
 
   /**

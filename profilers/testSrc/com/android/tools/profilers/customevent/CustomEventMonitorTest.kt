@@ -25,123 +25,111 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
-
 
 class CustomEventMonitorTest {
 
-  private val USER_EVENTS = ImmutableList.of<Common.Event>(
-    // A light number of events at 1000ms.
-    Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(1000))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build(),
-    // A medium number of events at 2000ms.
-    Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(2000))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(2001))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(2002))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(2003))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build(),
-    // A heavy number of events at 3000ms.
-    Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3000))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3000))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3001))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3001))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3001))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3002))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(1)
-      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3002))
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder())
-      .setIsEnded(true)
-      .build()
-  )
+  private val USER_EVENTS =
+    ImmutableList.of<Common.Event>(
+      // A light number of events at 1000ms.
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(1000))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+      // A medium number of events at 2000ms.
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(2000))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(2001))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(2002))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(2003))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+      // A heavy number of events at 3000ms.
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3000))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3000))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3001))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3001))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3001))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3002))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(1)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3002))
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder())
+        .setIsEnded(true)
+        .build(),
+    )
   private val timer = FakeTimer()
-  private val transportService = FakeTransportService(timer,true)
+  private val transportService = FakeTransportService(timer, true)
 
   private lateinit var profilers: StudioProfilers
   private lateinit var monitor: CustomEventMonitor
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("CustomEventMonitorTest", transportService)
+  @get:Rule var grpcChannel = FakeGrpcChannel("CustomEventMonitorTest", transportService)
+
   @Before
   fun setUp() {
     val services = FakeIdeProfilerServices()
@@ -169,6 +157,5 @@ class CustomEventMonitorTest {
     assertThat(legend.usageLegend.value).isEqualTo("Medium")
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(legend.usageLegend.value).isEqualTo("Heavy")
-
   }
 }

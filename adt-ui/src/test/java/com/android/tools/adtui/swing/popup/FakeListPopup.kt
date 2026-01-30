@@ -21,8 +21,7 @@ import java.awt.event.InputEvent
 import javax.swing.event.ListSelectionListener
 
 /** A fake implementation of [ListPopup] for tests. */
-class FakeListPopup<T>(private val step: ListPopupStep<T>) :
-  FakeJBPopup<T>(step.values), ListPopup {
+class FakeListPopup<T>(private val step: ListPopupStep<T>) : FakeJBPopup<T>(step.values), ListPopup {
 
   override fun getListStep(): ListPopupStep<T> {
     return step

@@ -20,7 +20,6 @@ import com.android.gmdcodecompletion.ftl.FtlDeviceCatalogService
 import com.android.gmdcodecompletion.fullManagedVirtualDeviceCatalogState
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalogService
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalogState
-import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.testFramework.replaceService
@@ -33,30 +32,22 @@ abstract class GmdCodeCompletionTestBase : AndroidTestCase() {
   override fun tearDown() {
     ApplicationManager.getApplication().runWriteAction {
       val table = ProjectJdkTable.getInstance()
-      table.allJdks.forEach {
-        table.removeJdk(it)
-      }
+      table.allJdks.forEach { table.removeJdk(it) }
     }
     super.tearDown()
   }
 
   protected fun createFakeFtlDeviceCatalogService(): FtlDeviceCatalogService {
     val mockFtlDeviceCatalogService = mock<FtlDeviceCatalogService>()
-    ApplicationManager.getApplication().replaceService(
-      FtlDeviceCatalogService::class.java,
-      mockFtlDeviceCatalogService,
-      myFixture.testRootDisposable
-    )
+    ApplicationManager.getApplication()
+      .replaceService(FtlDeviceCatalogService::class.java, mockFtlDeviceCatalogService, myFixture.testRootDisposable)
     return mockFtlDeviceCatalogService
   }
 
   protected fun createFakeManagedVirtualDeviceCatalogService(): ManagedVirtualDeviceCatalogService {
     val mockManagedVirtualDeviceCatalogService = mock<ManagedVirtualDeviceCatalogService>()
-    ApplicationManager.getApplication().replaceService(
-      ManagedVirtualDeviceCatalogService::class.java,
-      mockManagedVirtualDeviceCatalogService,
-      myFixture.testRootDisposable
-    )
+    ApplicationManager.getApplication()
+      .replaceService(ManagedVirtualDeviceCatalogService::class.java, mockManagedVirtualDeviceCatalogService, myFixture.testRootDisposable)
     return mockManagedVirtualDeviceCatalogService
   }
 
@@ -68,8 +59,10 @@ abstract class GmdCodeCompletionTestBase : AndroidTestCase() {
   }
 
   protected fun managedVirtualDevicePropertyNameCompletionTestHelper(
-    expectedProperties: List<String>, buildFileContent: String,
-    deviceCatalogState: ManagedVirtualDeviceCatalogState = fullManagedVirtualDeviceCatalogState()) {
+    expectedProperties: List<String>,
+    buildFileContent: String,
+    deviceCatalogState: ManagedVirtualDeviceCatalogState = fullManagedVirtualDeviceCatalogState(),
+  ) {
     val mockService = createFakeManagedVirtualDeviceCatalogService()
     whenever(mockService.state).thenReturn(deviceCatalogState)
 

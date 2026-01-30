@@ -45,10 +45,8 @@ class IconTableComponentTest {
     val icon = UIManager.get("Tree.expandedIcon", null) as Icon
     val label = IconLabel(icon)
     val presentationManager = TablePresentationManager()
-    val selected =
-      TablePresentation(foreground = JBColor.BLUE, background = JBColor.RED, rowSelected = true)
-    val unselected =
-      TablePresentation(foreground = JBColor.BLUE, background = JBColor.GREEN, rowSelected = false)
+    val selected = TablePresentation(foreground = JBColor.BLUE, background = JBColor.RED, rowSelected = true)
+    val unselected = TablePresentation(foreground = JBColor.BLUE, background = JBColor.GREEN, rowSelected = false)
 
     assertThat(label.icon).isEqualTo(icon)
 

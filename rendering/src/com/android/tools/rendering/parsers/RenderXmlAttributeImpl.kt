@@ -28,6 +28,5 @@ internal class RenderXmlAttributeImpl(
   override val bindingExprDefault: String?
     get() = null
 
-  override val name: String =
-    if (namespacePrefix.isEmpty()) localName else "$namespacePrefix:$localName"
+  override val name: String = if (namespacePrefix.isEmpty()) localName else "$namespacePrefix:$localName"
 }

@@ -34,27 +34,23 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.tree.TreePathUtil
+import java.awt.Component
+import java.awt.Dimension
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import java.awt.Component
-import java.awt.Dimension
 
 class TasksPageViewTest {
-  @get:Rule
-  val applicationRule: ApplicationRule = ApplicationRule()
+  @get:Rule val applicationRule: ApplicationRule = ApplicationRule()
 
-  @get:Rule
-  var disposableRule = DisposableRule()
+  @get:Rule var disposableRule = DisposableRule()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
-  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
-    issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-  }
+  val task1 =
+    mockTask(":app", "compile", "compiler.plugin", 2000).apply { issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this)) }
   val task2 = mockTask(":app", "resources", "resources.plugin", 1000)
   val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000)
 
@@ -68,9 +64,7 @@ class TasksPageViewTest {
 
   @Before
   fun setUp() {
-    view = TasksPageView(model, mockHandlers, disposableRule.disposable).apply {
-      component.size = Dimension(600, 200)
-    }
+    view = TasksPageView(model, mockHandlers, disposableRule.disposable).apply { component.size = Dimension(600, 200) }
   }
 
   @After
@@ -94,9 +88,7 @@ class TasksPageViewTest {
   @RunsInEdt
   fun testModelUpdatedWithoutTaskCategoryInfo() {
     val model = TasksDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryInfo = false))
-    view = TasksPageView(model, mockHandlers, disposableRule.disposable).apply {
-      component.size = Dimension(600, 200)
-    }
+    view = TasksPageView(model, mockHandlers, disposableRule.disposable).apply { component.size = Dimension(600, 200) }
     // Act - update model by opening Plugin page
     model.selectPageById(TasksPageId(TasksDataPageModel.Grouping.BY_PLUGIN, TaskDetailsPageType.PLUGIN_DETAILS, "resources.plugin"))
 
@@ -114,9 +106,7 @@ class TasksPageViewTest {
   @RunsInEdt
   fun testModelUpdatedWithTaskCategoryInfo() {
     val model = TasksDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryInfo = true))
-    view = TasksPageView(model, mockHandlers, disposableRule.disposable).apply {
-      component.size = Dimension(600, 200)
-    }
+    view = TasksPageView(model, mockHandlers, disposableRule.disposable).apply { component.size = Dimension(600, 200) }
 
     // Act - update model by opening Plugin page
     model.selectPageById(TasksPageId(TasksDataPageModel.Grouping.BY_PLUGIN, TaskDetailsPageType.PLUGIN_DETAILS, "resources.plugin"))
@@ -175,9 +165,7 @@ class TasksPageViewTest {
   fun testEmptyState() {
     val data = MockUiData(tasksList = emptyList())
     val model = TasksDataPageModelImpl(data)
-    view = TasksPageView(model, mockHandlers, disposableRule.disposable).apply {
-      component.size = Dimension(600, 200)
-    }
+    view = TasksPageView(model, mockHandlers, disposableRule.disposable).apply { component.size = Dimension(600, 200) }
     val fakeUi = FakeUi(view.component)
     fakeUi.layoutAndDispatchEvents()
 
@@ -186,11 +174,15 @@ class TasksPageViewTest {
     val emptyStatusText = (view.component as JBPanelWithEmptyText).emptyText
     val emptyStatusLines = emptyStatusText.wrappedFragmentsIterable.map { it as SimpleColoredComponent }
 
-    assertThat(emptyStatusLines.joinToString(separator = "\n") { it.getCharSequence(true) }).isEqualTo("""
-      This build ran without any tasks to process, or all tasks were already up to date.
-      Learn more about this build's performance:
-      All warnings
-    """.trimIndent())
+    assertThat(emptyStatusLines.joinToString(separator = "\n") { it.getCharSequence(true) })
+      .isEqualTo(
+        """
+        This build ran without any tasks to process, or all tasks were already up to date.
+        Learn more about this build's performance:
+        All warnings
+        """
+          .trimIndent()
+      )
     // Try click on row centers. Only last row should react being a link.
     fakeUi.clickRelativeTo(view.component, 300, emptyStatusText.rowCenterY(0))
     Mockito.verifyNoInteractions(mockHandlers)
@@ -201,7 +193,9 @@ class TasksPageViewTest {
   }
 
   private fun findVisibleDetailsPageNames(parent: Component): String {
-    return TreeWalker(parent).descendants().asSequence()
+    return TreeWalker(parent)
+      .descendants()
+      .asSequence()
       .filter { it.name?.startsWith("details-") ?: false }
       .filter { it.isVisible }
       .joinToString(separator = ",") { it.name }

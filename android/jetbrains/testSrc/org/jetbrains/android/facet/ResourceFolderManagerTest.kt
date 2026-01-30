@@ -21,8 +21,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
-import org.gradle.internal.configuration.inputs.InstrumentedInputs.listener
 import java.util.concurrent.atomic.AtomicInteger
+import org.gradle.internal.configuration.inputs.InstrumentedInputs.listener
 import org.junit.Rule
 import org.junit.Test
 
@@ -41,8 +41,7 @@ class ResourceFolderManagerTest {
     val resourceFolderManager = ResourceFolderManager.getInstance(projectRule.module.androidFacet!!)
     var earlyListenerCalls = AtomicInteger(0)
     var listenerCalls = AtomicInteger(0)
-    val earlyListener =
-      ResourceFolderManager.ResourceFolderListener { _, _ -> earlyListenerCalls.incrementAndGet() }
+    val earlyListener = ResourceFolderManager.ResourceFolderListener { _, _ -> earlyListenerCalls.incrementAndGet() }
     val listener =
       ResourceFolderManager.ResourceFolderListener { _, _ ->
         val previousCounter = listenerCalls.getAndIncrement()
@@ -57,17 +56,13 @@ class ResourceFolderManagerTest {
     SourceProviderManager.replaceForTest(
       projectRule.module.androidFacet!!,
       projectRule.testRootDisposable,
-      NamedIdeaSourceProviderBuilder.create("main", "AndroidManifest.xml")
-        .withResDirectoryUrls(resourceDirectories)
-        .build(),
+      NamedIdeaSourceProviderBuilder.create("main", "AndroidManifest.xml").withResDirectoryUrls(resourceDirectories).build(),
     )
 
     projectRule.project.messageBus
       .connect(projectRule.fixture.testRootDisposable)
       .subscribe(ResourceFolderManager.EARLY_TOPIC, earlyListener)
-    projectRule.project.messageBus
-      .connect(projectRule.fixture.testRootDisposable)
-      .subscribe(ResourceFolderManager.TOPIC, listener)
+    projectRule.project.messageBus.connect(projectRule.fixture.testRootDisposable).subscribe(ResourceFolderManager.TOPIC, listener)
 
     resourceFolderManager.checkForChanges()
     assertThat(resourceFolderManager.folders).containsExactly(res1Directory)

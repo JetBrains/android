@@ -34,6 +34,10 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.concurrency.ThreadingAssertions
+import java.util.Locale
+import java.util.concurrent.TimeUnit
+import javax.swing.event.ListDataEvent
+import javax.swing.event.ListDataListener
 import org.junit.Assert.assertTrue
 import org.junit.ClassRule
 import org.junit.Rule
@@ -41,10 +45,6 @@ import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import java.util.Locale
-import java.util.concurrent.TimeUnit
-import javax.swing.event.ListDataEvent
-import javax.swing.event.ListDataListener
 import org.mockito.kotlin.doAnswer
 
 @RunsInEdt
@@ -59,22 +59,15 @@ class ComboBoxPropertyEditorModelTest {
   private fun createEnumSupport(action: AnAction? = null, delayed: Boolean = false) =
     FakeEnumSupport("visible", "invisible", "gone", action = action, delayed = delayed)
 
-  private fun createModel(editable: Boolean = true): ComboBoxPropertyEditorModel =
-    createModel(createEnumSupport(), editable)
+  private fun createModel(editable: Boolean = true): ComboBoxPropertyEditorModel = createModel(createEnumSupport(), editable)
 
-  private fun createModel(
-    enumSupport: EnumSupport,
-    editable: Boolean = true,
-  ): ComboBoxPropertyEditorModel {
-    val property =
-      FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible", editingSupport = MyEditingSupport())
+  private fun createModel(enumSupport: EnumSupport, editable: Boolean = true): ComboBoxPropertyEditorModel {
+    val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible", editingSupport = MyEditingSupport())
     property.defaultValue = "defaultNone"
     return ComboBoxPropertyEditorModel(property, enumSupport, editable)
   }
 
-  private fun createModelWithListener(
-    enumSupport: EnumSupport
-  ): Pair<ComboBoxPropertyEditorModel, ValueChangedListener> {
+  private fun createModelWithListener(enumSupport: EnumSupport): Pair<ComboBoxPropertyEditorModel, ValueChangedListener> {
     val model = createModel(enumSupport)
     val listener = mock(ValueChangedListener::class.java)
     model.addListener(listener)
@@ -125,8 +118,7 @@ class ComboBoxPropertyEditorModelTest {
   fun testDropDownIsDefaultValueWithNewEmptyValue() {
     val model =
       ComboBoxPropertyEditorModel(
-        property =
-          FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "").apply { defaultValue = "invisible" },
+        property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "").apply { defaultValue = "invisible" },
         enumSupport = createEnumSupport(),
         editable = false,
       )
@@ -288,8 +280,7 @@ class ComboBoxPropertyEditorModelTest {
     assertTrue(valuesCalled)
   }
 
-  private class RecursiveListDataListener(private val model: ComboBoxPropertyEditorModel) :
-    ListDataListener {
+  private class RecursiveListDataListener(private val model: ComboBoxPropertyEditorModel) : ListDataListener {
     var called = false
 
     override fun intervalRemoved(event: ListDataEvent) {}

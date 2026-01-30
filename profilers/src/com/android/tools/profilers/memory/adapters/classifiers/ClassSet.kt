@@ -18,18 +18,18 @@ package com.android.tools.profilers.memory.adapters.classifiers
 import com.android.tools.profilers.memory.adapters.ClassDb
 import com.android.tools.profilers.memory.adapters.InstanceObject
 
-/**
- * Classifies [InstanceObject]s based on their [Class].
- */
+/** Classifies [InstanceObject]s based on their [Class]. */
 class ClassSet(val classEntry: ClassDb.ClassEntry) : ClassifierSet(classEntry.simpleClassName) {
 
-  override val stringForMatching get() = classEntry.className
+  override val stringForMatching
+    get() = classEntry.className
 
   override val totalRetainedSize: Long
-    get() = when (val size = classEntry.retainedSize) {
-      -1L -> super.totalRetainedSize
-      else -> size
-    }
+    get() =
+      when (val size = classEntry.retainedSize) {
+        -1L -> super.totalRetainedSize
+        else -> size
+      }
 
   override val isRetainedSizeCached: Boolean
     get() = classEntry.retainedSize != -1L || super.isRetainedSizeCached
@@ -41,11 +41,10 @@ class ClassSet(val classEntry: ClassDb.ClassEntry) : ClassifierSet(classEntry.si
   public override fun createSubClassifier(): Classifier = Classifier.Id
 
   companion object {
-    @JvmField
-    val EMPTY_SET = ClassSet(ClassDb.ClassEntry(ClassDb.INVALID_CLASS_ID.toLong(), ClassDb.INVALID_CLASS_ID.toLong(), "null", -1))
+    @JvmField val EMPTY_SET = ClassSet(ClassDb.ClassEntry(ClassDb.INVALID_CLASS_ID.toLong(), ClassDb.INVALID_CLASS_ID.toLong(), "null", -1))
 
-    @JvmStatic
-    fun createDefaultClassifier(): Classifier = classClassifier()
+    @JvmStatic fun createDefaultClassifier(): Classifier = classClassifier()
+
     private fun classClassifier() = Classifier.of(InstanceObject::getClassEntry, ::ClassSet)
   }
 }

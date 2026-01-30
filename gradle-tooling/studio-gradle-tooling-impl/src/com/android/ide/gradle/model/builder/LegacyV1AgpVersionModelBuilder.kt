@@ -21,15 +21,12 @@ import com.android.ide.gradle.model.impl.LegacyV1AgpVersionModelImpl
 import org.gradle.api.Project
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
-/**
- * An injected Gradle tooling model builder to fetch the AGP version of Android Projects that will be requested using V1 models
- */
+/** An injected Gradle tooling model builder to fetch the AGP version of Android Projects that will be requested using V1 models */
 class LegacyV1AgpVersionModelBuilder : ToolingModelBuilder {
 
   override fun canBuild(modelName: String): Boolean {
     return modelName == LegacyV1AgpVersionModel::class.java.name
   }
-
 
   override fun buildAll(modelName: String, project: Project): LegacyV1AgpVersionModel? {
     check(canBuild(modelName)) { "Unexpected model name requested: $modelName" }
@@ -41,8 +38,9 @@ class LegacyV1AgpVersionModelBuilder : ToolingModelBuilder {
     if (!project.plugins.hasPlugin("com.android.base")) return null
 
     return try {
-      val extension = project.extensions.findByName("android")
-        ?: return LegacyV1AgpVersionModelImpl("1.0.0") // Something wrong. Return an incompatible version.
+      val extension =
+        project.extensions.findByName("android")
+          ?: return LegacyV1AgpVersionModelImpl("1.0.0") // Something wrong. Return an incompatible version.
       // The following three cases are enough to support AGP versions ranging from 2.0 to 7.4 at least and this model builder is not
       // supposed to be used with version 7.3 or later since we rely on `Versions` model in this case.
       try {
@@ -58,12 +56,13 @@ class LegacyV1AgpVersionModelBuilder : ToolingModelBuilder {
       } catch (e: ClassNotFoundException) {
         // We know this is an AndroidProject, but we just couldn't get the agp version through LegacyV1AgpVersionModel. This means
         // the android project is using an AGP version lower than 7.0.0-alpha15.
-        val versionClazz = try {
-          Class.forName("com.android.Version", true, extension.javaClass.classLoader)
-        } catch (e: ClassNotFoundException) {
-          // Before 2019 year.
-          Class.forName("com.android.builder.model.Version", true, extension.javaClass.classLoader)
-        }
+        val versionClazz =
+          try {
+            Class.forName("com.android.Version", true, extension.javaClass.classLoader)
+          } catch (e: ClassNotFoundException) {
+            // Before 2019 year.
+            Class.forName("com.android.builder.model.Version", true, extension.javaClass.classLoader)
+          }
         LegacyV1AgpVersionModelImpl(versionClazz.getDeclaredField("ANDROID_GRADLE_PLUGIN_VERSION").get(null) as String)
       }
     } catch (e: Exception) {
@@ -73,8 +72,9 @@ class LegacyV1AgpVersionModelBuilder : ToolingModelBuilder {
   }
 
   private fun getAgpVersionStringValue(major: Int, minor: Int, micro: Int, preview: Int, previewType: String?): String {
-    return "$major.$minor.$micro" + (if (previewType != null) "-$previewType" else "") +
-           // called only for versions greater than 7.0.0-alpha15, so always zero-pad the preview version.
-           (if (preview > 0) preview.toString().padStart(2, '0') else "")
+    return "$major.$minor.$micro" +
+      (if (previewType != null) "-$previewType" else "") +
+      // called only for versions greater than 7.0.0-alpha15, so always zero-pad the preview version.
+      (if (preview > 0) preview.toString().padStart(2, '0') else "")
   }
 }

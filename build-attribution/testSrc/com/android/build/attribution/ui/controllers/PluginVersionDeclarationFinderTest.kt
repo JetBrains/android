@@ -36,8 +36,7 @@ class PluginVersionDeclarationFinderTest {
 
   protected val projectRule = AndroidProjectRule.onDisk()
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   private lateinit var gradleBuildFile: VirtualFile
 
@@ -52,126 +51,138 @@ class PluginVersionDeclarationFinderTest {
   @Test
   fun testPluginDeclaredInDependencyBlock() {
     runWriteAction {
-      VfsUtil.saveText(gradleBuildFile, """
-      buildscript {
-          repositories {}
-          dependencies {
-              classpath 'my.test:gradle:1.5.0'
-          }
-      }
+      VfsUtil.saveText(
+        gradleBuildFile,
+        """
+        buildscript {
+            repositories {}
+            dependencies {
+                classpath 'my.test:gradle:1.5.0'
+            }
+        }
 
-      allprojects {
-          repositories {}
-      }
-    """.trimIndent())
+        allprojects {
+            repositories {}
+        }
+        """
+          .trimIndent(),
+      )
     }
 
     val buildGradleText = runReadAction { VfsUtilCore.loadText(gradleBuildFile) }
 
-    PluginVersionDeclarationFinder(projectRule.project).findFileToOpen(
-      GradlePluginsData.DependencyCoordinates("my.test", "gradle"),
-      setOf("my.test.plugin")
-    ).let {
-      Truth.assertThat(it?.file).isEqualTo(gradleBuildFile)
-      Truth.assertThat(it?.offset).isEqualTo(buildGradleText.indexOf("'my.test:gradle:1.5.0'"))
-    }
+    PluginVersionDeclarationFinder(projectRule.project)
+      .findFileToOpen(GradlePluginsData.DependencyCoordinates("my.test", "gradle"), setOf("my.test.plugin"))
+      .let {
+        Truth.assertThat(it?.file).isEqualTo(gradleBuildFile)
+        Truth.assertThat(it?.offset).isEqualTo(buildGradleText.indexOf("'my.test:gradle:1.5.0'"))
+      }
   }
 
   @Test
   fun testPluginDeclaredInPluginsBlock() {
     runWriteAction {
-      VfsUtil.saveText(gradleBuildFile, """
-      buildscript {
-          repositories {}
-          dependencies {
-          // Some other plugin defined here
-              classpath 'my.test2:gradle:1.5.0'
-          }
-      }
+      VfsUtil.saveText(
+        gradleBuildFile,
+        """
+        buildscript {
+            repositories {}
+            dependencies {
+            // Some other plugin defined here
+                classpath 'my.test2:gradle:1.5.0'
+            }
+        }
 
-      plugins {
-      // Plugin of interest defined here
-        id 'my.test.plugin' version '1.5.0' apply false
-      }
+        plugins {
+        // Plugin of interest defined here
+          id 'my.test.plugin' version '1.5.0' apply false
+        }
 
-      allprojects {
-          repositories {}
-      }
-    """.trimIndent())
+        allprojects {
+            repositories {}
+        }
+        """
+          .trimIndent(),
+      )
     }
 
     val buildGradleText = runReadAction { VfsUtilCore.loadText(gradleBuildFile) }
 
-    PluginVersionDeclarationFinder(projectRule.project).findFileToOpen(
-      GradlePluginsData.DependencyCoordinates("my.test", "gradle"),
-      setOf("my.test.plugin")
-    ).let {
-      Truth.assertThat(it?.file).isEqualTo(gradleBuildFile)
-      Truth.assertThat(it?.offset).isEqualTo(buildGradleText.indexOf("id 'my.test.plugin'"))
-    }
+    PluginVersionDeclarationFinder(projectRule.project)
+      .findFileToOpen(GradlePluginsData.DependencyCoordinates("my.test", "gradle"), setOf("my.test.plugin"))
+      .let {
+        Truth.assertThat(it?.file).isEqualTo(gradleBuildFile)
+        Truth.assertThat(it?.offset).isEqualTo(buildGradleText.indexOf("id 'my.test.plugin'"))
+      }
   }
 
   @Test
   fun testPluginDeclarationNotFound() {
     runWriteAction {
-      VfsUtil.saveText(gradleBuildFile, """
-      buildscript {
-          repositories {}
-          dependencies {
-          // Some other plugin defined here
-              classpath 'my.test2:gradle:1.5.0'
-          }
-      }
+      VfsUtil.saveText(
+        gradleBuildFile,
+        """
+        buildscript {
+            repositories {}
+            dependencies {
+            // Some other plugin defined here
+                classpath 'my.test2:gradle:1.5.0'
+            }
+        }
 
-      plugins {
-      // Some other plugin defined here
-        id 'my.test.plugin3' version '1.5.0' apply false
-      }
+        plugins {
+        // Some other plugin defined here
+          id 'my.test.plugin3' version '1.5.0' apply false
+        }
 
-      allprojects {
-          repositories {}
-      }
-    """.trimIndent())
+        allprojects {
+            repositories {}
+        }
+        """
+          .trimIndent(),
+      )
     }
 
     val buildGradleText = runReadAction { VfsUtilCore.loadText(gradleBuildFile) }
 
-    PluginVersionDeclarationFinder(projectRule.project).findFileToOpen(
-      GradlePluginsData.DependencyCoordinates("my.test", "gradle"),
-      setOf("my.test.plugin")
-    ).let {
-      Truth.assertThat(it?.file).isEqualTo(gradleBuildFile)
-      // Cursor sets at psi element of dependencies block.
-      Truth.assertThat(it?.offset).isEqualTo(buildGradleText.indexOf("dependencies {") + "dependencies ".length)
-    }
+    PluginVersionDeclarationFinder(projectRule.project)
+      .findFileToOpen(GradlePluginsData.DependencyCoordinates("my.test", "gradle"), setOf("my.test.plugin"))
+      .let {
+        Truth.assertThat(it?.file).isEqualTo(gradleBuildFile)
+        // Cursor sets at psi element of dependencies block.
+        Truth.assertThat(it?.offset).isEqualTo(buildGradleText.indexOf("dependencies {") + "dependencies ".length)
+      }
   }
 
   @Test
   fun testEvenDependenciesBlockNotFound() {
     runWriteAction {
-      VfsUtil.saveText(gradleBuildFile, """
-      buildscript {
-          repositories {}
-      }
+      VfsUtil.saveText(
+        gradleBuildFile,
+        """
+        buildscript {
+            repositories {}
+        }
 
-      plugins {
-      // Some other plugin defined here
-        id 'my.test.plugin3' version '1.5.0' apply false
-      }
+        plugins {
+        // Some other plugin defined here
+          id 'my.test.plugin3' version '1.5.0' apply false
+        }
 
-      allprojects {
-          repositories {}
-      }
-    """.trimIndent())
+        allprojects {
+            repositories {}
+        }
+        """
+          .trimIndent(),
+      )
     }
 
-    PluginVersionDeclarationFinder(projectRule.project).findFileToOpen(
-      GradlePluginsData.DependencyCoordinates("my.test", "gradle"),
-      setOf("my.test.plugin")
-    ).let {
-      Truth.assertThat(it?.file).isEqualTo(gradleBuildFile)
-      // Just open root build.gradle in this case.
-      Truth.assertThat(it?.offset).isEqualTo(-1)
-    }
+    PluginVersionDeclarationFinder(projectRule.project)
+      .findFileToOpen(GradlePluginsData.DependencyCoordinates("my.test", "gradle"), setOf("my.test.plugin"))
+      .let {
+        Truth.assertThat(it?.file).isEqualTo(gradleBuildFile)
+        // Just open root build.gradle in this case.
+        Truth.assertThat(it?.offset).isEqualTo(-1)
+      }
   }
 }

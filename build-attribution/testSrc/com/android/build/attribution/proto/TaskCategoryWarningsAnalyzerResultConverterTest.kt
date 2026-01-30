@@ -24,45 +24,42 @@ import org.junit.Test
 class TaskCategoryWarningsAnalyzerResultConverterTest {
   @Test
   fun testTaskCategoryWarningsAnalyzerResult() {
-    val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.IssuesResult(
-      listOf(
-        TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
-        TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
-        TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD
+    val taskCategoryWarningsAnalyzerResult =
+      TaskCategoryWarningsAnalyzer.IssuesResult(
+        listOf(
+          TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
+          TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
+          TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD,
+        )
       )
-    )
-    val resultMessage = TaskCategoryWarningsAnalyzerResultConverter.transform(
-      taskCategoryWarningsAnalyzerResult)
+    val resultMessage = TaskCategoryWarningsAnalyzerResultConverter.transform(taskCategoryWarningsAnalyzerResult)
     val resultConverted = TaskCategoryWarningsAnalyzerResultConverter.construct(resultMessage)
     Truth.assertThat(resultConverted).isEqualTo(taskCategoryWarningsAnalyzerResult)
   }
 
   @Test
   fun testNotEqualsTaskCategoryWarningsAnalyzerResult() {
-    val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.IssuesResult(
-      listOf(
-        TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
-        TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
-        TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD
+    val taskCategoryWarningsAnalyzerResult =
+      TaskCategoryWarningsAnalyzer.IssuesResult(
+        listOf(
+          TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
+          TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
+          TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD,
+        )
       )
-    )
-    val resultMessage = TaskCategoryWarningsAnalyzerResultConverter.transform(
-      taskCategoryWarningsAnalyzerResult)
+    val resultMessage = TaskCategoryWarningsAnalyzerResultConverter.transform(taskCategoryWarningsAnalyzerResult)
     val resultConverted = TaskCategoryWarningsAnalyzerResultConverter.construct(resultMessage)
-    val anotherTaskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.IssuesResult(
-      listOf(
-        TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
-        TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
+    val anotherTaskCategoryWarningsAnalyzerResult =
+      TaskCategoryWarningsAnalyzer.IssuesResult(
+        listOf(TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED, TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR)
       )
-    )
     Truth.assertThat(resultConverted).isNotEqualTo(anotherTaskCategoryWarningsAnalyzerResult)
   }
 
   @Test
   fun testTaskCategoryWarningsAnalyzerResultNoDataFromAGP() {
     val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.NoDataFromAGP
-    val resultMessage = TaskCategoryWarningsAnalyzerResultConverter.transform(
-      taskCategoryWarningsAnalyzerResult)
+    val resultMessage = TaskCategoryWarningsAnalyzerResultConverter.transform(taskCategoryWarningsAnalyzerResult)
     val resultConverted = TaskCategoryWarningsAnalyzerResultConverter.construct(resultMessage)
     Truth.assertThat(resultConverted).isEqualTo(taskCategoryWarningsAnalyzerResult)
   }
@@ -70,8 +67,7 @@ class TaskCategoryWarningsAnalyzerResultConverterTest {
   @Test
   fun testTaskCategoryWarningsAnalyzerResultFeatureDisabled() {
     val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.FeatureDisabled
-    val resultMessage = TaskCategoryWarningsAnalyzerResultConverter.transform(
-      taskCategoryWarningsAnalyzerResult)
+    val resultMessage = TaskCategoryWarningsAnalyzerResultConverter.transform(taskCategoryWarningsAnalyzerResult)
     val resultConverted = TaskCategoryWarningsAnalyzerResultConverter.construct(resultMessage)
     Truth.assertThat(resultConverted).isEqualTo(taskCategoryWarningsAnalyzerResult)
   }

@@ -24,9 +24,7 @@ import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.sdk.AndroidPlatform
 import com.android.tools.sdk.CompatibilityRenderTarget
 
-/**
- * Provides all module specific resources required for configuration
- */
+/** Provides all module specific resources required for configuration */
 interface ConfigurationModelModule {
   val androidPlatform: AndroidPlatform?
 

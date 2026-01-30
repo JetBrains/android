@@ -32,8 +32,7 @@ import javax.swing.JTextArea
  * @param headerLabel the text of the header label
  * @param errorText the text shown in the main text area, or null to leave blank
  */
-class ErrorDetailDialog(titleText: String, private val headerLabel: String, errorText: String?) :
-  DialogWrapper(false) {
+class ErrorDetailDialog(titleText: String, private val headerLabel: String, errorText: String?) : DialogWrapper(false) {
   private val textArea = JTextArea(30, 130)
   private var header = JLabel()
 

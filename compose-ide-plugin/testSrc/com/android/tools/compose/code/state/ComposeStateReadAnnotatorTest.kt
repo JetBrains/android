@@ -82,10 +82,7 @@ class ComposeStateReadAnnotatorTest {
 
   @Test
   fun assignedPropertyRead() {
-    createPsiFile(
-        "fun Inner(arg: String, onNameChange: (String) -> Unit)",
-        "Inner(arg = stateVar.value) { stateVar.value = it }",
-      )
+    createPsiFile("fun Inner(arg: String, onNameChange: (String) -> Unit)", "Inner(arg = stateVar.value) { stateVar.value = it }")
       .assertSingleHighlight("|value|)", composeScope = OUTER_FUNCTION)
   }
 
@@ -96,11 +93,7 @@ class ComposeStateReadAnnotatorTest {
         "Inner(arg = stateListVar[0].value) { stateListVar[0].value = it }",
         "val stateListVar = listOf(rememberSaveable { mutableStateOf(\"\") })",
       )
-      .assertSingleHighlight(
-        "|value|)",
-        stateVariable = "stateListVar[0]",
-        composeScope = OUTER_FUNCTION,
-      )
+      .assertSingleHighlight("|value|)", stateVariable = "stateListVar[0]", composeScope = OUTER_FUNCTION)
   }
 
   @Test
@@ -156,8 +149,7 @@ class ComposeStateReadAnnotatorTest {
 
   @Test
   fun composableLambdaArgument() {
-    createPsiFile("fun Inner(arg: @Composable () -> Unit)", "Inner { stateVar.value }")
-      .assertSingleHighlight("|value|")
+    createPsiFile("fun Inner(arg: @Composable () -> Unit)", "Inner { stateVar.value }").assertSingleHighlight("|value|")
   }
 
   @Test
@@ -173,26 +165,17 @@ class ComposeStateReadAnnotatorTest {
 
   @Test
   fun noinlineLambdaArgument() {
-    createPsiFile("inline fun Inner(noinline arg: () -> Unit)", "Inner { stateVar.value }")
-      .assertNoHighlight()
+    createPsiFile("inline fun Inner(noinline arg: () -> Unit)", "Inner { stateVar.value }").assertNoHighlight()
   }
 
   @Test
   fun composableNoinlineLambdaArgument() {
-    createPsiFile(
-        "fun Inner(arg: @Composable () -> Unit, otherArg: Int)",
-        "Inner({ stateVar.value }, 3)",
-      )
-      .assertSingleHighlight("|value|")
+    createPsiFile("fun Inner(arg: @Composable () -> Unit, otherArg: Int)", "Inner({ stateVar.value }, 3)").assertSingleHighlight("|value|")
   }
 
   @Test
   fun composablePositionalLambdaArgument() {
-    createPsiFile(
-        "fun Inner(arg: @Composable () -> Unit, otherArg: Int)",
-        "Inner({ stateVar.value }, 3)",
-      )
-      .assertSingleHighlight("|value|")
+    createPsiFile("fun Inner(arg: @Composable () -> Unit, otherArg: Int)", "Inner({ stateVar.value }, 3)").assertSingleHighlight("|value|")
   }
 
   @Test
@@ -249,15 +232,13 @@ class ComposeStateReadAnnotatorTest {
     val windowEnd = window.replaceFirst("|", "")
 
     with(annotations.single()) {
-      val expectedMessage =
-        ComposeBundle.message("state.read.message.titled", stateVariable, composeScope)
+      val expectedMessage = ComposeBundle.message("state.read.message.titled", stateVariable, composeScope)
       assertThat(message).isEqualTo(expectedMessage)
       assertThat(gutterIconRenderer).isNull()
       assertThat(textAttributes).isEqualTo(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
       assertThat(startOffset).isEqualTo(fixture.offsetForWindow(windowStart))
       assertThat(endOffset).isEqualTo(fixture.offsetForWindow(windowEnd))
-      assertThat(quickFixes?.map { it.quickFix })
-        .containsExactly(EnableComposeStateReadInlayHintsAction)
+      assertThat(quickFixes?.map { it.quickFix }).containsExactly(EnableComposeStateReadInlayHintsAction)
     }
   }
 }

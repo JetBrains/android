@@ -23,20 +23,17 @@ import com.intellij.util.xml.GenericDomValue
 import com.intellij.util.xml.WrappingConverter
 
 /**
- * [Converter] that returns a different converter based on the property's `android:name` attribute
- * value.
+ * [Converter] that returns a different converter based on the property's `android:name` attribute value.
  *
- * If the attribute's name is [WATCH_FACE_FORMAT_VERSION_PROPERTY], then the `android:value`'s value
- * is expected to be an integer. In that case, an [IntegerConverter] is used.
+ * If the attribute's name is [WATCH_FACE_FORMAT_VERSION_PROPERTY], then the `android:value`'s value is expected to be an integer. In that
+ * case, an [IntegerConverter] is used.
  *
  * Otherwise, we default to using a [ResourceReferenceConverter].
  */
 class PropertyValueConverter : WrappingConverter() {
   override fun getConverter(domElement: GenericDomValue<*>): Converter<*> {
     val isWatchFaceFormatVersionProperty =
-      domElement.xmlTag?.getAttributeValue(ATTR_NAME, ANDROID_URI) ==
-        WATCH_FACE_FORMAT_VERSION_PROPERTY
-    return if (isWatchFaceFormatVersionProperty) IntegerConverter()
-    else ResourceReferenceConverter()
+      domElement.xmlTag?.getAttributeValue(ATTR_NAME, ANDROID_URI) == WATCH_FACE_FORMAT_VERSION_PROPERTY
+    return if (isWatchFaceFormatVersionProperty) IntegerConverter() else ResourceReferenceConverter()
   }
 }

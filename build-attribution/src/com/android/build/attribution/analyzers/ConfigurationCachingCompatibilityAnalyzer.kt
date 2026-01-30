@@ -29,10 +29,11 @@ import org.gradle.util.GradleVersion
 private val minAGPVersion = AgpVersion.parse("7.0.0-alpha10")
 private val minGradleVersionForStableConfigurationCache = GradleVersion.version("8.1")
 
-class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCachingCompatibilityProjectResult>(),
-    BuildAttributionReportAnalyzer,
-    KnownPluginsDataAnalyzer,
-    PostBuildProcessAnalyzer {
+class ConfigurationCachingCompatibilityAnalyzer :
+  BaseAnalyzer<ConfigurationCachingCompatibilityProjectResult>(),
+  BuildAttributionReportAnalyzer,
+  KnownPluginsDataAnalyzer,
+  PostBuildProcessAnalyzer {
 
   private val buildscriptClasspath = mutableListOf<Component>()
   private var appliedPlugins: Map<String, List<PluginData>> = emptyMap()
@@ -55,9 +56,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
   }
 
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
-    buildscriptClasspath.addAll(
-      androidGradlePluginAttributionData.buildscriptDependenciesInfo.mapNotNull { Component.tryParse(it) }
-    )
+    buildscriptClasspath.addAll(androidGradlePluginAttributionData.buildscriptDependenciesInfo.mapNotNull { Component.tryParse(it) })
     configurationCacheInBuildState = androidGradlePluginAttributionData.buildInfo?.configurationCacheIsOn
     currentAgpVersion = androidGradlePluginAttributionData.buildInfo?.agpVersion?.let { AgpVersion.tryParse(it) }
     currentGradleVersion = androidGradlePluginAttributionData.buildInfo?.gradleVersion?.let { GradleVersion.version(it) }
@@ -87,12 +86,11 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
     if (configurationCachingGradlePropertiesFlagState != null) return ConfigurationCachingTurnedOff
     if (buildscriptClasspath.isEmpty()) {
       // Possible that we are using an old AGP. Need to check the known version from sync.
-      currentAgpVersion?.let {
-        if (it < minAGPVersion) return AGPUpdateRequired(it, appliedPlugins.filter { it.isAndroidPlugin() })
-      }
+      currentAgpVersion?.let { if (it < minAGPVersion) return AGPUpdateRequired(it, appliedPlugins.filter { it.isAndroidPlugin() }) }
     }
 
-    val pluginsByPluginInfo: Map<GradlePluginsData.PluginInfo?, List<PluginData>> = appliedPlugins
+    val pluginsByPluginInfo: Map<GradlePluginsData.PluginInfo?, List<PluginData>> =
+      appliedPlugins
         .filter { it.pluginType == PluginData.PluginType.BINARY_PLUGIN }
         .toSet()
         .groupBy { appliedPlugin -> knownPlugins.find { it.isThisPlugin(appliedPlugin) } }
@@ -104,19 +102,16 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
       val detectedVersion = buildscriptClasspath.find { it.isSameCoordinate(pluginInfo.pluginArtifact) }?.version
       if (detectedVersion != null) {
         when {
-          pluginInfo.configurationCachingCompatibleFrom == null -> incompatiblePluginWarnings.addAll(
-            plugins.map { IncompatiblePluginWarning(it, detectedVersion, pluginInfo) }
-          )
-          detectedVersion < pluginInfo.configurationCachingCompatibleFrom -> upgradePluginWarnings.addAll(
-            plugins.map { IncompatiblePluginWarning(it, detectedVersion, pluginInfo) }
-          )
+          pluginInfo.configurationCachingCompatibleFrom == null ->
+            incompatiblePluginWarnings.addAll(plugins.map { IncompatiblePluginWarning(it, detectedVersion, pluginInfo) })
+          detectedVersion < pluginInfo.configurationCachingCompatibleFrom ->
+            upgradePluginWarnings.addAll(plugins.map { IncompatiblePluginWarning(it, detectedVersion, pluginInfo) })
         }
       }
     }
     return if (incompatiblePluginWarnings.isEmpty() && upgradePluginWarnings.isEmpty()) {
       NoIncompatiblePlugins(pluginsByPluginInfo[null]?.filterOutInternalPlugins() ?: emptyList(), isFeatureConsideredStable)
-    }
-    else {
+    } else {
       IncompatiblePluginsDetected(incompatiblePluginWarnings, upgradePluginWarnings)
     }
   }
@@ -132,38 +127,29 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
 
 sealed class ConfigurationCachingCompatibilityProjectResult : AnalyzerResult
 
-data class AGPUpdateRequired(
-  val currentVersion: AgpVersion,
-  val appliedPlugins: List<PluginData>
-) : ConfigurationCachingCompatibilityProjectResult() {
+data class AGPUpdateRequired(val currentVersion: AgpVersion, val appliedPlugins: List<PluginData>) :
+  ConfigurationCachingCompatibilityProjectResult() {
   val recommendedVersion = AgpVersion.parse("7.0.0")
   val dependencyCoordinates = GradlePluginsData.DependencyCoordinates("com.android.tools.build", "gradle")
 }
 
 /**
- * Analyzer result returned when all recognised plugins are compatible with configuration caching.
- * There still might be problems in unknown plugins or buildscript and buildSrc plugins.
+ * Analyzer result returned when all recognised plugins are compatible with configuration caching. There still might be problems in unknown
+ * plugins or buildscript and buildSrc plugins.
  */
-data class NoIncompatiblePlugins(
-  val unrecognizedPlugins: List<PluginData>,
-  val configurationCacheIsStableFeature: Boolean
-) : ConfigurationCachingCompatibilityProjectResult()
+data class NoIncompatiblePlugins(val unrecognizedPlugins: List<PluginData>, val configurationCacheIsStableFeature: Boolean) :
+  ConfigurationCachingCompatibilityProjectResult()
 
 /**
- * Analyzer result returned when there are incompatible plugins detected.
- * [incompatiblePluginWarnings] contain the list of warnings for plugins known to be incompatible.
- * [upgradePluginWarnings] contain the list of warnings for plugins that need upgrade to higher version.
+ * Analyzer result returned when there are incompatible plugins detected. [incompatiblePluginWarnings] contain the list of warnings for
+ * plugins known to be incompatible. [upgradePluginWarnings] contain the list of warnings for plugins that need upgrade to higher version.
  */
 data class IncompatiblePluginsDetected(
   val incompatiblePluginWarnings: List<IncompatiblePluginWarning>,
-  val upgradePluginWarnings: List<IncompatiblePluginWarning>
+  val upgradePluginWarnings: List<IncompatiblePluginWarning>,
 ) : ConfigurationCachingCompatibilityProjectResult()
 
-data class IncompatiblePluginWarning(
-  val plugin: PluginData,
-  val currentVersion: Version,
-  val pluginInfo: GradlePluginsData.PluginInfo,
-) {
+data class IncompatiblePluginWarning(val plugin: PluginData, val currentVersion: Version, val pluginInfo: GradlePluginsData.PluginInfo) {
   val requiredVersion: Version?
     get() = pluginInfo.configurationCachingCompatibleFrom
 }
@@ -175,8 +161,7 @@ object ConfigurationCachingTurnedOn : ConfigurationCachingCompatibilityProjectRe
 object ConfigurationCachingTurnedOff : ConfigurationCachingCompatibilityProjectResult()
 
 /** Analyzer result for test CC builds started from Build Analyzer. */
-data class ConfigurationCacheCompatibilityTestFlow(
-  val configurationCacheIsStableFeature: Boolean
-) : ConfigurationCachingCompatibilityProjectResult()
+data class ConfigurationCacheCompatibilityTestFlow(val configurationCacheIsStableFeature: Boolean) :
+  ConfigurationCachingCompatibilityProjectResult()
 
 object NoDataFromSavedResult : ConfigurationCachingCompatibilityProjectResult()

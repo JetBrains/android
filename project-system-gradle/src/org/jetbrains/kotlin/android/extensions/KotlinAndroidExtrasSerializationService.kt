@@ -26,7 +26,7 @@ import com.android.kotlin.multiplatform.ide.models.serialization.androidTargetKe
 import org.jetbrains.kotlin.gradle.idea.serialize.IdeaKotlinExtrasSerializationExtensionBuilder
 import org.jetbrains.kotlin.idea.gradle.configuration.serialize.KotlinExtrasSerializationService
 
-class KotlinAndroidExtrasSerializationService: KotlinExtrasSerializationService {
+class KotlinAndroidExtrasSerializationService : KotlinExtrasSerializationService {
 
   override fun IdeaKotlinExtrasSerializationExtensionBuilder.extensions() {
     register(androidTargetKey, AndroidTargetModelSerializer)

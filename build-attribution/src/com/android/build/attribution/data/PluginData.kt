@@ -18,9 +18,8 @@ package com.android.build.attribution.data
 import com.intellij.util.containers.mapSmartSet
 
 /**
- * Plugin representation in build analysis.
- * Only single instance is created for each plugin, plugins are matched by [idName],
- * which is a plugin class for binary plugins and "projectPath:fileName" for scripts.
+ * Plugin representation in build analysis. Only single instance is created for each plugin, plugins are matched by [idName], which is a
+ * plugin class for binary plugins and "projectPath:fileName" for scripts.
  */
 class PluginData(pluginType: PluginType, val idName: String) {
   var pluginType: PluginType = pluginType
@@ -32,25 +31,25 @@ class PluginData(pluginType: PluginType, val idName: String) {
     UNKNOWN,
     BINARY_PLUGIN,
     BUILDSRC_PLUGIN,
-    SCRIPT
+    SCRIPT,
   }
 
   data class DisplayName(
     val name: String,
-    /** Project path where plugin is defined by this name.*/
-    val projectPath: String
+    /** Project path where plugin is defined by this name. */
+    val projectPath: String,
   )
 
-  override fun toString(): String = when (pluginType) {
-    PluginType.UNKNOWN -> "unknown plugin"
-    PluginType.BINARY_PLUGIN -> "binary plugin $idName"
-    PluginType.BUILDSRC_PLUGIN -> "buildSrc plugin $idName"
-    PluginType.SCRIPT -> "script $idName"
-  }
+  override fun toString(): String =
+    when (pluginType) {
+      PluginType.UNKNOWN -> "unknown plugin"
+      PluginType.BINARY_PLUGIN -> "binary plugin $idName"
+      PluginType.BUILDSRC_PLUGIN -> "buildSrc plugin $idName"
+      PluginType.SCRIPT -> "script $idName"
+    }
 
   override fun equals(other: Any?): Boolean {
-    return other is PluginData &&
-           idName == other.idName
+    return other is PluginData && idName == other.idName
   }
 
   override fun hashCode(): Int {
@@ -61,7 +60,6 @@ class PluginData(pluginType: PluginType, val idName: String) {
     this.pluginType = PluginType.BUILDSRC_PLUGIN
   }
 
-
   fun recordDisplayName(displayName: DisplayName) = projectToDisplayName.put(displayName.projectPath, displayName)
 
   fun displayNameInProject(project: String): String = projectToDisplayName[project]?.name ?: displayName
@@ -69,21 +67,20 @@ class PluginData(pluginType: PluginType, val idName: String) {
   fun displayNames(): Set<String> = projectToDisplayName.values.mapSmartSet { it.name }
 
   /**
-   * Tries to select the best display name for this plugin from the ones defined in this project.
-   * Normally there should only be a single name used in all sub-projects but otherwise select the first one.
+   * Tries to select the best display name for this plugin from the ones defined in this project. Normally there should only be a single
+   * name used in all sub-projects but otherwise select the first one.
    */
   val displayName: String
     get() = displayNames().minByOrNull { it.length } ?: idName.takeIf { it.isNotBlank() } ?: "Unknown plugin"
 
-
   fun isJavaPlugin(): Boolean {
     return displayNames().any {
       it == "application" ||
-      it == "java" ||
-      it == "java-base" ||
-      it == "java-gradle-plugin" ||
-      it == "java-library" ||
-      it == "java-platform"
+        it == "java" ||
+        it == "java-base" ||
+        it == "java-gradle-plugin" ||
+        it == "java-library" ||
+        it == "java-platform"
     }
   }
 
@@ -96,5 +93,4 @@ class PluginData(pluginType: PluginType, val idName: String) {
   }
 
   fun isGradlePlugin() = idName.startsWith("org.gradle.")
-
 }

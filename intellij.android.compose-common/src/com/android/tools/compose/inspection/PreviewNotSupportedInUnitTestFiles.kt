@@ -23,35 +23,20 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-/**
- * Inspection that checks that functions annotated with `@Preview`, or with a MultiPreview, are not
- * in a unit test file.
- */
+/** Inspection that checks that functions annotated with `@Preview`, or with a MultiPreview, are not in a unit test file. */
 open class PreviewNotSupportedInUnitTestFiles(
   private val description: String,
   groupDisplayName: String,
   previewAnnotationChecker: PreviewAnnotationChecker,
 ) : BasePreviewAnnotationInspection(groupDisplayName, previewAnnotationChecker) {
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, function: KtNamedFunction, previewAnnotation: KtAnnotationEntry) {
     // If the annotation is not in a unit test file, then this inspection has nothing to do
     if (!function.isInUnitTestFile()) return
 
-    holder.registerProblem(
-      previewAnnotation.psiOrParent as PsiElement,
-      description,
-      ProblemHighlightType.ERROR,
-    )
+    holder.registerProblem(previewAnnotation.psiOrParent as PsiElement, description, ProblemHighlightType.ERROR)
   }
 
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, annotationClass: KtClass, previewAnnotation: KtAnnotationEntry) {
     // This inspection only applies for functions, not for Annotation classes
     return
   }
@@ -59,5 +44,4 @@ open class PreviewNotSupportedInUnitTestFiles(
   override fun getStaticDescription() = description
 }
 
-private fun KtNamedFunction.isInUnitTestFile() =
-  isUnitTestFile(this.project, this.containingFile.virtualFile)
+private fun KtNamedFunction.isInUnitTestFile() = isUnitTestFile(this.project, this.containingFile.virtualFile)

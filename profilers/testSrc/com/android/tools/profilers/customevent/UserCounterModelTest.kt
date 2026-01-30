@@ -35,54 +35,42 @@ class UserCounterModelTest {
   val groupId1 = "group1".hashCode().toLong()
   val groupId2 = "group2".hashCode().toLong()
 
-  private val fakeData = ImmutableList.of<Common.Event>(
-    Common.Event.newBuilder()
-      .setGroupId(groupId1)
-      .setTimestamp(2000)
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder()
-          .setName(groupId1.toString())
-          .setRecordedValue(1).build())
-      .setIsEnded(true)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(groupId1)
-      .setTimestamp(3000)
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder()
-          .setName(groupId1.toString())
-          .setRecordedValue(2).build())
-      .setIsEnded(true)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(groupId2)
-      .setTimestamp(1000)
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder()
-          .setName(groupId2.toString())
-          .setRecordedValue(50).build())
-      .setIsEnded(true)
-      .build(),
-    Common.Event.newBuilder()
-      .setGroupId(groupId2)
-      .setTimestamp(4000)
-      .setKind(Common.Event.Kind.USER_COUNTERS)
-      .setUserCounters(
-        CustomEventProfiler.UserCounterData.newBuilder()
-          .setName(groupId2.toString())
-          .setRecordedValue(0).build())
-      .setIsEnded(true)
-      .build()
-  )
+  private val fakeData =
+    ImmutableList.of<Common.Event>(
+      Common.Event.newBuilder()
+        .setGroupId(groupId1)
+        .setTimestamp(2000)
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder().setName(groupId1.toString()).setRecordedValue(1).build())
+        .setIsEnded(true)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(groupId1)
+        .setTimestamp(3000)
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder().setName(groupId1.toString()).setRecordedValue(2).build())
+        .setIsEnded(true)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(groupId2)
+        .setTimestamp(1000)
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder().setName(groupId2.toString()).setRecordedValue(50).build())
+        .setIsEnded(true)
+        .build(),
+      Common.Event.newBuilder()
+        .setGroupId(groupId2)
+        .setTimestamp(4000)
+        .setKind(Common.Event.Kind.USER_COUNTERS)
+        .setUserCounters(CustomEventProfiler.UserCounterData.newBuilder().setName(groupId2.toString()).setRecordedValue(0).build())
+        .setIsEnded(true)
+        .build(),
+    )
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, true)
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("UserCounterModelTest", transportService)
+  @get:Rule var grpcChannel = FakeGrpcChannel("UserCounterModelTest", transportService)
 
   private lateinit var myUserCounterModelGroup1: UserCounterModel
   private lateinit var myUserCounterModelGroup2: UserCounterModel
@@ -92,16 +80,11 @@ class UserCounterModelTest {
     val services = FakeIdeProfilerServices()
     fakeData.forEach { event -> transportService.addEventToStream(1, event) }
 
-    myUserCounterModelGroup1 = UserCounterModel(
-      StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer), "group1")
-    myUserCounterModelGroup2 = UserCounterModel(
-      StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer), "group2")
-
+    myUserCounterModelGroup1 = UserCounterModel(StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer), "group1")
+    myUserCounterModelGroup2 = UserCounterModel(StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer), "group2")
   }
 
-  /**
-   * Tests that the UserCounterModel class correctly creates a ranged series with only data from its given event name.
-   */
+  /** Tests that the UserCounterModel class correctly creates a ranged series with only data from its given event name. */
   @Test
   fun testUserCounterSeries() {
     val series1 = myUserCounterModelGroup1.eventSeries.getSeriesForRange(Range(0.0, 4.0))
@@ -123,9 +106,7 @@ class UserCounterModelTest {
     Truth.assertThat(series4[0].value).isEqualTo(0)
   }
 
-  /**
-   * Tests that the UserCounterModel has the correct default range.
-   */
+  /** Tests that the UserCounterModel has the correct default range. */
   @Test
   fun testRange() {
     Truth.assertThat(myUserCounterModelGroup1.usageRange.min).isEqualTo(0.0)

@@ -47,21 +47,15 @@ object XmlResourceNSDescriptor : XmlNSDescriptorImpl() {
               as XmlElementDescriptor
           }
           .toTypedArray()
-      CachedValueProvider.Result.create(
-        static,
-        AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project),
-      )
+      CachedValueProvider.Result.create(static, AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project))
     }
   }
 }
 
 // TODO: don't extend AndroidXmlTagDescriptor. Currently it extends AndroidXmlTagDescriptor for
 // support inspection behavior.
-class PreferenceElementDescriptor(
-  override val clazz: PsiClass?,
-  delegate: XmlElementDescriptor,
-  private val baseGroupClassName: String,
-) : TagFromClassDescriptor, AndroidXmlTagDescriptor(delegate) {
+class PreferenceElementDescriptor(override val clazz: PsiClass?, delegate: XmlElementDescriptor, private val baseGroupClassName: String) :
+  TagFromClassDescriptor, AndroidXmlTagDescriptor(delegate) {
   override val isContainer by lazy { InheritanceUtil.isInheritor(clazz, baseGroupClassName) }
 
   override fun getDeclaration() = clazz

@@ -32,8 +32,7 @@ import kotlin.math.roundToLong
  * @property startTimestamp The timestamp when the span element started, in milliseconds.
  * @property spanId The unique identifier for the span element.
  * @property parentSpanId The unique identifier of the parent span element, if any.
- * @property tags The list of key-value pairs representing the tags associated with the span
- *   element.
+ * @property tags The list of key-value pairs representing the tags associated with the span element.
  */
 data class SpanElement(
   @JvmField var isWarmup: Boolean,
@@ -107,11 +106,7 @@ class SpanDataTypeAdapter : TypeAdapter<SpanData>() {
   }
 }
 
-data class SpanRef(
-  @JvmField val refType: String? = null,
-  @JvmField val traceID: String? = null,
-  @JvmField val spanID: String? = null,
-)
+data class SpanRef(@JvmField val refType: String? = null, @JvmField val traceID: String? = null, @JvmField val spanID: String? = null)
 
 private class SpanRefTypeAdapter : TypeAdapter<SpanRef>() {
   override fun write(out: JsonWriter?, value: SpanRef?) {}
@@ -135,11 +130,7 @@ private class SpanRefTypeAdapter : TypeAdapter<SpanRef>() {
   }
 }
 
-data class SpanTag(
-  @JvmField val key: String? = null,
-  @JvmField val type: String? = null,
-  @JvmField val value: String? = null,
-)
+data class SpanTag(@JvmField val key: String? = null, @JvmField val type: String? = null, @JvmField val value: String? = null)
 
 private class SpanTagTypeAdapter : TypeAdapter<SpanTag>() {
   override fun write(out: JsonWriter?, value: SpanTag?) {}

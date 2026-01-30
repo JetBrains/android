@@ -34,21 +34,18 @@ import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
 /**
- * We run user code and code of 3rd party libraries when rendering user previews. Many 3rd party
- * libraries have global static variables that retain parts of the user code, that in turn does not
- * allow us to free the resources in time and produces memory leaks.
+ * We run user code and code of 3rd party libraries when rendering user previews. Many 3rd party libraries have global static variables that
+ * retain parts of the user code, that in turn does not allow us to free the resources in time and produces memory leaks.
  *
- * This file contains a collection of functions that allow for cleaning [RenderSession] and related
- * [LayoutlibCallbackImpl] (essentially used as a [ClassLoader]) when it is safe to do so.
+ * This file contains a collection of functions that allow for cleaning [RenderSession] and related [LayoutlibCallbackImpl] (essentially
+ * used as a [ClassLoader]) when it is safe to do so.
  */
 private val LOG = Logger.getInstance("RenderSessionDisposer")
 
 private const val SNAPSHOT_KT_FQN = "androidx.compose.runtime.snapshots.SnapshotKt"
 private const val FONT_REQUEST_WORKER_FQN = "androidx.core.provider.FontRequestWorker"
-private const val WINDOW_RECOMPOSER_ANDROID_KT_FQN =
-  "androidx.compose.ui.platform.WindowRecomposer_androidKt"
-private const val LOCAL_BROADCAST_MANAGER_FQN =
-  "androidx.localbroadcastmanager.content.LocalBroadcastManager"
+private const val WINDOW_RECOMPOSER_ANDROID_KT_FQN = "androidx.compose.ui.platform.WindowRecomposer_androidKt"
+private const val LOCAL_BROADCAST_MANAGER_FQN = "androidx.localbroadcastmanager.content.LocalBroadcastManager"
 
 private const val GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker"
 
@@ -58,8 +55,8 @@ private const val ANDROID_UI_DISPATCHER_COMPANION_FQN = "$ANDROID_UI_DISPATCHER_
 private const val COMBINED_CONTEXT_FQN = "${INTERNAL_PACKAGE}kotlin.coroutines.CombinedContext"
 
 /**
- * Initiates a custom [RenderSession] disposal, involving clearing several static collections
- * including some Compose-related objects as well as executing default [RenderSession.dispose].
+ * Initiates a custom [RenderSession] disposal, involving clearing several static collections including some Compose-related objects as well
+ * as executing default [RenderSession.dispose].
  *
  * Returns a [CompletableFuture] that completes when the custom disposal process finishes.
  */
@@ -77,10 +74,7 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
       val composeViewAdapter: Class<*> = classLoader.loadClass(CLASS_COMPOSE_VIEW_ADAPTER)
       // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we
       // have to perform this filtering
-      disposeMethod =
-        Arrays.stream(composeViewAdapter.methods)
-          .filter { m: Method -> m.name.contains("dispose") }
-          .findFirst()
+      disposeMethod = Arrays.stream(composeViewAdapter.methods).filter { m: Method -> m.name.contains("dispose") }.findFirst()
     } catch (ex: ClassNotFoundException) {
       LOG.debug("$CLASS_COMPOSE_VIEW_ADAPTER class not found", ex)
     }
@@ -101,8 +95,7 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
       LOG.debug("Unable to dispose the recompose animationScale", ex)
     }
     applyObserversRef = WeakReference(findSnapshotKtObserversField(classLoader, "applyObservers"))
-    globalWriteObserversRef =
-      WeakReference(findSnapshotKtObserversField(classLoader, "globalWriteObservers"))
+    globalWriteObserversRef = WeakReference(findSnapshotKtObserversField(classLoader, "globalWriteObservers"))
     toRunTrampolinedRef = WeakReference(findToRunTrampolined(classLoader))
 
     // Run an early clean-up of the snapshot and global write observers. These hold a lot of
@@ -116,13 +109,9 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
 
   disposeMethod.ifPresent { m: Method -> m.isAccessible = true }
   val finalDisposeMethod = disposeMethod
-  return RenderService.getRenderAsyncActionExecutor().runAsyncAction(
-    RenderAsyncActionExecutor.RenderingTopic.CLEAN
-  ) {
+  return RenderService.getRenderAsyncActionExecutor().runAsyncAction(RenderAsyncActionExecutor.RenderingTopic.CLEAN) {
     finalDisposeMethod.ifPresent { m: Method? ->
-      this@dispose.execute {
-        this@dispose.rootViews.forEach(Consumer { v: ViewInfo? -> disposeIfCompose(v!!, m!!) })
-      }
+      this@dispose.execute { this@dispose.rootViews.forEach(Consumer { v: ViewInfo? -> disposeIfCompose(v!!, m!!) }) }
     }
     applyObserversRef?.get()?.clear()
     globalWriteObserversRef?.get()?.clear()
@@ -133,8 +122,7 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
 }
 
 /**
- * Performs dispose() call against View object associated with [ViewInfo] if that object is an
- * instance of [ComposeViewAdapter]
+ * Performs dispose() call against View object associated with [ViewInfo] if that object is an instance of [ComposeViewAdapter]
  *
  * @param viewInfo a [ViewInfo] associated with the View object to be potentially disposed of
  * @param disposeMethod a dispose method to be executed against View object
@@ -161,24 +149,19 @@ private fun findToRunTrampolined(classLoader: ModuleClassLoader): MutableCollect
     // AndroidUiDispatcher.Main has never been called, its lazy evaluation is called for the very
     // first time from the non-UI thread and end-up being stuck in runBlocking(Dispatchers.Main).
     if (!classLoader.hasLoadedClass(ANDROID_UI_DISPATCHER_FQN)) {
-      LOG.warn(
-        "Unexpected: $CLASS_COMPOSE_VIEW_ADAPTER is loaded and $ANDROID_UI_DISPATCHER_FQN is not"
-      )
+      LOG.warn("Unexpected: $CLASS_COMPOSE_VIEW_ADAPTER is loaded and $ANDROID_UI_DISPATCHER_FQN is not")
       return null
     }
     val uiDispatcher = classLoader.loadClass(ANDROID_UI_DISPATCHER_FQN)
     if (!classLoader.hasLoadedClass(ANDROID_UI_DISPATCHER_COMPANION_FQN)) {
-      LOG.warn(
-        "Unexpected: $ANDROID_UI_DISPATCHER_FQN is loaded and $ANDROID_UI_DISPATCHER_COMPANION_FQN is not"
-      )
+      LOG.warn("Unexpected: $ANDROID_UI_DISPATCHER_FQN is loaded and $ANDROID_UI_DISPATCHER_COMPANION_FQN is not")
       return null
     }
     // This is very hacky, but it might allow us to avoid calling getMain when it has never been
     // called before.
     val ANDROID_UI_DISPATCHER_COMPANION_VALUE_FQN = "$ANDROID_UI_DISPATCHER_COMPANION_FQN\$Main\$2"
     if (classLoader.hasLoadedClass(ANDROID_UI_DISPATCHER_COMPANION_VALUE_FQN)) {
-      val uiDispatcherCompanionValue =
-        classLoader.loadClass(ANDROID_UI_DISPATCHER_COMPANION_VALUE_FQN)
+      val uiDispatcherCompanionValue = classLoader.loadClass(ANDROID_UI_DISPATCHER_COMPANION_VALUE_FQN)
       try {
         val instanceField = uiDispatcherCompanionValue.getField("INSTANCE")
         if (instanceField[null] == null) {
@@ -189,8 +172,7 @@ private fun findToRunTrampolined(classLoader: ModuleClassLoader): MutableCollect
     val uiDispatcherCompanion = classLoader.loadClass(ANDROID_UI_DISPATCHER_COMPANION_FQN)
     val uiDispatcherCompanionField = uiDispatcher.getDeclaredField("Companion")
     val uiDispatcherCompanionObj = uiDispatcherCompanionField[null]
-    val getMainMethod =
-      uiDispatcherCompanion.getDeclaredMethod("getMain").apply { isAccessible = true }
+    val getMainMethod = uiDispatcherCompanion.getDeclaredMethod("getMain").apply { isAccessible = true }
     val mainObj = getMainMethod.invoke(uiDispatcherCompanionObj)
     val combinedContext =
       try {
@@ -202,8 +184,7 @@ private fun findToRunTrampolined(classLoader: ModuleClassLoader): MutableCollect
     val elementField = combinedContext.getDeclaredField("element").apply { isAccessible = true }
     val uiDispatcherObj = elementField[mainObj]
 
-    val toRunTrampolinedField =
-      uiDispatcher.getDeclaredField("toRunTrampolined").apply { isAccessible = true }
+    val toRunTrampolinedField = uiDispatcher.getDeclaredField("toRunTrampolined").apply { isAccessible = true }
     val toRunTrampolinedObj = toRunTrampolinedField[uiDispatcherObj]
     if (toRunTrampolinedObj is MutableCollection<*>) {
       return toRunTrampolinedObj
@@ -215,10 +196,7 @@ private fun findToRunTrampolined(classLoader: ModuleClassLoader): MutableCollect
   return null
 }
 
-private fun findSnapshotKtObserversField(
-  classLoader: ModuleClassLoader,
-  fieldName: String,
-): MutableCollection<*>? {
+private fun findSnapshotKtObserversField(classLoader: ModuleClassLoader, fieldName: String): MutableCollection<*>? {
   try {
     val snapshotKt = classLoader.loadClass(SNAPSHOT_KT_FQN)
     val observersField = snapshotKt.getDeclaredField(fieldName)
@@ -277,9 +255,7 @@ private fun clearGapWorkerCache(classLoader: ModuleClassLoader) {
     gapWorkerField.isAccessible = true
 
     // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
-    RenderService.getRenderAsyncActionExecutor().runAsyncAction(
-      RenderAsyncActionExecutor.RenderingTopic.CLEAN
-    ) {
+    RenderService.getRenderAsyncActionExecutor().runAsyncAction(RenderAsyncActionExecutor.RenderingTopic.CLEAN) {
       try {
         val gapWorkerFieldValue = gapWorkerField[null] as ThreadLocal<*>
         gapWorkerFieldValue.set(null)
@@ -299,23 +275,13 @@ private fun clearCompositions(classLoader: ModuleClassLoader) {
 
   try {
     val recomposerClass = classLoader.loadClass(RECOMPOSER_CLASS)
-    val runningRecomposers =
-      recomposerClass
-        .getDeclaredField("_runningRecomposers")
-        .apply { isAccessible = true }
-        .get(null)
+    val runningRecomposers = recomposerClass.getDeclaredField("_runningRecomposers").apply { isAccessible = true }.get(null)
     val currentRunningSet =
-      runningRecomposers::class
-        .java
-        .getMethod("getValue")
-        .apply { isAccessible = true }
-        .invoke(runningRecomposers) as Set<*>
+      runningRecomposers::class.java.getMethod("getValue").apply { isAccessible = true }.invoke(runningRecomposers) as Set<*>
     if (currentRunningSet.isNotEmpty()) {
       val recomposerCompanion = recomposerClass.getField("Companion").get(null)
-      val recomposerCompanionClass =
-        classLoader.loadClass("androidx.compose.runtime.Recomposer\$Companion")
-      val removeRunning =
-        recomposerCompanionClass.methods.single { it.name.contains("removeRunning") }
+      val recomposerCompanionClass = classLoader.loadClass("androidx.compose.runtime.Recomposer\$Companion")
+      val removeRunning = recomposerCompanionClass.methods.single { it.name.contains("removeRunning") }
       currentRunningSet.forEach { removeRunning.invoke(null, recomposerCompanion, it) }
     }
   } catch (t: Throwable) {

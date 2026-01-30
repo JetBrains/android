@@ -30,14 +30,13 @@ import org.jetbrains.kotlin.idea.debugger.core.isInKotlinSources
 /**
  * Custom renderer for "MapEntry" type objects.
  *
- * This is to precede the `Kotlin class` renderer, as [KotlinMapEntryRenderer] provides a more
- * readable data view, that the underlying `Map.Entry` renderer does the real work.
+ * This is to precede the `Kotlin class` renderer, as [KotlinMapEntryRenderer] provides a more readable data view, that the underlying
+ * `Map.Entry` renderer does the real work.
  */
 class KotlinMapEntryRenderer : CompoundRendererProvider() {
   private val MAP_ENTRY_FQCN = "java.util.Map\$Entry"
 
-  private val mapEntryLabelRender =
-    NodeRendererSettings.getInstance().alternateCollectionRenderers.find { it.name == "Map.Entry" }
+  private val mapEntryLabelRender = NodeRendererSettings.getInstance().alternateCollectionRenderers.find { it.name == "Map.Entry" }
 
   override fun isEnabled() = true
 
@@ -47,8 +46,7 @@ class KotlinMapEntryRenderer : CompoundRendererProvider() {
 
   override fun getIsApplicableChecker(): Function<Type?, CompletableFuture<Boolean>> {
     return Function { type: Type? ->
-      if (type !is ClassType || !type.isInKotlinSources())
-        return@Function CompletableFuture.completedFuture(false)
+      if (type !is ClassType || !type.isInKotlinSources()) return@Function CompletableFuture.completedFuture(false)
 
       DebuggerUtilsAsync.instanceOf(type, MAP_ENTRY_FQCN)
     }
@@ -59,8 +57,6 @@ class KotlinMapEntryRenderer : CompoundRendererProvider() {
   }
 
   override fun getChildrenRenderer(): ChildrenRenderer {
-    return NodeRendererSettings.createEnumerationChildrenRenderer(
-      arrayOf(arrayOf("key", "getKey()"), arrayOf("value", "getValue()"))
-    )
+    return NodeRendererSettings.createEnumerationChildrenRenderer(arrayOf(arrayOf("key", "getKey()"), arrayOf("value", "getValue()")))
   }
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("AndroidPlatforms")
+
 package org.jetbrains.android.sdk
 
 import com.android.tools.sdk.AndroidPlatform

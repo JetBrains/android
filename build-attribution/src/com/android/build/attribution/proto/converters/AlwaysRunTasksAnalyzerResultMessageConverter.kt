@@ -23,15 +23,14 @@ import com.android.build.attribution.proto.PairEnumFinder
 
 class AlwaysRunTasksAnalyzerResultMessageConverter {
   companion object {
-    fun transform(alwaysRunTasks: List<AlwaysRunTaskData>):
-      BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult? =
+    fun transform(alwaysRunTasks: List<AlwaysRunTaskData>): BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult? =
       BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.newBuilder()
         .addAllAlwaysRunTasksData(alwaysRunTasks.map { transformAlwaysRunTaskData(it) })
         .build()
 
     fun construct(
       alwaysRunTasksAnalyzerResult: BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult,
-      tasks: Map<String, TaskData>
+      tasks: Map<String, TaskData>,
     ): AlwaysRunTasksAnalyzer.Result {
       val alwaysRunTaskData = mutableListOf<AlwaysRunTaskData>()
       for (alwaysRunTaskDatum in alwaysRunTasksAnalyzerResult.alwaysRunTasksDataList) {
@@ -42,20 +41,22 @@ class AlwaysRunTasksAnalyzerResultMessageConverter {
       return AlwaysRunTasksAnalyzer.Result(alwaysRunTaskData)
     }
 
-    private fun transformAlwaysRunTaskData(alwaysRunTaskData: AlwaysRunTaskData):
-      BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData {
-      val arTaskData = BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.newBuilder()
-        .setReason((transformAlwaysRunTaskReason(alwaysRunTaskData.rerunReason)))
+    private fun transformAlwaysRunTaskData(
+      alwaysRunTaskData: AlwaysRunTaskData
+    ): BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData {
+      val arTaskData =
+        BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.newBuilder()
+          .setReason((transformAlwaysRunTaskReason(alwaysRunTaskData.rerunReason)))
       arTaskData.taskId = alwaysRunTaskData.taskData.getTaskPath()
       return arTaskData.build()
     }
 
-    private fun transformAlwaysRunTaskReason(reason: AlwaysRunTaskData.Reason): BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.Reason =
-      PairEnumFinder.aToB(
-        reason)
+    private fun transformAlwaysRunTaskReason(
+      reason: AlwaysRunTaskData.Reason
+    ): BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.Reason = PairEnumFinder.aToB(reason)
 
-
-    private fun constructAlwaysRunTaskReason(reason: BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.Reason): AlwaysRunTaskData.Reason =
-      PairEnumFinder.bToA(reason)
+    private fun constructAlwaysRunTaskReason(
+      reason: BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.Reason
+    ): AlwaysRunTaskData.Reason = PairEnumFinder.bToA(reason)
   }
 }

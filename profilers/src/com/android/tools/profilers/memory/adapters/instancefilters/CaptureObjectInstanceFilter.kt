@@ -18,34 +18,27 @@ package com.android.tools.profilers.memory.adapters.instancefilters
 import com.android.tools.profilers.memory.adapters.InstanceObject
 
 /**
- * Helper to filter and return a subset of the input InstanceObject's that match an arbitrary criteria. Note that this is different from
- * the string-based filter (see [FilterHandler]) that works at the class/package/callstack level but does not filter individual
- * instances within a class. This helper interface allows us to show a subset of instances that are of interest to the users.
+ * Helper to filter and return a subset of the input InstanceObject's that match an arbitrary criteria. Note that this is different from the
+ * string-based filter (see [FilterHandler]) that works at the class/package/callstack level but does not filter individual instances within
+ * a class. This helper interface allows us to show a subset of instances that are of interest to the users.
  *
  * The only reason this class is "open" is because there is existing code that relies on the run-time class names of its subclasses.
  * Ideally, implementations only need to provide the right parameters rather than inheriting this class.
  */
 open class CaptureObjectInstanceFilter(
   val displayName: String,
-  /**
-   * high-level summary of the instance filter's function.
-   */
+  /** high-level summary of the instance filter's function. */
   val summaryDescription: String,
-  /**
-   * A more detailed explanation the instance filter's function if available, null otherwise.
-   */
+  /** A more detailed explanation the instance filter's function if available, null otherwise. */
   val detailedDescription: String?,
-  /**
-   * link pointing to further documentation if available, null otherwise.
-   */
+  /** link pointing to further documentation if available, null otherwise. */
   val documentationLink: String?,
-  /**
-   * The test on each individual instance
-   */
-  val instanceTest: (InstanceObject) -> Boolean) {
+  /** The test on each individual instance */
+  val instanceTest: (InstanceObject) -> Boolean,
+) {
 
   /**
-   * @param instances     The set of instances to filter
+   * @param instances The set of instances to filter
    * @return a subset of instances based on some arbitrary criteria.
    */
   fun filter(instances: Set<InstanceObject>) = instances.filterTo(HashSet(), instanceTest)

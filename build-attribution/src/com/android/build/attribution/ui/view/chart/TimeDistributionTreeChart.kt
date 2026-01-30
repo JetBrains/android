@@ -54,25 +54,27 @@ private const val RIGHT_SELECTION_MARGIN_PX = 3
 private const val FULL_WIDTH_PX = STACK_WIDTH_PX + STACK_LEFT_BORDER_PX + RIGHT_SELECTION_MARGIN_PX
 private val MERGED_ITEMS_COLOR = Gray._189
 
-class TimeDistributionTreeChart(
-  val model: TimeDistributionTreeChartCalculationModel,
-  val tree: Tree
-) : JComponent() {
+class TimeDistributionTreeChart(val model: TimeDistributionTreeChartCalculationModel, val tree: Tree) : JComponent() {
 
-  private val treeModelListener = TreeModelAdapter.create { _, _ ->
-    model.refreshModel()
-    repaint()
-  }
+  private val treeModelListener =
+    TreeModelAdapter.create { _, _ ->
+      model.refreshModel()
+      repaint()
+    }
 
-  private val treeExpansionListener = object : TreeExpansionListener {
-    override fun treeExpanded(event: TreeExpansionEvent?) = repaint()
-    override fun treeCollapsed(event: TreeExpansionEvent?) = repaint()
-  }
+  private val treeExpansionListener =
+    object : TreeExpansionListener {
+      override fun treeExpanded(event: TreeExpansionEvent?) = repaint()
 
-  private val focusListener = object : FocusListener {
-    override fun focusLost(e: FocusEvent?) = refreshSelectionArea()
-    override fun focusGained(e: FocusEvent?) = refreshSelectionArea()
-  }
+      override fun treeCollapsed(event: TreeExpansionEvent?) = repaint()
+    }
+
+  private val focusListener =
+    object : FocusListener {
+      override fun focusLost(e: FocusEvent?) = refreshSelectionArea()
+
+      override fun focusGained(e: FocusEvent?) = refreshSelectionArea()
+    }
 
   private val treeSelectionListener = TreeSelectionListener { refreshSelectionArea() }
 
@@ -81,25 +83,26 @@ class TimeDistributionTreeChart(
     repaint()
   }
 
-  private val mouseListener = object : MouseAdapter() {
-    override fun mouseClicked(e: MouseEvent) {
-      model.itemByCoordinates(e.point)?.let {
-        tree.selectionModel.selectionPath = it.treePath
-        tree.requestFocusInWindow()
+  private val mouseListener =
+    object : MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent) {
+        model.itemByCoordinates(e.point)?.let {
+          tree.selectionModel.selectionPath = it.treePath
+          tree.requestFocusInWindow()
+        }
+      }
+
+      override fun mouseMoved(e: MouseEvent) {
+        if (model.hoveredItem?.contains(e.point) == true) return
+        model.hoveredItem = model.itemByCoordinates(e.point)
+        repaint()
+      }
+
+      override fun mouseExited(e: MouseEvent) {
+        model.hoveredItem = null
+        repaint()
       }
     }
-
-    override fun mouseMoved(e: MouseEvent) {
-      if (model.hoveredItem?.contains(e.point) == true) return
-      model.hoveredItem = model.itemByCoordinates(e.point)
-      repaint()
-    }
-
-    override fun mouseExited(e: MouseEvent) {
-      model.hoveredItem = null
-      repaint()
-    }
-  }
 
   init {
     background = UIUtil.getTreeBackground()
@@ -113,11 +116,12 @@ class TimeDistributionTreeChart(
     addMouseMotionListener(mouseListener)
   }
 
-  private fun Dimension.makeFullWidth() = JBDimension.size(this)
-    .withWidth(FULL_WIDTH_PX)
+  private fun Dimension.makeFullWidth() = JBDimension.size(this).withWidth(FULL_WIDTH_PX)
 
   override fun getPreferredSize(): Dimension = tree.getPreferredSize().makeFullWidth()
+
   override fun getMinimumSize(): Dimension = tree.getMinimumSize().makeFullWidth()
+
   override fun getMaximumSize(): Dimension = tree.getMaximumSize().makeFullWidth()
 
   override fun paintComponent(g: Graphics) {
@@ -139,23 +143,22 @@ class TimeDistributionTreeChart(
     }
   }
 
-  private class MyScrollPane(
-    private val tree: Tree,
-    chart: TimeDistributionTreeChart
-  ) : JBScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED) {
+  private class MyScrollPane(private val tree: Tree, chart: TimeDistributionTreeChart) :
+    JBScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED) {
     init {
       setRowHeaderView(chart)
       rowHeader.scrollMode = JViewport.SIMPLE_SCROLL_MODE
       border = JBUI.Borders.empty()
-      layout = object : Layout() {
-        override fun layoutContainer(parent: Container?) {
-          super.layoutContainer(parent)
-          // Re-Arrange components horizontally. We don't expect and support any other order.
-          viewport?.apply { setLocation(0, y) }
-          rowHead?.apply { setLocation(viewport.width, y) }
-          horizontalScrollBar?.apply { setLocation(0, y) }
+      layout =
+        object : Layout() {
+          override fun layoutContainer(parent: Container?) {
+            super.layoutContainer(parent)
+            // Re-Arrange components horizontally. We don't expect and support any other order.
+            viewport?.apply { setLocation(0, y) }
+            rowHead?.apply { setLocation(viewport.width, y) }
+            horizontalScrollBar?.apply { setLocation(0, y) }
+          }
         }
-      }
     }
   }
 }
@@ -170,13 +173,13 @@ interface ChartValueProvider : TreeNode {
 }
 
 /**
- * This class abstracts away chart objects coordinates calculation from the component.
- * It retrieves data from the provided tree model and expects nodes to inherit ChartValueProvider.
- * It does not observe any changes itself, all recalculations should be triggered by the client.
+ * This class abstracts away chart objects coordinates calculation from the component. It retrieves data from the provided tree model and
+ * expects nodes to inherit ChartValueProvider. It does not observe any changes itself, all recalculations should be triggered by the
+ * client.
  */
 class TimeDistributionTreeChartCalculationModel(
   private val treeModel: TreeModel,
-  private val treePathToCoordinates: (TreePath) -> Rectangle?
+  private val treePathToCoordinates: (TreePath) -> Rectangle?,
 ) {
 
   var chartItems: List<ChartRowItem> = emptyList()
@@ -214,10 +217,7 @@ class TimeDistributionTreeChartCalculationModel(
     rightLineBreakingPointScaledPx = stackLeftBorderScaledPx - JBUIScale.scale(4)
   }
 
-  /**
-   * Recalculate all drawable items coordinates to the current visible state.
-   * To be called on every paint before drawing any elements.
-   */
+  /** Recalculate all drawable items coordinates to the current visible state. To be called on every paint before drawing any elements. */
   fun recalculateCoordinates(visibleRect: Rectangle) {
     mergedItemsBar.mergedItems.clear()
 
@@ -226,42 +226,34 @@ class TimeDistributionTreeChartCalculationModel(
     val availableStackHeight = visibleRect.height - stackBottomMarginScaledPx
     val pxPerPercent = availableStackHeight.toDouble() / 100
     var curY = visibleRect.y
-    chartItems.forEach {
-      curY = it.recalculateCoordinates(pxPerPercent, curY)
-    }
+    chartItems.forEach { curY = it.recalculateCoordinates(pxPerPercent, curY) }
     curY = mergedItemsBar.recalculateCoordinates(pxPerPercent, curY)
     selectionArea.recalculateCoordinates()
   }
 
-  /**
-   * Load new data from the TreeModel and rebuild chart items.
-   * To be called when tree structure changes.
-   */
+  /** Load new data from the TreeModel and rebuild chart items. To be called when tree structure changes. */
   @VisibleForTesting
   fun refreshModel() {
-    val firstLevelNodes = (treeModel.root as TreeNode).children()
-      .asSequence()
-      .filterIsInstance<ChartValueProvider>()
-      .toList()
+    val firstLevelNodes = (treeModel.root as TreeNode).children().asSequence().filterIsInstance<ChartValueProvider>().toList()
 
     // Calculate Stack items
     val itemsSum = firstLevelNodes.sumOf { it.relativeWeight }
 
-    chartItems = firstLevelNodes.map { node ->
-      val color = node.itemColor
-      val treePath = TreePathUtil.toTreePath(node)
+    chartItems =
+      firstLevelNodes.map { node ->
+        val color = node.itemColor
+        val treePath = TreePathUtil.toTreePath(node)
 
-      val itemPercentage = 100 * node.relativeWeight / itemsSum
-      ChartRowItem(treePath, itemPercentage, color)
-    }
+        val itemPercentage = 100 * node.relativeWeight / itemsSum
+        ChartRowItem(treePath, itemPercentage, color)
+      }
   }
 
   fun refreshSelectionArea(selectedPath: TreePath?, isFocused: Boolean) {
     if (selectedPath == null) {
       selectionArea.selectedChartRowItem = null
       selectionArea.selectionColor = null
-    }
-    else {
+    } else {
       selectionArea.selectedChartRowItem = chartItems.find { selectedPath == it.treePath }
       selectionArea.selectionColor = UIUtil.getTreeSelectionBackground(isFocused)
     }
@@ -269,9 +261,7 @@ class TimeDistributionTreeChartCalculationModel(
 
   fun itemByCoordinates(p: Point): ChartRowItem? = chartItems.firstOrNull { it.contains(p) }
 
-  /**
-   * Selection area that is drawn under the currently selected [ChartRowItem].
-   */
+  /** Selection area that is drawn under the currently selected [ChartRowItem]. */
   inner class ChartSelectionArea : ChartDrawableElement {
     var selectedChartRowItem: ChartRowItem? = null
     var selectionColor: Color? = null
@@ -291,16 +281,15 @@ class TimeDistributionTreeChartCalculationModel(
   }
 
   /**
-   * Chart item that represents corresponding node on the tree.
-   * Consists of bullet point attached to a corresponding tree row, area on the stack chart and line connecting them.
-   * If item is too small to be shown separately on the chart then it is added to the special merged element [MergedItemsBar].
-   * In this case only row bullet point is drawn and it is half gray to match the 'merged' state.
+   * Chart item that represents corresponding node on the tree. Consists of bullet point attached to a corresponding tree row, area on the
+   * stack chart and line connecting them. If item is too small to be shown separately on the chart then it is added to the special merged
+   * element [MergedItemsBar]. In this case only row bullet point is drawn and it is half gray to match the 'merged' state.
    */
   inner class ChartRowItem(
     val treePath: TreePath,
     /* 0 to 1 */
     val itemNormalizedHeightPercentage: Double,
-    private val keyColor: Color
+    private val keyColor: Color,
   ) : ChartDrawableElement {
 
     private val shadowColor = JBColor(keyColor.darker(), keyColor.brighter())
@@ -318,8 +307,8 @@ class TimeDistributionTreeChartCalculationModel(
     var clickHandlingArea: Polygon? = null
 
     /**
-     * [curY] start position on the stack chart for this element.
-     * Returns new position on the stack for the next element. Should be increased by height allocated for this element.
+     * [curY] start position on the stack chart for this element. Returns new position on the stack for the next element. Should be
+     * increased by height allocated for this element.
      */
     fun recalculateCoordinates(stackHeightPxPerPercent: Double, curY: Int): Int {
       val rowBounds = treePathToCoordinates(treePath)
@@ -328,8 +317,7 @@ class TimeDistributionTreeChartCalculationModel(
         // This can not normally happen in our scenario as we are working with first-level nodes.
         treeRowY = 0
         treeRowHeight = 0
-      }
-      else {
+      } else {
         treeRowY = rowBounds.y
         treeRowHeight = rowBounds.height
       }
@@ -341,8 +329,7 @@ class TimeDistributionTreeChartCalculationModel(
       if (!shownAsSeparateBar) {
         mergedItemsBar.mergedItems.add(this)
         return curY
-      }
-      else {
+      } else {
         return stackBarY + stackBarHeight
       }
     }
@@ -391,26 +378,27 @@ class TimeDistributionTreeChartCalculationModel(
       g.drawPolyline(
         intArrayOf(rowColorBulletSizeScaledPx, leftLineBreakingPointScaledPx, rightLineBreakingPointScaledPx, stackLeftBorderScaledPx),
         intArrayOf(leftMidY, leftMidY, rightMidY, rightMidY),
-        4
+        4,
       )
     }
 
-    fun toSelectionAreaPolygon(): Polygon = Polygon().apply {
-      val leftTopY: Int = treeRowY
-      val leftBottomY: Int = leftTopY + treeRowHeight
-      addPoint(0, leftTopY)
-      addPoint(leftLineBreakingPointScaledPx, leftTopY)
-      if (shownAsSeparateBar) {
-        val rightTopY: Int = stackBarY - stackBarsSpacingScaledPx
-        val rightBottomY: Int = rightTopY + stackBarHeight + 2 * stackBarsSpacingScaledPx
-        addPoint(rightLineBreakingPointScaledPx, rightTopY)
-        addPoint(selectionRightPointScaledPx, rightTopY)
-        addPoint(selectionRightPointScaledPx, rightBottomY)
-        addPoint(rightLineBreakingPointScaledPx, rightBottomY)
+    fun toSelectionAreaPolygon(): Polygon =
+      Polygon().apply {
+        val leftTopY: Int = treeRowY
+        val leftBottomY: Int = leftTopY + treeRowHeight
+        addPoint(0, leftTopY)
+        addPoint(leftLineBreakingPointScaledPx, leftTopY)
+        if (shownAsSeparateBar) {
+          val rightTopY: Int = stackBarY - stackBarsSpacingScaledPx
+          val rightBottomY: Int = rightTopY + stackBarHeight + 2 * stackBarsSpacingScaledPx
+          addPoint(rightLineBreakingPointScaledPx, rightTopY)
+          addPoint(selectionRightPointScaledPx, rightTopY)
+          addPoint(selectionRightPointScaledPx, rightBottomY)
+          addPoint(rightLineBreakingPointScaledPx, rightBottomY)
+        }
+        addPoint(leftLineBreakingPointScaledPx, leftBottomY)
+        addPoint(0, leftBottomY)
       }
-      addPoint(leftLineBreakingPointScaledPx, leftBottomY)
-      addPoint(0, leftBottomY)
-    }
 
     fun contains(p: Point): Boolean = clickHandlingArea?.contains(p) ?: false
 
@@ -418,9 +406,7 @@ class TimeDistributionTreeChartCalculationModel(
       get() = stackBarHeight >= minStackBarSizeScaledPx
   }
 
-  /**
-   * Special part on the stack chart that represents all items that are too small to be shown separately on the chart.
-   */
+  /** Special part on the stack chart that represents all items that are too small to be shown separately on the chart. */
   inner class MergedItemsBar : ChartDrawableElement {
 
     val mergedItems = mutableListOf<ChartRowItem>()
@@ -437,8 +423,7 @@ class TimeDistributionTreeChartCalculationModel(
         posY = curY + stackBarsSpacingScaledPx
         heightPx = max(stackBarHeightPx, minStackBarSizeScaledPx)
         return posY + heightPx
-      }
-      else {
+      } else {
         return curY
       }
     }

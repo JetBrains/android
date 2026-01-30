@@ -23,27 +23,23 @@ import org.HdrHistogram.HistogramIterationValue
 
 typealias HistogramProto = com.google.wireless.android.sdk.stats.Histogram
 
-/**
- * Returns the inclusive start value for the given bin.
- */
-val HistogramIterationValue.start: Long get() {
-  // Special case: HdrHistogram encodes the first bin as 0,0 even though it's supposed to be 0,1
-  if (valueIteratedFrom == 0L && valueIteratedTo == 0L) {
-    return 0L
+/** Returns the inclusive start value for the given bin. */
+val HistogramIterationValue.start: Long
+  get() {
+    // Special case: HdrHistogram encodes the first bin as 0,0 even though it's supposed to be 0,1
+    if (valueIteratedFrom == 0L && valueIteratedTo == 0L) {
+      return 0L
+    }
+    return valueIteratedFrom + 1
   }
-  return valueIteratedFrom + 1
-}
 
-/**
- * Returns the exclusive end value for the given bin.
- */
-val HistogramIterationValue.end: Long get() {
-  return valueIteratedTo + 1
-}
+/** Returns the exclusive end value for the given bin. */
+val HistogramIterationValue.end: Long
+  get() {
+    return valueIteratedTo + 1
+  }
 
-/**
- * Converts a [Histogram] to a proto.
- */
+/** Converts a [Histogram] to a proto. */
 fun Histogram.toProto(): HistogramProto {
   val builder = HistogramProto.newBuilder()
 
@@ -54,11 +50,13 @@ fun Histogram.toProto(): HistogramProto {
       // HdrHistogram has a special case for it's first bin, which uses the range 0 to 0. Subsequent bins have an inclusive
       // upper bound and exclusive lower bound. We use inclusive lower bounds and exclusive upper bounds in the proto, so
       // need to shuffle around some indices here.
-      builder.addBin(HistogramBin.newBuilder()
-                       .setStart(value.start)
-                       .setEnd(value.end)
-                       .setTotalSamples(total)
-                       .setSamples(value.countAddedInThisIterationStep))
+      builder.addBin(
+        HistogramBin.newBuilder()
+          .setStart(value.start)
+          .setEnd(value.end)
+          .setTotalSamples(total)
+          .setSamples(value.countAddedInThisIterationStep)
+      )
     }
     total -= value.countAddedInThisIterationStep
   }

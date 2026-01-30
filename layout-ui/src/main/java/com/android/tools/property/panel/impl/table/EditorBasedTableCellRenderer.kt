@@ -43,8 +43,8 @@ import javax.swing.border.Border
 /**
  * A simple text cell renderer for displaying the value of a [PTableItem].
  *
- * The properties values in a table are rendered using the control actually used to edit the value.
- * Cache these controls and their editor model for each [ControlType].
+ * The properties values in a table are rendered using the control actually used to edit the value. Cache these controls and their editor
+ * model for each [ControlType].
  */
 class EditorBasedTableCellRenderer<in P : PropertyItem>(
   private val itemClass: Class<P>,
@@ -54,10 +54,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(
   private var defaultRenderer: PTableCellRenderer,
 ) : PTableCellRenderer {
   private val componentCache = mutableMapOf<ControlKey, Pair<PropertyEditorModel, JComponent>>()
-  private val leftSpacing =
-    JBUI.scale(LEFT_STANDARD_INDENT) +
-      JBUI.scale(MIN_SPACING) +
-      UIUtil.getTreeCollapsedIcon().iconWidth
+  private val leftSpacing = JBUI.scale(LEFT_STANDARD_INDENT) + JBUI.scale(MIN_SPACING) + UIUtil.getTreeCollapsedIcon().iconWidth
   private val depthIndent = JBUI.scale(DEPTH_INDENT)
 
   override fun getEditorComponent(
@@ -70,23 +67,14 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(
     isExpanded: Boolean,
   ): JComponent? {
     if (!itemClass.isInstance(item)) {
-      return defaultRenderer.getEditorComponent(
-        table,
-        item,
-        column,
-        depth,
-        isSelected,
-        hasFocus,
-        isExpanded,
-      )
+      return defaultRenderer.getEditorComponent(table, item, column, depth, isSelected, hasFocus, isExpanded)
     }
     val property = itemClass.cast(item)
     val controlType = controlTypeProvider(property)
     val hasBrowseButton = property.browseButton != null
     val key = ControlKey(controlType, hasBrowseButton)
 
-    val (model, editor) =
-      componentCache[key] ?: createEditor(key, property, column, depth, table.gridLineColor)
+    val (model, editor) = componentCache[key] ?: createEditor(key, property, column, depth, table.gridLineColor)
     model.isUsedInRendererWithSelection = isSelected && hasFocus
     model.isExpandedTableItem = (item as? PTableGroupItem)?.let { table.isExpanded(it) } ?: false
     model.tableExpansionState = computeTableExpansionState(table, item, column)
@@ -98,18 +86,13 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(
   }
 
   /** Compute the expansion state for the renderer being requested. */
-  private fun computeTableExpansionState(
-    table: PTable,
-    item: PTableItem,
-    column: PTableColumn,
-  ): TableExpansionState =
+  private fun computeTableExpansionState(table: PTable, item: PTableItem, column: PTableColumn): TableExpansionState =
     when {
       // This item is not expanded: use the normal renderer.
       !table.isExpandedRendererItem(item, column) -> TableExpansionState.NORMAL
       // The EXPANDED_RENDERER client property is set in AbstractExpandableItemsHandler for painting
       // the right part of the value in the popup.
-      ClientProperty.isTrue(table.component, ExpandableItemsHandler.EXPANDED_RENDERER) ->
-        TableExpansionState.EXPANDED_POPUP
+      ClientProperty.isTrue(table.component, ExpandableItemsHandler.EXPANDED_RENDERER) -> TableExpansionState.EXPANDED_POPUP
       // If the popup is currently showing, this must be a renderer for the cell itself (painting
       // the left part of the value).
       table.isExpandedRendererPopupShowing() -> TableExpansionState.EXPANDED_CELL_FOR_POPUP
@@ -141,20 +124,9 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(
     return result
   }
 
-  private fun createBorder(
-    column: PTableColumn,
-    depth: Int,
-    editor: JComponent,
-    gridLineColor: Color,
-  ): Border =
+  private fun createBorder(column: PTableColumn, depth: Int, editor: JComponent, gridLineColor: Color): Border =
     when (column) {
-      PTableColumn.NAME ->
-        BorderFactory.createEmptyBorder(
-          0,
-          leftSpacing - editorLeftMargin(editor) + depth * depthIndent,
-          0,
-          0,
-        )
+      PTableColumn.NAME -> BorderFactory.createEmptyBorder(0, leftSpacing - editorLeftMargin(editor) + depth * depthIndent, 0, 0)
       PTableColumn.VALUE -> JBUI.Borders.customLine(gridLineColor, 0, 1, 0, 0)
     }
 

@@ -42,19 +42,14 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
 
-  private val libRes get() = getAdditionalModulePath("lib") + "/res"
+  private val libRes
+    get() = getAdditionalModulePath("lib") + "/res"
 
   override fun configureAdditionalModules(
     projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
-    modules: MutableList<MyAdditionalModuleData>
+    modules: MutableList<MyAdditionalModuleData>,
   ) {
-    addModuleWithAndroidFacet(
-      projectBuilder,
-      modules,
-      "lib",
-      AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
-      true
-    )
+    addModuleWithAndroidFacet(projectBuilder, modules, "lib", AndroidProjectTypes.PROJECT_TYPE_LIBRARY, true)
   }
 
   override fun setUp() {
@@ -64,7 +59,7 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
       AndroidDomInspection::class.java,
       AndroidUnknownAttributeInspection::class.java,
       AndroidElementNotAllowedInspection::class.java,
-      XmlUnusedNamespaceInspection::class.java
+      XmlUnusedNamespaceInspection::class.java,
     )
 
     enableNamespacing(myFacet, "com.example.app")
@@ -74,11 +69,12 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
       "$libRes/values/strings.xml",
       // language=xml
       """
-        <!--suppress ALL -->
-        <resources>
-          <string name="hello">Hello from lib</string>
-        </resources>
-      """.trimIndent()
+      <!--suppress ALL -->
+      <resources>
+        <string name="hello">Hello from lib</string>
+      </resources>
+      """
+        .trimIndent(),
     )
 
     // Some tests trigger a large list of possible completions.
@@ -86,55 +82,60 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
   }
 
   fun testDifferentNamespacesCompletion() {
-    val values = myFixture.addFileToProject(
-      "res/values/values.xml",
-      """
+    val values =
+      myFixture.addFileToProject(
+        "res/values/values.xml",
+        """
         <resources>
           <string name="some_string">Some string</string>
           <string name="app_string">@${caret}</string>
         </resources>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(values.virtualFile)
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "@android:",
-      "@string/app_string",
-      "@string/some_string",
-      "@com.example.lib:string/hello"
-    )
+    assertThat(myFixture.lookupElementStrings)
+      .containsExactly("@android:", "@string/app_string", "@string/some_string", "@com.example.lib:string/hello")
   }
 
   fun testNamespaceReferenceGotoDeclarationValues() {
-    val values = myFixture.addFileToProject(
-      "res/values/values.xml",
-      """
+    val values =
+      myFixture.addFileToProject(
+        "res/values/values.xml",
+        """
         <resources>
           <string name="app_string">@com.ex${caret}ample.lib:string/hello</string>
         </resources>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(values.virtualFile)
 
     AndroidGotoDeclarationHandlerTestBase.navigateToElementAtCaretFromDifferentFile(myFixture)
     val elementAtCurrentOffset = myFixture.file.findElementAt(myFixture.editor.caretModel.offset)!!
     assertThat(elementAtCurrentOffset.containingFile.name).isEqualTo("AndroidManifest.xml")
     assertThat(elementAtCurrentOffset.text).isEqualTo("package")
-    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo(
-      """
+    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text)
+      .isEqualTo(
+        """
         <manifest xmlns:android="http://schemas.android.com/apk/res/android"
                   package="com.example.lib">
             <application android:icon="@drawable/icon">
             </application>
         </manifest>
-      """.trimIndent())
+        """
+          .trimIndent()
+      )
   }
 
   fun testNamespaceReferenceGotoDeclarationLayout() {
-    val layout = myFixture.addFileToProject("res/layout/activity_main.xml",
-      // language=xml
-      """
+    val layout =
+      myFixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=xml
+        """
       <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
@@ -146,27 +147,33 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
           android:layout_width="match_parent"
           android:text="@com.ex${caret}ample.lib:string/hello"/>
       </LinearLayout>
-      """.trimIndent())
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(layout.virtualFile)
 
     AndroidGotoDeclarationHandlerTestBase.navigateToElementAtCaretFromDifferentFile(myFixture)
     val elementAtCurrentOffset = myFixture.file.findElementAt(myFixture.editor.caretModel.offset)!!
     assertThat(elementAtCurrentOffset.containingFile.name).isEqualTo("AndroidManifest.xml")
     assertThat(elementAtCurrentOffset.text).isEqualTo("package")
-    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo(
-      """
+    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text)
+      .isEqualTo(
+        """
         <manifest xmlns:android="http://schemas.android.com/apk/res/android"
                   package="com.example.lib">
             <application android:icon="@drawable/icon">
             </application>
         </manifest>
-      """.trimIndent())
+        """
+          .trimIndent()
+      )
   }
 
   fun testDifferentNamespacesResolution() {
-    val values = myFixture.addFileToProject(
-      "res/values/values.xml",
-      """
+    val values =
+      myFixture.addFileToProject(
+        "res/values/values.xml",
+        """
         <resources>
           <string name="s1">@android:color/black</string>
           <string name="s2">@com.example.lib:string/hello</string>
@@ -176,32 +183,30 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
           <string name="s6">${"@com.example.lib:string/made_up" highlightedAs ERROR}</string>
           <string name="s7">${"@${"made_up" highlightedAs ERROR}:string/s1" highlightedAs ERROR}</string>
         </resources>
-      """.trimIndent()
-    )
+        """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(values.virtualFile)
     myFixture.checkHighlighting(true, false, false)
   }
 
   fun testDifferentNamespacesPrefixCompletion() {
-    val values = myFixture.addFileToProject(
-      "res/values/values.xml",
-      """
+    val values =
+      myFixture.addFileToProject(
+        "res/values/values.xml",
+        """
         <resources xmlns:lib="http://schemas.android.com/apk/res/com.example.lib" xmlns:a="http://schemas.android.com/apk/res/android">
           <string name="some_string">Some string</string>
           <string name="app_string">@${caret}</string>
         </resources>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(values.virtualFile)
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "@a:",
-      "@string/app_string",
-      "@string/some_string",
-      "@lib:string/hello"
-    )
+    assertThat(myFixture.lookupElementStrings).containsExactly("@a:", "@string/app_string", "@string/some_string", "@lib:string/hello")
 
     myFixture.type("a:")
     myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR)
@@ -210,9 +215,10 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
   }
 
   fun testDifferentNamespacesPrefixResolution() {
-    val values = myFixture.addFileToProject(
-      "res/values/values.xml",
-      """
+    val values =
+      myFixture.addFileToProject(
+        "res/values/values.xml",
+        """
         <resources xmlns:lib="http://schemas.android.com/apk/res/com.example.lib" xmlns:a="http://schemas.android.com/apk/res/android">
           <string name="s1">@a:color/black</string>
           <string name="s2">@lib:string/hello</string>
@@ -222,23 +228,26 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
           <string name="s6">${"@lib:string/made_up" highlightedAs ERROR}</string>
           <string name="s7">${"@${"made_up" highlightedAs ERROR}:string/s1" highlightedAs ERROR}</string>
         </resources>
-      """.trimIndent()
-    )
+        """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(values.virtualFile)
     myFixture.checkHighlighting(true, false, false)
   }
 
   fun testNamespacePrefixReferences_localXmlNs() {
-    val values = myFixture.addFileToProject(
-      "res/values/values.xml",
-      """
+    val values =
+      myFixture.addFileToProject(
+        "res/values/values.xml",
+        """
         <resources xmlns:lib="http://schemas.android.com/apk/res/com.example.lib">
           <string name="some_string">Some string</string>
           <string name="app_string">@${caret}lib:string/hello</string>
         </resources>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(values.virtualFile)
     myFixture.checkHighlighting()
 
@@ -249,7 +258,8 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
           <string name="some_string">Some string</string>
           <string name="app_string">@${caret}newName:string/hello</string>
         </resources>
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.goToElementAtCaret()
@@ -259,20 +269,23 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
           <string name="some_string">Some string</string>
           <string name="app_string">@newName:string/hello</string>
         </resources>
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
   fun testNamespacePrefixReferences_packageName() {
-    val values = myFixture.addFileToProject(
-      "res/values/values.xml",
-      """
+    val values =
+      myFixture.addFileToProject(
+        "res/values/values.xml",
+        """
         <resources>
           <string name="some_string">Some string</string>
           <string name="app_string">@${caret}com.example.lib:string/hello</string>
         </resources>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(values.virtualFile)
     myFixture.checkHighlighting()
 
@@ -283,22 +296,25 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
           <string name="some_string">Some string</string>
           <string name="app_string">@${caret}com.example.lib:string/hello</string>
         </resources>
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
   fun testNamespacePrefixReferences_packageNameAfterResourceType() {
     // Regression test for b/296217029
     // The format `?<resource_type>/<package_name>:<resource_name> is allowed (even if it's not preferred), so it should resolve correctly.
-    val values = myFixture.addFileToProject(
-      "res/values/values.xml",
-      """
+    val values =
+      myFixture.addFileToProject(
+        "res/values/values.xml",
+        """
         <resources>
           <string name="some_string">Some string</string>
           <string name="app_string">@string/${caret}com.example.lib:hello</string>
         </resources>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(values.virtualFile)
     myFixture.checkHighlighting()
 
@@ -309,7 +325,8 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
           <string name="some_string">Some string</string>
           <string name="app_string">@string/${caret}com.example.lib:hello</string>
         </resources>
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -318,31 +335,34 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
       "$libRes/values/styles.xml",
       // language=xml
       """
-        <!--suppress ALL -->
-        <resources>
-          <attr name='libAttr1' format='string' />
-          <attr name='libAttr2' format='string' />
-          <attr name='libAttr3' format='string' />
-          <style name='LibStyle'>
-            <item name='libAttr1'>one</item>
-            <item name='libAttr2'>two</item>
-          </style>
-        </resources>
-      """.trimIndent()
+      <!--suppress ALL -->
+      <resources>
+        <attr name='libAttr1' format='string' />
+        <attr name='libAttr2' format='string' />
+        <attr name='libAttr3' format='string' />
+        <style name='LibStyle'>
+          <item name='libAttr1'>one</item>
+          <item name='libAttr2'>two</item>
+        </style>
+      </resources>
+      """
+        .trimIndent(),
     )
 
-    val values = myFixture.addFileToProject(
-      "res/values/values.xml",
-      // language=xml
-      """
+    val values =
+      myFixture.addFileToProject(
+        "res/values/values.xml",
+        // language=xml
+        """
         <!--suppress ALL -->
         <resources xmlns:lib='http://schemas.android.com/apk/res/com.example.lib'>
           <style name='AppStyle' parent='lib:LibStyle'>
             <item name='$caret'></item>
           </style>
         </resources>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(values.virtualFile)
 
     val lookupStrings = myFixture.completeBasic().map { it.lookupString }
@@ -357,17 +377,19 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
       "$libRes/values/styles.xml",
       // language=xml
       """
-        <!--suppress ALL -->
-        <resources>
-          <attr name='libAttr1' format='string' />
-        </resources>
-      """.trimIndent()
+      <!--suppress ALL -->
+      <resources>
+        <attr name='libAttr1' format='string' />
+      </resources>
+      """
+        .trimIndent(),
     )
 
-    val values = myFixture.addFileToProject(
-      "res/values/values.xml",
-      // language=xml
-      """
+    val values =
+      myFixture.addFileToProject(
+        "res/values/values.xml",
+        // language=xml
+        """
         <!--suppress ALL -->
         <resources xmlns:lib='http://schemas.android.com/apk/res/com.example.lib'>
           <string name='appString'>app</string>
@@ -375,17 +397,14 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
             <item name='lib:libAttr1'>@$caret</item>
           </style>
         </resources>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(values.virtualFile)
 
     val lookupStrings = myFixture.completeBasic().map { it.lookupString }
 
     // Make sure the "string" type of the attr is taken into account and libColor is not suggested.
-    assertThat(lookupStrings).containsExactly(
-      "@android:",
-      "@lib:string/hello",
-      "@string/appString"
-    )
+    assertThat(lookupStrings).containsExactly("@android:", "@lib:string/hello", "@string/appString")
   }
 }

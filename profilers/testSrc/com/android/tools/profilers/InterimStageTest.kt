@@ -24,12 +24,11 @@ class InterimStageTest {
   @Test
   fun testStopActionExecuted() {
     var stopActionExecuted = false
-    val mockInterimStage = mock<InterimStage>().apply {
-      whenever(this.stopAction).thenReturn(Runnable {
-        stopActionExecuted = true
-      })
-      whenever(stop()).thenCallRealMethod()
-    }
+    val mockInterimStage =
+      mock<InterimStage>().apply {
+        whenever(this.stopAction).thenReturn(Runnable { stopActionExecuted = true })
+        whenever(stop()).thenCallRealMethod()
+      }
     mockInterimStage.stop()
     assertThat(stopActionExecuted).isTrue()
   }

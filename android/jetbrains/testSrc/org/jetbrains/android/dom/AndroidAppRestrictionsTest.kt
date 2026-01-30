@@ -27,29 +27,34 @@ import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection
 import org.jetbrains.android.dom.xml.AppRestrictionsDomFileDescription
 import org.jetbrains.android.dom.xml.Restrictions
 
-/**
- * Tests for [AppRestrictionsDomFileDescription] and [Restrictions]
- */
+/** Tests for [AppRestrictionsDomFileDescription] and [Restrictions] */
 class AndroidAppRestrictionsTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    myFixture.enableInspections(AndroidDomInspection::class.java,
-                                AndroidUnknownAttributeInspection::class.java,
-                                AndroidElementNotAllowedInspection::class.java)
-    myFixture.addFileToProject("res/values/values.xml", """
+    myFixture.enableInspections(
+      AndroidDomInspection::class.java,
+      AndroidUnknownAttributeInspection::class.java,
+      AndroidElementNotAllowedInspection::class.java,
+    )
+    myFixture.addFileToProject(
+      "res/values/values.xml",
+      """
       <resources>
           <string name="test">foobar</string>
           <string name="foo">foobar</string>
           <string-array name="stringarray">foobar</string-array>
       </resources>
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
   }
 
   fun testHighlighting() {
-    val restrictions = myFixture.addFileToProject(
-      "res/xml/app_restrictions.xml",
-      """
+    val restrictions =
+      myFixture.addFileToProject(
+        "res/xml/app_restrictions.xml",
+        """
         <?xml version="1.0" encoding="utf-8"?>
         <restrictions xmlns:android="http://schemas.android.com/apk/res/android">
             <restriction
@@ -61,17 +66,19 @@ class AndroidAppRestrictionsTest : AndroidTestCase() {
                 android:title="@string/test"/>
             <restriction />
         </restrictions>
-      """.trimIndent()
-    )
+        """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(restrictions.virtualFile)
     myFixture.checkHighlighting()
   }
 
   fun testResourceElement() {
-    val restrictions = myFixture.addFileToProject(
-      "res/xml/app_restrictions.xml",
-      """
+    val restrictions =
+      myFixture.addFileToProject(
+        "res/xml/app_restrictions.xml",
+        """
         <?xml version="1.0" encoding="utf-8"?>
         <restrictions xmlns:android="http://schemas.android.com/apk/res/android">
             <restriction
@@ -83,8 +90,9 @@ class AndroidAppRestrictionsTest : AndroidTestCase() {
                 android:title="@string/test"/>
             <restriction />
         </restrictions>
-      """.trimIndent()
-    )
+        """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(restrictions.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret as ResourceReferencePsiElement

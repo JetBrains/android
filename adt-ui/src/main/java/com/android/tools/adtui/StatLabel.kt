@@ -106,9 +106,7 @@ constructor(
       addKeyListener(
         object : KeyAdapter() {
           override fun keyPressed(e: KeyEvent) {
-            if (
-              (e.keyCode == KeyEvent.VK_ENTER || e.keyCode == KeyEvent.VK_SPACE) && isFocusOwner
-            ) {
+            if ((e.keyCode == KeyEvent.VK_ENTER || e.keyCode == KeyEvent.VK_SPACE) && isFocusOwner) {
               action.run()
             }
           }
@@ -129,7 +127,6 @@ constructor(
 /** Returns a pair of callbacks for changing and restoring the label's font */
 private fun makeUnderlinedFontSwitchers(label: JLabel): Pair<() -> Unit, () -> Unit> {
   val oldFont = label.font
-  val newFont =
-    oldFont.deriveFont(oldFont.attributes + (TextAttribute.UNDERLINE to TextAttribute.UNDERLINE_ON))
+  val newFont = oldFont.deriveFont(oldFont.attributes + (TextAttribute.UNDERLINE to TextAttribute.UNDERLINE_ON))
   return Pair({ label.font = oldFont }, { label.font = newFont })
 }

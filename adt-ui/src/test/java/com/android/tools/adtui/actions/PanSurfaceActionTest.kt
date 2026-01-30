@@ -40,9 +40,7 @@ class PanSurfaceActionTest {
   private lateinit var panAction: PanSurfaceAction
   private var contextHasPannable: Boolean = true
   private val context: DataContext
-    get() =
-      if (contextHasPannable) SimpleDataContext.getSimpleContext(PANNABLE_KEY, pannable)
-      else DataContext.EMPTY_CONTEXT
+    get() = if (contextHasPannable) SimpleDataContext.getSimpleContext(PANNABLE_KEY, pannable) else DataContext.EMPTY_CONTEXT
 
   private val pannable: Pannable = mock(Pannable::class.java)
 

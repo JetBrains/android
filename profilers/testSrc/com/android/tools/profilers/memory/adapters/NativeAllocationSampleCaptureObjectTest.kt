@@ -32,24 +32,20 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-
 class NativeAllocationSampleCaptureObjectTest {
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
   private val ideProfilerServices = FakeIdeProfilerServices()
 
-  @Rule
-  @JvmField
-  var grpcChannel = FakeGrpcChannel("NativeAllocationSampleCaptureObjectTest", transportService)
+  @Rule @JvmField var grpcChannel = FakeGrpcChannel("NativeAllocationSampleCaptureObjectTest", transportService)
 
   private var stage: MainMemoryProfilerStage? = null
 
   @Before
   fun setUp() {
-    stage = MainMemoryProfilerStage(
-      StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer),
-      FakeCaptureObjectLoader())
+    stage =
+      MainMemoryProfilerStage(StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer), FakeCaptureObjectLoader())
   }
 
   @Test
@@ -74,7 +70,10 @@ class NativeAllocationSampleCaptureObjectTest {
     val info = Trace.TraceInfo.newBuilder().setFromTimestamp(startTimeNs).setToTimestamp(endTimeNs).build()
     val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA, info, stage!!)
     val todoBytes = ByteString.copyFrom("TODO".toByteArray())
-    transportService.addFile(startTimeNs.toString(), TransportServiceUtils.createTempFile("native-alloc-sample", "trace", todoBytes).absolutePath)
+    transportService.addFile(
+      startTimeNs.toString(),
+      TransportServiceUtils.createTempFile("native-alloc-sample", "trace", todoBytes).absolutePath,
+    )
     assertThat(capture.load(null, null)).isTrue()
     assertThat(capture.isDoneLoading).isTrue()
     assertThat(capture.isError).isFalse()

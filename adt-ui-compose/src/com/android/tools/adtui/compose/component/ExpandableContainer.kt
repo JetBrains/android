@@ -40,30 +40,25 @@ import org.jetbrains.jewel.foundation.modifier.thenIf
 /**
  * A container that can expand and collapse its content.
  *
- * When the content's height exceeds [maxCollapsedHeight], the container becomes "expandable", and
- * its state can be controlled by the [expanded] parameter. When not expanded, the container's
- * height is capped at [maxCollapsedHeight], and the content is clipped.
+ * When the content's height exceeds [maxCollapsedHeight], the container becomes "expandable", and its state can be controlled by the
+ * [expanded] parameter. When not expanded, the container's height is capped at [maxCollapsedHeight], and the content is clipped.
  *
- * A key behavior of this container is its focus management. When the content is overflowing (i.e.,
- * taller than [maxCollapsedHeight]) and the container is collapsed (`expanded` is false), the
- * entire content area becomes non-focusable. This prevents focus from being trapped on elements
- * that are clipped and not visible.
+ * A key behavior of this container is its focus management. When the content is overflowing (i.e., taller than [maxCollapsedHeight]) and
+ * the container is collapsed (`expanded` is false), the entire content area becomes non-focusable. This prevents focus from being trapped
+ * on elements that are clipped and not visible.
  *
- * Note that the [content] is _always_ laid out with as if there were no [maxCollapsedHeight], and
- * is only visually clipped. The `content` never "sees" that it's clipped to a max height when the
- * container is not [expanded].
+ * Note that the [content] is _always_ laid out with as if there were no [maxCollapsedHeight], and is only visually clipped. The `content`
+ * never "sees" that it's clipped to a max height when the container is not [expanded].
  *
- * @param expanded True to show the full content, false to collapse it to [maxCollapsedHeight]. If
- *   the content is shorter than [maxCollapsedHeight] this has no effect.
- * @param onExpandableChange Callback invoked when the content's height changes from being smaller
- *   than [maxCollapsedHeight] to larger, or vice versa. The boolean parameter is `true` if the
- *   content is overflowing, and thus expandable.
+ * @param expanded True to show the full content, false to collapse it to [maxCollapsedHeight]. If the content is shorter than
+ *   [maxCollapsedHeight] this has no effect.
+ * @param onExpandableChange Callback invoked when the content's height changes from being smaller than [maxCollapsedHeight] to larger, or
+ *   vice versa. The boolean parameter is `true` if the content is overflowing, and thus expandable.
  * @param modifier The [Modifier] to apply to this layout.
  * @param maxCollapsedHeight The maximum height of the container when it is not expanded.
  * @param animateHeightChange Whether to animate the height change when expanding or collapsing.
  * @param heightAnimationSpec The [AnimationSpec] to use for the height change animation.
- * @param content The composable content to display inside the container. Must contain one and only
- *   one top-level composable.
+ * @param content The composable content to display inside the container. Must contain one and only one top-level composable.
  */
 @Composable
 fun ExpandableContainer(
@@ -89,11 +84,7 @@ fun ExpandableContainer(
   val maxCollapsedHeightPx = with(density) { maxCollapsedHeight.roundToPx() }
   var targetHeightPx by remember { mutableIntStateOf(0) }
   val animatedHeight by
-    animateIntAsState(
-      targetValue = targetHeightPx,
-      animationSpec = heightAnimationSpec,
-      label = "ExpandableContainer_height",
-    )
+    animateIntAsState(targetValue = targetHeightPx, animationSpec = heightAnimationSpec, label = "ExpandableContainer_height")
 
   Layout(
     modifier =
@@ -111,8 +102,6 @@ fun ExpandableContainer(
     val height = placeable.height.fastCoerceIn(constraints.minHeight, constraints.maxHeight)
     targetHeightPx = if (expanded) height else min(height, maxCollapsedHeightPx)
 
-    layout(placeable.width, if (animateHeightChange) animatedHeight else targetHeightPx) {
-      placeable.place(0, 0)
-    }
+    layout(placeable.width, if (animateHeightChange) animatedHeight else targetHeightPx) { placeable.place(0, 0) }
   }
 }

@@ -21,10 +21,8 @@ import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.refactoring.actions.BaseRefactoringAction
 
-/**
- * This class ensures that Gradle-based actions are disabled and invisible in non-Gradle-based projects.
- */
-abstract class AndroidGradleBaseRefactoringAction: BaseRefactoringAction() {
+/** This class ensures that Gradle-based actions are disabled and invisible in non-Gradle-based projects. */
+abstract class AndroidGradleBaseRefactoringAction : BaseRefactoringAction() {
   override fun update(e: AnActionEvent) {
     val presentation = e.presentation
     val project = e.project

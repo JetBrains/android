@@ -26,16 +26,18 @@ class CriticalPathAnalyzerResultMessageConverter {
     fun transform(criticalPathAnalyzerData: CriticalPathAnalyzer.Result): BuildAnalysisResultsMessage.CriticalPathAnalyzerResult =
       BuildAnalysisResultsMessage.CriticalPathAnalyzerResult.newBuilder()
         .addAllTaskIdsDeterminingBuildDuration(criticalPathAnalyzerData.tasksDeterminingBuildDuration.map { it.getTaskPath() })
-        .addAllPluginsDeterminingBuildDuration(criticalPathAnalyzerData.pluginsDeterminingBuildDuration.map(
-          Companion::transformPluginBuildData))
+        .addAllPluginsDeterminingBuildDuration(
+          criticalPathAnalyzerData.pluginsDeterminingBuildDuration.map(Companion::transformPluginBuildData)
+        )
         .setBuildFinishedTimestamp(criticalPathAnalyzerData.buildFinishedTimestamp)
         .setBuildStartedTimestamp(criticalPathAnalyzerData.buildStartedTimestamp)
         .build()
 
-    fun construct(criticalPathAnalyzerResult: BuildAnalysisResultsMessage.CriticalPathAnalyzerResult,
-                  tasks: MutableMap<String, TaskData>,
-                  plugins: MutableMap<String, PluginData>)
-      : CriticalPathAnalyzer.Result {
+    fun construct(
+      criticalPathAnalyzerResult: BuildAnalysisResultsMessage.CriticalPathAnalyzerResult,
+      tasks: MutableMap<String, TaskData>,
+      plugins: MutableMap<String, PluginData>,
+    ): CriticalPathAnalyzer.Result {
       val tasksDeterminingBuildDuration = criticalPathAnalyzerResult.taskIdsDeterminingBuildDurationList.map { tasks[it] }
       val pluginsDeterminingBuildDuration = mutableListOf<PluginBuildData>()
       criticalPathAnalyzerResult.pluginsDeterminingBuildDurationList.forEach {
@@ -45,7 +47,7 @@ class CriticalPathAnalyzerResultMessageConverter {
         tasksDeterminingBuildDuration.mapNotNull { it },
         pluginsDeterminingBuildDuration,
         criticalPathAnalyzerResult.buildStartedTimestamp,
-        criticalPathAnalyzerResult.buildFinishedTimestamp
+        criticalPathAnalyzerResult.buildFinishedTimestamp,
       )
     }
 

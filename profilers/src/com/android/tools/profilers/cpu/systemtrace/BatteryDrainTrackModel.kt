@@ -36,33 +36,31 @@ class BatteryDrainTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Rang
 
     val negValuePresent = minValue < 0 || maxValue < 0
 
-    val axisFormatter = when (unit) {
-      "%" -> PercentAxisFormatter(1, 2)
-      "µah" -> SingleUnitAxisFormatter(1, 5, 1, unit, true)
-      // If a negative value is present, we limit the number of major axis ticks to keep the label only the 0 axis label.
-      "µa" -> if (negValuePresent) SingleUnitAxisFormatter(1, 2, 1, unit) else SingleUnitAxisFormatter(1, 5, 1, unit, true)
-      else -> SingleUnitAxisFormatter(1, 2, 5, unit, true)
-    }
+    val axisFormatter =
+      when (unit) {
+        "%" -> PercentAxisFormatter(1, 2)
+        "µah" -> SingleUnitAxisFormatter(1, 5, 1, unit, true)
+        // If a negative value is present, we limit the number of major axis ticks to keep the label only the 0 axis label.
+        "µa" -> if (negValuePresent) SingleUnitAxisFormatter(1, 2, 1, unit) else SingleUnitAxisFormatter(1, 5, 1, unit, true)
+        else -> SingleUnitAxisFormatter(1, 2, 5, unit, true)
+      }
 
     val absLargestValue = abs(minValue.toDouble()).coerceAtLeast(abs(maxValue.toDouble()))
-    val yRange = when (unit) {
-      "%" -> Range(0.0, 100.0)
-      // We use the range of [-max, max] if there is a negative value present to coerce the 0 axis label (clarifies negative values).
-      "µa" -> if (negValuePresent) Range(-absLargestValue, absLargestValue) else Range(0.0, maxValue.toDouble())
-      else -> Range(0.0, maxValue.toDouble())
-    }
+    val yRange =
+      when (unit) {
+        "%" -> Range(0.0, 100.0)
+        // We use the range of [-max, max] if there is a negative value present to coerce the 0 axis label (clarifies negative values).
+        "µa" -> if (negValuePresent) Range(-absLargestValue, absLargestValue) else Range(0.0, maxValue.toDouble())
+        else -> Range(0.0, maxValue.toDouble())
+      }
 
     axisComponentModel = ResizingAxisComponentModel.Builder(yRange, axisFormatter).build()
-    batteryDrainCounterSeries = RangedContinuousSeries(
-      "Battery Drain", viewRange, yRange, LazyDataSeries { dataSeries }
-    )
+    batteryDrainCounterSeries = RangedContinuousSeries("Battery Drain", viewRange, yRange, LazyDataSeries { dataSeries })
     add(batteryDrainCounterSeries)
   }
 
   companion object {
-    /**
-     * This method returns a more human-readable version of a battery drain counter name.
-     */
+    /** This method returns a more human-readable version of a battery drain counter name. */
     @JvmStatic
     fun getFormattedBatteryDrainName(batteryDrainCounterName: String): String {
       return when (val formattedBatteryDrainCounterName = batteryDrainCounterName.replace("batt.", "")) {
@@ -75,10 +73,7 @@ class BatteryDrainTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Rang
 
     @JvmStatic
     fun getUnitFromTrackName(trackName: String): String {
-      return if (trackName.contains("pct")) "%"
-      else if (trackName.contains("uah")) "µah"
-      else if (trackName.contains("ua")) "µa"
-      else ""
+      return if (trackName.contains("pct")) "%" else if (trackName.contains("uah")) "µah" else if (trackName.contains("ua")) "µa" else ""
     }
   }
 }

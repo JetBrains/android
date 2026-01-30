@@ -33,68 +33,42 @@ import com.intellij.psi.util.InheritanceUtil
 import org.jetbrains.android.util.AndroidUtils
 
 /** Returns class by name. It can be either short name for library classes or FQCN. */
-private fun findClassByName(
-  facet: AndroidFacet,
-  name: String, baseClassName: String,
-  filter: (PsiClass) -> Boolean = { true }): PsiClass? {
+private fun findClassByName(facet: AndroidFacet, name: String, baseClassName: String, filter: (PsiClass) -> Boolean = { true }): PsiClass? {
 
   val module = facet.module
   val project = module.project
-  val baseClass =
-    JavaPsiFacade.getInstance(project).findClass(baseClassName, module.moduleWithLibrariesScope)
-      ?: return null
+  val baseClass = JavaPsiFacade.getInstance(project).findClass(baseClassName, module.moduleWithLibrariesScope) ?: return null
 
   return if (!name.contains(".")) {
-    val classes =
-      PsiShortNamesCache.getInstance(project)
-        .getClassesByName(name, module.moduleWithLibrariesScope)
-    classes.find {
-      it.qualifiedName != null && InheritanceUtil.isInheritorOrSelf(it, baseClass, true) && filter(it)
-    }
+    val classes = PsiShortNamesCache.getInstance(project).getClassesByName(name, module.moduleWithLibrariesScope)
+    classes.find { it.qualifiedName != null && InheritanceUtil.isInheritorOrSelf(it, baseClass, true) && filter(it) }
   } else {
-    val classes =
-      JavaPsiFacade.getInstance(project)
-        .findClasses(name, module.getModuleSystem().getResolveScope(ScopeType.MAIN))
+    val classes = JavaPsiFacade.getInstance(project).findClasses(name, module.getModuleSystem().getResolveScope(ScopeType.MAIN))
     classes.find { InheritanceUtil.isInheritorOrSelf(it, baseClass, true) && filter(it) }
   }
 }
 
-/**
- * Return class that CAN be used in XML by name. It can be either short name for library classes or
- * FQCN.
- */
+/** Return class that CAN be used in XML by name. It can be either short name for library classes or FQCN. */
 fun findClassValidInXMLByName(facet: AndroidFacet, name: String, baseClassName: String): PsiClass? {
   return findClassByName(facet, name, baseClassName) { candidate ->
-      candidate.isVisibleInXml(facet.module) &&
+    candidate.isVisibleInXml(facet.module) &&
       (candidate.name != name ||
-       !isClassPackageNeeded(
-         candidate.qualifiedName!!,
-         candidate,
-         StudioAndroidModuleInfo.getInstance(facet).moduleMinApi,
-         baseClassName,
-       ))
+        !isClassPackageNeeded(candidate.qualifiedName!!, candidate, StudioAndroidModuleInfo.getInstance(facet).moduleMinApi, baseClassName))
   }
 }
 
 /** Return view by name. It can be either short name for library classes or FQCN. */
-fun findViewClassByName(facet: AndroidFacet, name: String) =
-  findClassByName(facet, name, CLASS_VIEW)
+fun findViewClassByName(facet: AndroidFacet, name: String) = findClassByName(facet, name, CLASS_VIEW)
 
 /** Return view that CAN be used in XML by name. */
-fun findViewValidInXMLByName(facet: AndroidFacet, name: String) =
-  findClassValidInXMLByName(facet, name, CLASS_VIEW)
+fun findViewValidInXMLByName(facet: AndroidFacet, name: String) = findClassValidInXMLByName(facet, name, CLASS_VIEW)
 
 /**
  * Returns all tags by which class can be used in XML.
  *
  * For classes that can't be used in XML (i.e abstract) returns empty array.
  */
-fun getTagNamesByClass(
-  module: Module,
-  c: PsiClass,
-  apiLevel: Int,
-  parentClassQualifiedName: String?,
-): Array<String> {
+fun getTagNamesByClass(module: Module, c: PsiClass, apiLevel: Int, parentClassQualifiedName: String?): Array<String> {
   return runReadAction {
     val name = c.name
     if (name == null || !c.isVisibleInXml(module)) {
@@ -111,12 +85,10 @@ fun getTagNamesByClass(
 fun PsiClass.isVisibleInXml(currentModule: Module): Boolean {
   val modifierList: PsiModifierList = modifierList ?: return false
 
-  val isVisibleInModule =
-    modifierList.hasModifierProperty(PsiModifier.PUBLIC) || this.module == currentModule
+  val isVisibleInModule = modifierList.hasModifierProperty(PsiModifier.PUBLIC) || this.module == currentModule
 
   val isRestricted =
-    modifierList.hasAnnotation(RESTRICT_TO_ANNOTATION.oldName()) ||
-      modifierList.hasAnnotation(RESTRICT_TO_ANNOTATION.newName())
+    modifierList.hasAnnotation(RESTRICT_TO_ANNOTATION.oldName()) || modifierList.hasAnnotation(RESTRICT_TO_ANNOTATION.newName())
   return isVisibleInModule && !isRestricted && !AndroidUtils.isAbstract(this)
 }
 

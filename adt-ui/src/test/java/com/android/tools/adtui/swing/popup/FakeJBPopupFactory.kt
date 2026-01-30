@@ -66,10 +66,9 @@ import kotlin.time.toDurationUnit
  *
  * This class is implemented ad hoc. All unused methods will throw a [NotImplementedError].
  *
- * This class keeps track of the popups that it creates. Popups can be created directly by this
- * class or indirectly via builders. A test can retrieve the popup it needs using the [getPopup],
- * [getNextPopup], [getBalloon] or [getNextBalloon] method. Type safety is the responsibility of the
- * caller.
+ * This class keeps track of the popups that it creates. Popups can be created directly by this class or indirectly via builders. A test can
+ * retrieve the popup it needs using the [getPopup], [getNextPopup], [getBalloon] or [getNextBalloon] method. Type safety is the
+ * responsibility of the caller.
  *
  * Note to contributors: As methods are implemented, please move them towards the top of the file.
  */
@@ -97,12 +96,11 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
    *
    * Type safety is the responsibility of the caller.
    */
-  @Suppress("UNCHECKED_CAST")
-  fun <T, U : FakeJBPopup<T>> getNextPopup(): U = popups.removeFirst() as U
+  @Suppress("UNCHECKED_CAST") fun <T, U : FakeJBPopup<T>> getNextPopup(): U = popups.removeFirst() as U
 
   /**
-   * Returns the oldest popup that was created using this factory and removes it from the factory.
-   * If no popups have been created yet, waits for one to be created.
+   * Returns the oldest popup that was created using this factory and removes it from the factory. If no popups have been created yet, waits
+   * for one to be created.
    *
    * Type safety is the responsibility of the caller.
    */
@@ -113,8 +111,8 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
   }
 
   /**
-   * Returns the oldest popup that was created using this factory and removes it from the factory.
-   * If no popups have been created yet, waits for one to be created.
+   * Returns the oldest popup that was created using this factory and removes it from the factory. If no popups have been created yet, waits
+   * for one to be created.
    *
    * Type safety is the responsibility of the caller.
    */
@@ -124,9 +122,7 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
   /** Returns a balloon that has been created using this factory. */
   fun getBalloon(i: Int): FakeBalloon = balloons[i]
 
-  /**
-   * Returns the oldest balloon that was created using this factory and removes it from the factory.
-   */
+  /** Returns the oldest balloon that was created using this factory and removes it from the factory. */
   fun getNextBalloon(): FakeBalloon = balloons.removeFirst()
 
   internal fun <T> addPopup(popup: FakeJBPopup<T>) {
@@ -137,8 +133,7 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
     balloons.add(balloon)
   }
 
-  override fun <T> createPopupChooserBuilder(list: List<T>): IPopupChooserBuilder<T> =
-    FakePopupChooserBuilder(this, list)
+  override fun <T> createPopupChooserBuilder(list: List<T>): IPopupChooserBuilder<T> = FakePopupChooserBuilder(this, list)
 
   override fun createActionGroupPopup(
     title: String?,
@@ -209,10 +204,8 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
     return createListPopup(step)
   }
 
-  override fun createComponentPopupBuilder(
-    content: JComponent,
-    preferableFocusComponent: JComponent?,
-  ): ComponentPopupBuilder = FakeComponentPopupBuilder(this, content, preferableFocusComponent)
+  override fun createComponentPopupBuilder(content: JComponent, preferableFocusComponent: JComponent?): ComponentPopupBuilder =
+    FakeComponentPopupBuilder(this, content, preferableFocusComponent)
 
   override fun getChildPopups(parent: Component): MutableList<JBPopup> = popups
 
@@ -222,33 +215,19 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
   ): PopupChooserBuilder.PopupComponentAdapter<T> = FakePopupListAdapter(builder, list)
 
   @Suppress("UnstableApiUsage")
-  private fun getComponentContextSupplier(
-    parentDataContext: DataContext,
-    component: Component?,
-  ): Supplier<DataContext> {
+  private fun getComponentContextSupplier(parentDataContext: DataContext, component: Component?): Supplier<DataContext> {
     if (component == null) return Supplier { parentDataContext }
-    val dataContext =
-      Utils.createAsyncDataContext(DataManager.getInstance().getDataContext(component))
+    val dataContext = Utils.createAsyncDataContext(DataManager.getInstance().getDataContext(component))
     return Supplier { dataContext }
   }
 
   // PLEASE KEEP UNIMPLEMENTED METHODS ONLY BELLOW THIS COMMENT
 
-  override fun createConfirmation(
-    title: String?,
-    onYes: Runnable?,
-    defaultOptionIndex: Int,
-  ): ListPopup {
+  override fun createConfirmation(title: String?, onYes: Runnable?, defaultOptionIndex: Int): ListPopup {
     TODO("Not yet implemented")
   }
 
-  override fun createConfirmation(
-    title: String?,
-    yesText: String?,
-    noText: String?,
-    onYes: Runnable?,
-    defaultOptionIndex: Int,
-  ): ListPopup {
+  override fun createConfirmation(title: String?, yesText: String?, noText: String?, onYes: Runnable?, defaultOptionIndex: Int): ListPopup {
     TODO("Not yet implemented")
   }
 
@@ -278,13 +257,10 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
     TODO("Not yet implemented")
   }
 
-  override fun guessBestPopupLocation(component: JComponent): RelativePoint =
-    RelativePoint(component, Point(0, 0))
+  override fun guessBestPopupLocation(component: JComponent): RelativePoint = RelativePoint(component, Point(0, 0))
 
   override fun guessBestPopupLocation(dataContext: DataContext): RelativePoint =
-    guessBestPopupLocation(
-      PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(dataContext) as JComponent
-    )
+    guessBestPopupLocation(PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(dataContext) as JComponent)
 
   override fun guessBestPopupLocation(editor: Editor): RelativePoint {
     TODO("Not yet implemented")
@@ -310,8 +286,7 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
     TODO("Not yet implemented")
   }
 
-  override fun createBalloonBuilder(content: JComponent): BalloonBuilder =
-    FakeBalloonBuilder(this, content)
+  override fun createBalloonBuilder(content: JComponent): BalloonBuilder = FakeBalloonBuilder(this, content)
 
   override fun createDialogBalloonBuilder(content: JComponent, title: String?): BalloonBuilder {
     TODO("Not yet implemented")
@@ -335,11 +310,7 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
     TODO("Not yet implemented")
   }
 
-  override fun createHtmlTextBalloonBuilder(
-    htmlContent: String,
-    messageType: MessageType?,
-    listener: HyperlinkListener?,
-  ): BalloonBuilder {
+  override fun createHtmlTextBalloonBuilder(htmlContent: String, messageType: MessageType?, listener: HyperlinkListener?): BalloonBuilder {
     TODO("Not yet implemented")
   }
 

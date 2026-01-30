@@ -63,6 +63,7 @@ import com.google.wireless.android.sdk.stats.TasksConfigurationIssuesAnalyzerDat
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import java.time.Duration
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -70,28 +71,32 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
-import java.time.Duration
 
 class BuildAttributionAnalyticsManagerTest {
-  @Mock
-  private lateinit var project: Project
+  @Mock private lateinit var project: Project
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
   private val pluginContainer = PluginContainer()
-  private val applicationPlugin = pluginContainer
-    .getPlugin(createBinaryPluginIdentifierStub("com.android.application", "com.android.build.gradle.api.AndroidBasePlugin"), ":app")
-  private val pluginA = pluginContainer
-    .getPlugin(createBinaryPluginIdentifierStub("pluginA", "my.plugin.PluginA"), ":buildSrc").apply { markAsBuildSrcPlugin() }
-  private val buildScript = pluginContainer
-    .getPlugin(createScriptPluginIdentifierStub("build.gradle"), ":app")
+  private val applicationPlugin =
+    pluginContainer.getPlugin(
+      createBinaryPluginIdentifierStub("com.android.application", "com.android.build.gradle.api.AndroidBasePlugin"),
+      ":app",
+    )
+  private val pluginA =
+    pluginContainer.getPlugin(createBinaryPluginIdentifierStub("pluginA", "my.plugin.PluginA"), ":buildSrc").apply {
+      markAsBuildSrcPlugin()
+    }
+  private val buildScript = pluginContainer.getPlugin(createScriptPluginIdentifierStub("build.gradle"), ":app")
 
-  val pluginATask = TaskData("sampleTask1", "", pluginA, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
-    setTaskType("com.example.test.SampleTask")
-  }
-  val buildScriptTask = TaskData("sampleTask2", "", buildScript, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
-    setTaskType("com.example.test.SampleTask")
-  }
+  val pluginATask =
+    TaskData("sampleTask1", "", pluginA, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
+      setTaskType("com.example.test.SampleTask")
+    }
+  val buildScriptTask =
+    TaskData("sampleTask2", "", buildScript, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
+      setTaskType("com.example.test.SampleTask")
+    }
 
   @Before
   fun setUp() {
@@ -112,8 +117,8 @@ class BuildAttributionAnalyticsManagerTest {
   private fun getAnalyzersData(): BuildEventsAnalysisResult {
     return object : AbstractBuildAttributionReportBuilderTest.MockResultsProvider() {
 
-      override fun getNonIncrementalAnnotationProcessorsData() = listOf(
-        AnnotationProcessorData("com.example.processor", Duration.ofMillis(1234)))
+      override fun getNonIncrementalAnnotationProcessorsData() =
+        listOf(AnnotationProcessorData("com.example.processor", Duration.ofMillis(1234)))
 
       override fun getTotalBuildTimeMs() = 123456L
 
@@ -121,82 +126,122 @@ class BuildAttributionAnalyticsManagerTest {
 
       override fun getPluginsDeterminingBuildDuration() = listOf(PluginBuildData(applicationPlugin, 891), PluginBuildData(pluginA, 234))
 
-      override fun getProjectsConfigurationData() = listOf(
-        ProjectConfigurationData(":app", 891,
-                                 listOf(PluginConfigurationData(applicationPlugin, 567),
-                                        PluginConfigurationData(pluginA, 890)),
-                                 listOf(ProjectConfigurationData.ConfigurationStep(
-                                   ProjectConfigurationData.ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS, 123),
-                                        ProjectConfigurationData.ConfigurationStep(
-                                          ProjectConfigurationData.ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS, 456))))
+      override fun getProjectsConfigurationData() =
+        listOf(
+          ProjectConfigurationData(
+            ":app",
+            891,
+            listOf(PluginConfigurationData(applicationPlugin, 567), PluginConfigurationData(pluginA, 890)),
+            listOf(
+              ProjectConfigurationData.ConfigurationStep(ProjectConfigurationData.ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS, 123),
+              ProjectConfigurationData.ConfigurationStep(ProjectConfigurationData.ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS, 456),
+            ),
+          )
+        )
 
       override fun getTotalConfigurationData() =
-        ProjectConfigurationData("Total Configuration Data", 891,
-                                 listOf(PluginConfigurationData(applicationPlugin, 567),
-                                        PluginConfigurationData(pluginA, 890)),
-                                 listOf(ProjectConfigurationData.ConfigurationStep(
-                                   ProjectConfigurationData.ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS, 123),
-                                        ProjectConfigurationData.ConfigurationStep(
-                                          ProjectConfigurationData.ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS, 456)))
+        ProjectConfigurationData(
+          "Total Configuration Data",
+          891,
+          listOf(PluginConfigurationData(applicationPlugin, 567), PluginConfigurationData(pluginA, 890)),
+          listOf(
+            ProjectConfigurationData.ConfigurationStep(ProjectConfigurationData.ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS, 123),
+            ProjectConfigurationData.ConfigurationStep(ProjectConfigurationData.ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS, 456),
+          ),
+        )
 
       override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(pluginATask, buildScriptTask)
 
       override fun getAlwaysRunTasks() = listOf(AlwaysRunTaskData(pluginATask, AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE))
 
       override fun getTasksSharingOutput() = listOf(TasksSharingOutputData("test", listOf(pluginATask, buildScriptTask)))
+
       override fun getJavaVersion(): Int? = null
+
       override fun isGCSettingSet(): Boolean? = null
-      override fun getConfigurationCachingCompatibility() = IncompatiblePluginsDetected(
-        listOf(IncompatiblePluginWarning(pluginA, Version.parse("1.0.0"), GradlePluginsData.PluginInfo("Plugin A", listOf("my.plugin.PluginA")))),
-        listOf(IncompatiblePluginWarning(applicationPlugin, Version.parse("2.0.0"), GradlePluginsData.PluginInfo("AGP", listOf("com.android.build.gradle.api.AndroidBasePlugin"))))
-      )
 
-      override fun getJetifierUsageResult() = JetifierUsageAnalyzerResult(
-        JetifierRequiredForLibraries(
-          checkJetifierResult = CheckJetifierResult(sortedMapOf(
-            "example:A:1.0" to listOf(FullDependencyPath(
-              projectPath = ":app",
-              configuration = "debugAndroidTestCompileClasspath",
-              dependencyPath = DependencyPath(listOf("example:A:1.0", "example:B:1.0", "com.android.support:support-annotations:28.0.0"))
-            )),
-            "example:B:1.0" to listOf(FullDependencyPath(
-              projectPath = ":lib",
-              configuration = "debugAndroidTestCompileClasspath",
-              dependencyPath = DependencyPath(listOf("example:B:1.0", "com.android.support:support-annotations:28.0.0"))
-            ))
-          ))
+      override fun getConfigurationCachingCompatibility() =
+        IncompatiblePluginsDetected(
+          listOf(
+            IncompatiblePluginWarning(
+              pluginA,
+              Version.parse("1.0.0"),
+              GradlePluginsData.PluginInfo("Plugin A", listOf("my.plugin.PluginA")),
+            )
+          ),
+          listOf(
+            IncompatiblePluginWarning(
+              applicationPlugin,
+              Version.parse("2.0.0"),
+              GradlePluginsData.PluginInfo("AGP", listOf("com.android.build.gradle.api.AndroidBasePlugin")),
+            )
+          ),
         )
-      )
 
-      override fun getDownloadsAnalyzerResult() = DownloadsAnalyzer.ActiveResult(repositoryResults = listOf(
-        DownloadsAnalyzer.RepositoryResult(
-          repository = GOOGLE,
-          downloads = listOf(
-            defaultDownloadResult(GOOGLE, SUCCESS, 100, 40000),
-            defaultDownloadResult(GOOGLE, SUCCESS, 100, 40000),
-            defaultDownloadResult(GOOGLE, SUCCESS, 100, 40000),
-            defaultDownloadResult(GOOGLE, SUCCESS, 50, 40000),
-            defaultDownloadResult(GOOGLE, SUCCESS, 50, 40000)
-          )
-        ),
-        DownloadsAnalyzer.RepositoryResult(
-          repository = DownloadsAnalyzer.OtherRepository("other.repo.one"),
-          downloads = listOf(
-            defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), SUCCESS, 50, 500),
-            defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), SUCCESS, 50, 500),
-            defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), FAILURE, 20, 0),
-            defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), MISSED, 10, 0)
+      override fun getJetifierUsageResult() =
+        JetifierUsageAnalyzerResult(
+          JetifierRequiredForLibraries(
+            checkJetifierResult =
+              CheckJetifierResult(
+                sortedMapOf(
+                  "example:A:1.0" to
+                    listOf(
+                      FullDependencyPath(
+                        projectPath = ":app",
+                        configuration = "debugAndroidTestCompileClasspath",
+                        dependencyPath =
+                          DependencyPath(listOf("example:A:1.0", "example:B:1.0", "com.android.support:support-annotations:28.0.0")),
+                      )
+                    ),
+                  "example:B:1.0" to
+                    listOf(
+                      FullDependencyPath(
+                        projectPath = ":lib",
+                        configuration = "debugAndroidTestCompileClasspath",
+                        dependencyPath = DependencyPath(listOf("example:B:1.0", "com.android.support:support-annotations:28.0.0")),
+                      )
+                    ),
+                )
+              )
           )
         )
-      ))
+
+      override fun getDownloadsAnalyzerResult() =
+        DownloadsAnalyzer.ActiveResult(
+          repositoryResults =
+            listOf(
+              DownloadsAnalyzer.RepositoryResult(
+                repository = GOOGLE,
+                downloads =
+                  listOf(
+                    defaultDownloadResult(GOOGLE, SUCCESS, 100, 40000),
+                    defaultDownloadResult(GOOGLE, SUCCESS, 100, 40000),
+                    defaultDownloadResult(GOOGLE, SUCCESS, 100, 40000),
+                    defaultDownloadResult(GOOGLE, SUCCESS, 50, 40000),
+                    defaultDownloadResult(GOOGLE, SUCCESS, 50, 40000),
+                  ),
+              ),
+              DownloadsAnalyzer.RepositoryResult(
+                repository = DownloadsAnalyzer.OtherRepository("other.repo.one"),
+                downloads =
+                  listOf(
+                    defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), SUCCESS, 50, 500),
+                    defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), SUCCESS, 50, 500),
+                    defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), FAILURE, 20, 0),
+                    defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), MISSED, 10, 0),
+                  ),
+              ),
+            )
+        )
 
       override fun getTaskCategoryWarningsAnalyzerResult() =
         TaskCategoryWarningsAnalyzer.IssuesResult(
-          taskCategoryIssues = listOf(
-            TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED,
-            TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
-            TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD,
-          )
+          taskCategoryIssues =
+            listOf(
+              TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED,
+              TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
+              TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD,
+            )
         )
     }
   }
@@ -207,7 +252,8 @@ class BuildAttributionAnalyticsManagerTest {
       analyticsManager.logAnalyzersData(getAnalyzersData())
     }
 
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
+    val buildAttributionEvents =
+      tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
     assertThat(buildAttributionEvents).hasSize(1)
 
     val buildAttributionAnalyzersData = buildAttributionEvents.first().studioEvent.buildAttributionStats.buildAttributionAnalyzersData
@@ -257,19 +303,21 @@ class BuildAttributionAnalyticsManagerTest {
     assertThat(analyzerData.projectConfigurationDataList[0].configurationTimeMs).isEqualTo(891)
     assertThat(analyzerData.projectConfigurationDataList[0].pluginsConfigurationDataList).hasSize(2)
     assertThat(analyzerData.projectConfigurationDataList[0].pluginsConfigurationDataList[0].pluginConfigurationTimeMs).isEqualTo(567)
-    assertThat(isTheSamePlugin(analyzerData.projectConfigurationDataList[0].pluginsConfigurationDataList[0].pluginIdentifier,
-                               applicationPlugin)).isTrue()
-    assertThat(analyzerData.projectConfigurationDataList[0].pluginsConfigurationDataList[1].pluginConfigurationTimeMs).isEqualTo(890)
     assertThat(
-      isTheSamePlugin(analyzerData.projectConfigurationDataList[0].pluginsConfigurationDataList[1].pluginIdentifier, pluginA)).isTrue()
+        isTheSamePlugin(analyzerData.projectConfigurationDataList[0].pluginsConfigurationDataList[0].pluginIdentifier, applicationPlugin)
+      )
+      .isTrue()
+    assertThat(analyzerData.projectConfigurationDataList[0].pluginsConfigurationDataList[1].pluginConfigurationTimeMs).isEqualTo(890)
+    assertThat(isTheSamePlugin(analyzerData.projectConfigurationDataList[0].pluginsConfigurationDataList[1].pluginIdentifier, pluginA))
+      .isTrue()
 
     assertThat(analyzerData.projectConfigurationDataList[0].configurationStepsList).hasSize(2)
     assertThat(analyzerData.projectConfigurationDataList[0].configurationStepsList[0].configurationTimeMs).isEqualTo(123)
     assertThat(analyzerData.projectConfigurationDataList[0].configurationStepsList[1].configurationTimeMs).isEqualTo(456)
-    assertThat(analyzerData.projectConfigurationDataList[0].configurationStepsList[0].type).isEqualTo(
-      ProjectConfigurationAnalyzerData.ConfigurationStep.StepType.NOTIFYING_BUILD_LISTENERS)
-    assertThat(analyzerData.projectConfigurationDataList[0].configurationStepsList[1].type).isEqualTo(
-      ProjectConfigurationAnalyzerData.ConfigurationStep.StepType.EXECUTING_BUILD_SCRIPT_BLOCKS)
+    assertThat(analyzerData.projectConfigurationDataList[0].configurationStepsList[0].type)
+      .isEqualTo(ProjectConfigurationAnalyzerData.ConfigurationStep.StepType.NOTIFYING_BUILD_LISTENERS)
+    assertThat(analyzerData.projectConfigurationDataList[0].configurationStepsList[1].type)
+      .isEqualTo(ProjectConfigurationAnalyzerData.ConfigurationStep.StepType.EXECUTING_BUILD_SCRIPT_BLOCKS)
   }
 
   private fun checkConfigurationIssuesAnalyzerData(analyzerData: TasksConfigurationIssuesAnalyzerData) {
@@ -280,55 +328,69 @@ class BuildAttributionAnalyticsManagerTest {
   }
 
   private fun checkConfigurationCacheCompatibilityData(analyzerData: ConfigurationCacheCompatibilityData) {
-    assertThat(analyzerData.compatibilityState).isEqualTo(ConfigurationCacheCompatibilityData.CompatibilityState.INCOMPATIBLE_PLUGINS_DETECTED)
+    assertThat(analyzerData.compatibilityState)
+      .isEqualTo(ConfigurationCacheCompatibilityData.CompatibilityState.INCOMPATIBLE_PLUGINS_DETECTED)
     assertThat(analyzerData.incompatiblePluginsList).hasSize(2)
     assertThat(isTheSamePlugin(analyzerData.incompatiblePluginsList[0], pluginA)).isTrue()
     assertThat(isTheSamePlugin(analyzerData.incompatiblePluginsList[1], applicationPlugin)).isTrue()
   }
 
   private fun checkJetifierUsageAnalyzerData(jetifierUsageData: JetifierUsageData) {
-    assertThat(jetifierUsageData).isEqualTo(JetifierUsageData.newBuilder().apply {
-      checkJetifierTaskBuild = false
-      jetifierUsageState = JetifierUsageData.JetifierUsageState.JETIFIER_REQUIRED_FOR_LIBRARIES
-      numberOfLibrariesRequireJetifier = 2
-    }.build())
+    assertThat(jetifierUsageData)
+      .isEqualTo(
+        JetifierUsageData.newBuilder()
+          .apply {
+            checkJetifierTaskBuild = false
+            jetifierUsageState = JetifierUsageData.JetifierUsageState.JETIFIER_REQUIRED_FOR_LIBRARIES
+            numberOfLibrariesRequireJetifier = 2
+          }
+          .build()
+      )
   }
 
   private fun checkDownloadsAnalyzerData(analyzerData: BuildDownloadsAnalysisData) {
     assertThat(analyzerData.repositoriesList).hasSize(2)
     assertThat(analyzerData.repositoriesList[0].repositoryType).isEqualTo(BuildDownloadsAnalysisData.RepositoryStats.RepositoryType.GOOGLE)
-    assertThat(analyzerData.repositoriesList[1].repositoryType).isEqualTo(BuildDownloadsAnalysisData.RepositoryStats.RepositoryType.OTHER_REPOSITORY)
-    assertThat(analyzerData.repositoriesList[1]).isEqualTo(BuildDownloadsAnalysisData.RepositoryStats.newBuilder().apply {
-      repositoryType = BuildDownloadsAnalysisData.RepositoryStats.RepositoryType.OTHER_REPOSITORY
-      successRequestsCount = 2
-      successRequestsTotalTimeMs = 100
-      successRequestsTotalBytesDownloaded = 1000
-      failedRequestsCount = 1
-      failedRequestsTotalTimeMs = 20
-      failedRequestsTotalBytesDownloaded = 0
-      missedRequestsCount = 1
-      missedRequestsTotalTimeMs = 10
-    }.build())
+    assertThat(analyzerData.repositoriesList[1].repositoryType)
+      .isEqualTo(BuildDownloadsAnalysisData.RepositoryStats.RepositoryType.OTHER_REPOSITORY)
+    assertThat(analyzerData.repositoriesList[1])
+      .isEqualTo(
+        BuildDownloadsAnalysisData.RepositoryStats.newBuilder()
+          .apply {
+            repositoryType = BuildDownloadsAnalysisData.RepositoryStats.RepositoryType.OTHER_REPOSITORY
+            successRequestsCount = 2
+            successRequestsTotalTimeMs = 100
+            successRequestsTotalBytesDownloaded = 1000
+            failedRequestsCount = 1
+            failedRequestsTotalTimeMs = 20
+            failedRequestsTotalBytesDownloaded = 0
+            missedRequestsCount = 1
+            missedRequestsTotalTimeMs = 10
+          }
+          .build()
+      )
   }
 
   private fun checkTaskCategoryAnalyzerData(analyzerData: TaskCategoryIssuesData) {
     assertThat(analyzerData.reportedIssuesList).hasSize(2)
-    assertThat(analyzerData.reportedIssuesList).containsExactly(
-      TaskCategoryIssuesData.TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED,
-      TaskCategoryIssuesData.TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD,
-    )
+    assertThat(analyzerData.reportedIssuesList)
+      .containsExactly(
+        TaskCategoryIssuesData.TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED,
+        TaskCategoryIssuesData.TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD,
+      )
   }
 
   private fun isTheSamePlugin(pluginIdentifier: BuildAttributionPluginIdentifier, pluginData: PluginData): Boolean {
     return when (pluginData.pluginType) {
-      PluginData.PluginType.UNKNOWN -> pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.UNKNOWN_TYPE &&
-                                       pluginIdentifier.pluginDisplayName == ""
-      PluginData.PluginType.BINARY_PLUGIN -> pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.OTHER_PLUGIN &&
-                                             pluginIdentifier.pluginDisplayName == pluginData.displayName
-      PluginData.PluginType.BUILDSRC_PLUGIN -> pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.BUILD_SRC &&
-                                               pluginIdentifier.pluginDisplayName == ""
-      PluginData.PluginType.SCRIPT -> pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.BUILD_SCRIPT &&
-                                      pluginIdentifier.pluginDisplayName == ""
+      PluginData.PluginType.UNKNOWN ->
+        pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.UNKNOWN_TYPE && pluginIdentifier.pluginDisplayName == ""
+      PluginData.PluginType.BINARY_PLUGIN ->
+        pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.OTHER_PLUGIN &&
+          pluginIdentifier.pluginDisplayName == pluginData.displayName
+      PluginData.PluginType.BUILDSRC_PLUGIN ->
+        pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.BUILD_SRC && pluginIdentifier.pluginDisplayName == ""
+      PluginData.PluginType.SCRIPT ->
+        pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.BUILD_SCRIPT && pluginIdentifier.pluginDisplayName == ""
     }
   }
 
@@ -337,11 +399,18 @@ class BuildAttributionAnalyticsManagerTest {
   }
 }
 
-private fun defaultDownloadResult(repository: DownloadsAnalyzer.Repository, status: DownloadsAnalyzer.DownloadStatus, duration: Long, bytes: Long): DownloadsAnalyzer.DownloadResult = DownloadsAnalyzer.DownloadResult(
-  timestamp = 0,
-  repository = repository,
-  url = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.pom",
-  status = status,
-  duration = duration,
-  bytes = bytes,
-  failureMessage = null)
+private fun defaultDownloadResult(
+  repository: DownloadsAnalyzer.Repository,
+  status: DownloadsAnalyzer.DownloadStatus,
+  duration: Long,
+  bytes: Long,
+): DownloadsAnalyzer.DownloadResult =
+  DownloadsAnalyzer.DownloadResult(
+    timestamp = 0,
+    repository = repository,
+    url = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.pom",
+    status = status,
+    duration = duration,
+    bytes = bytes,
+    failureMessage = null,
+  )

@@ -46,11 +46,7 @@ class ComposableElementAutomaticRenamerFactory : AutomaticRenamerFactory {
 
   override fun setEnabled(enabled: Boolean) {}
 
-  override fun createRenamer(
-    element: PsiElement,
-    newName: String?,
-    usages: MutableCollection<UsageInfo>?,
-  ): AutomaticRenamer {
+  override fun createRenamer(element: PsiElement, newName: String?, usages: MutableCollection<UsageInfo>?): AutomaticRenamer {
     return object : AutomaticRenamer() {
       init {
         val file = element.containingFile
@@ -60,8 +56,7 @@ class ComposableElementAutomaticRenamerFactory : AutomaticRenamerFactory {
 
       override fun getDialogTitle() = ComposeBundle.message("rename.file")
 
-      override fun getDialogDescription() =
-        ComposeBundle.message("rename.files.with.following.names")
+      override fun getDialogDescription() = ComposeBundle.message("rename.files.with.following.names")
 
       override fun entityName() = ComposeBundle.message("file.name")
     }

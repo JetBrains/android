@@ -30,16 +30,13 @@ import org.jetbrains.jewel.ui.component.GroupHeader
 import org.jetbrains.jewel.ui.component.TriStateCheckboxRow
 
 /**
- * This sample composable showcasing the different checkbox components was adapted from the public
- * Jewel repository standalone sample. See: https://github.com/JetBrains/jewel
+ * This sample composable showcasing the different checkbox components was adapted from the public Jewel repository standalone sample. See:
+ * https://github.com/JetBrains/jewel
  */
 @Composable
 fun Checkboxes() {
   GroupHeader("Checkboxes")
-  Row(
-    horizontalArrangement = Arrangement.spacedBy(10.dp),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
+  Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
     var checked by remember { mutableStateOf(ToggleableState.On) }
     TriStateCheckboxRow(
       "Checkbox",

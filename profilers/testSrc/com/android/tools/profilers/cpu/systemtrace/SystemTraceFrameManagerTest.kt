@@ -17,8 +17,8 @@ package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.util.concurrent.TimeUnit
+import org.junit.Test
 
 class SystemTraceFrameManagerTest {
 
@@ -26,29 +26,39 @@ class SystemTraceFrameManagerTest {
     val TEST_PID = 1
     val TEST_RENDER_ID = 2
 
-    val mainThreadModel = ThreadModel(TEST_PID, TEST_PID, "Main",
-                                      listOf(
-                                        createEvent(2, 5, "Choreographer#doFrame"), // Good frame
-                                        createEvent(7, 11, "mainLoop#Compute"), // Not a frame event
-                                        createEvent(15, 35, "Choreographer#doFrame"), // Bad frame
-                                        createEvent(40, 60, "mainLoop#Compute"), // Not a frame event
-                                        createEvent(65, 82, "Choreographer#doFrame") // Good frame
-                                      ),
-                                      listOf(), listOf())
-    val renderThreadModel = ThreadModel(TEST_RENDER_ID, TEST_PID, CpuThreadInfo.RENDER_THREAD_NAME,
-                                        listOf(
-                                          createEvent(4, 7, "DrawFrame"), // Good frame
-                                          createEvent(10, 13, "doFrame"), // Good frame
-                                          createEvent(17, 35, "DrawFrame"), // Bad frame
-                                          createEvent(36, 39, "waitIO"), // Not a frame event
-                                          createEvent(40, 57, "queueBuffer"), // Good frame
-                                          createEvent(60, 80, "waitIO"), // Not a frame event
-                                          createEvent(81, 100, "queueBuffer") // Bad frame
-                                        ),
-                                        listOf(), listOf())
-    val processModel = ProcessModel(TEST_PID, "Test",
-                                    mapOf(TEST_PID to mainThreadModel, TEST_RENDER_ID to renderThreadModel),
-                                    emptyMap())
+    val mainThreadModel =
+      ThreadModel(
+        TEST_PID,
+        TEST_PID,
+        "Main",
+        listOf(
+          createEvent(2, 5, "Choreographer#doFrame"), // Good frame
+          createEvent(7, 11, "mainLoop#Compute"), // Not a frame event
+          createEvent(15, 35, "Choreographer#doFrame"), // Bad frame
+          createEvent(40, 60, "mainLoop#Compute"), // Not a frame event
+          createEvent(65, 82, "Choreographer#doFrame"), // Good frame
+        ),
+        listOf(),
+        listOf(),
+      )
+    val renderThreadModel =
+      ThreadModel(
+        TEST_RENDER_ID,
+        TEST_PID,
+        CpuThreadInfo.RENDER_THREAD_NAME,
+        listOf(
+          createEvent(4, 7, "DrawFrame"), // Good frame
+          createEvent(10, 13, "doFrame"), // Good frame
+          createEvent(17, 35, "DrawFrame"), // Bad frame
+          createEvent(36, 39, "waitIO"), // Not a frame event
+          createEvent(40, 57, "queueBuffer"), // Good frame
+          createEvent(60, 80, "waitIO"), // Not a frame event
+          createEvent(81, 100, "queueBuffer"), // Bad frame
+        ),
+        listOf(),
+        listOf(),
+      )
+    val processModel = ProcessModel(TEST_PID, "Test", mapOf(TEST_PID to mainThreadModel, TEST_RENDER_ID to renderThreadModel), emptyMap())
 
     private fun createEvent(startTimeMillis: Long, endTimeMillis: Long, name: String): TraceEventModel {
       val startUs = TimeUnit.MILLISECONDS.toMicros(startTimeMillis)
@@ -63,9 +73,9 @@ class SystemTraceFrameManagerTest {
     val frames = frameManager.getFramesList(SystemTraceFrame.FrameThread.MAIN)
     // Validation metrics come from systrace for the same file.
     assertThat(frames).hasSize(3)
-    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.GOOD}).isEqualTo(2)
-    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.BAD}).isEqualTo(1)
-    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.NOT_SET}).isEqualTo(0)
+    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.GOOD }).isEqualTo(2)
+    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.BAD }).isEqualTo(1)
+    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.NOT_SET }).isEqualTo(0)
   }
 
   @Test
@@ -74,9 +84,9 @@ class SystemTraceFrameManagerTest {
     val frames = frameManager.getFramesList(SystemTraceFrame.FrameThread.RENDER)
     // Validation metrics come from systrace for the same file.
     assertThat(frames).hasSize(5)
-    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.GOOD}).isEqualTo(3)
-    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.BAD}).isEqualTo(2)
-    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.NOT_SET}).isEqualTo(0)
+    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.GOOD }).isEqualTo(3)
+    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.BAD }).isEqualTo(2)
+    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.NOT_SET }).isEqualTo(0)
   }
 
   @Test
@@ -87,27 +97,37 @@ class SystemTraceFrameManagerTest {
 
   @Test
   fun mainThreadFramesShouldBeAssociatedWithRenderThreadFrames() {
-    val mainThread = ThreadModel(TEST_PID, TEST_PID, "Main",
-                                 listOf(
-                                   createEvent(2, 5, "Choreographer#doFrame"),
-                                   createEvent(7, 11, "Choreographer#doFrame"),
-                                   createEvent(20, 22, "Choreographer#doFrame"),
-                                   createEvent(30, 50, "Choreographer#doFrame")
-                                 ),
-                                 listOf(), listOf())
-    val renderThread = ThreadModel(TEST_RENDER_ID, TEST_PID, CpuThreadInfo.RENDER_THREAD_NAME,
-                                   listOf(
-                                     createEvent(4, 7, "DrawFrame"),
-                                     createEvent(10, 13, "doFrame"),
-                                     createEvent(15, 17, "queueBuffer"),
-                                     createEvent(18, 20, "DrawFrame"),
-                                     createEvent(40, 55, "queueBuffer")
-                                   ),
-                                   listOf(), listOf())
+    val mainThread =
+      ThreadModel(
+        TEST_PID,
+        TEST_PID,
+        "Main",
+        listOf(
+          createEvent(2, 5, "Choreographer#doFrame"),
+          createEvent(7, 11, "Choreographer#doFrame"),
+          createEvent(20, 22, "Choreographer#doFrame"),
+          createEvent(30, 50, "Choreographer#doFrame"),
+        ),
+        listOf(),
+        listOf(),
+      )
+    val renderThread =
+      ThreadModel(
+        TEST_RENDER_ID,
+        TEST_PID,
+        CpuThreadInfo.RENDER_THREAD_NAME,
+        listOf(
+          createEvent(4, 7, "DrawFrame"),
+          createEvent(10, 13, "doFrame"),
+          createEvent(15, 17, "queueBuffer"),
+          createEvent(18, 20, "DrawFrame"),
+          createEvent(40, 55, "queueBuffer"),
+        ),
+        listOf(),
+        listOf(),
+      )
 
-    val process = ProcessModel(TEST_PID, "Test",
-                               mapOf(TEST_PID to mainThread, TEST_RENDER_ID to renderThread),
-                               emptyMap())
+    val process = ProcessModel(TEST_PID, "Test", mapOf(TEST_PID to mainThread, TEST_RENDER_ID to renderThread), emptyMap())
 
     val frameManager = SystemTraceFrameManager(process)
 

@@ -41,9 +41,7 @@ class AndroidStartupManager : ProjectActivity {
   override suspend fun execute(project: Project) {
     suspend fun runAndroidStartupActivities() {
       for (activity in AndroidStartupActivity.STARTUP_ACTIVITY.extensionList) {
-        withContext(Dispatchers.EDT) {
-          activity.runActivity(project, project.getService(ProjectDisposableScope::class.java))
-        }
+        withContext(Dispatchers.EDT) { activity.runActivity(project, project.getService(ProjectDisposableScope::class.java)) }
       }
     }
 
@@ -53,30 +51,32 @@ class AndroidStartupManager : ProjectActivity {
     }
 
     val connection = project.messageBus.simpleConnect()
-    connection.subscribe(FacetManager.FACETS_TOPIC, object : FacetManagerListener {
-      override fun facetAdded(facet: Facet<*>) {
-        if (facet is AndroidFacet) {
-          project.service<ProjectDisposableScope>().coroutineScope.launch {
-            runAndroidStartupActivities()
+    connection.subscribe(
+      FacetManager.FACETS_TOPIC,
+      object : FacetManagerListener {
+        override fun facetAdded(facet: Facet<*>) {
+          if (facet is AndroidFacet) {
+            project.service<ProjectDisposableScope>().coroutineScope.launch { runAndroidStartupActivities() }
+            connection.disconnect()
           }
-          connection.disconnect()
         }
-      }
-    })
+      },
+    )
 
     // [facetAdded] is not invoked for a facet if it is added together with a new module that holds it.
-    connection.subscribe(ModuleListener.TOPIC, object : ModuleListener {
-      override fun modulesAdded(project: Project, modules: List<Module>) {
-        for (module in modules) {
-          if (AndroidFacet.getInstance(module) != null) {
-            project.service<ProjectDisposableScope>().coroutineScope.launch {
-              runAndroidStartupActivities()
+    connection.subscribe(
+      ModuleListener.TOPIC,
+      object : ModuleListener {
+        override fun modulesAdded(project: Project, modules: List<Module>) {
+          for (module in modules) {
+            if (AndroidFacet.getInstance(module) != null) {
+              project.service<ProjectDisposableScope>().coroutineScope.launch { runAndroidStartupActivities() }
+              connection.disconnect()
+              break
             }
-            connection.disconnect()
-            break
           }
         }
-      }
-    })
+      },
+    )
   }
 }

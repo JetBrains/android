@@ -37,15 +37,20 @@ class ProjectConfigurationAnalyzerTest {
   private val buildScriptA = createScriptPluginIdentifierStub("buildA.gradle")
   private val buildScriptB = createScriptPluginIdentifierStub("buildB.gradle")
 
-  private fun createApplyPluginFinishEvent(plugin: PluginIdentifier,
-                                           configurationTime: Long,
-                                           parentEvent: FinishEvent? = null): FinishEvent {
+  private fun createApplyPluginFinishEvent(
+    plugin: PluginIdentifier,
+    configurationTime: Long,
+    parentEvent: FinishEvent? = null,
+  ): FinishEvent {
     return createFinishEventStub(
       "Apply ${if (plugin is BinaryPluginIdentifier) "plugin" else "script"} ${plugin.displayName} to project :app finished",
       0,
       configurationTime,
-      createOperationDescriptorStub("Apply ${if (plugin is BinaryPluginIdentifier) "plugin" else "script"} ${plugin.displayName}",
-                                    parent = parentEvent?.descriptor))
+      createOperationDescriptorStub(
+        "Apply ${if (plugin is BinaryPluginIdentifier) "plugin" else "script"} ${plugin.displayName}",
+        parent = parentEvent?.descriptor,
+      ),
+    )
   }
 
   private fun sendProjectConfigurationEventsToAnalyzer() {
@@ -80,29 +85,56 @@ class ProjectConfigurationAnalyzerTest {
 
     analyzer.receiveEvent(createApplyPluginFinishEvent(pluginA, 500))
 
-    analyzer.receiveEvent(createFinishEventStub("Compile script buildA.gradle (BODY) finished", 0, 500,
-                                                createOperationDescriptorStub("Compile script buildA.gradle (BODY)")))
+    analyzer.receiveEvent(
+      createFinishEventStub(
+        "Compile script buildA.gradle (BODY) finished",
+        0,
+        500,
+        createOperationDescriptorStub("Compile script buildA.gradle (BODY)"),
+      )
+    )
 
-    analyzer.receiveEvent(createFinishEventStub("Compile script buildA.gradle (CLASSPATH) finished", 0, 500,
-                                                createOperationDescriptorStub("Compile script buildA.gradle (CLASSPATH)")))
+    analyzer.receiveEvent(
+      createFinishEventStub(
+        "Compile script buildA.gradle (CLASSPATH) finished",
+        0,
+        500,
+        createOperationDescriptorStub("Compile script buildA.gradle (CLASSPATH)"),
+      )
+    )
 
     val buildScriptAFinishEvent = createApplyPluginFinishEvent(buildScriptA, 3000)
 
-    analyzer.receiveEvent(createFinishEventStub("Resolve dependencies of :classpath finished", 0, 700,
-                                                createOperationDescriptorStub("Resolve dependencies of :classpath",
-                                                                              parent = buildScriptAFinishEvent.descriptor)))
+    analyzer.receiveEvent(
+      createFinishEventStub(
+        "Resolve dependencies of :classpath finished",
+        0,
+        700,
+        createOperationDescriptorStub("Resolve dependencies of :classpath", parent = buildScriptAFinishEvent.descriptor),
+      )
+    )
 
-    analyzer.receiveEvent(createFinishEventStub("Resolve files of :classpath finished", 0, 300,
-                                                createOperationDescriptorStub("Resolve files of :classpath",
-                                                                              parent = buildScriptAFinishEvent.descriptor)))
+    analyzer.receiveEvent(
+      createFinishEventStub(
+        "Resolve files of :classpath finished",
+        0,
+        300,
+        createOperationDescriptorStub("Resolve files of :classpath", parent = buildScriptAFinishEvent.descriptor),
+      )
+    )
 
     analyzer.receiveEvent(createApplyPluginFinishEvent(pluginB, 100))
 
     val buildScriptBFinishEvent = createApplyPluginFinishEvent(buildScriptB, 500, buildScriptAFinishEvent)
 
-    analyzer.receiveEvent(createFinishEventStub("Resolve files of :classpath finished", 0, 100,
-                                                createOperationDescriptorStub("Resolve files of :classpath",
-                                                                              parent = buildScriptBFinishEvent.descriptor)))
+    analyzer.receiveEvent(
+      createFinishEventStub(
+        "Resolve files of :classpath finished",
+        0,
+        100,
+        createOperationDescriptorStub("Resolve files of :classpath", parent = buildScriptBFinishEvent.descriptor),
+      )
+    )
 
     val pluginCConfigurationFinishEvent = createApplyPluginFinishEvent(pluginC, 400, buildScriptBFinishEvent)
 
@@ -110,21 +142,35 @@ class ProjectConfigurationAnalyzerTest {
     analyzer.receiveEvent(pluginCConfigurationFinishEvent)
     analyzer.receiveEvent(buildScriptBFinishEvent)
 
-    analyzer.receiveEvent(createFinishEventStub("Execute 'allProjects {}' action finished", 0, 500,
-                                                createOperationDescriptorStub("allProjects",
-                                                                              "Execute 'allProjects {}' action",
-                                                                              buildScriptAFinishEvent.descriptor)))
+    analyzer.receiveEvent(
+      createFinishEventStub(
+        "Execute 'allProjects {}' action finished",
+        0,
+        500,
+        createOperationDescriptorStub("allProjects", "Execute 'allProjects {}' action", buildScriptAFinishEvent.descriptor),
+      )
+    )
 
     analyzer.receiveEvent(buildScriptAFinishEvent)
 
-    val afterEvaluateFinishEvent = createFinishEventStub("Notify afterEvaluate listeners of :app finished", 0, 700,
-                                                         createOperationDescriptorStub("Notify afterEvaluate listeners of :app"))
+    val afterEvaluateFinishEvent =
+      createFinishEventStub(
+        "Notify afterEvaluate listeners of :app finished",
+        0,
+        700,
+        createOperationDescriptorStub("Notify afterEvaluate listeners of :app"),
+      )
 
     analyzer.receiveEvent(createApplyPluginFinishEvent(pluginE, 200, afterEvaluateFinishEvent))
     analyzer.receiveEvent(afterEvaluateFinishEvent)
 
-    analyzer.receiveEvent(createProjectConfigurationFinishEventStub(
-      ":app", 0, 4500, listOf(pluginA, buildScriptA, pluginB, buildScriptB, pluginC, pluginD, pluginE))
+    analyzer.receiveEvent(
+      createProjectConfigurationFinishEventStub(
+        ":app",
+        0,
+        4500,
+        listOf(pluginA, buildScriptA, pluginB, buildScriptB, pluginC, pluginD, pluginE),
+      )
     )
   }
 
@@ -138,17 +184,16 @@ class ProjectConfigurationAnalyzerTest {
 
     assertThat(configurationData.projectPath).isEqualTo(":app")
 
-    val expectedPluginsConfiguration = listOf(
-      PluginConfigurationData(PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.gradle.plugin.PluginA"), 500),
-      PluginConfigurationData(PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.gradle.plugin.PluginB"), 100),
-      PluginConfigurationData(PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.gradle.plugin.PluginC"), 400),
-      PluginConfigurationData(PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.gradle.plugin.PluginE"), 200)
-    )
+    val expectedPluginsConfiguration =
+      listOf(
+        PluginConfigurationData(PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.gradle.plugin.PluginA"), 500),
+        PluginConfigurationData(PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.gradle.plugin.PluginB"), 100),
+        PluginConfigurationData(PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.gradle.plugin.PluginC"), 400),
+        PluginConfigurationData(PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.gradle.plugin.PluginE"), 200),
+      )
 
-    assertThat(
-      analyzer.result.pluginsConfigurationDataMap.map { (plugin, time) ->
-        PluginConfigurationData(plugin, time)
-      }).containsExactlyElementsIn(expectedPluginsConfiguration)
+    assertThat(analyzer.result.pluginsConfigurationDataMap.map { (plugin, time) -> PluginConfigurationData(plugin, time) })
+      .containsExactlyElementsIn(expectedPluginsConfiguration)
 
     assertThat(configurationData.pluginsConfigurationData).containsExactlyElementsIn(expectedPluginsConfiguration)
 
@@ -156,24 +201,24 @@ class ProjectConfigurationAnalyzerTest {
 
     assertThat(configurationData.configurationSteps).hasSize(5)
 
-    assertThat(configurationData.configurationSteps[0].type).isEquivalentAccordingToCompareTo(
-      ProjectConfigurationData.ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS)
+    assertThat(configurationData.configurationSteps[0].type)
+      .isEquivalentAccordingToCompareTo(ProjectConfigurationData.ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS)
     assertThat(configurationData.configurationSteps[0].configurationTimeMs).isEqualTo(500)
 
-    assertThat(configurationData.configurationSteps[1].type).isEquivalentAccordingToCompareTo(
-      ProjectConfigurationData.ConfigurationStep.Type.RESOLVING_DEPENDENCIES)
+    assertThat(configurationData.configurationSteps[1].type)
+      .isEquivalentAccordingToCompareTo(ProjectConfigurationData.ConfigurationStep.Type.RESOLVING_DEPENDENCIES)
     assertThat(configurationData.configurationSteps[1].configurationTimeMs).isEqualTo(1100)
 
-    assertThat(configurationData.configurationSteps[2].type).isEquivalentAccordingToCompareTo(
-      ProjectConfigurationData.ConfigurationStep.Type.COMPILING_BUILD_SCRIPTS)
+    assertThat(configurationData.configurationSteps[2].type)
+      .isEquivalentAccordingToCompareTo(ProjectConfigurationData.ConfigurationStep.Type.COMPILING_BUILD_SCRIPTS)
     assertThat(configurationData.configurationSteps[2].configurationTimeMs).isEqualTo(1000)
 
-    assertThat(configurationData.configurationSteps[3].type).isEquivalentAccordingToCompareTo(
-      ProjectConfigurationData.ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS)
+    assertThat(configurationData.configurationSteps[3].type)
+      .isEquivalentAccordingToCompareTo(ProjectConfigurationData.ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS)
     assertThat(configurationData.configurationSteps[3].configurationTimeMs).isEqualTo(500)
 
-    assertThat(configurationData.configurationSteps[4].type).isEquivalentAccordingToCompareTo(
-      ProjectConfigurationData.ConfigurationStep.Type.OTHER)
+    assertThat(configurationData.configurationSteps[4].type)
+      .isEquivalentAccordingToCompareTo(ProjectConfigurationData.ConfigurationStep.Type.OTHER)
     assertThat(configurationData.configurationSteps[4].configurationTimeMs).isEqualTo(200)
   }
 }

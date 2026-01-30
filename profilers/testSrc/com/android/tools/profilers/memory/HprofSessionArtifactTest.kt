@@ -16,23 +16,19 @@
 package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
-import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.memory.CaptureDataSeries.ofHeapDumpSamples
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
-
 
 class HprofSessionArtifactTest {
 
@@ -40,53 +36,39 @@ class HprofSessionArtifactTest {
   private val services = FakeIdeProfilerServices()
   private val transportService = FakeTransportService(timer, false)
 
-  @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("SessionsManagerTestChannel", transportService)
+  @get:Rule var myGrpcChannel = FakeGrpcChannel("SessionsManagerTestChannel", transportService)
 
   private lateinit var myProfilers: StudioProfilers
 
   @Before
   fun setup() {
-    myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.channel),
-      services,
-      FakeTimer()
-    )
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), services, FakeTimer())
   }
 
   @Test
   fun testOngoingCapture() {
     val ongoingInfo = HeapDumpInfo.newBuilder().setStartTime(1).setEndTime(Long.MAX_VALUE).build()
-    val ongoingArtifact = HprofSessionArtifact(myProfilers,
-                                               Common.Session.getDefaultInstance(),
-                                               Common.SessionMetaData.getDefaultInstance(),
-                                               ongoingInfo)
+    val ongoingArtifact =
+      HprofSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), Common.SessionMetaData.getDefaultInstance(), ongoingInfo)
     assertThat(ongoingArtifact.isOngoing).isTrue()
 
     val finishedInfo = HeapDumpInfo.newBuilder().setStartTime(1).setEndTime(2).build()
-    val finishedArtifact = HprofSessionArtifact(myProfilers,
-                                                Common.Session.getDefaultInstance(),
-                                                Common.SessionMetaData.getDefaultInstance(),
-                                                finishedInfo)
+    val finishedArtifact =
+      HprofSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), Common.SessionMetaData.getDefaultInstance(), finishedInfo)
     assertThat(finishedArtifact.isOngoing).isFalse()
   }
 
   @Test
   fun testSubtitle() {
     val ongoingInfo = HeapDumpInfo.newBuilder().setStartTime(1).setEndTime(Long.MAX_VALUE).build()
-    val finishedInfo = HeapDumpInfo.newBuilder()
-      .setStartTime(TimeUnit.SECONDS.toNanos(5)).setEndTime(TimeUnit.SECONDS.toNanos(10)).build()
+    val finishedInfo = HeapDumpInfo.newBuilder().setStartTime(TimeUnit.SECONDS.toNanos(5)).setEndTime(TimeUnit.SECONDS.toNanos(10)).build()
 
-    val ongoingCaptureArtifact = HprofSessionArtifact(myProfilers,
-                                                      Common.Session.getDefaultInstance(),
-                                                      Common.SessionMetaData.getDefaultInstance(),
-                                                      ongoingInfo)
+    val ongoingCaptureArtifact =
+      HprofSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), Common.SessionMetaData.getDefaultInstance(), ongoingInfo)
     assertThat(ongoingCaptureArtifact.subtitle).isEqualTo(SessionArtifact.CAPTURING_SUBTITLE)
 
-    val finishedCaptureArtifact = HprofSessionArtifact(myProfilers,
-                                                       Common.Session.getDefaultInstance(),
-                                                       Common.SessionMetaData.getDefaultInstance(),
-                                                       finishedInfo)
+    val finishedCaptureArtifact =
+      HprofSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), Common.SessionMetaData.getDefaultInstance(), finishedInfo)
     assertThat(finishedCaptureArtifact.subtitle).isEqualTo("00:00:05.000")
   }
 }

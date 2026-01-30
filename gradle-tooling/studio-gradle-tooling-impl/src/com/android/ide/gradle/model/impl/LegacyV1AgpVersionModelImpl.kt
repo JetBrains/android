@@ -17,6 +17,4 @@ package com.android.ide.gradle.model.impl
 
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 
-data class LegacyV1AgpVersionModelImpl(
-  override val agp: String,
-) : LegacyV1AgpVersionModel
+data class LegacyV1AgpVersionModelImpl(override val agp: String) : LegacyV1AgpVersionModel

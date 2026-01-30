@@ -28,18 +28,19 @@ class AlwaysRunTasksAnalyzerResultMessageConverterTest {
   fun testAlwaysRunTasksAnalyzerResult() {
     val cache = mutableMapOf<String, TaskData>()
     val alwaysRunTaskData = mutableListOf<AlwaysRunTaskData>()
-    val alwaysRunTaskDatum = AlwaysRunTaskData(
-      TaskData(
-        "task name",
-        "project path",
-        PluginData(PluginData.PluginType.UNKNOWN, "id name"),
-        12345,
-        12345,
-        TaskData.TaskExecutionMode.FULL,
-        listOf("abc", "def", "ghi")
-      ),
-      AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS
-    )
+    val alwaysRunTaskDatum =
+      AlwaysRunTaskData(
+        TaskData(
+          "task name",
+          "project path",
+          PluginData(PluginData.PluginType.UNKNOWN, "id name"),
+          12345,
+          12345,
+          TaskData.TaskExecutionMode.FULL,
+          listOf("abc", "def", "ghi"),
+        ),
+        AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS,
+      )
     cache[alwaysRunTaskDatum.taskData.getTaskPath()] = alwaysRunTaskDatum.taskData
     alwaysRunTaskData.add(alwaysRunTaskDatum)
     val alwaysRunTaskDataResult = AlwaysRunTasksAnalyzer.Result(alwaysRunTaskData)

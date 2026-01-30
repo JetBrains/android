@@ -32,8 +32,7 @@ import kotlin.properties.Delegates
 /**
  * A component to show an icon with a focus border.
  *
- * Set [onClick] to trigger an action when the Icon is clicked or the Space/Enter keys are pressed
- * while focusing the icon.
+ * Set [onClick] to trigger an action when the Icon is clicked or the Space/Enter keys are pressed while focusing the icon.
  */
 class FocusableIcon : JBLabel() {
 

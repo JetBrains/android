@@ -47,22 +47,24 @@ object TaskHandlerUtils {
   fun findTaskArtifact(
     selectedSession: Common.Session,
     sessionIdToSessionItems: Map<Long, SessionItem>,
-    supportsArtifact: (SessionArtifact<*>) -> Boolean): SessionArtifact<*>? {
+    supportsArtifact: (SessionArtifact<*>) -> Boolean,
+  ): SessionArtifact<*>? {
     val sessionItem = sessionIdToSessionItems[selectedSession.sessionId]
 
     return sessionItem?.let {
       val childArtifacts = it.getChildArtifacts()
 
       // If no child artifact and its live view task then parent session artifact is returned.
-      if (childArtifacts.isEmpty() && it.profilers.sessionsManager.currentTaskType == TaskTypeMappingUtils.convertTaskType(
-          ProfilerTaskType.LIVE_VIEW)) {
+      if (
+        childArtifacts.isEmpty() &&
+          it.profilers.sessionsManager.currentTaskType == TaskTypeMappingUtils.convertTaskType(ProfilerTaskType.LIVE_VIEW)
+      ) {
         it
       }
       // Verify there is only one child artifact and that it is supported by the task.
       else if (childArtifacts.size == 1 && supportsArtifact(childArtifacts[0])) {
         childArtifacts[0]
-      }
-      else {
+      } else {
         null
       }
     }

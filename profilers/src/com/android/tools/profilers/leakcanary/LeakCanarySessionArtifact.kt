@@ -21,7 +21,6 @@ import com.android.tools.profiler.proto.Common.SessionMetaData
 import com.android.tools.profiler.proto.LeakCanary
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.ExportableArtifact
-import com.android.tools.profilers.LiveViewSessionArtifact
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.intellij.openapi.diagnostic.Logger
@@ -31,10 +30,12 @@ import java.io.OutputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class LeakCanarySessionArtifact(override val profilers: StudioProfilers,
-                                override val session: Common.Session,
-                                override val sessionMetaData: SessionMetaData,
-                                leakCanaryAnalysisEnded: LeakCanary.LeakCanaryAnalysisEnded) : SessionArtifact<LeakCanary.LeakCanaryAnalysisEnded>, ExportableArtifact {
+class LeakCanarySessionArtifact(
+  override val profilers: StudioProfilers,
+  override val session: Common.Session,
+  override val sessionMetaData: SessionMetaData,
+  leakCanaryAnalysisEnded: LeakCanary.LeakCanaryAnalysisEnded,
+) : SessionArtifact<LeakCanary.LeakCanaryAnalysisEnded>, ExportableArtifact {
 
   private val logger = Logger.getInstance(LeakCanarySessionArtifact::class.java)
 
@@ -58,21 +59,16 @@ class LeakCanarySessionArtifact(override val profilers: StudioProfilers,
 
   override fun export(outputStream: OutputStream) {
     assert(canExport)
-    val request = Transport.BytesRequest.newBuilder()
-      .setStreamId(session.streamId)
-      .setId(session.startTimestamp.toString())
-      .build()
+    val request = Transport.BytesRequest.newBuilder().setStreamId(session.streamId).setId(session.startTimestamp.toString()).build()
     val response = profilers.client.transportClient.getFile(request)
 
     if (response.filePath.isNotEmpty()) {
       try {
         File(response.filePath).inputStream().use { it.copyTo(outputStream) }
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         logger.warn("Failed to export Leak Canary file", e)
       }
-    }
-    else {
+    } else {
       logger.warn("Failed to export Leak Canary file, file path is empty.")
     }
   }
@@ -95,13 +91,18 @@ class LeakCanarySessionArtifact(override val profilers: StudioProfilers,
 
   companion object {
     @JvmStatic
-    fun getSessionArtifacts(profilers: StudioProfilers,
-                            session: Common.Session,
-                            sessionMetadata: SessionMetaData): List<SessionArtifact<*>> {
+    fun getSessionArtifacts(
+      profilers: StudioProfilers,
+      session: Common.Session,
+      sessionMetadata: SessionMetaData,
+    ): List<SessionArtifact<*>> {
       val artifacts: MutableList<SessionArtifact<*>> = mutableListOf()
-      val leakInfoEvents = LeakCanaryModel.getLeakCanaryAnalysisInfo(profilers.client, session,
-                                                                     Range(session.startTimestamp.toDouble(),
-                                                                           session.endTimestamp.toDouble()))
+      val leakInfoEvents =
+        LeakCanaryModel.getLeakCanaryAnalysisInfo(
+          profilers.client,
+          session,
+          Range(session.startTimestamp.toDouble(), session.endTimestamp.toDouble()),
+        )
       leakInfoEvents.forEach { leakEvent ->
         run {
           artifacts.add(LeakCanarySessionArtifact(profilers, session, sessionMetadata, leakEvent.leakCanaryAnalysisStatus.analysisEnded))

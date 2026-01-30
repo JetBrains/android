@@ -34,9 +34,7 @@ class ScreenshotTestActionProvider : AndroidTestSuiteDetailsActionProvider {
   override fun getDetailsViewHeaderActions(testResults: AndroidTestResults?): List<AnAction> {
     LOG.debug("Getting details view header actions for test results: $testResults")
     val action = ActionManager.getInstance().getAction("com.android.screenshottest.action.UpdateReferenceImagesFromTestPanelAction")
-    (action as? UpdateReferenceImagesFromTestPanelAction)?.let {
-      it.testResults = testResults
-    }
+    (action as? UpdateReferenceImagesFromTestPanelAction)?.let { it.testResults = testResults }
     action.templatePresentation.putClientProperty("SHOW_TEXT_IN_TOOLBAR", true)
     return listOf(action)
   }

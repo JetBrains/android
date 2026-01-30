@@ -20,8 +20,8 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 /**
  * The expansion state of a table cell editor.
  *
- * If the editor is in a table cell, the cell may be too small to show the complete value. The
- * [TableExpansionState] describes the state the editor should be rendered as.
+ * If the editor is in a table cell, the cell may be too small to show the complete value. The [TableExpansionState] describes the state the
+ * editor should be rendered as.
  */
 enum class TableExpansionState {
   /** The property editor is not expanded or not in a table. */
@@ -33,26 +33,22 @@ enum class TableExpansionState {
   /** The property editor should render expanded, but the text fits in the table cell. */
   EXPANDED_CELL_NO_POPUP,
 
-  /**
-   * The property editor is being used to render the entire value. The right part will be shown in a
-   * popup.
-   */
+  /** The property editor is being used to render the entire value. The right part will be shown in a popup. */
   EXPANDED_POPUP,
 }
 
 /**
  * Model for a property editor.
  *
- * Instances of this class will be created for each property editor in the [InspectorPanel] by
- * [InspectorBuilder]s. If only builtin editors are created (preferred) then clients should never
- * need to implement this interface.
+ * Instances of this class will be created for each property editor in the [InspectorPanel] by [InspectorBuilder]s. If only builtin editors
+ * are created (preferred) then clients should never need to implement this interface.
  */
 interface PropertyEditorModel {
   /**
    * The property this editor is for.
    *
-   * This [property] is usually readonly except for models used during table cell rendering where we
-   * want to cache editors for displaying properties of the same type.
+   * This [property] is usually readonly except for models used during table cell rendering where we want to cache editors for displaying
+   * properties of the same type.
    */
   var property: PropertyItem
 
@@ -85,16 +81,15 @@ interface PropertyEditorModel {
   /**
    * Controls the visuals of the editor.
    *
-   * The editor is a table cell renderer. If true the editor should display itself as being a
-   * selected state.
+   * The editor is a table cell renderer. If true the editor should display itself as being a selected state.
    */
   var isUsedInRendererWithSelection: Boolean
 
   /**
    * Controls the visuals of the editor.
    *
-   * The editor is a table cell renderer. If true the editor is currently displaying a cell in an
-   * expanded table row. The editor may decide to show different content based on this value.
+   * The editor is a table cell renderer. If true the editor is currently displaying a cell in an expanded table row. The editor may decide
+   * to show different content based on this value.
    */
   var isExpandedTableItem: Boolean
 
@@ -111,8 +106,7 @@ interface PropertyEditorModel {
   /**
    * Returns support for table operations if this is a table cell editor (null otherwise).
    *
-   * When a property editor is created for a table cell [tableSupport] will be specified to provide
-   * table access from events in the editor.
+   * When a property editor is created for a table cell [tableSupport] will be specified to provide table access from events in the editor.
    */
   var tableSupport: TableSupport?
 
@@ -132,8 +126,8 @@ interface PropertyEditorModel {
   /**
    * Cancel editing and revert to the value of the property.
    *
-   * i.e. discard changes by the editor that are not yet applied. The return value is used if this
-   * is a table cell editor. Return true to stop cell editing, false to remain editing the cell.
+   * i.e. discard changes by the editor that are not yet applied. The return value is used if this is a table cell editor. Return true to
+   * stop cell editing, false to remain editing the cell.
    */
   fun cancelEditing(): Boolean
 

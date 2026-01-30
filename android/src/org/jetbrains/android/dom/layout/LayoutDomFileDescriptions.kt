@@ -27,32 +27,17 @@ import org.jetbrains.android.dom.layout.FragmentLayoutDomFileDescription.hasFrag
 import org.jetbrains.android.dom.layout.MergeDomFileDescription.Companion.hasMergeRootTag
 import org.jetbrains.android.dom.layout.ViewTagDomFileDescription.Companion.hasViewRootTag
 
-/**
- * Root tag based on user classes. If we can't parse tag as known one (see [checkFile]), we assume
- * it comes from class.
- */
+/** Root tag based on user classes. If we can't parse tag as known one (see [checkFile]), we assume it comes from class. */
 class LayoutViewElementDomFileDescription :
-  CustomLogicResourceDomFileDescription<LayoutViewElement>(
-    LayoutViewElement::class.java,
-    ResourceFolderType.LAYOUT,
-    "View",
-  ) {
+  CustomLogicResourceDomFileDescription<LayoutViewElement>(LayoutViewElement::class.java, ResourceFolderType.LAYOUT, "View") {
 
   override fun checkFile(file: XmlFile, module: Module?): Boolean {
-    return !hasFragmentRootTag(file) &&
-      !hasDataBindingRootTag(file) &&
-      !hasMergeRootTag(file) &&
-      !hasViewRootTag(file)
+    return !hasFragmentRootTag(file) && !hasDataBindingRootTag(file) && !hasMergeRootTag(file) && !hasViewRootTag(file)
   }
 }
 
 /** Merge root tag: `<merge>`. */
-class MergeDomFileDescription :
-  SingleRootResourceDomFileDescription<Merge>(
-    Merge::class.java,
-    VIEW_MERGE,
-    ResourceFolderType.LAYOUT,
-  ) {
+class MergeDomFileDescription : SingleRootResourceDomFileDescription<Merge>(Merge::class.java, VIEW_MERGE, ResourceFolderType.LAYOUT) {
 
   companion object {
     fun hasMergeRootTag(file: XmlFile) = VIEW_MERGE == file.rootTag?.name
@@ -60,12 +45,7 @@ class MergeDomFileDescription :
 }
 
 /** View tag root tag: `<view>`. */
-class ViewTagDomFileDescription :
-  SingleRootResourceDomFileDescription<View>(
-    View::class.java,
-    VIEW_TAG,
-    ResourceFolderType.LAYOUT,
-  ) {
+class ViewTagDomFileDescription : SingleRootResourceDomFileDescription<View>(View::class.java, VIEW_TAG, ResourceFolderType.LAYOUT) {
 
   companion object {
     fun hasViewRootTag(file: XmlFile) = VIEW_TAG == file.rootTag?.name

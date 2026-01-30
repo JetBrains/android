@@ -15,6 +15,7 @@
  */
 
 package com.android.build.attribution.ui
+
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.tools.idea.util.CommonAndroidUtil
@@ -32,15 +33,13 @@ class OpenBuildAnalyzerAction : AnAction() {
     val project = e.project
     if (project == null || !CommonAndroidUtil.getInstance().isAndroidProject(project)) {
       e.presentation.isEnabledAndVisible = false
-    }
-    else {
+    } else {
       e.presentation.isEnabled = BuildAnalyzerStorageManager.getInstance(project).hasData()
     }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
-    BuildAttributionUiManager.getInstance(project)
-      .openTab(BuildAttributionUiAnalytics.TabOpenEventSource.BUILD_MENU_ACTION)
+    BuildAttributionUiManager.getInstance(project).openTab(BuildAttributionUiAnalytics.TabOpenEventSource.BUILD_MENU_ACTION)
   }
 }

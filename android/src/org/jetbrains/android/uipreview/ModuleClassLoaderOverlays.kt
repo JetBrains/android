@@ -36,29 +36,20 @@ import com.intellij.util.io.delete
 import com.intellij.util.lang.UrlClassLoader
 import com.intellij.util.xmlb.annotations.Tag
 import com.intellij.util.xmlb.annotations.XCollection
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import java.lang.ref.WeakReference
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
-private fun buildClassLoaderForOverlayPath(overlays: List<Path>) = UrlClassLoader.build()
-  .files(overlays)
-  .get()
+private fun buildClassLoaderForOverlayPath(overlays: List<Path>) = UrlClassLoader.build().files(overlays).get()
 
-/**
- * Component that keeps a list of current paths that have class overlays.
- */
-@State(
-  name = "ModuleClassLoaderOverlays",
-  storages = [(Storage(StoragePathMacros.MODULE_FILE))],
-)
+/** Component that keeps a list of current paths that have class overlays. */
+@State(name = "ModuleClassLoaderOverlays", storages = [(Storage(StoragePathMacros.MODULE_FILE))])
 class ModuleClassLoaderOverlays private constructor(module: Module, private val maxNumOverlays: Int) :
   PersistentStateComponent<ModuleClassLoaderOverlays.State>, ClassLoaderOverlays {
 
-  /**
-   * Handles project level notifications of updates in the [ModuleClassLoaderOverlays].
-   */
+  /** Handles project level notifications of updates in the [ModuleClassLoaderOverlays]. */
   @Service(Service.Level.PROJECT)
   class NotificationManager {
     private val modificationTracker: SimpleModificationTracker = SimpleModificationTracker()
@@ -66,17 +57,14 @@ class ModuleClassLoaderOverlays private constructor(module: Module, private val 
     val modificationFlow: StateFlow<Long>
       get() = _modificationFlow
 
-    /**
-     * Notifies that a modification has happened to one of the [ModuleClassLoaderOverlays]s in the project.
-     */
+    /** Notifies that a modification has happened to one of the [ModuleClassLoaderOverlays]s in the project. */
     internal fun fireModification() {
       modificationTracker.incModificationCount()
       _modificationFlow.value = modificationTracker.modificationCount
     }
 
     companion object {
-      fun getInstance(project: Project): NotificationManager =
-        project.getService(NotificationManager::class.java)
+      fun getInstance(project: Project): NotificationManager = project.getService(NotificationManager::class.java)
     }
   }
 
@@ -89,22 +77,19 @@ class ModuleClassLoaderOverlays private constructor(module: Module, private val 
 
   val modificationTracker: ModificationTracker = _modificationTracker
 
-  /**
-   * A [DelegatingClassLoader.Loader] that finds classes in the current overlay.
-   */
-  override val classLoaderLoader: DelegatingClassLoader.Loader = object : DelegatingClassLoader.Loader {
-    override fun loadClass(fqcn: String): ByteArray? {
-      val loader = synchronized(this@ModuleClassLoaderOverlays) {
-        overlayClassLoader
-      } ?: return null
+  /** A [DelegatingClassLoader.Loader] that finds classes in the current overlay. */
+  override val classLoaderLoader: DelegatingClassLoader.Loader =
+    object : DelegatingClassLoader.Loader {
+      override fun loadClass(fqcn: String): ByteArray? {
+        val loader = synchronized(this@ModuleClassLoaderOverlays) { overlayClassLoader } ?: return null
 
-      return loader.loadClass(fqcn)
+        return loader.loadClass(fqcn)
+      }
     }
-  }
 
   private val overlayPaths = ArrayDeque<Path>(10)
 
-  constructor(module: Module): this(module, 10)
+  constructor(module: Module) : this(module, 10)
 
   @Synchronized
   fun invalidateOverlayPaths() {
@@ -112,18 +97,16 @@ class ModuleClassLoaderOverlays private constructor(module: Module, private val 
     overlayPaths.clear()
     overlayClassLoader = null
     _modificationTracker.incModificationCount()
-    moduleReference.get()?.project?.let { project ->
-      NotificationManager.getInstance(project).fireModification()
-    } ?: logger.warn("Module was disposed but ModuleClassLoaderOverlay is still referenced")
+    moduleReference.get()?.project?.let { project -> NotificationManager.getInstance(project).fireModification() }
+      ?: logger.warn("Module was disposed but ModuleClassLoaderOverlay is still referenced")
   }
 
   @Synchronized
   private fun reloadClassLoader() {
     overlayClassLoader = ClassLoaderLoader(buildClassLoaderForOverlayPath(overlayPaths))
     _modificationTracker.incModificationCount()
-    moduleReference.get()?.project?.let { project ->
-      NotificationManager.getInstance(project).fireModification()
-    } ?: logger.warn("Module was disposed but ModuleClassLoaderOverlay is still referenced")
+    moduleReference.get()?.project?.let { project -> NotificationManager.getInstance(project).fireModification() }
+      ?: logger.warn("Module was disposed but ModuleClassLoaderOverlay is still referenced")
   }
 
   @Synchronized
@@ -162,14 +145,9 @@ class ModuleClassLoaderOverlays private constructor(module: Module, private val 
     }
   }
 
-  /**
-   * Returns if the given [fqcn] exists in any of the existing overlays.
-   */
-  internal fun containsClass(fqcn: String): Boolean = synchronized(this) {
-      overlayPaths.any {
-        it.resolve(fqcn.replace('.', '/') + SdkConstants.DOT_CLASS).toFile().exists()
-      }
-    }
+  /** Returns if the given [fqcn] exists in any of the existing overlays. */
+  internal fun containsClass(fqcn: String): Boolean =
+    synchronized(this) { overlayPaths.any { it.resolve(fqcn.replace('.', '/') + SdkConstants.DOT_CLASS).toFile().exists() } }
 
   companion object {
     private val logger = Logger.getInstance(ModuleClassLoaderOverlays::class.java)
@@ -184,9 +162,8 @@ class ModuleClassLoaderOverlays private constructor(module: Module, private val 
 
     /**
      * Same as [getInstance] but does not trigger the initialization unless the [org.jetbrains.android.uipreview.ModuleClassLoaderOverlays]
-     * for the [buildTargetReference] already exists.
-     * The [org.jetbrains.android.uipreview.ModuleClassLoaderOverlays] will exist if Fast Preview has triggered already a compilation for
-     * that [buildTargetReference].
+     * for the [buildTargetReference] already exists. The [org.jetbrains.android.uipreview.ModuleClassLoaderOverlays] will exist if Fast
+     * Preview has triggered already a compilation for that [buildTargetReference].
      *
      * Use this method if, for example you are only going to check the existence of a certain class in the overlays. If the overlays don't
      * exist already, you probably do not want to create them via [getInstance].

@@ -46,7 +46,7 @@ class ComposePositionManagerTest {
 
         fun g(@Composable () -> Unit) {}
       }
-    """
+      """
         .trimIndent()
     val file = projectRule.fixture.addFileToProject("src/a/test.kt", source)
 
@@ -59,12 +59,9 @@ class ComposePositionManagerTest {
 
         classType("a.ComposableSingletons\$TestKt")
 
-        classType("a.ComposableSingletons\$TestKt\$lambda-1") {
-          method("invoke", lines = listOf(5, 6, 7))
-        }
+        classType("a.ComposableSingletons\$TestKt\$lambda-1") { method("invoke", lines = listOf(5, 6, 7)) }
       }
-    val composePositionManager =
-      ComposePositionManagerFactory().createPositionManager(debugProcess) as ComposePositionManager
+    val composePositionManager = ComposePositionManagerFactory().createPositionManager(debugProcess) as ComposePositionManager
 
     val sourcePosition = SourcePosition.createFromLine(file, 5)
 
@@ -91,7 +88,7 @@ class ComposePositionManagerTest {
       }
 
       fun g(@Composable () -> Unit) {}
-    """
+      """
         .trimIndent()
     val file = projectRule.fixture.addFileToProject("src/a/test2.kt", source)
 
@@ -104,12 +101,9 @@ class ComposePositionManagerTest {
 
         classType("a.ComposableSingletons\$Test2Kt")
 
-        classType("a.ComposableSingletons\$Test2Kt\$lambda-1") {
-          method("invoke", lines = listOf(5, 6, 7))
-        }
+        classType("a.ComposableSingletons\$Test2Kt\$lambda-1") { method("invoke", lines = listOf(5, 6, 7)) }
       }
-    val composePositionManager =
-      ComposePositionManagerFactory().createPositionManager(debugProcess) as ComposePositionManager
+    val composePositionManager = ComposePositionManagerFactory().createPositionManager(debugProcess) as ComposePositionManager
 
     val sourcePosition = SourcePosition.createFromLine(file, 5)
     composePositionManager.createPrepareRequests(mock(), sourcePosition)

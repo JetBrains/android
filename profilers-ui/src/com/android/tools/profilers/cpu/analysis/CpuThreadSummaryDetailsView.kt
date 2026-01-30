@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.tools.adtui.common.border as BorderColor
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.formatter.TimeFormatter
@@ -25,22 +26,16 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JLabel
 import javax.swing.JPanel
-import com.android.tools.adtui.common.border as BorderColor
 
-class CpuThreadSummaryDetailsView(parentView: StudioProfilersView,
-                                  tabModel: CpuThreadAnalysisSummaryTabModel) : SummaryDetailsViewBase<CpuThreadAnalysisSummaryTabModel>(
-  parentView, tabModel) {
-  @get:VisibleForTesting
-  val timeRangeLabel = JLabel()
+class CpuThreadSummaryDetailsView(parentView: StudioProfilersView, tabModel: CpuThreadAnalysisSummaryTabModel) :
+  SummaryDetailsViewBase<CpuThreadAnalysisSummaryTabModel>(parentView, tabModel) {
+  @get:VisibleForTesting val timeRangeLabel = JLabel()
 
-  @get:VisibleForTesting
-  val durationLabel = JLabel()
+  @get:VisibleForTesting val durationLabel = JLabel()
 
-  @get:VisibleForTesting
-  val dataTypeLabel = JLabel(tabModel.label)
+  @get:VisibleForTesting val dataTypeLabel = JLabel(tabModel.label)
 
-  @get:VisibleForTesting
-  val threadIdLabel = JLabel()
+  @get:VisibleForTesting val threadIdLabel = JLabel()
 
   private val nodesTablePanel = JPanel(BorderLayout())
 
@@ -58,11 +53,13 @@ class CpuThreadSummaryDetailsView(parentView: StudioProfilersView,
 
     // Thread states section
     // Merge thread state data series from all threads.
-    tabModel.dataSeries.mapNotNull { it.threadStateSeries }.let { threadStateSeriesList ->
-      if (threadStateSeriesList.isNotEmpty()) {
-        addSection(CpuThreadStateTable(parentView.studioProfilers, threadStateSeriesList, tabModel.selectionRange).component)
+    tabModel.dataSeries
+      .mapNotNull { it.threadStateSeries }
+      .let { threadStateSeriesList ->
+        if (threadStateSeriesList.isNotEmpty()) {
+          addSection(CpuThreadStateTable(parentView.studioProfilers, threadStateSeriesList, tabModel.selectionRange).component)
+        }
       }
-    }
     addSection(nodesTablePanel)
   }
 
@@ -80,17 +77,16 @@ class CpuThreadSummaryDetailsView(parentView: StudioProfilersView,
       profilersView.studioProfilers.ideServices.mainExecutor.execute {
         nodesTablePanel.removeAll()
         if (nodesInRange.isNotEmpty()) {
-          val nodesTable = CaptureNodeDetailTable(nodesInRange, tabModel.captureRange,
-                                                  profilersView.studioProfilers.stage.timeline.viewRange)
+          val nodesTable =
+            CaptureNodeDetailTable(nodesInRange, tabModel.captureRange, profilersView.studioProfilers.stage.timeline.viewRange)
           val sizeText = if (nodesInRange.size == NUMBER_OF_TABLE_NODES) "top ${NUMBER_OF_TABLE_NODES}" else "${nodesInRange.size}"
           val contentBorder = JBUI.Borders.merge(JBUI.Borders.customLine(BorderColor, 1), JBUI.Borders.empty(8, 0, 0, 0), true)
-          val hideablePanel = HideablePanel.Builder("Longest running events (${sizeText})", nodesTable.component)
-            .setPanelBorder(JBUI.Borders.empty())
-            .setContentBorder(contentBorder)
-            .build()
-            .apply {
-              background = primaryContentBackground
-            }
+          val hideablePanel =
+            HideablePanel.Builder("Longest running events (${sizeText})", nodesTable.component)
+              .setPanelBorder(JBUI.Borders.empty())
+              .setContentBorder(contentBorder)
+              .build()
+              .apply { background = primaryContentBackground }
           nodesTablePanel.add(hideablePanel)
         }
         nodesTablePanel.revalidate()

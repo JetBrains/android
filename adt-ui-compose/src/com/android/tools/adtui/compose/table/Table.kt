@@ -92,10 +92,7 @@ import org.jetbrains.jewel.ui.theme.scrollbarStyle
 data class TableColumn<in T>(
   val name: String,
   val width: TableColumnWidth,
-  /**
-   * The comparator for the rows when sorted by this column in ascending order. If null, the column
-   * is not sortable.
-   */
+  /** The comparator for the rows when sorted by this column in ascending order. If null, the column is not sortable. */
   val comparator: Comparator<in T>? = null,
   /** The comparator for the rows when sorted by this column in descending order. */
   val reverseComparator: Comparator<in T>? = comparator?.reversed(),
@@ -107,21 +104,15 @@ sealed interface TableColumnWidth {
   @Composable fun RowScope.widthModifier(): Modifier
 
   class Fixed(val width: Dp) : TableColumnWidth {
-    @Composable
-    override fun RowScope.widthModifier(): Modifier = Modifier.width(width + CELL_SPACING)
+    @Composable override fun RowScope.widthModifier(): Modifier = Modifier.width(width + CELL_SPACING)
   }
 
   class Weighted(val weight: Float) : TableColumnWidth {
-    @Composable
-    override fun RowScope.widthModifier(): Modifier = Modifier.weight(weight, fill = true)
+    @Composable override fun RowScope.widthModifier(): Modifier = Modifier.weight(weight, fill = true)
   }
 
   /** Sizes the column to fit a specified bit of text, optionally with extra padding. */
-  class ToFit(
-    val text: String,
-    val textStyle: TextStyle = TextStyle.Default,
-    val extraPadding: Dp = 0.dp,
-  ) : TableColumnWidth {
+  class ToFit(val text: String, val textStyle: TextStyle = TextStyle.Default, val extraPadding: Dp = 0.dp) : TableColumnWidth {
     @Composable
     override fun RowScope.widthModifier(): Modifier {
       val textMeasurer = rememberTextMeasurer()
@@ -130,8 +121,7 @@ sealed interface TableColumnWidth {
       val widthDp =
         remember(density, style) {
           with(density) {
-            val measurement =
-              textMeasurer.measure(text, style = style.merge(textStyle), maxLines = 1)
+            val measurement = textMeasurer.measure(text, style = style.merge(textStyle), maxLines = 1)
             measurement.size.width.toDp()
           }
         }
@@ -148,15 +138,9 @@ fun <T> TableTextColumn(
   comparator: Comparator<T>? = compareBy(attribute),
   overflow: TextOverflow = TextOverflow.Ellipsis,
   maxLines: Int = 1,
-) =
-  TableColumn(name, width, comparator) { value, _ ->
-    Text(attribute(value), overflow = overflow, maxLines = maxLines)
-  }
+) = TableColumn(name, width, comparator) { value, _ -> Text(attribute(value), overflow = overflow, maxLines = maxLines) }
 
-/**
- * A sortable column that displays the attribute as text via toString() and sorts via the
- * attribute's natural order.
- */
+/** A sortable column that displays the attribute as text via toString() and sorts via the attribute's natural order. */
 fun <T, V : Comparable<V>> DefaultSortableTableColumn(
   name: String,
   width: TableColumnWidth = TableColumnWidth.Weighted(1f),
@@ -164,10 +148,7 @@ fun <T, V : Comparable<V>> DefaultSortableTableColumn(
   comparator: Comparator<T>? = compareBy(attribute),
   overflow: TextOverflow = TextOverflow.Ellipsis,
   maxLines: Int = 1,
-) =
-  TableColumn(name, width, comparator) { value, _ ->
-    Text(attribute(value).toString(), overflow = overflow, maxLines = maxLines)
-  }
+) = TableColumn(name, width, comparator) { value, _ -> Text(attribute(value).toString(), overflow = overflow, maxLines = maxLines) }
 
 enum class SortOrder {
   ASCENDING,
@@ -186,10 +167,8 @@ internal fun SortOrder.Icon() =
   when (this) {
     // In Swing, we would do `UIManager.get("Table.ascendingSortIcon", null) as Icon`; instead use
     // IJ platform icons
-    SortOrder.ASCENDING ->
-      Icon(AllIconsKeys.General.ArrowUp, "Sorted ascending", Modifier.size(16.dp))
-    SortOrder.DESCENDING ->
-      Icon(AllIconsKeys.General.ArrowDown, "Sorted descending", Modifier.size(16.dp))
+    SortOrder.ASCENDING -> Icon(AllIconsKeys.General.ArrowUp, "Sorted ascending", Modifier.size(16.dp))
+    SortOrder.DESCENDING -> Icon(AllIconsKeys.General.ArrowDown, "Sorted descending", Modifier.size(16.dp))
   }
 
 @Stable
@@ -202,8 +181,7 @@ private class TableSelectionStateImpl<T>(selectedValue: T? = null) : TableSelect
   override var selection by mutableStateOf(selectedValue)
 }
 
-fun <T> TableSelectionState(selectedValue: T? = null): TableSelectionState<T> =
-  TableSelectionStateImpl(selectedValue)
+fun <T> TableSelectionState(selectedValue: T? = null): TableSelectionState<T> = TableSelectionStateImpl(selectedValue)
 
 @Stable
 class TableSortState<T> {
@@ -227,8 +205,7 @@ internal fun <T> TableHeader(
   modifier: Modifier = Modifier,
 ) {
   Row(modifier.fillMaxWidth().padding(horizontal = ROW_PADDING)) {
-    val focusedBackgroundColor =
-      rememberColor(IntUiPaletteDefaults.Dark.Gray3, IntUiPaletteDefaults.Light.Gray12)
+    val focusedBackgroundColor = rememberColor(IntUiPaletteDefaults.Dark.Gray3, IntUiPaletteDefaults.Light.Gray12)
     columns.forEach { column ->
       val widthModifier = with(column.width) { widthModifier() }
       var isFocused by remember { mutableStateOf(false) }
@@ -237,9 +214,7 @@ internal fun <T> TableHeader(
           .semantics(mergeDescendants = true) { heading() }
           .thenIf(isFocused) { background(focusedBackgroundColor) }
           .onFocusChanged { isFocused = it.isFocused }
-          .thenIf(column.comparator != null) {
-            clickable(interactionSource = null, indication = null) { onClick(column) }
-          }
+          .thenIf(column.comparator != null) { clickable(interactionSource = null, indication = null) { onClick(column) } }
           .padding(horizontal = CELL_SPACING / 2, vertical = CELL_SPACING)
       ) {
         Text(column.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -253,10 +228,7 @@ internal fun <T> TableHeader(
   }
 }
 
-/**
- * Returns the padding needed to keep the header aligned with the content area of a
- * ScrollableContainer below it.
- */
+/** Returns the padding needed to keep the header aligned with the content area of a ScrollableContainer below it. */
 @Composable
 private fun scrollbarHeaderPadding(style: ScrollbarStyle = JewelTheme.scrollbarStyle): Dp =
   style.scrollbarVisibility.trackThicknessExpanded - scrollbarContentSafePadding(style)
@@ -276,16 +248,8 @@ internal fun <T> TableRow(
   Row(
     modifier
       .focusProperties { canFocus = false }
-      .thenIf(isHovered) {
-        background(
-          retrieveColorOrUnspecified("Table.hoverBackground").takeOrElse { Color.LightGray }
-        )
-      }
-      .thenIf(selected) {
-        background(
-          retrieveColorOrUnspecified("Table.selectionBackground").takeOrElse { Color.Cyan }
-        )
-      }
+      .thenIf(isHovered) { background(retrieveColorOrUnspecified("Table.hoverBackground").takeOrElse { Color.LightGray }) }
+      .thenIf(selected) { background(retrieveColorOrUnspecified("Table.selectionBackground").takeOrElse { Color.Cyan }) }
       .onHover { isHovered = it }
       .pointerInput(value) {
         detectTapGestures(
@@ -297,32 +261,23 @@ internal fun <T> TableRow(
         )
       }
       .onGloballyPositioned { layoutCoordinates = it }
-      .selectable(
-        selected,
-        interactionSource = null,
-        indication = null,
-        onClick = { onClick(value) },
-      )
+      .selectable(selected, interactionSource = null, indication = null, onClick = { onClick(value) })
       .fillMaxWidth()
       .padding(ROW_PADDING),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    val contentColor =
-      if (selected) retrieveColorOrUnspecified("Table.selectionForeground")
-      else LocalContentColor.current
+    val contentColor = if (selected) retrieveColorOrUnspecified("Table.selectionForeground") else LocalContentColor.current
     CompositionLocalProvider(LocalContentColor provides contentColor) {
       columns.forEach {
-        Box(with(it.width) { widthModifier() }.padding(horizontal = CELL_SPACING / 2)) {
-          it.rowContent.invoke(this@Box, value, selected)
-        }
+        Box(with(it.width) { widthModifier() }.padding(horizontal = CELL_SPACING / 2)) { it.rowContent.invoke(this@Box, value, selected) }
       }
     }
   }
 }
 
 /**
- * Displays a list of values of type [T] as a scrollable grid of rows, with columns defined by
- * [columns]. Allows sorting by columns and selecting a single row.
+ * Displays a list of values of type [T] as a scrollable grid of rows, with columns defined by [columns]. Allows sorting by columns and
+ * selecting a single row.
  */
 @Composable
 fun <T> Table(
@@ -384,9 +339,7 @@ fun <T> Table(
       tableSortState.sortOrder,
       onClick = { column ->
         if (column.comparator != null) {
-          tableSortState.sortOrder =
-            if (tableSortState.sortColumn == column) tableSortState.sortOrder.opposite
-            else SortOrder.ASCENDING
+          tableSortState.sortOrder = if (tableSortState.sortColumn == column) tableSortState.sortOrder.opposite else SortOrder.ASCENDING
           tableSortState.sortColumn = column
         }
       },
@@ -399,9 +352,7 @@ fun <T> Table(
         modifier =
           Modifier.onFocusChanged { focusState ->
               if (focusState.hasFocus && tableSelectionState.selection == null) {
-                lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.let {
-                  tableSelectionState.selection = sortedRows[it.index]
-                }
+                lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.let { tableSelectionState.selection = sortedRows[it.index] }
               }
             }
             .focusRequester(tableFocusRequester)

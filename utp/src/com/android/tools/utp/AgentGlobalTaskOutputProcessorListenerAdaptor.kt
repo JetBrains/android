@@ -19,31 +19,27 @@ import com.google.testing.platform.proto.api.core.TestCaseProto
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 
-class AgentGlobalTaskOutputProcessorListenerAdaptor(
-  val listener: Listener
-) : GlobalTaskOutputProcessorListener {
-  override fun onTestSuiteStarted(deviceId: String,
-                                  testSuite: TestSuiteResultProto.TestSuiteMetaData) = Unit
+class AgentGlobalTaskOutputProcessorListenerAdaptor(val listener: Listener) : GlobalTaskOutputProcessorListener {
+  override fun onTestSuiteStarted(deviceId: String, testSuite: TestSuiteResultProto.TestSuiteMetaData) = Unit
 
   override fun onTestCaseStarted(deviceId: String, testCase: TestCaseProto.TestCase) = Unit
 
-  override fun onTestCaseFinished(deviceId: String,
-                                  testCaseResult: TestResultProto.TestResult) = Unit
+  override fun onTestCaseFinished(deviceId: String, testCaseResult: TestResultProto.TestResult) = Unit
 
-  override fun onTestSuiteFinished(deviceId: String,
-                                   testSuiteResult: TestSuiteResultProto.TestSuiteResult) {
-    val testCaseResult = Listener.TestSuiteResult(
-      deviceId,
-      testSuiteResult.testResultList.map {
-        Listener.TestCaseResult(
-          it.testCase.testPackage,
-          it.testCase.testClass,
-          it.testCase.testMethod,
-          it.testStatus.name,
-          it.error?.stackTrace
-        )
-      }
-    )
+  override fun onTestSuiteFinished(deviceId: String, testSuiteResult: TestSuiteResultProto.TestSuiteResult) {
+    val testCaseResult =
+      Listener.TestSuiteResult(
+        deviceId,
+        testSuiteResult.testResultList.map {
+          Listener.TestCaseResult(
+            it.testCase.testPackage,
+            it.testCase.testClass,
+            it.testCase.testMethod,
+            it.testStatus.name,
+            it.error?.stackTrace,
+          )
+        },
+      )
     listener.onTestSuiteFinished(testCaseResult)
   }
 
@@ -53,12 +49,11 @@ class AgentGlobalTaskOutputProcessorListenerAdaptor(
       val className: String,
       val methodName: String,
       val status: String,
-      val errorStacktrace: String?
+      val errorStacktrace: String?,
     )
-    data class TestSuiteResult(
-      val deviceId: String,
-      val testCases: List<TestCaseResult>
-    )
+
+    data class TestSuiteResult(val deviceId: String, val testCases: List<TestCaseResult>)
+
     fun onTestSuiteFinished(result: TestSuiteResult)
   }
 }

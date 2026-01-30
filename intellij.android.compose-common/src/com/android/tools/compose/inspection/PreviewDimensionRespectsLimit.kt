@@ -26,8 +26,8 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtValueArgument
 
 /**
- * Inspection that checks that `@Preview` width and height parameters doesn't go lower nor higher than
- * [minDimension] and [maxDimension] respectively.
+ * Inspection that checks that `@Preview` width and height parameters doesn't go lower nor higher than [minDimension] and [maxDimension]
+ * respectively.
  */
 open class PreviewDimensionRespectsLimit(
   private val widthAnnotationParam: String,
@@ -38,19 +38,11 @@ open class PreviewDimensionRespectsLimit(
   groupDisplayName: String,
   previewAnnotationChecker: PreviewAnnotationChecker,
 ) : BasePreviewAnnotationInspection(groupDisplayName, previewAnnotationChecker) {
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, function: KtNamedFunction, previewAnnotation: KtAnnotationEntry) {
     checkMaxWidthAndHeight(holder, previewAnnotation)
   }
 
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, annotationClass: KtClass, previewAnnotation: KtAnnotationEntry) {
     checkMaxWidthAndHeight(holder, previewAnnotation)
   }
 

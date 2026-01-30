@@ -21,26 +21,16 @@ import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 
 /**
- * Transform that detects and records code execution. Currently, its level of granularity is Class,
- * but this might change in the future (we might want to keep tack of line by line execution for
- * coverage). It tracks every call to a method or field and records the [Class] of that method or
- * field. That allows for tracking all the [Class]es that were used in the user code execution. That
- * way we can detect changes to what classes might affect the result of that code execution, in
- * particular rendering. [ref] is used to track down the instance of the transform that tracked the
- * class. This is useful if we have several [ClassLoader]s operating in parallel.
+ * Transform that detects and records code execution. Currently, its level of granularity is Class, but this might change in the future (we
+ * might want to keep tack of line by line execution for coverage). It tracks every call to a method or field and records the [Class] of
+ * that method or field. That allows for tracking all the [Class]es that were used in the user code execution. That way we can detect
+ * changes to what classes might affect the result of that code execution, in particular rendering. [ref] is used to track down the instance
+ * of the transform that tracked the class. This is useful if we have several [ClassLoader]s operating in parallel.
  */
-class CodeExecutionTrackerTransform(delegate: ClassVisitor, private val ref: String) :
-  ClassVisitor(Opcodes.ASM9, delegate) {
+class CodeExecutionTrackerTransform(delegate: ClassVisitor, private val ref: String) : ClassVisitor(Opcodes.ASM9, delegate) {
   private var className: String? = null
 
-  override fun visit(
-    version: Int,
-    access: Int,
-    name: String,
-    signature: String?,
-    superName: String?,
-    interfaces: Array<out String>?,
-  ) {
+  override fun visit(version: Int, access: Int, name: String, signature: String?, superName: String?, interfaces: Array<out String>?) {
     super.visit(version, access, name, signature, superName, interfaces)
     className = name
   }
@@ -53,19 +43,12 @@ class CodeExecutionTrackerTransform(delegate: ClassVisitor, private val ref: Str
     exceptions: Array<out String>?,
   ): MethodVisitor {
 
-    return MethodUsageTrackerVisitor(
-      ref,
-      className!!,
-      super.visitMethod(access, name, descriptor, signature, exceptions),
-    )
+    return MethodUsageTrackerVisitor(ref, className!!, super.visitMethod(access, name, descriptor, signature, exceptions))
   }
 }
 
-private class MethodUsageTrackerVisitor(
-  private val ref: String,
-  private val className: String,
-  visitor: MethodVisitor,
-) : MethodVisitor(Opcodes.ASM9, visitor) {
+private class MethodUsageTrackerVisitor(private val ref: String, private val className: String, visitor: MethodVisitor) :
+  MethodVisitor(Opcodes.ASM9, visitor) {
   /** This is to track the method usage (call). */
   override fun visitCode() {
     reportClass(className)

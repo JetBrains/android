@@ -33,15 +33,16 @@ class MemoryVisualizationModel {
   fun formatter(): BaseAxisFormatter {
     return if (isSizeAxis()) {
       MemoryAxisFormatter.DEFAULT
-    }
-    else {
+    } else {
       SingleUnitAxisFormatter(1, 10, 1, "")
     }
   }
 
   enum class XAxisFilter(private val filterName: String) {
-    TOTAL_COUNT("Total Remaining Count"), TOTAL_SIZE("Total Remaining Size"), ALLOC_SIZE("Allocation Size"), ALLOC_COUNT(
-      "Allocation Count");
+    TOTAL_COUNT("Total Remaining Count"),
+    TOTAL_SIZE("Total Remaining Size"),
+    ALLOC_SIZE("Allocation Size"),
+    ALLOC_COUNT("Allocation Count");
 
     override fun toString(): String {
       return filterName

@@ -34,11 +34,8 @@ class TraceProcessorModelTest {
   @Test
   fun addProcessMetadata() {
     val protoBuilder = TraceProcessor.ProcessMetadataResult.newBuilder()
-    protoBuilder.addProcess(1, "Process1")
-      .addThread(2, "AnotherThreadProcess1")
-      .addThread(1, "MainThreadProcess1")
-    protoBuilder.addProcess(4, "Process2")
-      .addThread(6, "AnotherThreadProcess2")
+    protoBuilder.addProcess(1, "Process1").addThread(2, "AnotherThreadProcess1").addThread(1, "MainThreadProcess1")
+    protoBuilder.addProcess(4, "Process2").addThread(6, "AnotherThreadProcess2")
 
     val modelBuilder = TraceProcessorModel.Builder()
     modelBuilder.addProcessMetadata(protoBuilder.build())
@@ -62,12 +59,11 @@ class TraceProcessorModelTest {
   @Test
   fun addTraceEvents() {
     val processProtoBuilder = TraceProcessor.ProcessMetadataResult.newBuilder()
-    processProtoBuilder.addProcess(1, "Process1")
-      .addThread(2, "AnotherThreadProcess1")
-      .addThread(1, "MainThreadProcess1")
+    processProtoBuilder.addProcess(1, "Process1").addThread(2, "AnotherThreadProcess1").addThread(1, "MainThreadProcess1")
 
     val traceProtoBuilder = TraceProcessor.TraceEventsResult.newBuilder()
-    traceProtoBuilder.addThread(1)
+    traceProtoBuilder
+      .addThread(1)
       .addEvent(1000, 1000, 18000, "EventA")
       .addEvent(1001, 2000, 5000, "EventA-1", 1000, 1)
       .addEvent(1002, 5000, 1000, "EventA-1-1", 1001, 2)
@@ -78,21 +74,34 @@ class TraceProcessorModelTest {
     // Set the thread running for the entire recording to simplify the verification of `TraceEventModel.cpuTimeUs`.
     // The RUNNING state is implied as the start state, so it's not encoded here.
     val schedProtoBuilder = TraceProcessor.SchedulingEventsResult.newBuilder().setNumCores(4)
-    schedProtoBuilder.addSchedulingEvent(1, 1, 0, 1000, 18000,
-                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
+    schedProtoBuilder.addSchedulingEvent(
+      1,
+      1,
+      0,
+      1000,
+      18000,
+      TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING,
+    )
     modelBuilder.addSchedulingEvents(schedProtoBuilder.build())
     modelBuilder.addTraceEvents(traceProtoBuilder.build())
     val model = modelBuilder.build()
 
     val process = model.getProcessById(1)!!
     val thread = process.threadById[1] ?: error("Thread with id = 1 should be present in this process.")
-    assertThat(thread.traceEvents).containsExactly(
-      // EventA end is 19, irrespective of endTimestamp of child event
-      TraceEventModel("EventA", 1, 19, 18, listOf(
-        TraceEventModel("EventA-1", 2, 7, 5, listOf(
-          TraceEventModel("EventA-1-1", 5, 6, 1, listOf())
-        )),
-        TraceEventModel("EventA-2", 15, 18, 3, listOf()))))
+    assertThat(thread.traceEvents)
+      .containsExactly(
+        // EventA end is 19, irrespective of endTimestamp of child event
+        TraceEventModel(
+          "EventA",
+          1,
+          19,
+          18,
+          listOf(
+            TraceEventModel("EventA-1", 2, 7, 5, listOf(TraceEventModel("EventA-1-1", 5, 6, 1, listOf()))),
+            TraceEventModel("EventA-2", 15, 18, 3, listOf()),
+          ),
+        )
+      )
 
     assertThat(model.getCaptureStartTimestampUs()).isEqualTo(1)
     assertThat(model.getCaptureEndTimestampUs()).isEqualTo(19)
@@ -101,13 +110,12 @@ class TraceProcessorModelTest {
   @Test
   fun `addTraceEvents - incomplete trace event`() {
     val processProtoBuilder = TraceProcessor.ProcessMetadataResult.newBuilder()
-    processProtoBuilder.addProcess(1, "Process1")
-      .addThread(2, "AnotherThreadProcess1")
-      .addThread(1, "MainThreadProcess1")
+    processProtoBuilder.addProcess(1, "Process1").addThread(2, "AnotherThreadProcess1").addThread(1, "MainThreadProcess1")
 
     // Set EventA-1's duration to -1 to represent an incomplete trace event.
     val traceProtoBuilder = TraceProcessor.TraceEventsResult.newBuilder()
-    traceProtoBuilder.addThread(1)
+    traceProtoBuilder
+      .addThread(1)
       .addEvent(1000, 1000, 18000, "EventA")
       .addEvent(1001, 2000, -1, "EventA-1", 1000, 1)
       .addEvent(1002, 5000, 1000, "EventA-1-1", 1001, 2)
@@ -119,22 +127,40 @@ class TraceProcessorModelTest {
     // Set the thread running for the entire recording to simplify the verification of `TraceEventModel.cpuTimeUs`.
     // The RUNNING state is implied as the start state, so it's not encoded here.
     val schedProtoBuilder = TraceProcessor.SchedulingEventsResult.newBuilder().setNumCores(4)
-    schedProtoBuilder.addSchedulingEvent(1, 1, 0, 1000, 18000,
-                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
+    schedProtoBuilder.addSchedulingEvent(
+      1,
+      1,
+      0,
+      1000,
+      18000,
+      TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING,
+    )
     modelBuilder.addSchedulingEvents(schedProtoBuilder.build())
     modelBuilder.addTraceEvents(traceProtoBuilder.build())
     val model = modelBuilder.build()
 
     val process = model.getProcessById(1)!!
     val thread = process.threadById[1] ?: error("Thread with id = 1 should be present in this process.")
-    assertThat(thread.traceEvents).containsExactly(
-      // EventA-1 end is 10, which is maximum end time of its child event
-      TraceEventModel("EventA", 1, 19, 18, listOf(
-        TraceEventModel("EventA-1", 2, 10, 8, listOf(
-          TraceEventModel("EventA-1-1", 5, 6, 1, listOf()),
-          TraceEventModel("EventA-1-2", 8, 10, 2, listOf())
-        )),
-        TraceEventModel("EventA-2", 15, 18, 3, listOf()))))
+    assertThat(thread.traceEvents)
+      .containsExactly(
+        // EventA-1 end is 10, which is maximum end time of its child event
+        TraceEventModel(
+          "EventA",
+          1,
+          19,
+          18,
+          listOf(
+            TraceEventModel(
+              "EventA-1",
+              2,
+              10,
+              8,
+              listOf(TraceEventModel("EventA-1-1", 5, 6, 1, listOf()), TraceEventModel("EventA-1-2", 8, 10, 2, listOf())),
+            ),
+            TraceEventModel("EventA-2", 15, 18, 3, listOf()),
+          ),
+        )
+      )
 
     assertThat(model.getCaptureStartTimestampUs()).isEqualTo(1)
     assertThat(model.getCaptureEndTimestampUs()).isEqualTo(19)
@@ -144,8 +170,7 @@ class TraceProcessorModelTest {
   fun `addTraceEvents - missing thread`() {
     val traceProtoBuilder = TraceProcessor.TraceEventsResult.newBuilder()
     // Just to test that while processing this we don't crash because we can't find the thread referenced.
-    traceProtoBuilder.addThread(1)
-      .addEvent(10000, 10000, 2000, "EventForMissingThread")
+    traceProtoBuilder.addThread(1).addEvent(10000, 10000, 2000, "EventForMissingThread")
 
     val modelBuilder = TraceProcessorModel.Builder()
     modelBuilder.addTraceEvents(traceProtoBuilder.build())
@@ -157,21 +182,49 @@ class TraceProcessorModelTest {
   @Test
   fun addSchedulingEvents() {
     val processProtoBuilder = TraceProcessor.ProcessMetadataResult.newBuilder()
-    processProtoBuilder.addProcess(1, "Process1")
-      .addThread(2, "AnotherThreadProcess1")
-      .addThread(1, "MainThreadProcess1")
+    processProtoBuilder.addProcess(1, "Process1").addThread(2, "AnotherThreadProcess1").addThread(1, "MainThreadProcess1")
 
     val schedProtoBuilder = TraceProcessor.SchedulingEventsResult.newBuilder().setNumCores(4)
-    schedProtoBuilder.addSchedulingEvent(1, 1, 1, 1000, 3000,
-                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
-    schedProtoBuilder.addSchedulingEvent(1, 1, 1, 7000, 2000,
-                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNABLE)
-    schedProtoBuilder.addSchedulingEvent(1, 1, 2, 11000, 2000,
-                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNABLE)
-    schedProtoBuilder.addSchedulingEvent(1, 2, 2, 2000, 4000,
-                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNABLE)
-    schedProtoBuilder.addSchedulingEvent(1, 2, 1, 10000, 1000,
-                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
+    schedProtoBuilder.addSchedulingEvent(
+      1,
+      1,
+      1,
+      1000,
+      3000,
+      TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING,
+    )
+    schedProtoBuilder.addSchedulingEvent(
+      1,
+      1,
+      1,
+      7000,
+      2000,
+      TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNABLE,
+    )
+    schedProtoBuilder.addSchedulingEvent(
+      1,
+      1,
+      2,
+      11000,
+      2000,
+      TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNABLE,
+    )
+    schedProtoBuilder.addSchedulingEvent(
+      1,
+      2,
+      2,
+      2000,
+      4000,
+      TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNABLE,
+    )
+    schedProtoBuilder.addSchedulingEvent(
+      1,
+      2,
+      1,
+      10000,
+      1000,
+      TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING,
+    )
 
     val modelBuilder = TraceProcessorModel.Builder()
     modelBuilder.addProcessMetadata(processProtoBuilder.build())
@@ -180,18 +233,22 @@ class TraceProcessorModelTest {
 
     val process = model.getProcessById(1)!!
     val thread1 = process.threadById[1] ?: error("Thread 1 should be present")
-    assertThat(thread1.schedulingEvents).containsExactly(
-      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 1, 4, 3, 3, 1, 1, 1),
-      SchedulingEventModel(ThreadState.SLEEPING_CAPTURED, 4, 7, 3, 3, 1, 1, 1),
-      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 7, 9, 2, 2, 1, 1, 1),
-      SchedulingEventModel(ThreadState.RUNNABLE_CAPTURED, 9, 11, 2, 2, 1, 1, 1),
-      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 11, 13, 2, 2, 1, 1, 2))
+    assertThat(thread1.schedulingEvents)
+      .containsExactly(
+        SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 1, 4, 3, 3, 1, 1, 1),
+        SchedulingEventModel(ThreadState.SLEEPING_CAPTURED, 4, 7, 3, 3, 1, 1, 1),
+        SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 7, 9, 2, 2, 1, 1, 1),
+        SchedulingEventModel(ThreadState.RUNNABLE_CAPTURED, 9, 11, 2, 2, 1, 1, 1),
+        SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 11, 13, 2, 2, 1, 1, 2),
+      )
       .inOrder()
     val thread2 = process.threadById[2] ?: error("Thread 2 should be present")
-    assertThat(thread2.schedulingEvents).containsExactly(
-      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 2, 6, 4, 4, 1, 2, 2),
-      SchedulingEventModel(ThreadState.RUNNABLE_CAPTURED, 6, 10, 4, 4, 1, 2, 2),
-      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 10, 11, 1, 1, 1, 2, 1))
+    assertThat(thread2.schedulingEvents)
+      .containsExactly(
+        SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 2, 6, 4, 4, 1, 2, 2),
+        SchedulingEventModel(ThreadState.RUNNABLE_CAPTURED, 6, 10, 4, 4, 1, 2, 2),
+        SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 10, 11, 1, 1, 1, 2, 1),
+      )
       .inOrder()
 
     val cpus = model.getCpuCores()
@@ -200,16 +257,20 @@ class TraceProcessorModelTest {
     assertThat(cpus[0].schedulingEvents).isEmpty()
 
     assertThat(cpus[1].id).isEqualTo(1)
-    assertThat(cpus[1].schedulingEvents).containsExactly(
-      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 1, 4, 3, 3, 1, 1, 1),
-      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 7, 9, 2, 2, 1, 1, 1),
-      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 10, 11, 1, 1, 1, 2, 1))
+    assertThat(cpus[1].schedulingEvents)
+      .containsExactly(
+        SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 1, 4, 3, 3, 1, 1, 1),
+        SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 7, 9, 2, 2, 1, 1, 1),
+        SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 10, 11, 1, 1, 1, 2, 1),
+      )
       .inOrder()
 
     assertThat(cpus[2].id).isEqualTo(2)
-    assertThat(cpus[2].schedulingEvents).containsExactly(
-      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 2, 6, 4, 4, 1, 2, 2),
-      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 11, 13, 2, 2, 1, 1, 2))
+    assertThat(cpus[2].schedulingEvents)
+      .containsExactly(
+        SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 2, 6, 4, 4, 1, 2, 2),
+        SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 11, 13, 2, 2, 1, 1, 2),
+      )
       .inOrder()
 
     assertThat(cpus[3].id).isEqualTo(3)
@@ -221,34 +282,44 @@ class TraceProcessorModelTest {
 
   @Test
   fun addCpuCounters() {
-    val cpuCounters = TraceProcessor.CpuCoreCountersResult.newBuilder()
-      .setNumCores(2)
-      .addCountersPerCore(
-        TraceProcessor.CpuCoreCountersResult.CountersPerCore.newBuilder()
-          .setCpu(0)
-          .addCounter(TraceProcessor.Counter.newBuilder()
-                        .setName("cpufreq")
-                        .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(0.0))
-                        .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(1000.0))
-                        .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(3000).setValue(2000.0)))
-          .addCounter(TraceProcessor.Counter.newBuilder()
-                        .setName("cpuidle")
-                        .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1500).setValue(0.0))
-                        .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2500).setValue(4294967295.0))
-                        .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(3500).setValue(0.0))))
-      .addCountersPerCore(TraceProcessor.CpuCoreCountersResult.CountersPerCore.newBuilder().setCpu(1))
-      .build()
+    val cpuCounters =
+      TraceProcessor.CpuCoreCountersResult.newBuilder()
+        .setNumCores(2)
+        .addCountersPerCore(
+          TraceProcessor.CpuCoreCountersResult.CountersPerCore.newBuilder()
+            .setCpu(0)
+            .addCounter(
+              TraceProcessor.Counter.newBuilder()
+                .setName("cpufreq")
+                .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(0.0))
+                .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(1000.0))
+                .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(3000).setValue(2000.0))
+            )
+            .addCounter(
+              TraceProcessor.Counter.newBuilder()
+                .setName("cpuidle")
+                .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1500).setValue(0.0))
+                .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2500).setValue(4294967295.0))
+                .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(3500).setValue(0.0))
+            )
+        )
+        .addCountersPerCore(TraceProcessor.CpuCoreCountersResult.CountersPerCore.newBuilder().setCpu(1))
+        .build()
 
-    val model = TraceProcessorModel.Builder().apply {
-      addCpuCounters(cpuCounters)
-    }.build()
+    val model = TraceProcessorModel.Builder().apply { addCpuCounters(cpuCounters) }.build()
 
-    assertThat(model.getCpuCores()).containsExactly(
-      CpuCoreModel(0, listOf(), mapOf(
-        "cpufreq" to CounterModel("cpufreq", sortedMapOf(1L to 0.0, 2L to 1000.0, 3L to 2000.0)),
-        "cpuidle" to CounterModel("cpuidle", sortedMapOf(1L to 0.0, 2L to 4294967295.0, 3L to 0.0))
-      )),
-      CpuCoreModel(1, listOf(), mapOf()))
+    assertThat(model.getCpuCores())
+      .containsExactly(
+        CpuCoreModel(
+          0,
+          listOf(),
+          mapOf(
+            "cpufreq" to CounterModel("cpufreq", sortedMapOf(1L to 0.0, 2L to 1000.0, 3L to 2000.0)),
+            "cpuidle" to CounterModel("cpuidle", sortedMapOf(1L to 0.0, 2L to 4294967295.0, 3L to 0.0)),
+          ),
+        ),
+        CpuCoreModel(1, listOf(), mapOf()),
+      )
   }
 
   @Test
@@ -285,223 +356,366 @@ class TraceProcessorModelTest {
 
   @Test
   fun addAndroidFrameLayers() {
-    val layer = Layer.newBuilder()
-      .setLayerName("foobar")
-      .addPhase(Phase.newBuilder()
-                  .setPhaseName("Display")
-                  .addFrameEvent(FrameEvent.newBuilder().setId(1)))
-      .addPhase(Phase.newBuilder()
-                  .setPhaseName("GPU")
-                  .addFrameEvent(FrameEvent.newBuilder().setId(2)))
-      .build()
-    val frameEventResult = TraceProcessor.AndroidFrameEventsResult.newBuilder()
-      .addLayer(layer)
-      .build()
-    val model = TraceProcessorModel.Builder().apply {
-      addAndroidFrameEvents(frameEventResult)
-    }.build()
+    val layer =
+      Layer.newBuilder()
+        .setLayerName("foobar")
+        .addPhase(Phase.newBuilder().setPhaseName("Display").addFrameEvent(FrameEvent.newBuilder().setId(1)))
+        .addPhase(Phase.newBuilder().setPhaseName("GPU").addFrameEvent(FrameEvent.newBuilder().setId(2)))
+        .build()
+    val frameEventResult = TraceProcessor.AndroidFrameEventsResult.newBuilder().addLayer(layer).build()
+    val model = TraceProcessorModel.Builder().apply { addAndroidFrameEvents(frameEventResult) }.build()
     assertThat(model.getAndroidFrameLayers()).containsExactly(layer)
   }
 
   @Test
   fun addAndroidFrameTimelineEvents() {
-    val frameTimelineResult = TraceProcessor.AndroidFrameTimelineResult.newBuilder()
-      .addExpectedSlice(TraceProcessor.AndroidFrameTimelineResult.ExpectedSlice.newBuilder()
-                          .setDisplayFrameToken(1)
-                          .setSurfaceFrameToken(101)
-                          .setTimestampNanoseconds(1000)
-                          .setDurationNanoseconds(1000))
-      .addExpectedSlice(TraceProcessor.AndroidFrameTimelineResult.ExpectedSlice.newBuilder()
-                          .setDisplayFrameToken(4)
-                          .setSurfaceFrameToken(104)
-                          .setTimestampNanoseconds(7000)
-                          .setDurationNanoseconds(1000))
-      .addExpectedSlice(TraceProcessor.AndroidFrameTimelineResult.ExpectedSlice.newBuilder()
-                          .setDisplayFrameToken(3)
-                          .setSurfaceFrameToken(103)
-                          .setTimestampNanoseconds(5000)
-                          .setDurationNanoseconds(1000))
-      .addExpectedSlice(TraceProcessor.AndroidFrameTimelineResult.ExpectedSlice.newBuilder()
-                          .setDisplayFrameToken(2)
-                          .setSurfaceFrameToken(102)
-                          .setTimestampNanoseconds(3000)
-                          .setDurationNanoseconds(1000))
-      .addActualSlice(TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
-                        .setDisplayFrameToken(2)
-                        .setSurfaceFrameToken(102)
-                        .setTimestampNanoseconds(3000)
-                        .setDurationNanoseconds(2000)
-                        .setLayerName("foo")
-                        .setPresentType("Late Present")
-                        .setJankType("App Deadline Missed, SurfaceFlinger CPU Deadline Missed")
-                        .setOnTimeFinish(false)
-                        .setGpuComposition(true)
-                        .setLayoutDepth(1))
-      .addActualSlice(TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
-                        .setDisplayFrameToken(3)
-                        .setSurfaceFrameToken(103)
-                        .setTimestampNanoseconds(5000)
-                        .setDurationNanoseconds(1000)
-                        .setLayerName("foo")
-                        .setPresentType("Early Present")
-                        .setJankType("Buffer Stuffing, SurfaceFlinger GPU Deadline Missed")
-                        .setOnTimeFinish(true)
-                        .setGpuComposition(true)
-                        .setLayoutDepth(2))
-      .addActualSlice(TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
-                        .setDisplayFrameToken(4)
-                        .setSurfaceFrameToken(104)
-                        .setTimestampNanoseconds(7000)
-                        .setDurationNanoseconds(3000)
-                        .setLayerName("foo")
-                        .setPresentType("Dropped Frame")
-                        .setJankType("Unknown Jank")
-                        .setOnTimeFinish(true)
-                        .setGpuComposition(false)
-                        .setLayoutDepth(0))
-      .addActualSlice(TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
-                        .setDisplayFrameToken(1)
-                        .setSurfaceFrameToken(101)
-                        .setTimestampNanoseconds(1000)
-                        .setDurationNanoseconds(1000)
-                        .setLayerName("foo")
-                        .setPresentType("On-time Present")
-                        .setJankType("None")
-                        .setOnTimeFinish(true)
-                        .setGpuComposition(true)
-                        .setLayoutDepth(0))
-      .build()
-    val model = TraceProcessorModel.Builder().apply {
-      addAndroidFrameTimelineEvents(frameTimelineResult)
-    }.build()
-    assertThat(model.getAndroidFrameTimelineEvents()).containsExactly(
-      AndroidFrameTimelineEvent(1, 101, 1, 2, 2, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_ON_TIME,
-                                PerfettoTrace.FrameTimelineEvent.JankType.JANK_NONE,
-                                onTimeFinish = true, gpuComposition = true, layoutDepth = 0),
-      AndroidFrameTimelineEvent(2, 102, 3, 4, 5, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
-                                PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
-                                onTimeFinish = false, gpuComposition = true, layoutDepth = 1),
-      AndroidFrameTimelineEvent(3, 103, 5, 6, 6, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_EARLY,
-                                PerfettoTrace.FrameTimelineEvent.JankType.JANK_BUFFER_STUFFING,
-                                onTimeFinish = true, gpuComposition = true, layoutDepth = 2),
-      AndroidFrameTimelineEvent(4, 104, 7, 8, 10, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_DROPPED,
-                                PerfettoTrace.FrameTimelineEvent.JankType.JANK_UNKNOWN,
-                                onTimeFinish = true, gpuComposition = false, layoutDepth = 0),
-    ).inOrder()
+    val frameTimelineResult =
+      TraceProcessor.AndroidFrameTimelineResult.newBuilder()
+        .addExpectedSlice(
+          TraceProcessor.AndroidFrameTimelineResult.ExpectedSlice.newBuilder()
+            .setDisplayFrameToken(1)
+            .setSurfaceFrameToken(101)
+            .setTimestampNanoseconds(1000)
+            .setDurationNanoseconds(1000)
+        )
+        .addExpectedSlice(
+          TraceProcessor.AndroidFrameTimelineResult.ExpectedSlice.newBuilder()
+            .setDisplayFrameToken(4)
+            .setSurfaceFrameToken(104)
+            .setTimestampNanoseconds(7000)
+            .setDurationNanoseconds(1000)
+        )
+        .addExpectedSlice(
+          TraceProcessor.AndroidFrameTimelineResult.ExpectedSlice.newBuilder()
+            .setDisplayFrameToken(3)
+            .setSurfaceFrameToken(103)
+            .setTimestampNanoseconds(5000)
+            .setDurationNanoseconds(1000)
+        )
+        .addExpectedSlice(
+          TraceProcessor.AndroidFrameTimelineResult.ExpectedSlice.newBuilder()
+            .setDisplayFrameToken(2)
+            .setSurfaceFrameToken(102)
+            .setTimestampNanoseconds(3000)
+            .setDurationNanoseconds(1000)
+        )
+        .addActualSlice(
+          TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
+            .setDisplayFrameToken(2)
+            .setSurfaceFrameToken(102)
+            .setTimestampNanoseconds(3000)
+            .setDurationNanoseconds(2000)
+            .setLayerName("foo")
+            .setPresentType("Late Present")
+            .setJankType("App Deadline Missed, SurfaceFlinger CPU Deadline Missed")
+            .setOnTimeFinish(false)
+            .setGpuComposition(true)
+            .setLayoutDepth(1)
+        )
+        .addActualSlice(
+          TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
+            .setDisplayFrameToken(3)
+            .setSurfaceFrameToken(103)
+            .setTimestampNanoseconds(5000)
+            .setDurationNanoseconds(1000)
+            .setLayerName("foo")
+            .setPresentType("Early Present")
+            .setJankType("Buffer Stuffing, SurfaceFlinger GPU Deadline Missed")
+            .setOnTimeFinish(true)
+            .setGpuComposition(true)
+            .setLayoutDepth(2)
+        )
+        .addActualSlice(
+          TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
+            .setDisplayFrameToken(4)
+            .setSurfaceFrameToken(104)
+            .setTimestampNanoseconds(7000)
+            .setDurationNanoseconds(3000)
+            .setLayerName("foo")
+            .setPresentType("Dropped Frame")
+            .setJankType("Unknown Jank")
+            .setOnTimeFinish(true)
+            .setGpuComposition(false)
+            .setLayoutDepth(0)
+        )
+        .addActualSlice(
+          TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
+            .setDisplayFrameToken(1)
+            .setSurfaceFrameToken(101)
+            .setTimestampNanoseconds(1000)
+            .setDurationNanoseconds(1000)
+            .setLayerName("foo")
+            .setPresentType("On-time Present")
+            .setJankType("None")
+            .setOnTimeFinish(true)
+            .setGpuComposition(true)
+            .setLayoutDepth(0)
+        )
+        .build()
+    val model = TraceProcessorModel.Builder().apply { addAndroidFrameTimelineEvents(frameTimelineResult) }.build()
+    assertThat(model.getAndroidFrameTimelineEvents())
+      .containsExactly(
+        AndroidFrameTimelineEvent(
+          1,
+          101,
+          1,
+          2,
+          2,
+          "foo",
+          PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_ON_TIME,
+          PerfettoTrace.FrameTimelineEvent.JankType.JANK_NONE,
+          onTimeFinish = true,
+          gpuComposition = true,
+          layoutDepth = 0,
+        ),
+        AndroidFrameTimelineEvent(
+          2,
+          102,
+          3,
+          4,
+          5,
+          "foo",
+          PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
+          PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
+          onTimeFinish = false,
+          gpuComposition = true,
+          layoutDepth = 1,
+        ),
+        AndroidFrameTimelineEvent(
+          3,
+          103,
+          5,
+          6,
+          6,
+          "foo",
+          PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_EARLY,
+          PerfettoTrace.FrameTimelineEvent.JankType.JANK_BUFFER_STUFFING,
+          onTimeFinish = true,
+          gpuComposition = true,
+          layoutDepth = 2,
+        ),
+        AndroidFrameTimelineEvent(
+          4,
+          104,
+          7,
+          8,
+          10,
+          "foo",
+          PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_DROPPED,
+          PerfettoTrace.FrameTimelineEvent.JankType.JANK_UNKNOWN,
+          onTimeFinish = true,
+          gpuComposition = false,
+          layoutDepth = 0,
+        ),
+      )
+      .inOrder()
   }
 
   @Test
   fun addPowerCounters() {
-    val powerCounters = TraceProcessor.PowerCounterTracksResult.newBuilder()
-      .addCounter(
-        TraceProcessor.Counter.newBuilder()
-          .setName("power.rails.1")
-          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
-          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
-      )
-      .addCounter(
-        TraceProcessor.Counter.newBuilder()
-          .setName("power.rails.2")
-          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
-          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
-      )
-      .addCounter(
-        TraceProcessor.Counter.newBuilder()
-          .setName("batt.1")
-          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
-          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
-      )
-      .addCounter(
-        TraceProcessor.Counter.newBuilder()
-          .setName("batt.2")
-          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
-          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
-      )
-      .build()
+    val powerCounters =
+      TraceProcessor.PowerCounterTracksResult.newBuilder()
+        .addCounter(
+          TraceProcessor.Counter.newBuilder()
+            .setName("power.rails.1")
+            .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
+            .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
+        )
+        .addCounter(
+          TraceProcessor.Counter.newBuilder()
+            .setName("power.rails.2")
+            .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
+            .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
+        )
+        .addCounter(
+          TraceProcessor.Counter.newBuilder()
+            .setName("batt.1")
+            .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
+            .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
+        )
+        .addCounter(
+          TraceProcessor.Counter.newBuilder()
+            .setName("batt.2")
+            .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
+            .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
+        )
+        .build()
 
+    val model = TraceProcessorModel.Builder().apply { addPowerCounters(powerCounters) }.build()
 
-    val model = TraceProcessorModel.Builder().apply {
-      addPowerCounters(powerCounters)
-    }.build()
+    assertThat(model.getPowerRails())
+      .containsExactly(
+        CounterModel("power.rails.1", sortedMapOf(1L to 100.0, 2L to 200.0)),
+        CounterModel("power.rails.2", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      )
 
-    assertThat(model.getPowerRails()).containsExactly(
-      CounterModel("power.rails.1", sortedMapOf(1L to 100.0, 2L to 200.0)),
-      CounterModel("power.rails.2", sortedMapOf(1L to 100.0, 2L to 200.0)))
-
-    assertThat(model.getBatteryDrain()).containsExactly(
-      CounterModel("batt.1", sortedMapOf(1L to 100.0, 2L to 200.0)),
-      CounterModel("batt.2", sortedMapOf(1L to 100.0, 2L to 200.0)))
+    assertThat(model.getBatteryDrain())
+      .containsExactly(
+        CounterModel("batt.1", sortedMapOf(1L to 100.0, 2L to 200.0)),
+        CounterModel("batt.2", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      )
   }
 
   @Test
   fun `grouping layers by phase adjusts depths`() {
-    fun<O,B> constructorOf(builder: () -> B, build: B.() -> O): (B.() -> Unit) -> O = { builder().apply(it).build() }
+    fun <O, B> constructorOf(builder: () -> B, build: B.() -> O): (B.() -> Unit) -> O = { builder().apply(it).build() }
     val layer = constructorOf(Layer::newBuilder, Layer.Builder::build)
     val phase = constructorOf(Phase::newBuilder, Phase.Builder::build)
     val frame = constructorOf(FrameEvent::newBuilder, FrameEvent.Builder::build)
     val displayPhase = phase {
       phaseName = "Display"
-      addFrameEvent(frame { frameNumber = 1; depth = 0 })
-      addFrameEvent(frame { frameNumber = 2; depth = 1 })
+      addFrameEvent(
+        frame {
+          frameNumber = 1
+          depth = 0
+        }
+      )
+      addFrameEvent(
+        frame {
+          frameNumber = 2
+          depth = 1
+        }
+      )
     }
     val layer1 = layer {
-      addPhase(phase {
-        phaseName = "Application"
-        addFrameEvent(frame { frameNumber = 1; depth = 0 })
-        addFrameEvent(frame { frameNumber = 2; depth = 1 })
-      })
+      addPhase(
+        phase {
+          phaseName = "Application"
+          addFrameEvent(
+            frame {
+              frameNumber = 1
+              depth = 0
+            }
+          )
+          addFrameEvent(
+            frame {
+              frameNumber = 2
+              depth = 1
+            }
+          )
+        }
+      )
       addPhase(displayPhase)
     }
     val layer2 = layer {
-      addPhase(phase {
-        phaseName = "Application"
-        addFrameEvent(frame { frameNumber = 3; depth = 0 })
-        addFrameEvent(frame { frameNumber = 4; depth = 1 })
-      })
+      addPhase(
+        phase {
+          phaseName = "Application"
+          addFrameEvent(
+            frame {
+              frameNumber = 3
+              depth = 0
+            }
+          )
+          addFrameEvent(
+            frame {
+              frameNumber = 4
+              depth = 1
+            }
+          )
+        }
+      )
       addPhase(displayPhase)
     }
     val layer3 = layer {
-      addPhase(phase {
-        phaseName = "Application"
-        addFrameEvent(frame { frameNumber = 5; depth = 0 })
-        addFrameEvent(frame { frameNumber = 6; depth = 1 })
-      })
+      addPhase(
+        phase {
+          phaseName = "Application"
+          addFrameEvent(
+            frame {
+              frameNumber = 5
+              depth = 0
+            }
+          )
+          addFrameEvent(
+            frame {
+              frameNumber = 6
+              depth = 1
+            }
+          )
+        }
+      )
       addPhase(displayPhase)
     }
 
-    assertThat(listOf(layer1, layer2, layer3).groupedByPhase()).isEqualTo(listOf(
-      phase {
-        phaseName = "Application"
-        addFrameEvent(frame { frameNumber = 1; depth = 0 })
-        addFrameEvent(frame { frameNumber = 2; depth = 1 })
-        addFrameEvent(frame { frameNumber = 3; depth = 2 })
-        addFrameEvent(frame { frameNumber = 4; depth = 3 })
-        addFrameEvent(frame { frameNumber = 5; depth = 4 })
-        addFrameEvent(frame { frameNumber = 6; depth = 5 })
-      },
-      displayPhase
-    ))
+    assertThat(listOf(layer1, layer2, layer3).groupedByPhase())
+      .isEqualTo(
+        listOf(
+          phase {
+            phaseName = "Application"
+            addFrameEvent(
+              frame {
+                frameNumber = 1
+                depth = 0
+              }
+            )
+            addFrameEvent(
+              frame {
+                frameNumber = 2
+                depth = 1
+              }
+            )
+            addFrameEvent(
+              frame {
+                frameNumber = 3
+                depth = 2
+              }
+            )
+            addFrameEvent(
+              frame {
+                frameNumber = 4
+                depth = 3
+              }
+            )
+            addFrameEvent(
+              frame {
+                frameNumber = 5
+                depth = 4
+              }
+            )
+            addFrameEvent(
+              frame {
+                frameNumber = 6
+                depth = 5
+              }
+            )
+          },
+          displayPhase,
+        )
+      )
   }
 
   @Test
   fun `running state in a target range`() {
     // Each of the input triple list includes thread state, start time in microseconds, and end time in microseconds.
     fun verify(startUs: Long, endUs: Long, scheduling: List<Triple<ThreadState, Long, Long>>, expectedUs: Long) =
-      assertThat(TraceProcessorModel.Builder.getRunningTimeUsInRange(
-        startUs, endUs,
-        scheduling.map {
-          SchedulingEventModel(state = it.first,
-                               startTimestampUs = it.second,
-                               endTimestampUs = it.third,
-                               // The following fields are irrelevant to this test.
-                               durationUs = 0L, cpuTimeUs = 0L, processId = 0, threadId = 0, core = 0)
-        })).isEqualTo(expectedUs)
+      assertThat(
+          TraceProcessorModel.Builder.getRunningTimeUsInRange(
+            startUs,
+            endUs,
+            scheduling.map {
+              SchedulingEventModel(
+                state = it.first,
+                startTimestampUs = it.second,
+                endTimestampUs = it.third,
+                // The following fields are irrelevant to this test.
+                durationUs = 0L,
+                cpuTimeUs = 0L,
+                processId = 0,
+                threadId = 0,
+                core = 0,
+              )
+            },
+          )
+        )
+        .isEqualTo(expectedUs)
 
-    val scheduling = listOf(
-      Triple(ThreadState.RUNNING_CAPTURED, 1L, 5L),
-      Triple(ThreadState.RUNNABLE_CAPTURED, 6L, 9L),
-      Triple(ThreadState.RUNNING, 11L, 15L),
-    )
+    val scheduling =
+      listOf(
+        Triple(ThreadState.RUNNING_CAPTURED, 1L, 5L),
+        Triple(ThreadState.RUNNABLE_CAPTURED, 6L, 9L),
+        Triple(ThreadState.RUNNING, 11L, 15L),
+      )
 
     verify(0, 1, scheduling, 0)
     verify(0, 6, scheduling, 4)
@@ -526,12 +740,24 @@ class TraceProcessorModelTest {
   fun `addSchedulingEvents - negative gap does not create event`() {
     val schedProtoBuilder = TraceProcessor.SchedulingEventsResult.newBuilder().setNumCores(2)
     // Event 1: 1000us to 2000us
-    schedProtoBuilder.addSchedulingEvent(1, 1, 1, 1000000, 1000000,
-                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
+    schedProtoBuilder.addSchedulingEvent(
+      1,
+      1,
+      1,
+      1000000,
+      1000000,
+      TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING,
+    )
     // Event 2: 1500us to 2500us.
     // Starts before Event 1 ends (1500 < 2000), resulting in a negative gap (-500us).
-    schedProtoBuilder.addSchedulingEvent(1, 1, 1, 1500000, 1000000,
-                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
+    schedProtoBuilder.addSchedulingEvent(
+      1,
+      1,
+      1,
+      1500000,
+      1000000,
+      TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING,
+    )
 
     val modelBuilder = TraceProcessorModel.Builder()
     modelBuilder.addSchedulingEvents(schedProtoBuilder.build())
@@ -556,13 +782,17 @@ class TraceProcessorModelTest {
     assertThat(cpu.schedulingEvents[1].startTimestampUs).isEqualTo(1500)
   }
 
-  private fun TraceProcessor.ProcessMetadataResult.Builder.addProcess(id: Long, name: String)
-    : TraceProcessor.ProcessMetadataResult.ProcessMetadata.Builder {
+  private fun TraceProcessor.ProcessMetadataResult.Builder.addProcess(
+    id: Long,
+    name: String,
+  ): TraceProcessor.ProcessMetadataResult.ProcessMetadata.Builder {
     return this.addProcessBuilder().setId(id).setName(name)
   }
 
-  private fun TraceProcessor.ProcessMetadataResult.ProcessMetadata.Builder.addThread(id: Long, name: String)
-    : TraceProcessor.ProcessMetadataResult.ProcessMetadata.Builder {
+  private fun TraceProcessor.ProcessMetadataResult.ProcessMetadata.Builder.addThread(
+    id: Long,
+    name: String,
+  ): TraceProcessor.ProcessMetadataResult.ProcessMetadata.Builder {
     return this.addThread(TraceProcessor.ProcessMetadataResult.ThreadMetadata.newBuilder().setId(id).setName(name))
   }
 
@@ -570,9 +800,14 @@ class TraceProcessorModelTest {
     return this.addThreadBuilder().setThreadId(id)
   }
 
-  private fun TraceProcessor.TraceEventsResult.ThreadTraceEvents.Builder.addEvent(id: Long, tsNs: Long, durNs: Long, name: String,
-                                                                                  parentId: Long = 0, depth: Int = 0)
-    : TraceProcessor.TraceEventsResult.ThreadTraceEvents.Builder {
+  private fun TraceProcessor.TraceEventsResult.ThreadTraceEvents.Builder.addEvent(
+    id: Long,
+    tsNs: Long,
+    durNs: Long,
+    name: String,
+    parentId: Long = 0,
+    depth: Int = 0,
+  ): TraceProcessor.TraceEventsResult.ThreadTraceEvents.Builder {
     this.addTraceEventBuilder()
       .setId(id)
       .setTimestampNanoseconds(tsNs)
@@ -584,8 +819,13 @@ class TraceProcessorModelTest {
   }
 
   private fun TraceProcessor.SchedulingEventsResult.Builder.addSchedulingEvent(
-    processId: Long, threadId: Long, cpu: Int, tsNs: Long, durNs: Long,
-    endState: TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState) {
+    processId: Long,
+    threadId: Long,
+    cpu: Int,
+    tsNs: Long,
+    durNs: Long,
+    endState: TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState,
+  ) {
     this.addSchedEventBuilder()
       .setProcessId(processId)
       .setThreadId(threadId)
@@ -594,5 +834,4 @@ class TraceProcessorModelTest {
       .setDurationNanoseconds(durNs)
       .setEndState(endState)
   }
-
 }

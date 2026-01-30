@@ -27,6 +27,6 @@ internal fun interface ResourceEntryProcessor {
     resType: ResourceType,
     folderConfig: FolderConfiguration,
     resId: Int,
-    typeChunkEntry: TypeChunk.Entry
+    typeChunkEntry: TypeChunk.Entry,
   )
 }

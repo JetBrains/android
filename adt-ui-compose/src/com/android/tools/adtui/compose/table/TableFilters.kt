@@ -36,17 +36,14 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.items
 
 /**
- * An attribute of a table row that can be extracted and used for filtering; it may or may not be
- * represented in a column. [V] must have a toString() method that is suitable for display.
+ * An attribute of a table row that can be extracted and used for filtering; it may or may not be represented in a column. [V] must have a
+ * toString() method that is suitable for display.
  */
 class RowAttribute<T, V>(val name: String, val comparator: Comparator<in V>, val value: (T) -> V)
 
-fun <T, V> RowAttribute<T, V>.uniqueValuesOf(ts: Iterable<T>): List<V> =
-  ts.mapTo(TreeSet(comparator)) { value(it) }.toList()
+fun <T, V> RowAttribute<T, V>.uniqueValuesOf(ts: Iterable<T>): List<V> = ts.mapTo(TreeSet(comparator)) { value(it) }.toList()
 
-/**
- * A Composable that puts a list of checkboxes in a HideablePanel and tracks their selection state.
- */
+/** A Composable that puts a list of checkboxes in a HideablePanel and tracks their selection state. */
 @Composable
 fun <V> SetFilter(
   header: String,
@@ -59,9 +56,7 @@ fun <V> SetFilter(
     HideablePanel(header, modifier.padding(6.dp)) {
       Column {
         for (item in values) {
-          CheckboxRow(selection[item] != false, onCheckedChange = { selection[item] = it }) {
-            renderer(item)
-          }
+          CheckboxRow(selection[item] != false, onCheckedChange = { selection[item] = it }) { renderer(item) }
         }
       }
     }
@@ -73,9 +68,7 @@ fun <V> SetFilter(
   values: List<V>,
   state: SetFilterState<*, V>,
   modifier: Modifier = Modifier,
-  renderer: @Composable (V) -> Unit = {
-    Text(it.toString(), maxLines = 1, overflow = TextOverflow.Ellipsis)
-  },
+  renderer: @Composable (V) -> Unit = { Text(it.toString(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
 ) {
   SetFilter(state.attribute.name, values, state.selection, modifier, renderer)
 }
@@ -85,8 +78,7 @@ interface RowFilter<in T> {
 }
 
 /** The UI state for a single set-based attribute filter. */
-class SetFilterState<T, V>(val attribute: RowAttribute<T, V>, val defaultValue: Boolean = true) :
-  RowFilter<T> {
+class SetFilterState<T, V>(val attribute: RowAttribute<T, V>, val defaultValue: Boolean = true) : RowFilter<T> {
   val selection = SnapshotStateMap<V, Boolean>()
 
   override fun apply(row: T) = selection[attribute.value(row)] ?: defaultValue
@@ -101,11 +93,7 @@ fun <T, V> SingleSelectionDropdown(values: List<V>, state: SingleSelectionFilter
     Dropdown(
       modifier = Modifier.padding(2.dp),
       menuContent = {
-        items(
-          values,
-          isSelected = { state.selection == it },
-          onItemClick = { state.selection = it },
-        ) {
+        items(values, isSelected = { state.selection == it }, onItemClick = { state.selection = it }) {
           Text(it.toString(), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
       },
@@ -129,16 +117,12 @@ fun <T, V> SingleSelectionRadioButtons(values: List<V>, state: SingleSelectionFi
   }
 }
 
-/**
- * The UI state for an attribute filter that selects one value from the values present on the rows.
- */
-class SingleSelectionFilterState<T, V>(val attribute: RowAttribute<T, V>, selection: V) :
-  RowFilter<T> {
+/** The UI state for an attribute filter that selects one value from the values present on the rows. */
+class SingleSelectionFilterState<T, V>(val attribute: RowAttribute<T, V>, selection: V) : RowFilter<T> {
   var selection by mutableStateOf(selection)
 
   override fun apply(row: T): Boolean = selection == attribute.value(row)
 }
 
 /** Produces a SingleSelectionFilterState with the given initial selection. */
-fun <T, V> RowAttribute<T, V>.initialSingleSelectionFilterState(initialSelection: V) =
-  SingleSelectionFilterState(this, initialSelection)
+fun <T, V> RowAttribute<T, V>.initialSingleSelectionFilterState(initialSelection: V) = SingleSelectionFilterState(this, initialSelection)

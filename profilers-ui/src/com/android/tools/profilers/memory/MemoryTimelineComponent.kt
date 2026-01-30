@@ -24,55 +24,57 @@ import com.android.tools.profilers.ProfilerColors
 import java.awt.Color
 import javax.swing.JComponent
 
-class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: JComponent)
-  : BaseMemoryTimelineComponent<MainMemoryProfilerStage>(stageView, timeAxis) {
+class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: JComponent) :
+  BaseMemoryTimelineComponent<MainMemoryProfilerStage>(stageView, timeAxis) {
   val gcDurationDataRenderer = makeGcDurationDataRenderer()
   private val heapDumpRenderer = makeHeapDumpRenderer()
 
   init {
     // Add all renderers. Order matters.
     listOfNotNull<AbstractDurationDataRenderer>(
-      gcDurationDataRenderer,
-      // Only shows allocation tracking visuals in pre-O, since we are always tracking in O+.
-      when {
-        stage.isLiveAllocationTrackingReady -> makePastAllocationRenderer()
-        else -> makeLegacyAllocationRenderer()
-      },
-      // Order matters so native allocation tracking goes to the top of the stack. This means when a native allocation recording is captured
-      // the capture appears on top of the other renderers.
-      if (stage.isNativeAllocationSamplingEnabled) makeNativeAllocationRenderer() else null,
-      heapDumpRenderer
-    ).forEach(::registerRenderer)
+        gcDurationDataRenderer,
+        // Only shows allocation tracking visuals in pre-O, since we are always tracking in O+.
+        when {
+          stage.isLiveAllocationTrackingReady -> makePastAllocationRenderer()
+          else -> makeLegacyAllocationRenderer()
+        },
+        // Order matters so native allocation tracking goes to the top of the stack. This means when a native allocation recording is
+        // captured
+        // the capture appears on top of the other renderers.
+        if (stage.isNativeAllocationSamplingEnabled) makeNativeAllocationRenderer() else null,
+        heapDumpRenderer,
+      )
+      .forEach(::registerRenderer)
   }
 
   override fun shouldShowTooltip() = !heapDumpRenderer.isMouseOverHeapDump
 
-  private fun makeHeapDumpRenderer() = HeapDumpRenderer(stage.heapDumpSampleDurations, stage.timeline.viewRange).apply {
-    addHeapDumpHoverListener { hovered ->
-      when {
-        hovered -> stage.tooltip = null
-        stage.tooltip == null -> stage.tooltip = MemoryUsageTooltip(stage)
+  private fun makeHeapDumpRenderer() =
+    HeapDumpRenderer(stage.heapDumpSampleDurations, stage.timeline.viewRange).apply {
+      addHeapDumpHoverListener { hovered ->
+        when {
+          hovered -> stage.tooltip = null
+          stage.tooltip == null -> stage.tooltip = MemoryUsageTooltip(stage)
+        }
       }
+      rangeSelectionComponent.setRangeOcclusionTest(::isMouseOverHeapDump)
     }
-    rangeSelectionComponent.setRangeOcclusionTest(::isMouseOverHeapDump)
-  }
 
-  private fun makeNativeAllocationRenderer() =
-    makeAllocationRenderer(stage.nativeAllocationInfosDurations, "Native Allocation").grayOut()
+  private fun makeNativeAllocationRenderer() = makeAllocationRenderer(stage.nativeAllocationInfosDurations, "Native Allocation").grayOut()
 
-  private fun makeLegacyAllocationRenderer() = makeAllocationRenderer(stage.allocationInfosDurations, "Allocation").apply {
-    fun add(series: RangedContinuousSeries, color: Color) =
-      addCustomLineConfig(series, LineConfig.copyOf(lineChart.getLineConfig(series)).setColor(color))
-    add(stage.detailedMemoryUsage.javaSeries, ProfilerColors.MEMORY_JAVA_CAPTURED)
-    add(stage.detailedMemoryUsage.nativeSeries, ProfilerColors.MEMORY_NATIVE_CAPTURED)
-    add(stage.detailedMemoryUsage.graphicsSeries, ProfilerColors.MEMORY_GRAPHICS_CAPTURED)
-    add(stage.detailedMemoryUsage.stackSeries, ProfilerColors.MEMORY_STACK_CAPTURED)
-    add(stage.detailedMemoryUsage.codeSeries, ProfilerColors.MEMORY_CODE_CAPTURED)
-    add(stage.detailedMemoryUsage.otherSeries, ProfilerColors.MEMORY_OTHERS_CAPTURED)
-  }
+  private fun makeLegacyAllocationRenderer() =
+    makeAllocationRenderer(stage.allocationInfosDurations, "Allocation").apply {
+      fun add(series: RangedContinuousSeries, color: Color) =
+        addCustomLineConfig(series, LineConfig.copyOf(lineChart.getLineConfig(series)).setColor(color))
+      add(stage.detailedMemoryUsage.javaSeries, ProfilerColors.MEMORY_JAVA_CAPTURED)
+      add(stage.detailedMemoryUsage.nativeSeries, ProfilerColors.MEMORY_NATIVE_CAPTURED)
+      add(stage.detailedMemoryUsage.graphicsSeries, ProfilerColors.MEMORY_GRAPHICS_CAPTURED)
+      add(stage.detailedMemoryUsage.stackSeries, ProfilerColors.MEMORY_STACK_CAPTURED)
+      add(stage.detailedMemoryUsage.codeSeries, ProfilerColors.MEMORY_CODE_CAPTURED)
+      add(stage.detailedMemoryUsage.otherSeries, ProfilerColors.MEMORY_OTHERS_CAPTURED)
+    }
 
-  private fun makePastAllocationRenderer() =
-    makeAllocationRenderer(stage.allocationInfosDurations, "Allocation").grayOut()
+  private fun makePastAllocationRenderer() = makeAllocationRenderer(stage.allocationInfosDurations, "Allocation").grayOut()
 
   private fun DurationDataRenderer<*>.grayOut() = apply {
     for (series in stage.detailedMemoryUsage.series.filterNot { it.name == "Allocated" }) {

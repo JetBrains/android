@@ -22,32 +22,28 @@ import com.android.ide.common.resources.ResourceRepository
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 
-/**
- * Studio independent version of [StudioResourceRepositoryManager]
- */
+/** Studio independent version of [StudioResourceRepositoryManager] */
 interface ResourceRepositoryManager {
   /**
-   * Returns the repository with all non-framework resources available to a given module (in the current variant).
-   * This includes not just the resources defined in this module, but in any other modules that this module depends
-   * on, as well as any libraries those modules may depend on (e.g. appcompat). This repository also contains sample
-   * data resources associated with the [ResourceNamespace.TOOLS] namespace.
+   * Returns the repository with all non-framework resources available to a given module (in the current variant). This includes not just
+   * the resources defined in this module, but in any other modules that this module depends on, as well as any libraries those modules may
+   * depend on (e.g. appcompat). This repository also contains sample data resources associated with the [ResourceNamespace.TOOLS]
+   * namespace.
    *
-   * <p>When a layout is rendered in the layout editor, it is getting resources from the app resource repository:
-   * it should see all the resources just like the app does.
+   * <p>When a layout is rendered in the layout editor, it is getting resources from the app resource repository: it should see all the
+   * resources just like the app does.
    *
    * @return the computed repository
    */
-  @get:Slow
-  val appResources: CacheableResourceRepository
+  @get:Slow val appResources: CacheableResourceRepository
 
   /**
-   * Returns the resource repository for a module along with all its (local) module dependencies.
-   * The repository doesn't contain resources from AAR dependencies.
+   * Returns the resource repository for a module along with all its (local) module dependencies. The repository doesn't contain resources
+   * from AAR dependencies.
    *
    * @return the computed repository
    */
-  @get:Slow
-  val projectResources: ResourceRepository
+  @get:Slow val projectResources: ResourceRepository
 
   /**
    * Returns the [ResourceNamespace] used by the current module.
@@ -64,28 +60,27 @@ interface ResourceRepositoryManager {
   val languagesInProject: ImmutableSet<String>
 
   /**
-   * Returns the resource repository for a single module (which can possibly have multiple resource folders).
-   * Does not include resources from any dependencies.
+   * Returns the resource repository for a single module (which can possibly have multiple resource folders). Does not include resources
+   * from any dependencies.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
-   * or block waiting for a read action lock.
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
+   * action lock.
    *
    * @return the computed repository
    */
   val moduleResources: ResourceRepository
+
   /**
    * Returns the resource repository with framework resources
    *
    * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time.
    *
-   * @param languages the set of ISO 639 language codes determining the subset of resources to load.
-   *     May be empty to load only the language-neutral resources. The returned repository may contain resources
-   *     for more languages than was requested.
+   * @param languages the set of ISO 639 language codes determining the subset of resources to load. May be empty to load only the
+   *   language-neutral resources. The returned repository may contain resources for more languages than was requested.
    * @param overlays a list of overlays to add to the base framework resources
    * @return the framework repository, or null if the SDK resources directory cannot be determined for the module
    */
-  @Slow
-  fun getFrameworkResources(languages: Set<String>, overlays: List<FrameworkOverlay>): ResourceRepository?
+  @Slow fun getFrameworkResources(languages: Set<String>, overlays: List<FrameworkOverlay>): ResourceRepository?
 
   @Slow
   fun getFrameworkResources(languages: Set<String>): ResourceRepository? {
@@ -93,16 +88,13 @@ interface ResourceRepositoryManager {
   }
 
   /**
-   * If namespacing is disabled, the namespace parameter is ignored and the method returns a list containing
-   * the single resource repository returned by [.getAppResources]. Otherwise the method returns
-   * a list of module, library, or sample data resource repositories for the given namespace. Usually the returned
-   * list will contain at most two resource repositories, one for a module and another for its user-defined sample
-   * data. More repositories may be returned only when there is a package name collision between modules or
-   * libraries.
+   * If namespacing is disabled, the namespace parameter is ignored and the method returns a list containing the single resource repository
+   * returned by [.getAppResources]. Otherwise the method returns a list of module, library, or sample data resource repositories for the
+   * given namespace. Usually the returned list will contain at most two resource repositories, one for a module and another for its
+   * user-defined sample data. More repositories may be returned only when there is a package name collision between modules or libraries.
    *
-   *
-   * **Note:** This method should not be called on the event dispatch thread since it may take long time,
-   * or block waiting for a read action lock.
+   * **Note:** This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read action
+   * lock.
    *
    * @param namespace the namespace to return resource repositories for
    * @return the repositories for the given namespace
@@ -112,7 +104,6 @@ interface ResourceRepositoryManager {
     val appRepository = appResources as MultiResourceRepository<*>
     return if (namespacing === ResourceNamespacing.DISABLED) {
       listOf(appRepository)
-    }
-    else ImmutableList.copyOf<ResourceRepository>(appRepository.getRepositoriesForNamespace(namespace))
+    } else ImmutableList.copyOf<ResourceRepository>(appRepository.getRepositoriesForNamespace(namespace))
   }
 }

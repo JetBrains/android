@@ -31,7 +31,7 @@ import com.android.tools.profilers.taskbased.common.text.EllipsisText
 
 @Composable
 fun DropdownOptionText(modifier: Modifier = Modifier, primaryText: String, secondaryText: String? = null, isEnabled: Boolean) {
-  Row (modifier = modifier.padding(horizontal = TaskBasedUxDimensions.DROPDOWN_HORIZONTAL_PADDING_DP)) {
+  Row(modifier = modifier.padding(horizontal = TaskBasedUxDimensions.DROPDOWN_HORIZONTAL_PADDING_DP)) {
     DropdownOptionText(text = primaryText)
     secondaryText?.let {
       Spacer(modifier = Modifier.width(5.dp))
@@ -39,7 +39,6 @@ fun DropdownOptionText(modifier: Modifier = Modifier, primaryText: String, secon
     }
   }
 }
-
 
 @Composable
 private fun DropdownOptionText(text: String, color: Color = Color.Unspecified) {

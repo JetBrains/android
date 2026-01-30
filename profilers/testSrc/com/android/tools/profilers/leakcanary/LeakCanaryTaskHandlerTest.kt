@@ -37,22 +37,20 @@ import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase.assertNull
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
-class LeakCanaryTaskHandlerTest: WithFakeTimer {
+class LeakCanaryTaskHandlerTest : WithFakeTimer {
 
   override val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
-  @Rule
-  @JvmField
-  val grpcChannel = FakeGrpcChannel("LeakCanaryTaskHandlerTestChannel", transportService)
+  @Rule @JvmField val grpcChannel = FakeGrpcChannel("LeakCanaryTaskHandlerTestChannel", transportService)
   private lateinit var profilers: StudioProfilers
   private lateinit var ideProfilerServices: FakeIdeProfilerServices
   private lateinit var leakCanaryTaskHandler: LeakCanaryTaskHandler
@@ -61,13 +59,14 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
-    val mockSession = Common.Session.newBuilder()
-      .setStartTimestamp(System.currentTimeMillis())
-      .setPid(FakeTransportService.FAKE_PROCESS.pid)
-      .setSessionId(FakeTransportService.FAKE_PROCESS.pid.toLong())
-      .setStreamId(FakeTransportService.FAKE_DEVICE_ID)
-      .setEndTimestamp(System.currentTimeMillis() + 10000000)
-      .build()
+    val mockSession =
+      Common.Session.newBuilder()
+        .setStartTimestamp(System.currentTimeMillis())
+        .setPid(FakeTransportService.FAKE_PROCESS.pid)
+        .setSessionId(FakeTransportService.FAKE_PROCESS.pid.toLong())
+        .setStreamId(FakeTransportService.FAKE_DEVICE_ID)
+        .setEndTimestamp(System.currentTimeMillis() + 10000000)
+        .build()
     val mockSessionMetadata = Common.SessionMetaData.newBuilder().setType(Common.SessionMetaData.SessionType.FULL).build()
     val sessionItem = SessionItem(profilers, mockSession, mockSessionMetadata)
     leakCanaryTaskHandler = LeakCanaryTaskHandler(profilers.sessionsManager)
@@ -91,17 +90,23 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   @Test
   fun `startCapture and stopCapture - starting LeakCanary and fetching events till stop`() {
     val startTime = System.currentTimeMillis()
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK,
-                                      FakeLeakCanaryCommandHandler(timer, profilers, listOf(
-                                        "SingleApplicationLeak.txt",
-                                        "SingleApplicationLeakAnalyzeCmd.txt",
-                                        "MultiApplicationLeak.txt",
-                                        "NoLeak.txt"
-                                      ), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.START_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(
+        timer,
+        profilers,
+        listOf("SingleApplicationLeak.txt", "SingleApplicationLeakAnalyzeCmd.txt", "MultiApplicationLeak.txt", "NoLeak.txt"),
+        startTime,
+      ),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
     leakCanaryTaskHandler.startTask(LeakCanaryTaskArgs(false, null))
@@ -113,8 +118,12 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
     // After stage exit we get all events
     assertEquals(4, stage.leaks.value.size) // 4 events are sent
 
-    val infoEvents = LeakCanaryModel.getLeakCanaryAnalysisInfo(profilers.client, profilers.session, Range(Long.MIN_VALUE.toDouble(),
-                                                                                                    Long.MAX_VALUE.toDouble()))
+    val infoEvents =
+      LeakCanaryModel.getLeakCanaryAnalysisInfo(
+        profilers.client,
+        profilers.session,
+        Range(Long.MIN_VALUE.toDouble(), Long.MAX_VALUE.toDouble()),
+      )
     assertEquals(1, infoEvents.size)
     assertEquals(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS, infoEvents[0].kind)
   }
@@ -122,17 +131,23 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   @Test
   fun `startCapture, stopCapture and load test - send events stop and reload the recording`() {
     val startTime = System.currentTimeMillis()
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(
-                                         "SingleApplicationLeak.txt",
-                                         "SingleApplicationLeakAnalyzeCmd.txt",
-                                         "MultiApplicationLeak.txt",
-                                         "NoLeak.txt"
-                                       ), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.START_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(
+        timer,
+        profilers,
+        listOf("SingleApplicationLeak.txt", "SingleApplicationLeakAnalyzeCmd.txt", "MultiApplicationLeak.txt", "NoLeak.txt"),
+        startTime,
+      ),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
     leakCanaryTaskHandler.startTask(LeakCanaryTaskArgs(false, null))
@@ -142,9 +157,12 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
     assertEquals(4, stage.leaks.value.size) // 4 events are sent
 
     // Verify one info event is there
-    val infoEvents = LeakCanaryModel.getLeakCanaryAnalysisInfo(profilers.client, profilers.session,
-                                                             Range(profilers.session.startTimestamp.toDouble(),
-                                                             profilers.session.endTimestamp.toDouble()))
+    val infoEvents =
+      LeakCanaryModel.getLeakCanaryAnalysisInfo(
+        profilers.client,
+        profilers.session,
+        Range(profilers.session.startTimestamp.toDouble(), profilers.session.endTimestamp.toDouble()),
+      )
 
     assertEquals(1, infoEvents.size)
     assertEquals(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS, infoEvents[0].kind)
@@ -156,8 +174,7 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
       LeakCanarySessionArtifact.getSessionArtifacts(profilers, profilers.session, Common.SessionMetaData.getDefaultInstance())
 
     assertEquals(1, leakCanarySessionArtifact.size)
-    val result = leakCanaryTaskHandler
-      .loadTask(LeakCanaryTaskArgs(false, leakCanarySessionArtifact[0] as LeakCanarySessionArtifact))
+    val result = leakCanaryTaskHandler.loadTask(LeakCanaryTaskArgs(false, leakCanarySessionArtifact[0] as LeakCanarySessionArtifact))
 
     assertTrue(result)
     assertEquals(4, stage.leaks.value.size) // 4 leaks after load
@@ -171,20 +188,32 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
     val debuggableProcess = TaskHandlerTestUtils.createProcess(isProfileable = false)
 
     assertNotNull(leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess))
-    assertEquals(leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess)!!.startTaskSelectionErrorCode,
-                 StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
+    assertEquals(
+      leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess)!!.startTaskSelectionErrorCode,
+      StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS,
+    )
     assertNull(leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, debuggableProcess))
   }
 
   @Test
   fun `testArgs - session ended`() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to SessionArtifactUtils.createSessionItem(profilers, selectedSession, 1,
-                                                   listOf(SessionArtifactUtils.createLeakCanarySessionArtifact(profilers, selectedSession,
-                                                                                                               LeakCanary
-                                                                                                                 .LeakCanaryAnalysisStatus
-                                                                                                                 .getDefaultInstance()))))
+    val sessionIdToSessionItems =
+      mapOf(
+        1L to
+          SessionArtifactUtils.createSessionItem(
+            profilers,
+            selectedSession,
+            1,
+            listOf(
+              SessionArtifactUtils.createLeakCanarySessionArtifact(
+                profilers,
+                selectedSession,
+                LeakCanary.LeakCanaryAnalysisStatus.getDefaultInstance(),
+              )
+            ),
+          )
+      )
     val leakCanaryTaskHandlerTaskArgs = leakCanaryTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     Truth.assertThat(leakCanaryTaskHandlerTaskArgs).isNotNull()
     Truth.assertThat(leakCanaryTaskHandlerTaskArgs).isInstanceOf(LeakCanaryTaskArgs::class.java)
@@ -195,12 +224,22 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   @Test
   fun `testArgs - session ongoing`() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(Long.MAX_VALUE).build()
-    val sessionIdToSessionItems = mapOf(
-      1L to SessionArtifactUtils.createSessionItem(profilers, selectedSession, 1,
-                                                   listOf(SessionArtifactUtils.createLeakCanarySessionArtifact(profilers, selectedSession,
-                                                                                                               LeakCanary
-                                                                                                                 .LeakCanaryAnalysisStatus
-                                                                                                                 .getDefaultInstance()))))
+    val sessionIdToSessionItems =
+      mapOf(
+        1L to
+          SessionArtifactUtils.createSessionItem(
+            profilers,
+            selectedSession,
+            1,
+            listOf(
+              SessionArtifactUtils.createLeakCanarySessionArtifact(
+                profilers,
+                selectedSession,
+                LeakCanary.LeakCanaryAnalysisStatus.getDefaultInstance(),
+              )
+            ),
+          )
+      )
     val leakCanaryTaskHandlerTaskArgs = leakCanaryTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     Truth.assertThat(leakCanaryTaskHandlerTaskArgs).isNotNull()
     Truth.assertThat(leakCanaryTaskHandlerTaskArgs).isInstanceOf(LeakCanaryTaskArgs::class.java)
@@ -211,15 +250,16 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
 
   @Test
   fun `testTaskName`() {
-    assertEquals("LeakCanary",leakCanaryTaskHandler.getTaskName())
+    assertEquals("LeakCanary", leakCanaryTaskHandler.getTaskName())
   }
 
   @Test(expected = Throwable::class)
   fun `loadTaskTest - Not LeakCanaryArgs type`() {
-    val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(Long.MAX_VALUE-10).build()
-    val result = leakCanaryTaskHandler
-      .loadTask(CpuTaskArgs(false,
-                            SessionArtifactUtils.createCpuCaptureSessionArtifact(profilers, selectedSession, 1, 10)))
+    val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(Long.MAX_VALUE - 10).build()
+    val result =
+      leakCanaryTaskHandler.loadTask(
+        CpuTaskArgs(false, SessionArtifactUtils.createCpuCaptureSessionArtifact(profilers, selectedSession, 1, 10))
+      )
     assertFalse(result)
   }
 
@@ -231,34 +271,52 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
 
   @Test
   fun `loadTaskTest - LeakCanaryArgs type`() {
-    val result = leakCanaryTaskHandler
-      .loadTask(LeakCanaryTaskArgs(false,  SessionArtifactUtils.createLeakCanarySessionArtifact(profilers, profilers.session,
-                                                                                                LeakCanary.LeakCanaryAnalysisStatus
-                                                                                                  .getDefaultInstance())))
+    val result =
+      leakCanaryTaskHandler.loadTask(
+        LeakCanaryTaskArgs(
+          false,
+          SessionArtifactUtils.createLeakCanarySessionArtifact(
+            profilers,
+            profilers.session,
+            LeakCanary.LeakCanaryAnalysisStatus.getDefaultInstance(),
+          ),
+        )
+      )
     assertTrue(result)
   }
 
   @Test
   fun `verify LeakCanary detects destroyed Activity instances leak`() {
     val startTime = System.currentTimeMillis()
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf("ActivityLeak.txt"), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.START_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf("ActivityLeak.txt"), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
 
-    stage.startListening() //Start LeakCanary, send logcat message, and wait
+    stage.startListening() // Start LeakCanary, send logcat message, and wait
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for listener to receive events
     assertThat(stage.leaks.value).isNotEmpty() // Check if at least one leak is detected
     assertThat(stage.leaks.value.size).isEqualTo(1) // Check whether 1 leak detected as per log file
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0])).isEqualTo("GlobalLeakingObject.leakedActivity5") // Check if leak report contains the activity class name.
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0]))
+      .isEqualTo("GlobalLeakingObject.leakedActivity5") // Check if leak report contains the activity class name.
     stage.stopListening()
 
-    val infoEvents = LeakCanaryModel.getLeakCanaryAnalysisInfo(profilers.client, profilers.session,
-                                                             Range(Long.MIN_VALUE.toDouble(), Long.MAX_VALUE.toDouble()))
+    val infoEvents =
+      LeakCanaryModel.getLeakCanaryAnalysisInfo(
+        profilers.client,
+        profilers.session,
+        Range(Long.MIN_VALUE.toDouble(), Long.MAX_VALUE.toDouble()),
+      )
     assertThat(infoEvents.size).isEqualTo(1)
     assertThat(infoEvents[0].kind).isEqualTo(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS)
   }
@@ -266,28 +324,39 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   @Test
   fun `verify LeakCanary detects destroyed Fragment instances leak`() {
     val startTime = System.currentTimeMillis()
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf("FragmentLeak.txt"), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.START_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf("FragmentLeak.txt"), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
 
-    stage.startListening() //Start LeakCanary, send logcat message, and wait
+    stage.startListening() // Start LeakCanary, send logcat message, and wait
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for listener to receive events
     assertThat(stage.leaks.value).isNotEmpty() // Check if at least one leak is detected
     assertThat(stage.leaks.value.size).isEqualTo(5) // Check whether 5 leaks detected as per log file
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0])).isEqualTo("GlobalLeakingObject.leakedFragment1") // Check if leak report contains the fragment class name.
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0]))
+      .isEqualTo("GlobalLeakingObject.leakedFragment1") // Check if leak report contains the fragment class name.
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[1])).isEqualTo("GlobalLeakingObject.leakedFragment2")
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[2])).isEqualTo("GlobalLeakingObject.leakedFragment3")
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[3])).isEqualTo("GlobalLeakingObject.leakedFragment4")
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[4])).isEqualTo("GlobalLeakingObject.leakedFragment5")
     stage.stopListening()
 
-    val infoEvents = LeakCanaryModel.getLeakCanaryAnalysisInfo(profilers.client, profilers.session,
-                                                             Range(Long.MIN_VALUE.toDouble(), Long.MAX_VALUE.toDouble()))
+    val infoEvents =
+      LeakCanaryModel.getLeakCanaryAnalysisInfo(
+        profilers.client,
+        profilers.session,
+        Range(Long.MIN_VALUE.toDouble(), Long.MAX_VALUE.toDouble()),
+      )
     assertThat(infoEvents.size).isEqualTo(1)
     assertThat(infoEvents[0].kind).isEqualTo(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS)
   }
@@ -295,28 +364,39 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   @Test
   fun `verify LeakCanary detects destroyed fragment View instances leak`() {
     val startTime = System.currentTimeMillis()
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf("FragmentViewLeak.txt"), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.START_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf("FragmentViewLeak.txt"), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
 
-    stage.startListening() //Start LeakCanary, send logcat message, and wait
+    stage.startListening() // Start LeakCanary, send logcat message, and wait
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for listener to receive events
     assertThat(stage.leaks.value).isNotEmpty() // Check if at least one leak is detected
     assertThat(stage.leaks.value.size).isEqualTo(5) // Check whether 5 leaks detected as per log file
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0])).isEqualTo("GlobalLeakingObject.leakedFragmentView1") // Check if leak report contains the view class name.
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0]))
+      .isEqualTo("GlobalLeakingObject.leakedFragmentView1") // Check if leak report contains the view class name.
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[1])).isEqualTo("GlobalLeakingObject.leakedFragmentView2")
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[2])).isEqualTo("GlobalLeakingObject.leakedFragmentView3")
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[3])).isEqualTo("GlobalLeakingObject.leakedFragmentView4")
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[4])).isEqualTo("GlobalLeakingObject.leakedFragmentView5")
     stage.stopListening()
 
-    val infoEvents = LeakCanaryModel.getLeakCanaryAnalysisInfo(profilers.client, profilers.session,
-                                                             Range(Long.MIN_VALUE.toDouble(), Long.MAX_VALUE.toDouble()))
+    val infoEvents =
+      LeakCanaryModel.getLeakCanaryAnalysisInfo(
+        profilers.client,
+        profilers.session,
+        Range(Long.MIN_VALUE.toDouble(), Long.MAX_VALUE.toDouble()),
+      )
     assertThat(infoEvents.size).isEqualTo(1)
     assertThat(infoEvents[0].kind).isEqualTo(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS)
   }
@@ -324,28 +404,39 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   @Test
   fun `verify LeakCanary detects cleared ViewModel instances leak`() {
     val startTime = System.currentTimeMillis()
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf("ViewModelLeak.txt"), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.START_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf("ViewModelLeak.txt"), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
 
-    stage.startListening() //Start LeakCanary, send logcat message, and wait
+    stage.startListening() // Start LeakCanary, send logcat message, and wait
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for listener to receive events
     assertThat(stage.leaks.value).isNotEmpty() // Check if at least one leak is detected
     assertThat(stage.leaks.value.size).isEqualTo(5) // Check whether 5 leaks detected as per log file
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0])).isEqualTo("GlobalLeakingObject.leakedViewModel1") // Check if leak report contains the viewModel class name.
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0]))
+      .isEqualTo("GlobalLeakingObject.leakedViewModel1") // Check if leak report contains the viewModel class name.
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[1])).isEqualTo("GlobalLeakingObject.leakedViewModel2")
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[2])).isEqualTo("GlobalLeakingObject.leakedViewModel3")
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[3])).isEqualTo("GlobalLeakingObject.leakedViewModel4")
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[4])).isEqualTo("GlobalLeakingObject.leakedViewModel5")
     stage.stopListening()
 
-    val infoEvents = LeakCanaryModel.getLeakCanaryAnalysisInfo(profilers.client, profilers.session,
-                                                             Range(Long.MIN_VALUE.toDouble(), Long.MAX_VALUE.toDouble()))
+    val infoEvents =
+      LeakCanaryModel.getLeakCanaryAnalysisInfo(
+        profilers.client,
+        profilers.session,
+        Range(Long.MIN_VALUE.toDouble(), Long.MAX_VALUE.toDouble()),
+      )
     assertThat(infoEvents.size).isEqualTo(1)
     assertThat(infoEvents[0].kind).isEqualTo(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS)
   }
@@ -353,28 +444,39 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   @Test
   fun `verify LeakCanary detects destroyed Service instance leak`() {
     val startTime = System.currentTimeMillis()
-    transportService.setCommandHandler(Commands.Command.CommandType.START_LEAKCANARY_TASK,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf("ServiceLeak.txt"), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
-    transportService.setCommandHandler(Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.START_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf("ServiceLeak.txt"), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
     leakCanaryTaskHandler.setupStage()
     val stage = leakCanaryTaskHandler.stage as LeakCanaryModel
 
-    stage.startListening() //Start LeakCanary, send logcat message, and wait
+    stage.startListening() // Start LeakCanary, send logcat message, and wait
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for listener to receive events
     assertThat(stage.leaks.value).isNotEmpty() // Check if at least one leak is detected
     assertThat(stage.leaks.value.size).isEqualTo(5) // Check whether 5 leaks detected as per log file
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0])).isEqualTo("GlobalLeakingObject.leakedService1") // Check if leak report contains the service class name.
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0]))
+      .isEqualTo("GlobalLeakingObject.leakedService1") // Check if leak report contains the service class name.
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[1])).isEqualTo("GlobalLeakingObject.leakedService2")
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[2])).isEqualTo("GlobalLeakingObject.leakedService3")
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[3])).isEqualTo("GlobalLeakingObject.leakedService4")
     assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[4])).isEqualTo("GlobalLeakingObject.leakedService5")
     stage.stopListening()
 
-    val infoEvents = LeakCanaryModel.getLeakCanaryAnalysisInfo(profilers.client, profilers.session,
-                                                             Range(Long.MIN_VALUE.toDouble(), Long.MAX_VALUE.toDouble()))
+    val infoEvents =
+      LeakCanaryModel.getLeakCanaryAnalysisInfo(
+        profilers.client,
+        profilers.session,
+        Range(Long.MIN_VALUE.toDouble(), Long.MAX_VALUE.toDouble()),
+      )
     assertThat(infoEvents.size).isEqualTo(1)
     assertThat(infoEvents[0].kind).isEqualTo(Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS)
   }

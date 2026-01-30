@@ -50,18 +50,13 @@ class KotlinMapEntryRendererTest {
         val stringType = classType("java.lang.String")
 
         classType("java.util.Map\$Entry") {
-          method("getKey", "()Ljava/lang/Object;") {
-            value(MockStringReference("key1", stringType, vm))
-          }
+          method("getKey", "()Ljava/lang/Object;") { value(MockStringReference("key1", stringType, vm)) }
 
-          method("getValue", "()Ljava/lang/Object;") {
-            value(MockStringReference("value1", stringType, vm))
-          }
+          method("getValue", "()Ljava/lang/Object;") { value(MockStringReference("value1", stringType, vm)) }
         }
       }
 
-    val thisObjectType: ReferenceType =
-            VirtualMachineProxy.getCurrent().classesByName("java.util.Map\$Entry").first()
+    val thisObjectType: ReferenceType = VirtualMachineProxy.getCurrent().classesByName("java.util.Map\$Entry").first()
 
     debugProcess.invokeOnDebuggerManagerThread {
       // 1. check `Kotlin MapEntry` is the first selected renderer by default.
@@ -69,13 +64,10 @@ class KotlinMapEntryRendererTest {
         NodeRendererSettings.getInstance()
           .getAllRenderers(projectRule.project)
           .filter { it.isEnabled }
-          .first {
-            (it as? CompoundReferenceRenderer)?.isApplicableAsync(thisObjectType)?.get() == true
-          }
+          .first { (it as? CompoundReferenceRenderer)?.isApplicableAsync(thisObjectType)?.get() == true }
       assertThat(renderer.name).isEqualTo("Kotlin MapEntry")
 
-      val thisObjectValue =
-              MockClassObjectReference(thisObjectType, VirtualMachineProxyImpl.getCurrent().virtualMachine)
+      val thisObjectValue = MockClassObjectReference(thisObjectType, VirtualMachineProxyImpl.getCurrent().virtualMachine)
       val evaluationContext = mockEvaluationContext(debugProcess, thisObjectValue)
       val thisValueDescriptor = MockValueDescriptor(project, thisObjectValue)
 
@@ -84,8 +76,7 @@ class KotlinMapEntryRendererTest {
       assertThat(label).isEqualTo("key1 -> value1")
 
       // 3. check if `EnumerationChildrenRenderer` is the children renderer.
-      val childrenRenderer =
-        (renderer as CompoundReferenceRenderer).childrenRenderer as EnumerationChildrenRenderer
+      val childrenRenderer = (renderer as CompoundReferenceRenderer).childrenRenderer as EnumerationChildrenRenderer
       assertThat(childrenRenderer.children.map { it.myName }).containsExactly("key", "value")
     }
   }

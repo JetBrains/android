@@ -129,8 +129,7 @@ class ComposeStateReadInlayHintsProviderTest {
           .trimIndent(),
       )
 
-    assertThat(provider.createCollector(kotlinFile, fixture.editor))
-      .isSameAs(ComposeStateReadInlayHintsCollector)
+    assertThat(provider.createCollector(kotlinFile, fixture.editor)).isSameAs(ComposeStateReadInlayHintsCollector)
   }
 
   @Test
@@ -221,8 +220,7 @@ class ComposeStateReadInlayHintsProviderTest {
     verify(treeBuilder).text(eq(ComposeBundle.message("state.read")), actionDataCaptor.capture())
     with(actionDataCaptor.firstValue) {
       assertThat(payload).isInstanceOf(PsiPointerInlayActionPayload::class.java)
-      val expectedScope =
-        fixture.getEnclosing<KtFunction>("stateVar = rememberSaveable").bodyExpression
+      val expectedScope = fixture.getEnclosing<KtFunction>("stateVar = rememberSaveable").bodyExpression
       assertThat((payload as PsiPointerInlayActionPayload).pointer.element).isEqualTo(expectedScope)
       assertThat(handlerId).isEqualTo(ComposeStateReadInlayActionHandler.HANDLER_NAME)
     }
@@ -309,19 +307,14 @@ class ComposeStateReadInlayHintsProviderTest {
 
   private fun highlightersFor(element: PsiElement) =
     fixture.editor.markupModel.allHighlighters.filter {
-      it.range == element.textRange &&
-        it.textAttributesKey == COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_KEY
+      it.range == element.textRange && it.textAttributesKey == COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_KEY
     }
 
   private fun assertHighlighted(element: PsiElement) {
-    assertWithMessage("Expected $element to be highlighted.")
-      .that(highlightersFor(element))
-      .hasSize(1)
+    assertWithMessage("Expected $element to be highlighted.").that(highlightersFor(element)).hasSize(1)
   }
 
   private fun assertNotHighlighted(element: PsiElement) {
-    assertWithMessage("Expected $element not to be highlighted.")
-      .that(highlightersFor(element))
-      .isEmpty()
+    assertWithMessage("Expected $element not to be highlighted.").that(highlightersFor(element)).isEmpty()
   }
 }

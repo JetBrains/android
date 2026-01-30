@@ -29,10 +29,8 @@ import javax.swing.event.ListSelectionListener
 
 class IntelliJStackTraceGroup
 @VisibleForTesting
-internal constructor(
-  private val project: Project,
-  private val viewGenerator: (Project, StackTraceModel) -> IntelliJStackTraceView,
-) : StackTraceGroup {
+internal constructor(private val project: Project, private val viewGenerator: (Project, StackTraceModel) -> IntelliJStackTraceView) :
+  StackTraceGroup {
   private val stackTraceViews: MutableList<IntelliJStackTraceView> = ArrayList()
 
   constructor(
@@ -50,7 +48,7 @@ internal constructor(
       // specially when the navigation is not available for third party code.
       view.installGenericContextMenu(installer, ContextMenuItem.COPY)
       view
-    }
+    },
   )
 
   override fun createStackView(model: StackTraceModel): StackTraceView {

@@ -55,44 +55,51 @@ import javax.swing.JPanel
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
- * Class that manages the memory HTreeChart (CallChart). The UI has a dropdown that allows the user to change the X axis of the
- * chart. This class is responsible for rebuilding the chart when the dropdown changes or a filter is applied.
+ * Class that manages the memory HTreeChart (CallChart). The UI has a dropdown that allows the user to change the X axis of the chart. This
+ * class is responsible for rebuilding the chart when the dropdown changes or a filter is applied.
  */
-class MemoryVisualizationView @VisibleForTesting
-internal constructor(private val selection: MemoryCaptureSelection,
-                     private val profilersView: StudioProfilersView,
-                     @get:VisibleForTesting val model: MemoryVisualizationModel) : AspectObserver(), CapturePanelTabContainer {
+class MemoryVisualizationView
+@VisibleForTesting
+internal constructor(
+  private val selection: MemoryCaptureSelection,
+  private val profilersView: StudioProfilersView,
+  @get:VisibleForTesting val model: MemoryVisualizationModel,
+) : AspectObserver(), CapturePanelTabContainer {
   private val panel: JPanel = JPanel(BorderLayout())
   private val axisFilterFlow: MutableStateFlow<Selection<XAxisFilter>> = ProfilerFlows.createMutableStateFlow(selectionOf(model.axisFilter))
   private val axisFilterDropDown: JComponent
   private var initialClassGrouping: ClassGrouping? = null
 
-  constructor(selection: MemoryCaptureSelection, profilersView: StudioProfilersView) : this(selection,
-                                                                                            profilersView,
-                                                                                            MemoryVisualizationModel())
+  constructor(
+    selection: MemoryCaptureSelection,
+    profilersView: StudioProfilersView,
+  ) : this(selection, profilersView, MemoryVisualizationModel())
 
   init {
-    axisFilterDropDown = ProfilerDropDownComponent(
-      model.axisFilter.toString(),
-      "View by",
-      null,
-      axisFilterFlow,
-      null,
-      { filter ->
-        model.axisFilter = filter
-        axisFilterFlow.value = axisFilterFlow.value.select(filter)
-        rebuildUI()
-      },
-      { it.toString() })
+    axisFilterDropDown =
+      ProfilerDropDownComponent(
+        model.axisFilter.toString(),
+        "View by",
+        null,
+        axisFilterFlow,
+        null,
+        { filter ->
+          model.axisFilter = filter
+          axisFilterFlow.value = axisFilterFlow.value.select(filter)
+          rebuildUI()
+        },
+        { it.toString() },
+      )
   }
 
   val toolbarComponents: List<Component>
     get() {
       val components: MutableList<Component> = ArrayList()
-      val viewByLabel = JLabel("View by:").apply {
-        foreground = UIUtil.getLabelDisabledForeground()
-        border = JBUI.Borders.empty(1, 12, 0, 0)
-      }
+      val viewByLabel =
+        JLabel("View by:").apply {
+          foreground = UIUtil.getLabelDisabledForeground()
+          border = JBUI.Borders.empty(1, 12, 0, 0)
+        }
       components.add(viewByLabel)
       components.add(axisFilterDropDown)
       return components
@@ -107,8 +114,7 @@ internal constructor(private val selection: MemoryCaptureSelection,
       // After the heap is setup properly and our UI elements are created select the current heap to apply
       // any filters previously set from other tabs.
       selection.filterHandler.refreshFilterContent()
-    }
-    else {
+    } else {
       selection.aspect.removeDependencies(this)
       selection.selectedHeapSet?.classGrouping = initialClassGrouping ?: return
       // After the heap is setup properly back to its initial state select the heap to apply filters previously set from this tab.
@@ -120,9 +126,9 @@ internal constructor(private val selection: MemoryCaptureSelection,
     // This is not CPU efficient however it is memory efficient. To make this CPU efficient a copy of the HeapSet would need to be
     // maintained for the Visualization view. Instead of managing a duplicate copy of the HeapSet when the visualization tab is activated,
     // the class grouping is updated. This update forces a rebuild of the model in a hierarchical way as is expected by the HTreeChart.
-    selection.selectedHeapSet?.classGrouping = if (selection.selectedCapture is NativeAllocationSampleCaptureObject)
-      ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK
-    else ClassGrouping.ARRANGE_BY_CALLSTACK
+    selection.selectedHeapSet?.classGrouping =
+      if (selection.selectedCapture is NativeAllocationSampleCaptureObject) ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK
+      else ClassGrouping.ARRANGE_BY_CALLSTACK
     panel.removeAll()
     panel.add(createChartPanel(), BorderLayout.CENTER)
   }
@@ -146,15 +152,17 @@ internal constructor(private val selection: MemoryCaptureSelection,
     val axis = createAxis(model.formatter(), captureRange)
     val chart = createChart(selected, captureRange, globalRange)
     chart.addMouseMotionListener(
-      MemoryVisualizationTooltipView(chart, profilersView.component, VisualizationTooltipModel(captureRange, model)))
+      MemoryVisualizationTooltipView(chart, profilersView.component, VisualizationTooltipModel(captureRange, model))
+    )
     val panel = JPanel(TabularLayout("*,Fit", "*,Fit"))
     panel.add(axis, TabularLayout.Constraint(0, 0))
     panel.add(chart, TabularLayout.Constraint(0, 0))
     panel.add(HTreeChartVerticalScrollBar(chart), TabularLayout.Constraint(0, 1))
     panel.add(horizontalScrollBar, TabularLayout.Constraint(1, 0, 1, 2))
     val navigator = profilersView.studioProfilers.ideServices.codeNavigator
-    profilersView.ideProfilerComponents.createContextMenuInstaller()
-      .installNavigationContextMenu(chart, navigator) { getCodeLocation(chart) }
+    profilersView.ideProfilerComponents.createContextMenuInstaller().installNavigationContextMenu(chart, navigator) {
+      getCodeLocation(chart)
+    }
     return panel
   }
 
@@ -172,18 +180,19 @@ internal constructor(private val selection: MemoryCaptureSelection,
     return null
   }
 
-  private fun createAxis(formatter: BaseAxisFormatter,
-                         range: Range): AxisComponent {
+  private fun createAxis(formatter: BaseAxisFormatter, range: Range): AxisComponent {
     val axisModel: AxisComponentModel = ResizingAxisComponentModel.Builder(range, formatter).build()
     val axis = AxisComponent(axisModel, AxisComponent.AxisOrientation.BOTTOM, true)
     axis.setShowAxisLine(false)
     axis.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR)
-    axis.addComponentListener(object : ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent) {
-        axis.setMarkerLengths(axis.height, 0)
-        axis.repaint()
+    axis.addComponentListener(
+      object : ComponentAdapter() {
+        override fun componentResized(e: ComponentEvent) {
+          axis.setMarkerLengths(axis.height, 0)
+          axis.repaint()
+        }
       }
-    })
+    )
     return axis
   }
 
@@ -195,8 +204,6 @@ internal constructor(private val selection: MemoryCaptureSelection,
       .setOrientation(orientation)
       .setRootVisible(false)
       .build()
-      .apply {
-        isDrawDebugInfo = profilersView.studioProfilers.ideServices.featureConfig.isPerformanceMonitoringEnabled
-      }
+      .apply { isDrawDebugInfo = profilersView.studioProfilers.ideServices.featureConfig.isPerformanceMonitoringEnabled }
   }
 }

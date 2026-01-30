@@ -46,22 +46,11 @@ object CategoryTableDemo {
 
 val DEVICE_DATA_KEY = DataKey.create<Device>("DEVICE")
 
-val Name =
-  LabelColumn<Device>(
-    "Name",
-    SizeConstraint(min = 200, preferred = 400),
-    stringAttribute(isGroupable = false) { it.name },
-  )
+val Name = LabelColumn<Device>("Name", SizeConstraint(min = 200, preferred = 400), stringAttribute(isGroupable = false) { it.name })
 val Api = LabelColumn<Device>("Api", SizeConstraint(min = 20, max = 80), stringAttribute { it.api })
-val Type =
-  LabelColumn<Device>("Type", SizeConstraint(min = 20, max = 80), stringAttribute { it.type })
+val Type = LabelColumn<Device>("Type", SizeConstraint(min = 20, max = 80), stringAttribute { it.type })
 val Status =
-  object :
-    LabelColumn<Device>(
-      "Status",
-      SizeConstraint(min = 20, max = 80),
-      stringAttribute { it.status },
-    ) {
+  object : LabelColumn<Device>("Status", SizeConstraint(min = 20, max = 80), stringAttribute { it.status }) {
     override val visibleWhenGrouped = true
   }
 
@@ -72,16 +61,8 @@ object Actions : Column<Device, Unit, JPanel> {
   override fun createUi(rowValue: Device): JPanel =
     JPanel().apply {
       isOpaque = false
-      add(
-        JButton("Start").apply {
-          addActionListener { JOptionPane.showMessageDialog(this, "Starting ${rowValue.name}") }
-        }
-      )
-      add(
-        JButton("Edit").apply {
-          addActionListener { JOptionPane.showMessageDialog(this, "Editing ${rowValue.name}") }
-        }
-      )
+      add(JButton("Start").apply { addActionListener { JOptionPane.showMessageDialog(this, "Starting ${rowValue.name}") } })
+      add(JButton("Edit").apply { addActionListener { JOptionPane.showMessageDialog(this, "Editing ${rowValue.name}") } })
     }
 
   override fun updateValue(rowValue: Device, component: JPanel, value: Unit) {}
@@ -90,27 +71,17 @@ object Actions : Column<Device, Unit, JPanel> {
 }
 
 object DemoCategoryRowMouseClickListener : DefaultCategoryRowMouseClickListener<Device>() {
-  override fun categoryRowClicked(
-    e: MouseEvent,
-    table: CategoryTable<Device>,
-    path: CategoryList<Device>,
-  ) {
+  override fun categoryRowClicked(e: MouseEvent, table: CategoryTable<Device>, path: CategoryList<Device>) {
     when {
       SwingUtilities.isLeftMouseButton(e) && e.clickCount == 2 ->
-        table.columns
-          .find { it.attribute == path.last().attribute }
-          ?.let { table.removeGrouping(it) }
+        table.columns.find { it.attribute == path.last().attribute }?.let { table.removeGrouping(it) }
       else -> super.categoryRowClicked(e, table, path)
     }
   }
 }
 
 object DemoCategoryTableHeaderClickListener : DefaultCategoryTableHeaderClickListener<Device>() {
-  override fun columnHeaderClicked(
-    e: MouseEvent,
-    table: CategoryTable<Device>,
-    column: Column<Device, *, *>,
-  ) {
+  override fun columnHeaderClicked(e: MouseEvent, table: CategoryTable<Device>, column: Column<Device, *, *>) {
     when {
       SwingUtilities.isLeftMouseButton(e) && e.clickCount == 2 ->
         if (column.attribute.isGroupable) {

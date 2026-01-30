@@ -17,49 +17,52 @@ package com.android.build.attribution.ui.view.chart
 
 import com.google.common.truth.Truth
 import com.intellij.ui.tree.TreePathUtil
-import org.junit.Test
 import java.awt.Color
 import java.awt.Rectangle
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreePath
+import org.junit.Test
 
 class TimeDistributionTreeChartCalculationModelTest {
 
-  private val tenEqualNodes = DefaultMutableTreeNode().apply {
-    // 10 nodes with equal value, sum is 100.
-    add(FakeTreeNode(10.0))
-    add(FakeTreeNode(10.0))
-    add(FakeTreeNode(10.0))
-    add(FakeTreeNode(10.0))
-    add(FakeTreeNode(10.0))
-    add(FakeTreeNode(10.0))
-    add(FakeTreeNode(10.0))
-    add(FakeTreeNode(10.0))
-    add(FakeTreeNode(10.0))
-    add(FakeTreeNode(10.0))
-  }
+  private val tenEqualNodes =
+    DefaultMutableTreeNode().apply {
+      // 10 nodes with equal value, sum is 100.
+      add(FakeTreeNode(10.0))
+      add(FakeTreeNode(10.0))
+      add(FakeTreeNode(10.0))
+      add(FakeTreeNode(10.0))
+      add(FakeTreeNode(10.0))
+      add(FakeTreeNode(10.0))
+      add(FakeTreeNode(10.0))
+      add(FakeTreeNode(10.0))
+      add(FakeTreeNode(10.0))
+      add(FakeTreeNode(10.0))
+    }
 
-  private val fiveDecreasingNodes = DefaultMutableTreeNode().apply {
-    // Sum is 10.
-    add(FakeTreeNode(5.0))
-    add(FakeTreeNode(3.0))
-    add(FakeTreeNode(1.0))
-    add(FakeTreeNode(0.5))
-    add(FakeTreeNode(0.5))
-  }
-
-  private val twoLevelNodes = DefaultMutableTreeNode().apply {
-    // First level nodes sum is 10.
-    add(FakeTreeNode(5.0).apply {
+  private val fiveDecreasingNodes =
+    DefaultMutableTreeNode().apply {
+      // Sum is 10.
+      add(FakeTreeNode(5.0))
       add(FakeTreeNode(3.0))
+      add(FakeTreeNode(1.0))
+      add(FakeTreeNode(0.5))
+      add(FakeTreeNode(0.5))
+    }
+
+  private val twoLevelNodes =
+    DefaultMutableTreeNode().apply {
+      // First level nodes sum is 10.
+      add(
+        FakeTreeNode(5.0).apply {
+          add(FakeTreeNode(3.0))
+          add(FakeTreeNode(2.0))
+        }
+      )
+      add(FakeTreeNode(3.0).apply { add(FakeTreeNode(3.0)) })
       add(FakeTreeNode(2.0))
-    })
-    add(FakeTreeNode(3.0).apply {
-      add(FakeTreeNode(3.0))
-    })
-    add(FakeTreeNode(2.0))
-  }
+    }
 
   @Test
   fun testCoordinatesCalculated() {
@@ -68,7 +71,8 @@ class TimeDistributionTreeChartCalculationModelTest {
     treeChartModel.recalculateCoordinates(Rectangle(0, 0, 200, 320))
 
     // Total available height is 320, stack height is 300, 30 for each element. 1px goes for the items spacing
-    val expectedItemCoordinates = """
+    val expectedItemCoordinates =
+      """
       0,20 - 1,29
       20,20 - 31,29
       40,20 - 61,29
@@ -79,7 +83,8 @@ class TimeDistributionTreeChartCalculationModelTest {
       140,20 - 211,29
       160,20 - 241,29
       180,20 - 271,29
-    """.trimIndent()
+      """
+        .trimIndent()
     val coordinates = dumpCoordinates(treeChartModel)
     Truth.assertThat(coordinates).isEqualTo(expectedItemCoordinates)
   }
@@ -91,7 +96,8 @@ class TimeDistributionTreeChartCalculationModelTest {
     treeChartModel.recalculateCoordinates(Rectangle(0, 0, 200, 1020))
 
     // Total available height is 1020, stack height is 1000, 100 for each element. 1px goes for the items spacing
-    val expectedItemCoordinates = """
+    val expectedItemCoordinates =
+      """
       0,20 - 1,99
       20,20 - 101,99
       40,20 - 201,99
@@ -102,7 +108,8 @@ class TimeDistributionTreeChartCalculationModelTest {
       140,20 - 701,99
       160,20 - 801,99
       180,20 - 901,99
-    """.trimIndent()
+      """
+        .trimIndent()
     val coordinates = dumpCoordinates(treeChartModel)
     Truth.assertThat(coordinates).isEqualTo(expectedItemCoordinates)
   }
@@ -114,7 +121,8 @@ class TimeDistributionTreeChartCalculationModelTest {
     treeChartModel.recalculateCoordinates(Rectangle(0, 0, 200, 120))
 
     // Total available height is 120, stack height is 100, 10 for each element. 1px goes for the items spacing
-    val expectedItemCoordinates = """
+    val expectedItemCoordinates =
+      """
       0,10 - 1,9
       10,10 - 11,9
       20,10 - 21,9
@@ -125,7 +133,8 @@ class TimeDistributionTreeChartCalculationModelTest {
       70,10 - 71,9
       80,10 - 81,9
       90,10 - 91,9
-    """.trimIndent()
+      """
+        .trimIndent()
     val coordinates = dumpCoordinates(treeChartModel)
     Truth.assertThat(coordinates).isEqualTo(expectedItemCoordinates)
   }
@@ -154,13 +163,15 @@ class TimeDistributionTreeChartCalculationModelTest {
 
     // Total available height is 320, stack height is 300, 3px per percent.
     // Heights: 50%, 30%, 10%, 5%, 5%
-    val expectedItemCoordinates = """
+    val expectedItemCoordinates =
+      """
       0,20 - 1,149
       20,20 - 151,89
       40,20 - 241,29
       60,20 - 271,14
       80,20 - 286,14
-    """.trimIndent()
+      """
+        .trimIndent()
     val coordinates = dumpCoordinates(treeChartModel)
     Truth.assertThat(coordinates).isEqualTo(expectedItemCoordinates)
   }
@@ -173,19 +184,20 @@ class TimeDistributionTreeChartCalculationModelTest {
 
     // Total available height is 70, stack height is 50, 0.5px per percent.
     // Heights: 50% - 25, 30% - 15, 10% - 5, 5% - 2.5 (Merged), 5% - 2.5 (Merged)
-    val expectedItemCoordinates = """
+    val expectedItemCoordinates =
+      """
       0,20 - 1,24
       20,20 - 26,14
       40,20 - 41,4
       60,20 - 46,1
       80,20 - 46,1
-    """.trimIndent()
+      """
+        .trimIndent()
     val coordinates = dumpCoordinates(treeChartModel)
     Truth.assertThat(coordinates).isEqualTo(expectedItemCoordinates)
 
     // Last two bars should be merged being below minimal size.
-    Truth.assertThat(treeChartModel.chartItems.map { it.shownAsSeparateBar })
-      .isEqualTo(listOf(true, true, true, false, false))
+    Truth.assertThat(treeChartModel.chartItems.map { it.shownAsSeparateBar }).isEqualTo(listOf(true, true, true, false, false))
 
     Truth.assertThat(treeChartModel.mergedItemsBar.mergedItems).hasSize(2)
     Truth.assertThat(treeChartModel.mergedItemsBar.posY).isEqualTo(46)
@@ -202,13 +214,15 @@ class TimeDistributionTreeChartCalculationModelTest {
     // Heights: 50%, 30%, 10%, 5%, 5%
     // When area is scrolled down left coordinates should stay the same (attached to the tree rows)
     // and right stack part should move together with the visible rect.
-    val expectedItemCoordinates = """
+    val expectedItemCoordinates =
+      """
       0,20 - 101,149
       20,20 - 251,89
       40,20 - 341,29
       60,20 - 371,14
       80,20 - 386,14
-    """.trimIndent()
+      """
+        .trimIndent()
     val coordinates = dumpCoordinates(treeChartModel)
     Truth.assertThat(coordinates).isEqualTo(expectedItemCoordinates)
   }
@@ -227,11 +241,13 @@ class TimeDistributionTreeChartCalculationModelTest {
     // - 3 (4th row, 30%, 90px)
     //    - 3
     // - 2 (6th row, 20%, 60px)
-    val expectedItemCoordinates = """
+    val expectedItemCoordinates =
+      """
       0,20 - 1,149
       60,20 - 151,89
       100,20 - 241,59
-    """.trimIndent()
+      """
+        .trimIndent()
     val coordinates = dumpCoordinates(treeChartModel)
     Truth.assertThat(coordinates).isEqualTo(expectedItemCoordinates)
   }
@@ -331,8 +347,6 @@ class TimeDistributionTreeChartCalculationModelTest {
     Rectangle(0, nodesBefore * rowHeight, 100, rowHeight)
   }
 
-  class FakeTreeNode(
-    override val relativeWeight: Double,
-    override val itemColor: Color = Color.BLACK
-  ) : DefaultMutableTreeNode(), ChartValueProvider
+  class FakeTreeNode(override val relativeWeight: Double, override val itemColor: Color = Color.BLACK) :
+    DefaultMutableTreeNode(), ChartValueProvider
 }

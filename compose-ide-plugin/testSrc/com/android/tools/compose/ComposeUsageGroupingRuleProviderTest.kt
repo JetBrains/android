@@ -52,14 +52,11 @@ class ComposeUsageGroupingRuleProviderTest {
   private val project by lazy { projectRule.project }
 
   private val groupingRuleProvider = ComposeUsageGroupingRuleProvider()
-  private val groupingRule by lazy {
-    groupingRuleProvider.getActiveRules(project).single() as UsageGroupingRuleEx
-  }
+  private val groupingRule by lazy { groupingRuleProvider.getActiveRules(project).single() as UsageGroupingRuleEx }
 
   @Test
   fun activeRulesAreAllRules() {
-    assertThat(groupingRuleProvider.getActiveRules(project))
-      .isEqualTo(groupingRuleProvider.getAllRules(project, null))
+    assertThat(groupingRuleProvider.getActiveRules(project)).isEqualTo(groupingRuleProvider.getAllRules(project, null))
   }
 
   @Test
@@ -75,10 +72,8 @@ class ComposeUsageGroupingRuleProviderTest {
 
   @Test
   fun groupingRuleHasCorrectRank() {
-    assertThat(groupingRule.rank)
-      .isGreaterThan(UsageGroupingRulesDefaultRanks.AFTER_SCOPE.absoluteRank)
-    assertThat(groupingRule.rank)
-      .isAtMost(UsageGroupingRulesDefaultRanks.BEFORE_USAGE_TYPE.absoluteRank)
+    assertThat(groupingRule.rank).isGreaterThan(UsageGroupingRulesDefaultRanks.AFTER_SCOPE.absoluteRank)
+    assertThat(groupingRule.rank).isAtMost(UsageGroupingRulesDefaultRanks.BEFORE_USAGE_TYPE.absoluteRank)
   }
 
   @Test
@@ -94,14 +89,12 @@ class ComposeUsageGroupingRuleProviderTest {
 
   @Test
   fun previewGroupHasCorrectText() {
-    assertThat(PreviewUsageGroup.presentableGroupText)
-      .isEqualTo(ComposeBundle.message("usage.group.in.preview.function"))
+    assertThat(PreviewUsageGroup.presentableGroupText).isEqualTo(ComposeBundle.message("usage.group.in.preview.function"))
   }
 
   @Test
   fun productionGroupHasCorrectText() {
-    assertThat(ProductionUsageGroup.presentableGroupText)
-      .isEqualTo(ComposeBundle.message("usage.group.in.nonpreview.function"))
+    assertThat(ProductionUsageGroup.presentableGroupText).isEqualTo(ComposeBundle.message("usage.group.in.nonpreview.function"))
   }
 
   @Test
@@ -113,10 +106,7 @@ class ComposeUsageGroupingRuleProviderTest {
   }
 }
 
-/**
- * Test more complex cases for the [ComposeUsageGroupingRuleProvider], covering all relevant
- * potential annotations.
- */
+/** Test more complex cases for the [ComposeUsageGroupingRuleProvider], covering all relevant potential annotations. */
 @RunWith(Parameterized::class)
 class ComposeUsageGroupingRuleProviderParameterizedTest(private val testConfig: TestConfig) {
   @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
@@ -125,9 +115,7 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(private val testConfig: 
   private val project by lazy { projectRule.project }
 
   private val groupingRuleProvider = ComposeUsageGroupingRuleProvider()
-  private val groupingRule by lazy {
-    groupingRuleProvider.getActiveRules(project).single() as UsageGroupingRuleEx
-  }
+  private val groupingRule by lazy { groupingRuleProvider.getActiveRules(project).single() as UsageGroupingRuleEx }
 
   companion object {
     data class TestConfig(val targetAnnotations: List<String>, val usageAnnotations: List<String>) {
@@ -153,14 +141,7 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(private val testConfig: 
         }
 
     private val PREVIEW_ANNOTATIONS =
-      listOf(
-        "Preview",
-        "PreviewDynamicColors",
-        "PreviewFontScale",
-        "PreviewLightDark",
-        "PreviewParameter",
-        "PreviewScreenSizes",
-      )
+      listOf("Preview", "PreviewDynamicColors", "PreviewFontScale", "PreviewLightDark", "PreviewParameter", "PreviewScreenSizes")
 
     private const val COMPOSABLE = "Composable"
   }
@@ -227,15 +208,11 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(private val testConfig: 
     verifyNoInteractions(usageTarget)
   }
 
-  /**
-   * Asserts that we get [PreviewUsageGroup] iff all the annotations are present, else
-   * [ProductionUsageGroup].
-   */
+  /** Asserts that we get [PreviewUsageGroup] iff all the annotations are present, else [ProductionUsageGroup]. */
   private fun checkUsageGroups(usageGroups: List<UsageGroup>) {
     when {
       COMPOSABLE !in testConfig.targetAnnotations -> assertThat(usageGroups).isEmpty()
-      COMPOSABLE in testConfig.usageAnnotations &&
-        PREVIEW_ANNOTATIONS.any(testConfig.usageAnnotations::contains) ->
+      COMPOSABLE in testConfig.usageAnnotations && PREVIEW_ANNOTATIONS.any(testConfig.usageAnnotations::contains) ->
         assertThat(usageGroups).containsExactly(PreviewUsageGroup)
       else -> assertThat(usageGroups).containsExactly(ProductionUsageGroup)
     }
@@ -249,9 +226,7 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(private val testConfig: 
     vararg targetWindows: String,
   ): Pair<Usage, Array<out UsageTarget>> {
     val previewImports =
-      usageAnnotations.filter(PREVIEW_ANNOTATIONS::contains).joinToString("\n") {
-        "import androidx.compose.ui.tooling.preview.$it"
-      }
+      usageAnnotations.filter(PREVIEW_ANNOTATIONS::contains).joinToString("\n") { "import androidx.compose.ui.tooling.preview.$it" }
     // language=kotlin
     val contents =
       """
@@ -276,8 +251,7 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(private val testConfig: 
     val file = addFileToProject("/src/the/regrettes/LaDiDa.kt", contents)
     openFileInEditor(file.virtualFile)
     val element = getEnclosing<KtExpression>(elementWindow)
-    val targets =
-      targetWindows.map { getEnclosing<KtExpression>(it) }.map(::TestUsageTarget).toTypedArray()
+    val targets = targetWindows.map { getEnclosing<KtExpression>(it) }.map(::TestUsageTarget).toTypedArray()
 
     return TestUsage(element) to targets
   }

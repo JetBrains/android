@@ -31,8 +31,7 @@ import java.sql.SQLException
 import kotlin.jvm.JvmStatic
 
 /**
- * This utility class extracts and exposes common functions needed to import a file and convert it to a session + artifact
- * in the Profiler.
+ * This utility class extracts and exposes common functions needed to import a file and convert it to a session + artifact in the Profiler.
  */
 object ImportedSessionUtils {
 
@@ -40,6 +39,7 @@ object ImportedSessionUtils {
 
   /**
    * Helper function to copy an imported file to a temporary location.
+   *
    * @return The copied file. If the copy fails, it logs a warning and returns the original file as a fallback.
    */
   private fun copyToTemp(file: File, services: IdeProfilerServices, sessionType: SessionStarted.SessionType? = null): File {
@@ -53,53 +53,50 @@ object ImportedSessionUtils {
       val tempFile = FileUtil.createTempFile("profiler-import-${file.nameWithoutExtension}", ".${file.extension}", true)
       FileUtil.copy(file, tempFile)
       tempFile
-    }
-    catch (e: IOException) {
+    } catch (e: IOException) {
       getLogger().warn("Failed to create a temporary copy of the imported file: ${file.path}. Using original file.", e)
       file
     }
   }
 
   /**
-   * This method takes in a file imported by the user, and generates a fake session + child artifact to recreate the imported data
-   * in the Profiler.
+   * This method takes in a file imported by the user, and generates a fake session + child artifact to recreate the imported data in the
+   * Profiler.
    */
   @JvmStatic
   fun importFileWithArtifactEvent(
     sessionsManager: SessionsManager,
     file: File,
     sessionType: SessionStarted.SessionType,
-    makeEvent: (Long, Long) -> Common.Event
+    makeEvent: (Long, Long) -> Common.Event,
   ) {
     withFileImportedOnce(sessionsManager, file) { startTimestampsEpochMs, startTime, endTime ->
       val copiedFile = copyToTemp(file, sessionsManager.studioProfilers.ideServices, sessionType)
       sessionsManager.createImportedSession(
         file.name,
         sessionType,
-        startTime, endTime,
+        startTime,
+        endTime,
         startTimestampsEpochMs,
         mapOf(startTime.toString() to copiedFile.absolutePath),
-        makeEvent(startTime, endTime)
+        makeEvent(startTime, endTime),
       )
     }
   }
 
   /**
-   * This method takes in a file imported by the user, and generates only a fake session to recreate the imported data in the Profiler.
-   * The child artifact is expected to be inserted later on if this method is used.
+   * This method takes in a file imported by the user, and generates only a fake session to recreate the imported data in the Profiler. The
+   * child artifact is expected to be inserted later on if this method is used.
    */
   @JvmStatic
-  fun importFile(
-    sessionsManager: SessionsManager,
-    file: File,
-    sessionType: SessionStarted.SessionType,
-  ) {
+  fun importFile(sessionsManager: SessionsManager, file: File, sessionType: SessionStarted.SessionType) {
     withFileImportedOnce(sessionsManager, file) { startTimestampsEpochMs, startTime, endTime ->
       val copiedFile = copyToTemp(file, sessionsManager.studioProfilers.ideServices, sessionType)
       sessionsManager.createImportedSession(
         file.name,
         sessionType,
-        startTime, endTime,
+        startTime,
+        endTime,
         startTimestampsEpochMs,
         mapOf(startTime.toString() to copiedFile.absolutePath),
       )
@@ -107,31 +104,20 @@ object ImportedSessionUtils {
   }
 
   /**
-   * This helper method creates an event used to mock the start event of a CPU or memory capture. This is the event that is inserted
-   * into a fake session to wrap the imported data.
+   * This helper method creates an event used to mock the start event of a CPU or memory capture. This is the event that is inserted into a
+   * fake session to wrap the imported data.
    */
   @JvmStatic
   fun makeStartedEvent(groupId: Long, timeStamp: Long, kind: Common.Event.Kind, prepare: Common.Event.Builder.() -> Unit): Common.Event =
-    Common.Event.newBuilder()
-      .setKind(kind)
-      .setGroupId(groupId)
-      .setTimestamp(timeStamp)
-      .apply(prepare)
-      .build()
+    Common.Event.newBuilder().setKind(kind).setGroupId(groupId).setTimestamp(timeStamp).apply(prepare).build()
 
   /**
-   * This helper method creates an event used to mock the end event of a CPU or memory capture. This is the event that is inserted
-   * into a fake session to wrap the imported data.
+   * This helper method creates an event used to mock the end event of a CPU or memory capture. This is the event that is inserted into a
+   * fake session to wrap the imported data.
    */
   @JvmStatic
   fun makeEndedEvent(groupId: Long, timeStamp: Long, kind: Common.Event.Kind, prepare: Common.Event.Builder.() -> Unit): Common.Event =
-    Common.Event.newBuilder()
-      .setKind(kind)
-      .setGroupId(groupId)
-      .setTimestamp(timeStamp)
-      .setIsEnded(true)
-      .apply(prepare)
-      .build()
+    Common.Event.newBuilder().setKind(kind).setGroupId(groupId).setTimestamp(timeStamp).setIsEnded(true).apply(prepare).build()
 
   /**
    * Helper function to ensure a file is only imported once. It checks if a session for the given file already exists based on its
@@ -151,8 +137,7 @@ object ImportedSessionUtils {
         if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
           val session = sessionsManager.sessionIdToSessionItems[sessionStartTimeNs]!!
           profilers.pastRecordingsTabModel.recordingListModel.openRecording(session)
-        }
-        else {
+        } else {
           sessionsManager.setSessionById(sessionStartTimeNs)
         }
       }
@@ -162,8 +147,8 @@ object ImportedSessionUtils {
   }
 
   /**
-   * This method takes in a file containing event groups, and generates a fake session + child artifact to recreate the imported data
-   * in the Profiler.
+   * This method takes in a file containing event groups, and generates a fake session + child artifact to recreate the imported data in the
+   * Profiler.
    */
   @JvmStatic
   fun importEventBasedArtifact(
@@ -171,7 +156,7 @@ object ImportedSessionUtils {
     file: File,
     sessionType: SessionStarted.SessionType,
     metaDataSessionType: Common.SessionMetaData.SessionType,
-    makeArtifactEvents: ((Long, Long) -> List<Common.Event>)? = null
+    makeArtifactEvents: ((Long, Long) -> List<Common.Event>)? = null,
   ) {
     // Get the original timestamp range from the file. These will be our session times.
     val (sessionStartTimeNs, sessionEndTimeNs) = getTimestampRangeFromDbFile(file) ?: (0L to 0L)
@@ -185,8 +170,7 @@ object ImportedSessionUtils {
       if (sessionsManager.studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
         val session = sessionsManager.sessionIdToSessionItems[sessionStartTimeNs]!!
         sessionsManager.studioProfilers.pastRecordingsTabModel.recordingListModel.openRecording(session)
-      }
-      else {
+      } else {
         sessionsManager.setSessionById(sessionStartTimeNs)
       }
       return
@@ -196,10 +180,7 @@ object ImportedSessionUtils {
     val startTimestampEpochMs = System.currentTimeMillis()
     var copiedFile: File? = null
     if (sessionsManager.studioProfilers.ideServices.featureConfig.isSystemTraceInEditorEnabled) {
-      copiedFile = CpuCaptureStageUtils.getPermanentCaptureFile(
-        sessionsManager.studioProfilers.ideServices,
-        file,
-        file.name)
+      copiedFile = CpuCaptureStageUtils.getPermanentCaptureFile(sessionsManager.studioProfilers.ideServices, file, file.name)
     }
     if (copiedFile == null) {
       copiedFile = FileUtil.createTempFile("imported-${file.nameWithoutExtension}", ".${file.extension}", true)
@@ -233,20 +214,19 @@ object ImportedSessionUtils {
           mapOf(sessionStartTimeNs.toString() to copiedFile.absolutePath),
           jvmtiEnabled,
           exposureLevel,
-          *events
+          *events,
         )
-        sessionsManager.studioProfilers.ideServices.featureTracker.trackCreateSession(metaDataSessionType,
-                                                                                      SessionsManager.SessionCreationSource.MANUAL)
+        sessionsManager.studioProfilers.ideServices.featureTracker.trackCreateSession(
+          metaDataSessionType,
+          SessionsManager.SessionCreationSource.MANUAL,
+        )
       }
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       getLogger().error("Failed to import artifact from database: ${file.path}", e)
     }
   }
 
-  /**
-   * Extracts session metadata (e.g., exposure level, JVMTI status) from the session start event in the database.
-   */
+  /** Extracts session metadata (e.g., exposure level, JVMTI status) from the session start event in the database. */
   internal fun getSessionInfoFromDb(connection: Connection): Common.SessionData? {
     connection.prepareStatement("SELECT Data FROM UnifiedEventsTable WHERE Kind = ? AND IsEnded = 0 LIMIT 1").use { stmt ->
       stmt.setInt(1, Common.Event.Kind.SESSION_VALUE)
@@ -265,6 +245,7 @@ object ImportedSessionUtils {
 
   /**
    * Reads metadata from an imported database file.
+   *
    * @return A map of metadata key-value pairs, or an empty map if metadata can't be read.
    */
   internal fun getDbMetadata(file: File): Map<String, String> {
@@ -283,8 +264,7 @@ object ImportedSessionUtils {
           }
         }
       }
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       // This can happen if the file is not a valid DB or the table doesn't exist.
       getLogger().warn("Failed to read metadata from database: ${file.path}", e)
     }
@@ -293,6 +273,7 @@ object ImportedSessionUtils {
 
   /**
    * Queries a database file for the min and max event timestamps without opening it for writing.
+   *
    * @return A pair of (minTimestamp, maxTimestamp), or null if an error occurs or no events are found.
    */
   internal fun getTimestampRangeFromDbFile(file: File): Pair<Long, Long>? {
@@ -300,8 +281,7 @@ object ImportedSessionUtils {
       getDbConnectionFromFile(file).use { connection ->
         return getTimestampRangeFromDbConn(connection)
       }
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       getLogger().warn("Failed to read timestamp range from database: ${file.path}", e)
       null
     }
@@ -309,6 +289,7 @@ object ImportedSessionUtils {
 
   /**
    * Queries the database for the min and max event timestamps.
+   *
    * @return A pair of (minTimestamp, maxTimestamp), or null if no events are found.
    */
   private fun getTimestampRangeFromDbConn(connection: Connection): Pair<Long, Long>? {
@@ -316,8 +297,7 @@ object ImportedSessionUtils {
       stmt.executeQuery("SELECT MIN(timestamp), MAX(timestamp) FROM UnifiedEventsTable").use { rs ->
         if (rs.next() && rs.getLong(1) != 0L) {
           Pair(rs.getLong(1), rs.getLong(2))
-        }
-        else {
+        } else {
           getLogger().warn("Imported event database contains no events")
           null
         }
@@ -327,6 +307,7 @@ object ImportedSessionUtils {
 
   /**
    * Creates a read-only JDBC connection to a SQLite database file.
+   *
    * @throws SQLException if a database access error occurs.
    */
   internal fun getDbConnectionFromFile(file: File): Connection {
@@ -336,8 +317,8 @@ object ImportedSessionUtils {
   }
 
   /**
-   * Imports a task from an `.asdb` file. This function acts as a dispatcher, determining the task type from the file's metadata and
-   * calling the appropriate import function.
+   * Imports a task from an `.asdb` file. This function acts as a dispatcher, determining the task type from the file's metadata and calling
+   * the appropriate import function.
    */
   @JvmStatic
   fun importAsdbTask(profilers: StudioProfilers, file: File) {
@@ -352,37 +333,33 @@ object ImportedSessionUtils {
     }
   }
 
-  /**
-   * Imports a Leak Canary task from an `.asdb` file.
-   */
+  /** Imports a Leak Canary task from an `.asdb` file. */
   private fun importLeakCanaryTask(profilers: StudioProfilers, file: File) {
-    importEventBasedArtifact(profilers.sessionsManager,
-                             file,
-                             SessionStarted.SessionType.FULL,
-                             Common.SessionMetaData.SessionType.FULL) { start, end ->
+    importEventBasedArtifact(profilers.sessionsManager, file, SessionStarted.SessionType.FULL, Common.SessionMetaData.SessionType.FULL) {
+      start,
+      end ->
       listOf(
         makeStartedEvent(start, start, Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS) {
-          setLeakCanaryAnalysisStatus(LeakCanary.LeakCanaryAnalysisStatus.newBuilder().setAnalysisEnded(
-            LeakCanary.LeakCanaryAnalysisEnded.newBuilder().setStartTimestamp(start)
-          ));
+          setLeakCanaryAnalysisStatus(
+            LeakCanary.LeakCanaryAnalysisStatus.newBuilder()
+              .setAnalysisEnded(LeakCanary.LeakCanaryAnalysisEnded.newBuilder().setStartTimestamp(start))
+          )
         },
         makeEndedEvent(start, end, Common.Event.Kind.LEAKCANARY_ANALYSIS_STATUS) {
-          setLeakCanaryAnalysisStatus(LeakCanary.LeakCanaryAnalysisStatus.newBuilder().setAnalysisEnded(
-            LeakCanary.LeakCanaryAnalysisEnded.newBuilder().setStartTimestamp(start).setEndTimestamp(end)
-          ));
+          setLeakCanaryAnalysisStatus(
+            LeakCanary.LeakCanaryAnalysisStatus.newBuilder()
+              .setAnalysisEnded(LeakCanary.LeakCanaryAnalysisEnded.newBuilder().setStartTimestamp(start).setEndTimestamp(end))
+          )
         },
       )
     }
   }
 
-  /**
-   * Imports a Live View task from an `.asdb` file.
-   */
+  /** Imports a Live View task from an `.asdb` file. */
   private fun importLiveTask(profilers: StudioProfilers, file: File) {
-    importEventBasedArtifact(profilers.sessionsManager,
-                             file,
-                             SessionStarted.SessionType.FULL,
-                             Common.SessionMetaData.SessionType.FULL) { start, _ ->
+    importEventBasedArtifact(profilers.sessionsManager, file, SessionStarted.SessionType.FULL, Common.SessionMetaData.SessionType.FULL) {
+      start,
+      _ ->
       listOf(makeStartedEvent(start, start, Common.Event.Kind.LIVE_VIEW_STATUS) {})
     }
   }

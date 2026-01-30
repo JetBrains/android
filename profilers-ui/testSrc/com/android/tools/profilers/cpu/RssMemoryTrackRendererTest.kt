@@ -28,9 +28,8 @@ import org.junit.Test
 class RssMemoryTrackRendererTest {
   @Test
   fun render() {
-    val rssMemoryTrackModel = TrackModel.newBuilder(
-      RssMemoryTrackModel(RSS_MEMORY_COUNTERS, Range()), ProfilerTrackRendererType.RSS_MEMORY, "Foo"
-    ).build()
+    val rssMemoryTrackModel =
+      TrackModel.newBuilder(RssMemoryTrackModel(RSS_MEMORY_COUNTERS, Range()), ProfilerTrackRendererType.RSS_MEMORY, "Foo").build()
     val component = RssMemoryTrackRenderer().render(rssMemoryTrackModel)
     assertThat(component.componentCount).isEqualTo(2)
     assertThat(component.components[0]).isInstanceOf(AxisComponent::class.java)
@@ -38,10 +37,6 @@ class RssMemoryTrackRendererTest {
   }
 
   companion object {
-    private val RSS_MEMORY_COUNTERS = listOf(
-      SeriesData(0L, 1000L),
-      SeriesData(1000L, 2000L),
-      SeriesData(2000L, 3000L)
-    )
+    private val RSS_MEMORY_COUNTERS = listOf(SeriesData(0L, 1000L), SeriesData(1000L, 2000L), SeriesData(2000L, 3000L))
   }
 }

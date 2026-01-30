@@ -41,22 +41,16 @@ data class WearTilePreviewElement<T>(
   override val methodFqn: String,
   override val configuration: PreviewConfiguration,
   override val instanceId: String = methodFqn,
-) :
-  MethodPreviewElement<T>,
-  ConfigurablePreviewElement<T>,
-  PreviewElementInstance<T>,
-  XmlSerializable {
+) : MethodPreviewElement<T>, ConfigurablePreviewElement<T>, PreviewElementInstance<T>, XmlSerializable {
   /**
-   * Contains the link to the most recently inflated view. Should be an instance of
-   * TileServiceViewAdapter. see [CLASS_TILE_SERVICE_VIEW_ADAPTER] class
+   * Contains the link to the most recently inflated view. Should be an instance of TileServiceViewAdapter. see
+   * [CLASS_TILE_SERVICE_VIEW_ADAPTER] class
    */
   val tileServiceViewAdapter: MutableStateFlow<Any?> = MutableStateFlow(null)
   override var hasAnimations = false
 
-  override fun createDerivedInstance(
-    displaySettings: PreviewDisplaySettings,
-    config: PreviewConfiguration,
-  ) = copy(displaySettings = displaySettings, configuration = config)
+  override fun createDerivedInstance(displaySettings: PreviewDisplaySettings, config: PreviewConfiguration) =
+    copy(displaySettings = displaySettings, configuration = config)
 
   override fun toPreviewXml() =
     PreviewXmlBuilder(CLASS_TILE_SERVICE_VIEW_ADAPTER)
@@ -67,7 +61,7 @@ data class WearTilePreviewElement<T>(
         when (displaySettings.background) {
           is PreviewDisplaySettings.Background.Color -> (displaySettings.background as PreviewDisplaySettings.Background.Color).color
           else -> DEFAULT_WEAR_TILE_BACKGROUND
-        }
+        },
       )
       .androidAttribute(ATTR_MIN_WIDTH, "1px")
       .androidAttribute(ATTR_MIN_HEIGHT, "1px")

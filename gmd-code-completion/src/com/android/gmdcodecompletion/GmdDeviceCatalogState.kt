@@ -19,9 +19,7 @@ import java.util.Calendar
 import java.util.Date
 
 /** Defines device catalog state that is persisted by GMD device catalog service across idea applications */
-abstract class GmdDeviceCatalogState(
-  open val expireDate: Date = Date(0),
-  open val myDeviceCatalog: GmdDeviceCatalog) {
+abstract class GmdDeviceCatalogState(open val expireDate: Date = Date(0), open val myDeviceCatalog: GmdDeviceCatalog) {
   fun isCacheFresh(): Boolean {
     return (Calendar.getInstance().time < expireDate && !myDeviceCatalog.isEmptyCatalog)
   }

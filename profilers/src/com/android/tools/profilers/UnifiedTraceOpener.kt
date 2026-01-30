@@ -23,24 +23,16 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.intellij.openapi.util.io.FileUtil
 import java.io.File
 
-/**
- * Helper class responsible for handling the opening of System Traces
- * via the Unified Profiler.
- */
+/** Helper class responsible for handling the opening of System Traces via the Unified Profiler. */
 class UnifiedTraceOpener(private val profilers: StudioProfilers) {
 
-  fun openUnifiedTrace(
-    session: Common.Session,
-    sessionItems: Map<Long, SessionItem>
-  ): Boolean {
+  fun openUnifiedTrace(session: Common.Session, sessionItems: Map<Long, SessionItem>): Boolean {
     val services = profilers.ideServices
     val config = services.featureConfig
 
     // 1. Check Feature Flags and Task Type
     // We only intervene if the Unified Preview is enabled AND it is a System Trace task.
-    if (!config.isSystemTraceInEditorEnabled ||
-        profilers.sessionsManager.currentTaskType != ProfilerTaskType.SYSTEM_TRACE
-    ) {
+    if (!config.isSystemTraceInEditorEnabled || profilers.sessionsManager.currentTaskType != ProfilerTaskType.SYSTEM_TRACE) {
       return false
     }
 
@@ -59,24 +51,16 @@ class UnifiedTraceOpener(private val profilers: StudioProfilers) {
     val sessionItem = sessionItems[session.sessionId] ?: return false
 
     // Find the first CpuCaptureSessionArtifact (Kotlin makes this cleaner than streams)
-    val cpuArtifact = sessionItem.getChildArtifacts()
-                        .filterIsInstance<CpuCaptureSessionArtifact>()
-                        .firstOrNull() ?: return false
+    val cpuArtifact = sessionItem.getChildArtifacts().filterIsInstance<CpuCaptureSessionArtifact>().firstOrNull() ?: return false
 
     return openArtifactFile(session, cpuArtifact)
   }
 
-  private fun openArtifactFile(
-    session: Common.Session,
-    artifact: CpuCaptureSessionArtifact
-  ): Boolean {
+  private fun openArtifactFile(session: Common.Session, artifact: CpuCaptureSessionArtifact): Boolean {
     val traceId = artifact.artifactProto.traceId
 
     // Ask the transport daemon for the file path
-    val traceRequest = Transport.BytesRequest.newBuilder()
-      .setStreamId(session.streamId)
-      .setId(traceId.toString())
-      .build()
+    val traceRequest = Transport.BytesRequest.newBuilder().setStreamId(session.streamId).setId(traceId.toString()).build()
 
     val traceResponse = profilers.client.transportClient.getFile(traceRequest)
     if (traceResponse.filePath.isEmpty()) {

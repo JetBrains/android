@@ -40,17 +40,16 @@ enum class FormFactor(
   val displayName: String,
   val defaultApi: Int,
   /**
-   * The minimum API level supported by this form factor, as known at compile time. Only used if
-   * offline; if we are online, we will query SDK Manager for available system images.
+   * The minimum API level supported by this form factor, as known at compile time. Only used if offline; if we are online, we will query
+   * SDK Manager for available system images.
    */
   val minOfflineApiLevel: Int,
   /**
-   * The maximum API level supported by this form factor, as known at compile time. Only used if
-   * offline; if we are online, we will query SDK Manager for available system images.
+   * The maximum API level supported by this form factor, as known at compile time. Only used if offline; if we are online, we will query
+   * SDK Manager for available system images.
    *
-   * If the form factor [hasUpperLimitForMinimumSdkSelection], this value is also used to clamp the
-   * known target versions, whether online or offline. That list is used to populate the minimum SDK
-   * dropdown in new module wizards.
+   * If the form factor [hasUpperLimitForMinimumSdkSelection], this value is also used to clamp the known target versions, whether online or
+   * offline. That list is used to populate the minimum SDK dropdown in new module wizards.
    */
   val maxOfflineApiLevel: Int,
   val icon: Icon,
@@ -65,42 +64,10 @@ enum class FormFactor(
     FormFactors.MOBILE,
     FormFactors.MOBILE_LARGE,
   ),
-  WEAR(
-    "Wear",
-    "Wear OS",
-    R,
-    LOWEST_ACTIVE_API_WEAR,
-    HIGHEST_KNOWN_API_WEAR,
-    FormFactors.WEAR,
-    FormFactors.WEAR_LARGE,
-  ),
-  TV(
-    "TV",
-    "Television",
-    LOLLIPOP,
-    LOWEST_ACTIVE_API_TV,
-    HIGHEST_KNOWN_API_TV,
-    FormFactors.TV,
-    FormFactors.TV_LARGE,
-  ),
-  AUTOMOTIVE(
-    "Automotive",
-    "Automotive",
-    VersionCodes.P,
-    VersionCodes.P,
-    HIGHEST_KNOWN_API_AUTO,
-    FormFactors.CAR,
-    FormFactors.CAR_LARGE,
-  ),
-  XR(
-    "XR",
-    "XR",
-    LOWEST_ACTIVE_API_XR,
-    LOWEST_ACTIVE_API_XR,
-    HIGHEST_KNOWN_API_XR,
-    FormFactors.MOBILE,
-    FormFactors.MOBILE_LARGE,
-  ),
+  WEAR("Wear", "Wear OS", R, LOWEST_ACTIVE_API_WEAR, HIGHEST_KNOWN_API_WEAR, FormFactors.WEAR, FormFactors.WEAR_LARGE),
+  TV("TV", "Television", LOLLIPOP, LOWEST_ACTIVE_API_TV, HIGHEST_KNOWN_API_TV, FormFactors.TV, FormFactors.TV_LARGE),
+  AUTOMOTIVE("Automotive", "Automotive", VersionCodes.P, VersionCodes.P, HIGHEST_KNOWN_API_AUTO, FormFactors.CAR, FormFactors.CAR_LARGE),
+  XR("XR", "XR", LOWEST_ACTIVE_API_XR, LOWEST_ACTIVE_API_XR, HIGHEST_KNOWN_API_XR, FormFactors.MOBILE, FormFactors.MOBILE_LARGE),
   AI_GLASSES(
     "AI Glasses",
     "AI Glasses",
@@ -113,8 +80,7 @@ enum class FormFactor(
 
   override fun toString(): String = displayName
 
-  fun isSupported(targetSdkLevel: Int): Boolean =
-    !(this == MOBILE && targetSdkLevel == KITKAT_WATCH)
+  fun isSupported(targetSdkLevel: Int): Boolean = !(this == MOBILE && targetSdkLevel == KITKAT_WATCH)
 
   // We want to expose new SDKs when creating new mobile projects.
   val hasUpperLimitForMinimumSdkSelection: Boolean

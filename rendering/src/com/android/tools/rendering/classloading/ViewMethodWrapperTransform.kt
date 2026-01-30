@@ -30,14 +30,7 @@ private val ERROR_METHOD_DESCRIPTION: String? =
     Type.getMethodDescriptor(
       ILayoutLog::class
         .java
-        .getMethod(
-          "error",
-          String::class.java,
-          String::class.java,
-          Throwable::class.java,
-          Any::class.java,
-          Any::class.java,
-        )
+        .getMethod("error", String::class.java, String::class.java, Throwable::class.java, Any::class.java, Any::class.java)
     )
   } catch (e: NoSuchMethodException) {
     assert(false)
@@ -45,43 +38,27 @@ private val ERROR_METHOD_DESCRIPTION: String? =
   }
 
 /**
- * [ClassVisitor] that catches the exceptions on certain View methods like onLayout, onMeasure or
- * onDraw so they do not stop the rendering of the whole view.
+ * [ClassVisitor] that catches the exceptions on certain View methods like onLayout, onMeasure or onDraw so they do not stop the rendering
+ * of the whole view.
  */
-class ViewMethodWrapperTransform(delegate: ClassVisitor) :
-  ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
+class ViewMethodWrapperTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   override val uniqueId: String = ViewMethodWrapperTransform::class.qualifiedName!!
 
   private var currentClassName: String? = null
 
-  override fun visit(
-    version: Int,
-    access: Int,
-    name: String,
-    signature: String?,
-    superName: String,
-    interfaces: Array<String>,
-  ) {
+  override fun visit(version: Int, access: Int, name: String, signature: String?, superName: String, interfaces: Array<String>) {
     currentClassName = name
     super.visit(version, access, name, signature, superName, interfaces)
   }
 
   /**
-   * Creates a new method that calls an existing "name"_Original method and catches any exception
-   * the method might throw. The exception is logged via the Bridge logger.
+   * Creates a new method that calls an existing "name"_Original method and catches any exception the method might throw. The exception is
+   * logged via the Bridge logger.
    *
    * Only void return type methods are currently supported.
    */
-  private fun wrapMethod(
-    access: Int,
-    name: String,
-    desc: String,
-    signature: String?,
-    exceptions: Array<String>?,
-  ) {
-    assert(Type.getReturnType(desc) === Type.VOID_TYPE) {
-      "Non void return methods are not supported"
-    }
+  private fun wrapMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<String>?) {
+    assert(Type.getReturnType(desc) === Type.VOID_TYPE) { "Non void return methods are not supported" }
     val mw = super.visitMethod(access, name, desc, signature, exceptions)
     val tryStart = Label()
     val tryEnd = Label()
@@ -118,27 +95,13 @@ class ViewMethodWrapperTransform(delegate: ClassVisitor) :
     mw.visitVarInsn(Opcodes.ALOAD, throwableIndex)
     mw.visitInsn(Opcodes.ACONST_NULL)
     mw.visitInsn(Opcodes.ACONST_NULL)
-    mw.visitMethodInsn(
-      Opcodes.INVOKEINTERFACE,
-      "com/android/ide/common/rendering/api/ILayoutLog",
-      "error",
-      ERROR_METHOD_DESCRIPTION,
-      true,
-    )
-    if (
-      "onMeasure" == name
-    ) { // For onMeasure we need to generate a call to setMeasureDimension to avoid an exception
+    mw.visitMethodInsn(Opcodes.INVOKEINTERFACE, "com/android/ide/common/rendering/api/ILayoutLog", "error", ERROR_METHOD_DESCRIPTION, true)
+    if ("onMeasure" == name) { // For onMeasure we need to generate a call to setMeasureDimension to avoid an exception
       // when no size is set
       mw.visitVarInsn(Opcodes.ALOAD, 0) // this
       mw.visitInsn(Opcodes.ICONST_0) // measuredWidth
       mw.visitInsn(Opcodes.ICONST_0) // measuredHeight
-      mw.visitMethodInsn(
-        Opcodes.INVOKEVIRTUAL,
-        currentClassName,
-        "setMeasuredDimension",
-        desc,
-        false,
-      )
+      mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL, currentClassName, "setMeasuredDimension", desc, false)
     }
     mw.visitLabel(exit)
     mw.visitFrame(Opcodes.F_SAME, 0, null, 0, null)
@@ -146,13 +109,7 @@ class ViewMethodWrapperTransform(delegate: ClassVisitor) :
     mw.visitMaxs((argumentTypes.size + 1).coerceAtLeast(5), nLocals)
   }
 
-  override fun visitMethod(
-    access: Int,
-    name: String,
-    desc: String,
-    signature: String?,
-    exceptions: Array<String>?,
-  ): MethodVisitor {
+  override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<String>?): MethodVisitor {
     if (
       ("onLayout" == name && "(ZIIII)V" == desc ||
         "onMeasure" == name && "(II)V" == desc ||
@@ -163,8 +120,7 @@ class ViewMethodWrapperTransform(delegate: ClassVisitor) :
     ) {
       wrapMethod(access, name, desc, signature, exceptions)
       // Make the Original method private so that it does not end up calling the inherited method.
-      val modifiedAccess =
-        access and Opcodes.ACC_PUBLIC.inv() and Opcodes.ACC_PROTECTED.inv() or Opcodes.ACC_PRIVATE
+      val modifiedAccess = access and Opcodes.ACC_PUBLIC.inv() and Opcodes.ACC_PROTECTED.inv() or Opcodes.ACC_PRIVATE
       return super.visitMethod(modifiedAccess, name + ORIGINAL_SUFFIX, desc, signature, exceptions)
     }
     return super.visitMethod(access, name, desc, signature, exceptions)

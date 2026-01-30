@@ -38,16 +38,13 @@ import com.intellij.openapi.progress.runBackgroundableTask
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.util.NlsContexts
-import org.jetbrains.android.util.AndroidBundle
 import java.nio.file.Path
+import org.jetbrains.android.util.AndroidBundle
 
 private val LOG = Logger.getInstance(WindowsDefenderCheckService::class.java)
 
 @Service(Service.Level.PROJECT)
-class WindowsDefenderCheckService(
-  private val project: Project,
-  private val checkerProvider: () -> WindowsDefenderChecker
-) {
+class WindowsDefenderCheckService(private val project: Project, private val checkerProvider: () -> WindowsDefenderChecker) {
 
   constructor(project: Project) : this(project, { WindowsDefenderChecker.getInstance() })
 
@@ -61,7 +58,7 @@ class WindowsDefenderCheckService(
     val manualInstructionsLink = "https://d.android.com/r/tools/build-attribution/antivirus-check-manual-instructions"
   }
 
-  /** This value should be set only from the check triggered in [StudioWindowsDefenderCheckerActivity] which should run only on Windows.*/
+  /** This value should be set only from the check triggered in [StudioWindowsDefenderCheckerActivity] which should run only on Windows. */
   private var realTimeProtectionEnabledOnStartup: Boolean? = null
 
   val warningData: WindowsDefenderWarningData
@@ -76,10 +73,7 @@ class WindowsDefenderCheckService(
       return NO_WARNING
     }
 
-  data class WindowsDefenderWarningData(
-    val shouldShowWarning: Boolean,
-    val interestingPaths: List<Path>
-  )
+  data class WindowsDefenderWarningData(val shouldShowWarning: Boolean, val interestingPaths: List<Path>)
 
   /** This should only be called from [StudioWindowsDefenderCheckerActivity] in production code. */
   fun checkRealTimeProtectionStatus() {
@@ -103,8 +97,7 @@ class WindowsDefenderCheckService(
           showWarningNotification(checker.getPathsToExclude(project))
         }
       }
-    }
-    catch (t: Throwable) {
+    } catch (t: Throwable) {
       LOG.error("Error reading Windows Defender status", t)
       realTimeProtectionEnabledOnStartup = null
     }
@@ -120,8 +113,7 @@ class WindowsDefenderCheckService(
       if (success) {
         ignoreCheck(globally = false, callback = {})
         logUserAction(BuildAttributionUiEvent.EventType.DEFENDER_WARNING_AUTO_EXCLUDE_SUCCESS, eventSourcePage)
-      }
-      else {
+      } else {
         logUserAction(BuildAttributionUiEvent.EventType.DEFENDER_WARNING_AUTO_EXCLUDE_FAILURE, eventSourcePage)
       }
       callback(success)
@@ -165,10 +157,12 @@ class WindowsDefenderCheckService(
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT)
         .withProjectId(project)
-        .setBuildAttributionUiEvent(BuildAttributionUiEvent.newBuilder().apply {
-          currentPage = BuildAttributionUiEvent.Page.newBuilder().setPageType(eventSourcePage).setPageEntryIndex(1).build()
-          eventType = actionEventType
-        })
+        .setBuildAttributionUiEvent(
+          BuildAttributionUiEvent.newBuilder().apply {
+            currentPage = BuildAttributionUiEvent.Page.newBuilder().setPageType(eventSourcePage).setPageEntryIndex(1).build()
+            eventType = actionEventType
+          }
+        )
     )
   }
 
@@ -186,32 +180,40 @@ class WindowsDefenderCheckService(
         it.isImportant = true
         it.collapseDirection = Notification.CollapseActionsDirection.KEEP_LEFTMOST
       }
-      .addAction(NotificationAction.createSimple(auto) {
-        runAutoExclusionScript(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_NOTIFICATION, ::showResultNotification)
-      })
+      .addAction(
+        NotificationAction.createSimple(auto) {
+          runAutoExclusionScript(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_NOTIFICATION, ::showResultNotification)
+        }
+      )
       .addAction(NotificationAction.createSimple(manual, ::showManualInstructions))
-      .addAction(NotificationAction.createSimpleExpiring(ignoreForProject) {
-        ignoreCheckForProject(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_NOTIFICATION, ::onIgnoreCallback)
-      })
-      .addAction(NotificationAction.createSimpleExpiring(DiagnosticBundle.message("defender.config.suppress2")) {
-        ignoreCheckGlobally(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_NOTIFICATION, ::onIgnoreCallback)
-      })
+      .addAction(
+        NotificationAction.createSimpleExpiring(ignoreForProject) {
+          ignoreCheckForProject(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_NOTIFICATION, ::onIgnoreCallback)
+        }
+      )
+      .addAction(
+        NotificationAction.createSimpleExpiring(DiagnosticBundle.message("defender.config.suppress2")) {
+          ignoreCheckGlobally(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_NOTIFICATION, ::onIgnoreCallback)
+        }
+      )
       .notify(project)
   }
 
   private fun showResultNotification(success: Boolean) {
     if (success) {
-      notification(DiagnosticBundle.message("defender.config.success"), NotificationType.INFORMATION)
-        .notify(project)
-    }
-    else {
+      notification(DiagnosticBundle.message("defender.config.success"), NotificationType.INFORMATION).notify(project)
+    } else {
       val ignoreForProject = DiagnosticBundle.message("defender.config.suppress1")
       notification(AndroidBundle.message("android.defender.config.failed"), NotificationType.WARNING)
         .addAction(NotificationAction.createSimple(ActionsBundle.message("show.log.notification.text"), ShowLogAction::showLog))
-        .addAction(NotificationAction.createSimple(AndroidBundle.message("android.defender.config.failed.instructions"), ::showManualInstructions))
-        .addAction(NotificationAction.createSimpleExpiring(ignoreForProject) {
-          ignoreCheckForProject(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_NOTIFICATION, ::onIgnoreCallback)
-        })
+        .addAction(
+          NotificationAction.createSimple(AndroidBundle.message("android.defender.config.failed.instructions"), ::showManualInstructions)
+        )
+        .addAction(
+          NotificationAction.createSimpleExpiring(ignoreForProject) {
+            ignoreCheckForProject(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_NOTIFICATION, ::onIgnoreCallback)
+          }
+        )
         .notify(project)
     }
   }
@@ -223,16 +225,14 @@ class WindowsDefenderCheckService(
 
   private fun onIgnoreCallback() {
     val action = ActionsBundle.message("action.ResetWindowsDefenderNotification.text")
-    notification(DiagnosticBundle.message("defender.config.restore", action), NotificationType.INFORMATION)
-      .notify(project)
+    notification(DiagnosticBundle.message("defender.config.restore", action), NotificationType.INFORMATION).notify(project)
   }
 }
 
 /**
  * This activity checks the status of Windows Defender, approximately at the same time as IJ code in
- * [com.intellij.diagnostic.WindowsDefenderCheckerActivity] does it. We don't want to run this check on every build
- * to not provoke additional "suspicious activity" warnings from the system.
- * It runs only for windows, filter is defined in plugin.xml.
+ * [com.intellij.diagnostic.WindowsDefenderCheckerActivity] does it. We don't want to run this check on every build to not provoke
+ * additional "suspicious activity" warnings from the system. It runs only for windows, filter is defined in plugin.xml.
  */
 class StudioWindowsDefenderCheckerActivity : ProjectActivity {
   init {
@@ -250,8 +250,8 @@ class StudioWindowsDefenderCheckerActivity : ProjectActivity {
 }
 
 /**
- * Override instance of original [com.intellij.diagnostic.WindowsDefenderChecker] to make it provide our documentation link
- * in the reset flow triggered by [com.intellij.diagnostic.ResetWindowsDefenderNotification].
+ * Override instance of original [com.intellij.diagnostic.WindowsDefenderChecker] to make it provide our documentation link in the reset
+ * flow triggered by [com.intellij.diagnostic.ResetWindowsDefenderNotification].
  */
 class WindowsDefenderCheckerOverride : com.intellij.diagnostic.WindowsDefenderChecker() {
   override fun getConfigurationInstructionsUrl(): String = WindowsDefenderCheckService.manualInstructionsLink

@@ -26,5 +26,6 @@ object CpuProfilerUITestUtils {
 
   // We use a different path than in "profilers" modules, because resources from "profilers" modules is not accessible from "profilers-ui".
   fun validCapture(profilers: StudioProfilers) = CpuProfilerTestUtils.getCapture(profilers, VALID_TRACE_PATH)
+
   fun getTraceContents(path: String) = CpuProfilerTestUtils.traceFileToByteString(resolveWorkspacePath(path).toFile())
 }

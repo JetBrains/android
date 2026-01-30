@@ -19,11 +19,7 @@ import com.android.resources.ResourceFolderType
 import org.jetbrains.android.dom.SingleRootResourceDomFileDescription
 
 class AccessibilityServiceDomFileDescription :
-  SingleRootResourceDomFileDescription<AccessibilityService>(
-    AccessibilityService::class.java,
-    ROOT_TAG_NAME,
-    ResourceFolderType.XML,
-  ) {
+  SingleRootResourceDomFileDescription<AccessibilityService>(AccessibilityService::class.java, ROOT_TAG_NAME, ResourceFolderType.XML) {
   companion object {
     const val ROOT_TAG_NAME = "accessibility-service"
   }

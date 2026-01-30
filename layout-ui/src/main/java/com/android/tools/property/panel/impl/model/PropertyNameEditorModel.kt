@@ -21,8 +21,7 @@ import com.android.tools.property.panel.api.PropertyItem
 import kotlin.properties.Delegates
 
 /** Model of a text editor for editing a property name. */
-class PropertyNameEditorModel(newPropertyItem: NewPropertyItem) :
-  TextFieldPropertyEditorModel(newPropertyItem, true) {
+class PropertyNameEditorModel(newPropertyItem: NewPropertyItem) : TextFieldPropertyEditorModel(newPropertyItem, true) {
 
   override val editingValue = false
 
@@ -39,8 +38,7 @@ class PropertyNameEditorModel(newPropertyItem: NewPropertyItem) :
       super.property = value
     }
 
-  override var text by
-    Delegates.observable(newProperty.name) { _, _, _ -> pendingValueChange = false }
+  override var text by Delegates.observable(newProperty.name) { _, _, _ -> pendingValueChange = false }
 
   override var value: String
     get() = newProperty.name

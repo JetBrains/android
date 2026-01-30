@@ -22,12 +22,12 @@ import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBViewport
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBInsets
-import org.junit.Assume.assumeFalse
-import org.junit.Assume.assumeTrue
-import org.junit.Test
 import java.awt.BorderLayout
 import java.awt.event.KeyEvent.VK_SHIFT
 import javax.swing.JPanel
+import org.junit.Assume.assumeFalse
+import org.junit.Assume.assumeTrue
+import org.junit.Test
 
 class CpuListScrollPaneTest {
 

@@ -18,9 +18,7 @@ package com.android.tools.profilers.cpu.config
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.profiler.proto.Trace
 
-/**
- * Unspecified configuration used as a placeholder configuration for things like ui objects.
- */
+/** Unspecified configuration used as a placeholder configuration for things like ui objects. */
 open class UnspecifiedConfiguration(name: String) : ProfilingConfiguration(name) {
   override fun getTraceType(): TraceType {
     return TraceType.UNSPECIFIED

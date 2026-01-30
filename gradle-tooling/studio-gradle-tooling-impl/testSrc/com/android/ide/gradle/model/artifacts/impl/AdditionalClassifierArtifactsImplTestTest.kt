@@ -18,9 +18,7 @@ package com.android.ide.gradle.model.artifacts.impl
 import nl.jqno.equalsverifier.EqualsVerifier
 import org.junit.Test
 
-/**
- * Test class for [AdditionalClassifierArtifactsImpl].
- */
+/** Test class for [AdditionalClassifierArtifactsImpl]. */
 class AdditionalClassifierArtifactsImplTest {
   @Test
   @Throws(Exception::class)

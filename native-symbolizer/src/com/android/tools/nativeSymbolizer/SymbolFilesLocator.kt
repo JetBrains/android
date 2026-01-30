@@ -19,9 +19,8 @@ import com.android.sdklib.devices.Abi
 import java.io.File
 
 /**
- * A wrapper around a SymbolSource that helps with finding all the symbol files and/or directories
- * for a given cpu architecture. This class does not (and should not) cache any results as the
- * underlying symbol source may update.
+ * A wrapper around a SymbolSource that helps with finding all the symbol files and/or directories for a given cpu architecture. This class
+ * does not (and should not) cache any results as the underlying symbol source may update.
  */
 class SymbolFilesLocator(private val source: SymbolSource) {
   private companion object {

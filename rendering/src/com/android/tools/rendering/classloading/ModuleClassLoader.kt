@@ -23,16 +23,13 @@ import com.intellij.openapi.diagnostic.Logger
 private val LOG = Logger.getInstance(ModuleClassLoader::class.java)
 
 /**
- * Classloader used in rendering and responsible for loading classes for a specific android project
- * module, restricting and isolating access the same way it is done in the actual android
- * application.
+ * Classloader used in rendering and responsible for loading classes for a specific android project module, restricting and isolating access
+ * the same way it is done in the actual android application.
  *
- * TODO(b/270114046): Rework this solution. Consider having a pure interface with with one of the
- *   method returning [ClassLoader] instead of extending abstract class and/or [ClassLoader] that
- *   reduces flexibility.
+ * TODO(b/270114046): Rework this solution. Consider having a pure interface with with one of the method returning [ClassLoader] instead of
+ *   extending abstract class and/or [ClassLoader] that reduces flexibility.
  */
-abstract class ModuleClassLoader(parent: ClassLoader?, loader: Loader) :
-  DelegatingClassLoader(parent, loader) {
+abstract class ModuleClassLoader(parent: ClassLoader?, loader: Loader) : DelegatingClassLoader(parent, loader) {
   abstract val stats: ModuleClassLoaderDiagnosticsRead
   abstract val isDisposed: Boolean
 
@@ -41,18 +38,12 @@ abstract class ModuleClassLoader(parent: ClassLoader?, loader: Loader) :
   protected abstract fun areDependenciesUpToDate(): Boolean
 
   /**
-   * Checks if the [ModuleClassLoader] has the same transformations and parent [ClassLoader] making
-   * it compatible but not necessarily up-to-date because it does not check the state of user
-   * project files. Compatibility means that the [ModuleClassLoader] can be used if it did not load
-   * any classes from the user source code. This allows for pre-loading the classes from
-   * dependencies (which are usually more stable than user code) and speeding up the preview update
-   * when user changes the source code (but not dependencies).
+   * Checks if the [ModuleClassLoader] has the same transformations and parent [ClassLoader] making it compatible but not necessarily
+   * up-to-date because it does not check the state of user project files. Compatibility means that the [ModuleClassLoader] can be used if
+   * it did not load any classes from the user source code. This allows for pre-loading the classes from dependencies (which are usually
+   * more stable than user code) and speeding up the preview update when user changes the source code (but not dependencies).
    */
-  fun isCompatible(
-    parent: ClassLoader?,
-    projectTransformations: ClassTransform,
-    nonProjectTransformations: ClassTransform,
-  ) =
+  fun isCompatible(parent: ClassLoader?, projectTransformations: ClassTransform, nonProjectTransformations: ClassTransform) =
     when {
       !this.isCompatibleParentClassLoader(parent) -> {
         LOG.debug("Parent has changed, discarding ModuleClassLoader")
@@ -73,8 +64,8 @@ abstract class ModuleClassLoader(parent: ClassLoader?, loader: Loader) :
     }
 
   /**
-   * Checks whether any of the .class files loaded by this loader have changed since the creation of
-   * this class loader. Always returns false if there has not been any PSI changes.
+   * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader. Always returns false
+   * if there has not been any PSI changes.
    */
   abstract val isUserCodeUpToDate: Boolean
 
@@ -101,14 +92,8 @@ private fun ModuleClassLoader.areTransformationsUpToDate(
   projectClassesTransformationProvider: ClassTransform,
   nonProjectClassesTransformationProvider: ClassTransform,
 ): Boolean {
-  return (calculateTransformationsUniqueId(
-    this.projectClassesTransform,
-    this.nonProjectClassesTransform,
-  ) ==
-    calculateTransformationsUniqueId(
-      projectClassesTransformationProvider,
-      nonProjectClassesTransformationProvider,
-    ))
+  return (calculateTransformationsUniqueId(this.projectClassesTransform, this.nonProjectClassesTransform) ==
+    calculateTransformationsUniqueId(projectClassesTransformationProvider, nonProjectClassesTransformationProvider))
 }
 
 private fun calculateTransformationsUniqueId(

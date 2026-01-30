@@ -17,14 +17,11 @@ package com.android.tools.profilers.taskbased
 
 import com.android.tools.profilers.Notification.Companion.createError
 
-/**
- * CPU related notification constants.
- */
+/** CPU related notification constants. */
 object TaskNotifications {
   private const val TRY_TASK_AGAIN_MSG = "Try starting the task again or "
 
-  @JvmField
-  val STARTUP_TASK_FAILURE = createError("Task could not be launched on startup", TRY_TASK_AGAIN_MSG)
+  @JvmField val STARTUP_TASK_FAILURE = createError("Task could not be launched on startup", TRY_TASK_AGAIN_MSG)
 
   // May be used when the starting point is process start as well (if the error isn't specific to startup).
   val LAUNCH_TASK_FAILURE = createError("Task launch error", TRY_TASK_AGAIN_MSG)

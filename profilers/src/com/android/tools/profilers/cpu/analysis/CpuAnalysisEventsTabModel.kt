@@ -25,40 +25,24 @@ import com.android.tools.profilers.cpu.CpuThreadTrackModel
  * @param <T> type of the data to select events from.</T>
  */
 abstract class CpuAnalysisEventsTabModel<T>(val captureRange: Range) : CpuAnalysisTabModel<T>(Type.EVENTS) {
-  /**
-   * @return list of nodes to put in the table
-   */
+  /** @return list of nodes to put in the table */
   abstract fun getNodes(): List<CaptureNode>
 }
 
-/**
- * Events tab model for threads.
- */
+/** Events tab model for threads. */
 class CpuThreadAnalysisEventsTabModel(captureRange: Range) : CpuAnalysisEventsTabModel<CpuThreadTrackModel>(captureRange) {
 
-  /**
-   * @return all nodes in this thread.
-   */
-  override fun getNodes() = dataSeries
-    .mapNotNull { it.callChartModel.node }
-    .flatMap {
-      it.descendantsStream.filter { node ->
-        node.depth > 0
-      }.toList()
-    }
+  /** @return all nodes in this thread. */
+  override fun getNodes() =
+    dataSeries.mapNotNull { it.callChartModel.node }.flatMap { it.descendantsStream.filter { node -> node.depth > 0 }.toList() }
 }
 
-/**
- * Events tab model for capture node.
- */
+/** Events tab model for capture node. */
 class CaptureNodeAnalysisEventsTabModel(captureRange: Range) : CpuAnalysisEventsTabModel<CaptureNodeAnalysisModel>(captureRange) {
 
-  /**
-   * @return all occurrences of this node in the current thread.
-   */
-  override fun getNodes() = dataSeries.flatMap {
-    it.node.findRootNode().descendantsStream.filter { child ->
-      child.data.fullName == it.node.data.fullName
-    }.toList()
-  }
+  /** @return all occurrences of this node in the current thread. */
+  override fun getNodes() =
+    dataSeries.flatMap {
+      it.node.findRootNode().descendantsStream.filter { child -> child.data.fullName == it.node.data.fullName }.toList()
+    }
 }

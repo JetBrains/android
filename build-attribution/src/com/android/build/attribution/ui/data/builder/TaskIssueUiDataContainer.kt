@@ -30,15 +30,11 @@ import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.buildanalyzer.common.TaskCategory
 import java.util.EnumMap
 
-
 /**
- * This class holds [TaskIssueUiData] representations for issues detected by Gradle build analyzers.
- * Clients may assume there is only one [TaskIssueUiData] for each issue detected.
- * It gets build analysis results from [buildAnalysisResult].
+ * This class holds [TaskIssueUiData] representations for issues detected by Gradle build analyzers. Clients may assume there is only one
+ * [TaskIssueUiData] for each issue detected. It gets build analysis results from [buildAnalysisResult].
  */
-class TaskIssueUiDataContainer(
-  private val buildAnalysisResult: BuildEventsAnalysisResult
-) {
+class TaskIssueUiDataContainer(private val buildAnalysisResult: BuildEventsAnalysisResult) {
 
   private val issuesByTask: MutableMap<TaskData, MutableList<TaskIssueUiData>> = HashMap()
   private val issuesByType: MutableMap<TaskIssueType, MutableList<TaskIssueUiData>> = EnumMap(TaskIssueType::class.java)
@@ -51,21 +47,21 @@ class TaskIssueUiDataContainer(
         it.taskData,
         if (it.rerunReason == AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE) {
           AlwaysRunUpToDateOverride(tasksUiDataContainer.getByTaskData(it.taskData))
-        }
-        else {
+        } else {
           AlwaysRunNoOutputIssue(tasksUiDataContainer.getByTaskData(it.taskData))
-        }
+        },
       )
     }
     buildAnalysisResult.getTasksSharingOutput().forEach { taskSharingIssue ->
       taskSharingIssue.taskList.forEach { task ->
         addNewIssue(
           taskData = task,
-          issueUiData = TaskSetupIssue(
-            task = tasksUiDataContainer.getByTaskData(task),
-            connectedTask = tasksUiDataContainer.getByTaskData(taskSharingIssue.taskList.first { it != task }),
-            outputFolder = taskSharingIssue.outputFilePath
-          )
+          issueUiData =
+            TaskSetupIssue(
+              task = tasksUiDataContainer.getByTaskData(task),
+              connectedTask = tasksUiDataContainer.getByTaskData(taskSharingIssue.taskList.first { it != task }),
+              outputFolder = taskSharingIssue.outputFilePath,
+            ),
         )
       }
     }
@@ -79,90 +75,92 @@ class TaskIssueUiDataContainer(
 
   fun issuesForTask(taskData: TaskData): List<TaskIssueUiData> = issuesByTask[taskData] ?: emptyList()
 
-  /**
-   * Returns all [TaskIssueUiData] representations for detected issues grouped by issue type.
-   */
-  fun allIssueGroups(): List<TaskIssuesGroup> = issuesByType
-    .map { (issueType, issuesList) -> toTaskIssueGroup(issueType, issuesList) }
-    .sortedBy { it.type.ordinal }
+  /** Returns all [TaskIssueUiData] representations for detected issues grouped by issue type. */
+  fun allIssueGroups(): List<TaskIssuesGroup> =
+    issuesByType.map { (issueType, issuesList) -> toTaskIssueGroup(issueType, issuesList) }.sortedBy { it.type.ordinal }
 
-  private fun toTaskIssueGroup(issueType: TaskIssueType, issuesList: List<TaskIssueUiData>): TaskIssuesGroup = object : TaskIssuesGroup {
-    override val type = issueType
-    override val issues: List<TaskIssueUiData> = issuesList.sortedByDescending { it.task.executionTime }
-    override val timeContribution =
-      TimeWithPercentage(issues.map { it.task.executionTime.timeMs }.sum(), buildAnalysisResult.getTotalBuildTimeMs())
-  }
+  private fun toTaskIssueGroup(issueType: TaskIssueType, issuesList: List<TaskIssueUiData>): TaskIssuesGroup =
+    object : TaskIssuesGroup {
+      override val type = issueType
+      override val issues: List<TaskIssueUiData> = issuesList.sortedByDescending { it.task.executionTime }
+      override val timeContribution =
+        TimeWithPercentage(issues.map { it.task.executionTime.timeMs }.sum(), buildAnalysisResult.getTotalBuildTimeMs())
+    }
 
   /**
-   * Returns all [TaskIssueUiData] representations for detected issues for plugin passed as [pluginData] grouped by issue type.
-   * [pluginData] is a plugin object from gradle build analysers.
+   * Returns all [TaskIssueUiData] representations for detected issues for plugin passed as [pluginData] grouped by issue type. [pluginData]
+   * is a plugin object from gradle build analysers.
    */
-  fun pluginIssueGroups(pluginData: PluginData): List<TaskIssuesGroup> = issuesByPlugin
-    .getOrDefault(pluginData, emptyList<TaskIssueUiData>())
-    .groupBy { it.type }
-    .map { (issueType, issuesList) -> toTaskIssueGroup(issueType, issuesList) }
-    .sortedBy { it.type.ordinal }
+  fun pluginIssueGroups(pluginData: PluginData): List<TaskIssuesGroup> =
+    issuesByPlugin
+      .getOrDefault(pluginData, emptyList<TaskIssueUiData>())
+      .groupBy { it.type }
+      .map { (issueType, issuesList) -> toTaskIssueGroup(issueType, issuesList) }
+      .sortedBy { it.type.ordinal }
 
-  fun taskCategoryIssueGroups(taskCategoryData: TaskCategory): List<TaskIssuesGroup> = issuesByTaskCategory
-    .getOrDefault(taskCategoryData, emptyList<TaskIssueUiData>())
-    .groupBy{ it.type }
-    .map { (issueType, issuesList) -> toTaskIssueGroup(issueType, issuesList) }
-    .sortedBy { it.type.ordinal }
+  fun taskCategoryIssueGroups(taskCategoryData: TaskCategory): List<TaskIssuesGroup> =
+    issuesByTaskCategory
+      .getOrDefault(taskCategoryData, emptyList<TaskIssueUiData>())
+      .groupBy { it.type }
+      .map { (issueType, issuesList) -> toTaskIssueGroup(issueType, issuesList) }
+      .sortedBy { it.type.ordinal }
 
-  class TaskSetupIssue(
-    override val task: TaskUiData,
-    override val connectedTask: TaskUiData,
-    val outputFolder: String
-  ) : InterTaskIssueUiData {
+  class TaskSetupIssue(override val task: TaskUiData, override val connectedTask: TaskUiData, val outputFolder: String) :
+    InterTaskIssueUiData {
     override val type = TaskIssueType.TASK_SETUP_ISSUE
     override val bugReportTitle = type.uiName
     override val bugReportBriefDescription =
       "Task declares the same output directory as task ${connectedTask.name} from ${connectedTask.pluginUiName()}: '$outputFolder'."
-    override val explanation = """
+    override val explanation =
+      """
 This task declares the same output directory as task '${connectedTask.taskPath}':
 $outputFolder
 As a result, these tasks are not able to take advantage of incremental
 build optimizations and might need to run with each subsequent build.
-""".trimIndent()
+"""
+        .trimIndent()
     override val helpLink = BuildAnalyzerBrowserLinks.DUPLICATE_OUTPUT_FOLDER_ISSUE
     override val buildSrcRecommendation = "Edit the plugin(s) to ensure each task specifies a unique output directory."
   }
 
-  class AlwaysRunNoOutputIssue(
-    override val task: TaskUiData
-  ) : TaskIssueUiData {
+  class AlwaysRunNoOutputIssue(override val task: TaskUiData) : TaskIssueUiData {
     override val type = TaskIssueType.ALWAYS_RUN_TASKS
     override val bugReportTitle = "${type.uiName} No Output Declared"
     override val bugReportBriefDescription = "Task runs on every build because it declares no outputs."
-    override val explanation: String = """
+    override val explanation: String =
+      """
       This task runs on every build because it declares no outputs,
       which it must do in order to support incremental builds.
-    """.trimIndent()
+      """
+        .trimIndent()
     override val helpLink = BuildAnalyzerBrowserLinks.NO_OUTPUTS_DECLARED_ISSUE
-    override val buildSrcRecommendation = """
+    override val buildSrcRecommendation =
+      """
       Annotate the task output fields with one of:
       OutputDirectory, OutputDirectories, OutputFile, OutputFiles
-    """.trimIndent()
+      """
+        .trimIndent()
   }
 
-  class AlwaysRunUpToDateOverride(
-    override val task: TaskUiData
-  ) : TaskIssueUiData {
+  class AlwaysRunUpToDateOverride(override val task: TaskUiData) : TaskIssueUiData {
     override val type = TaskIssueType.ALWAYS_RUN_TASKS
     override val bugReportTitle = "${type.uiName} Up-To-Date Override"
     override val bugReportBriefDescription = "This task might be setting its up-to-date check to always return false."
-    override val explanation: String = """
-This task might be setting its up-to-date check to always return <code>false</code>,
-which means that it must regenerate its output during every build.
-For example, the task might set the following: <code>outputs.upToDateWhen { false }</code>.
-To optimize task execution with up-to-date checks, remove the <code>upToDateWhen</code> enclosure.
-""".trimIndent()
+    override val explanation: String =
+      """
+      This task might be setting its up-to-date check to always return <code>false</code>,
+      which means that it must regenerate its output during every build.
+      For example, the task might set the following: <code>outputs.upToDateWhen { false }</code>.
+      To optimize task execution with up-to-date checks, remove the <code>upToDateWhen</code> enclosure.
+      """
+        .trimIndent()
     override val helpLink = BuildAnalyzerBrowserLinks.UP_TO_DATE_EQUALS_FALSE_ISSUE
     override val buildSrcRecommendation = "Ensure that you don't automatically override up-to-date checks."
   }
 }
 
-private fun TaskUiData.pluginUiName(): String = when(sourceType) {
-  PluginSourceType.BUILD_SCRIPT -> "build script"
-  else -> pluginName
-}
+private fun TaskUiData.pluginUiName(): String =
+  when (sourceType) {
+    PluginSourceType.BUILD_SCRIPT -> "build script"
+    else -> pluginName
+  }

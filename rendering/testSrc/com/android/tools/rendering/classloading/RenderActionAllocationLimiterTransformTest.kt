@@ -82,15 +82,10 @@ class RenderActionAllocationLimiterTransformTest {
         RenderActionAllocationLimiterTransform(visitor, 100, maxAllocationsPerRenderAction = 100)
       }
     val loopTestInstance =
-      testClassLoader
-        .loadClass(AllocationTestClass::class.simpleName!!)
-        .getDeclaredConstructor()
-        .newInstance() as AllocationTestInterface
+      testClassLoader.loadClass(AllocationTestClass::class.simpleName!!).getDeclaredConstructor().newInstance() as AllocationTestInterface
 
     try {
-      RenderService.getRenderAsyncActionExecutor()
-        .runAsyncAction { loopTestInstance.call(102) }
-        .get(10, TimeUnit.SECONDS)
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction { loopTestInstance.call(102) }.get(10, TimeUnit.SECONDS)
       fail("Expected TooManyAllocationsException")
     } catch (e: ExecutionException) {
       assertTrue(e.cause is TooManyAllocationsException)
@@ -109,15 +104,10 @@ class RenderActionAllocationLimiterTransformTest {
         RenderActionAllocationLimiterTransform(visitor, 1, maxAllocationsPerRenderAction = 1)
       }
     val loopTestInstance =
-      testClassLoader
-        .loadClass(AllocationTestClass::class.simpleName!!)
-        .getDeclaredConstructor()
-        .newInstance() as AllocationTestInterface
+      testClassLoader.loadClass(AllocationTestClass::class.simpleName!!).getDeclaredConstructor().newInstance() as AllocationTestInterface
 
     try {
-      RenderService.getRenderAsyncActionExecutor()
-        .runAsyncAction { loopTestInstance.call(5000) }
-        .get(10, TimeUnit.SECONDS)
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction { loopTestInstance.call(5000) }.get(10, TimeUnit.SECONDS)
       fail("Expected TooManyAllocationsException")
     } catch (e: ExecutionException) {
       assertTrue(e.cause is TooManyAllocationsException)
@@ -136,16 +126,9 @@ class RenderActionAllocationLimiterTransformTest {
         RenderActionAllocationLimiterTransform(visitor, 100, maxAllocationsPerRenderAction = 100)
       }
     val loopTestInstance =
-      testClassLoader
-        .loadClass(AllocationTestClass::class.simpleName!!)
-        .getDeclaredConstructor()
-        .newInstance() as AllocationTestInterface
+      testClassLoader.loadClass(AllocationTestClass::class.simpleName!!).getDeclaredConstructor().newInstance() as AllocationTestInterface
 
     // None of the 5 actions should hit the allocation limit since they run 90 times each
-    repeat(5) {
-      RenderService.getRenderAsyncActionExecutor()
-        .runAsyncAction { loopTestInstance.call(90) }
-        .get(10, TimeUnit.SECONDS)
-    }
+    repeat(5) { RenderService.getRenderAsyncActionExecutor().runAsyncAction { loopTestInstance.call(90) }.get(10, TimeUnit.SECONDS) }
   }
 }

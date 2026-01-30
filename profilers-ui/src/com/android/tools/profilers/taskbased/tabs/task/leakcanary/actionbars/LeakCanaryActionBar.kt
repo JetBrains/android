@@ -63,21 +63,16 @@ fun LeakCanaryActionBar(leakCanaryModel: LeakCanaryModel) {
   val analysisProgress by leakCanaryModel.analysisProgress.collectAsState()
   val isForceDumpEnabled = objectRetainedCount != 0 && analysisProgress == 0
   if (isRecording) {
-    Row(modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP),
-        verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP), verticalAlignment = Alignment.CenterVertically) {
       RecordingTimer(leakCanaryModel)
       Spacer(modifier = Modifier.weight(1f))
       HeapDumpAndAnalysisStatus(leakCanaryModel)
       Spacer(modifier = Modifier.width(8.dp))
       if (leakCanaryModel.isLeakCanaryMilestone2Enabled) {
-        DefaultButton(onClick = { leakCanaryModel.forceHeapDump() }, enabled = isForceDumpEnabled) {
-          Text(LEAKCANARY_FORCE_DUMP)
-        }
+        DefaultButton(onClick = { leakCanaryModel.forceHeapDump() }, enabled = isForceDumpEnabled) { Text(LEAKCANARY_FORCE_DUMP) }
         Spacer(modifier = Modifier.width(8.dp))
       }
-      DefaultButton(onClick = leakCanaryModel::stopListening) {
-        Text(ACTION_BAR_STOP_RECORDING)
-      }
+      DefaultButton(onClick = leakCanaryModel::stopListening) { Text(ACTION_BAR_STOP_RECORDING) }
     }
   }
 }
@@ -90,10 +85,7 @@ fun RecordingTimer(leakCanaryModel: LeakCanaryModel) {
 
   if (isRecording) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-      Icon(
-        StudioIconsCompose.Profiler.Toolbar.StopRecording,
-        contentDescription = TaskBasedUxStrings.RECORDING_IN_PROGRESS
-      )
+      Icon(StudioIconsCompose.Profiler.Toolbar.StopRecording, contentDescription = TaskBasedUxStrings.RECORDING_IN_PROGRESS)
       Spacer(modifier = Modifier.width(8.dp))
       Text(ACTION_BAR_RECORDING, fontWeight = FontWeight.SemiBold)
       Spacer(modifier = Modifier.width(2.dp))
@@ -108,22 +100,22 @@ fun HeapDumpAndAnalysisStatus(leakCanaryModel: LeakCanaryModel) {
   val analysisProgress by leakCanaryModel.analysisProgress.collectAsState()
   val requiredRetainedObjectCount = leakCanaryModel.requiredRetainedObjectCount
 
-  if(analysisProgress > 0 || objectRetainedCount >= requiredRetainedObjectCount){
+  if (analysisProgress > 0 || objectRetainedCount >= requiredRetainedObjectCount) {
     Text(LEAKCANARY_ANALYSIS)
-    HorizontalProgressBar(analysisProgress/100f,
-                          modifier = Modifier
-                            .width(140.dp)
-                            .height(4.dp)
-                            .padding(horizontal = 10.dp)
-                            .testTag("AnalysisProgressBar"))
-  }
-  else {
-    val text = AnnotatedString.Builder().apply {
-      withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-        append("$objectRetainedCount ${objectRetainedText(objectRetainedCount)}")
-      }
-      append(" $LEAKCANARY_WAITING_HEAP_DUMP $requiredRetainedObjectCount ${objectRetainedText(requiredRetainedObjectCount)}")
-    }.toAnnotatedString()
+    HorizontalProgressBar(
+      analysisProgress / 100f,
+      modifier = Modifier.width(140.dp).height(4.dp).padding(horizontal = 10.dp).testTag("AnalysisProgressBar"),
+    )
+  } else {
+    val text =
+      AnnotatedString.Builder()
+        .apply {
+          withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+            append("$objectRetainedCount ${objectRetainedText(objectRetainedCount)}")
+          }
+          append(" $LEAKCANARY_WAITING_HEAP_DUMP $requiredRetainedObjectCount ${objectRetainedText(requiredRetainedObjectCount)}")
+        }
+        .toAnnotatedString()
     Text(text, modifier = Modifier.padding(end = 10.dp))
   }
 }

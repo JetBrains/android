@@ -41,55 +41,58 @@ import java.awt.geom.Rectangle2D
 import java.util.function.BooleanSupplier
 import javax.swing.JComponent
 
-/**
- * Track renderer for the a frame lifecycle track representing Android frames in a specific rendering phase.
- */
+/** Track renderer for the a frame lifecycle track representing Android frames in a specific rendering phase. */
 class AndroidFrameEventTrackRenderer(private val vsyncEnabler: BooleanSupplier) : TrackRenderer<AndroidFrameEventTrackModel> {
   override fun render(trackModel: TrackModel<AndroidFrameEventTrackModel, *>): JComponent {
     val model = trackModel.dataModel
     val isSharedTimeline = model.timelineEventByFrameNumber.isNotEmpty()
-    val stateChart = when {
-      isSharedTimeline ->
-        StateChart(model, rendererForSharedTimeline(model.androidFramePhase,
-                                                    model.multiSelectionModel,
-                                                    model.timelineEventByFrameNumber))
-      else -> StateChart(model, AndroidFrameEventColorProvider(), AndroidFrameEventTextProvider())
-    }
+    val stateChart =
+      when {
+        isSharedTimeline ->
+          StateChart(model, rendererForSharedTimeline(model.androidFramePhase, model.multiSelectionModel, model.timelineEventByFrameNumber))
+        else -> StateChart(model, AndroidFrameEventColorProvider(), AndroidFrameEventTextProvider())
+      }
     stateChart.addRowIndexChangeListener { model.activeSeriesIndex = it }
-    val content = when {
-      isSharedTimeline -> FrameTimelineSelectionOverlayPanel.of(stateChart, model.viewRange, model.multiSelectionModel,
-                                                                GrayOutMode.None, true)
-      else -> stateChart
-    }
+    val content =
+      when {
+        isSharedTimeline ->
+          FrameTimelineSelectionOverlayPanel.of(stateChart, model.viewRange, model.multiSelectionModel, GrayOutMode.None, true)
+        else -> stateChart
+      }
     return VsyncPanel.of(content, model.vsyncSeries, vsyncEnabler)
   }
 
-  private fun rendererForSharedTimeline(phase: AndroidFramePhase,
-                                        multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
-                                        timelineEventIndex: Map<Long, AndroidFrameTimelineEvent>)
-    : Renderer<AndroidFrameEvent> = { g, boundary, fontMetrics, hovered, frame ->
+  private fun rendererForSharedTimeline(
+    phase: AndroidFramePhase,
+    multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
+    timelineEventIndex: Map<Long, AndroidFrameTimelineEvent>,
+  ): Renderer<AndroidFrameEvent> = { g, boundary, fontMetrics, hovered, frame ->
     if (frame is AndroidFrameEvent.Data) {
       val correspondingTimelineEvent = timelineEventIndex[frame.frameNumber.toLong()]
       val isActive = correspondingTimelineEvent === multiSelectionModel.activeSelectionKey
       // paint frame
-      val borderColor = when {
-        correspondingTimelineEvent == null -> fadedNeutralLifecycleEvent
-        isActive -> when (phase) {
-          AndroidFramePhase.Composition, AndroidFramePhase.Display -> neutralLifecycleEvent
-          else -> correspondingTimelineEvent.getActiveColor()
+      val borderColor =
+        when {
+          correspondingTimelineEvent == null -> fadedNeutralLifecycleEvent
+          isActive ->
+            when (phase) {
+              AndroidFramePhase.Composition,
+              AndroidFramePhase.Display -> neutralLifecycleEvent
+              else -> correspondingTimelineEvent.getActiveColor()
+            }
+          else ->
+            when (phase) {
+              AndroidFramePhase.Composition,
+              AndroidFramePhase.Display -> fadedNeutralLifecycleEvent
+              else -> correspondingTimelineEvent.getPassiveColor()
+            }
         }
-        else -> when (phase) {
-          AndroidFramePhase.Composition, AndroidFramePhase.Display -> fadedNeutralLifecycleEvent
-          else -> correspondingTimelineEvent.getPassiveColor()
-        }
-      }
       val borderX = 1
       val borderY = 1
       g.color = borderColor
       g.fill(boundary)
       g.color = ProfilerColors.CPU_STATECHART_DEFAULT_STATE
-      g.fill(Rectangle2D.Float(boundary.x + borderX, boundary.y + borderY,
-                               boundary.width - 2 * borderX, boundary.height - 2 * borderY - 1))
+      g.fill(Rectangle2D.Float(boundary.x + borderX, boundary.y + borderY, boundary.width - 2 * borderX, boundary.height - 2 * borderY - 1))
 
       // draw text
       val textPadding = borderX + 1
@@ -108,20 +111,23 @@ class AndroidFrameEventTrackRenderer(private val vsyncEnabler: BooleanSupplier) 
 }
 
 private class AndroidFrameEventColorProvider : StateChartColorProvider<AndroidFrameEvent>() {
-  override fun getColor(isMouseOver: Boolean, value: AndroidFrameEvent): Color = when (value) {
-    is AndroidFrameEvent.Data -> DataVisualizationColors.paletteManager.getBackgroundColor(value.frameNumber, isMouseOver)
-    is AndroidFrameEvent.Padding -> UIUtil.TRANSPARENT_COLOR
-  }
+  override fun getColor(isMouseOver: Boolean, value: AndroidFrameEvent): Color =
+    when (value) {
+      is AndroidFrameEvent.Data -> DataVisualizationColors.paletteManager.getBackgroundColor(value.frameNumber, isMouseOver)
+      is AndroidFrameEvent.Padding -> UIUtil.TRANSPARENT_COLOR
+    }
 
-  override fun getFontColor(isMouseOver: Boolean, value: AndroidFrameEvent): Color = when (value) {
-    is AndroidFrameEvent.Data -> DataVisualizationColors.paletteManager.getForegroundColor(value.frameNumber)
-    is AndroidFrameEvent.Padding -> UIUtil.TRANSPARENT_COLOR
-  }
+  override fun getFontColor(isMouseOver: Boolean, value: AndroidFrameEvent): Color =
+    when (value) {
+      is AndroidFrameEvent.Data -> DataVisualizationColors.paletteManager.getForegroundColor(value.frameNumber)
+      is AndroidFrameEvent.Padding -> UIUtil.TRANSPARENT_COLOR
+    }
 }
 
 private class AndroidFrameEventTextProvider : StateChartTextConverter<AndroidFrameEvent> {
-  override fun convertToString(value: AndroidFrameEvent): String = when (value) {
-    is AndroidFrameEvent.Data -> value.frameNumber.toString()
-    is AndroidFrameEvent.Padding -> ""
-  }
+  override fun convertToString(value: AndroidFrameEvent): String =
+    when (value) {
+      is AndroidFrameEvent.Data -> value.frameNumber.toString()
+      is AndroidFrameEvent.Padding -> ""
+    }
 }

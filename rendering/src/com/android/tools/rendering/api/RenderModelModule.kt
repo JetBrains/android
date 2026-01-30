@@ -75,10 +75,7 @@ interface RenderModelModule : IdeaModuleProvider, RenderModelModuleLoggingId {
 
   fun getClassLoaderProvider(privateClassLoader: Boolean): ClassLoaderProvider
 
-  /**
-   * Disposable that can be used as a parent for [Disposable]s that depend on the
-   * [RenderModelModule] lifecycle.
-   */
+  /** Disposable that can be used as a parent for [Disposable]s that depend on the [RenderModelModule] lifecycle. */
   val parentDisposable: Disposable
 
   /** Marks this [RenderModelModule] as disposed. */

@@ -22,21 +22,14 @@ import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
 import org.jetbrains.kotlin.psi.KtDeclaration
 
-/**
- * Represents parts of a Composable function to be used for rendering in various menus or dialogs.
- */
-data class ComposableFunctionRenderParts(
-  val totalParameterCount: Int,
-  val parameters: String?,
-  val tail: String?,
-)
+/** Represents parts of a Composable function to be used for rendering in various menus or dialogs. */
+data class ComposableFunctionRenderParts(val totalParameterCount: Int, val parameters: String?, val tail: String?)
 
 @OptIn(KaAllowAnalysisOnEdt::class)
 fun KtDeclaration.getComposableFunctionRenderParts(): ComposableFunctionRenderParts? {
   return allowAnalysisOnEdt {
     analyze(this) {
-      val functionLikeSymbol =
-          this@getComposableFunctionRenderParts.symbol as? KaFunctionSymbol ?: return null
+      val functionLikeSymbol = this@getComposableFunctionRenderParts.symbol as? KaFunctionSymbol ?: return null
       getComposableFunctionRenderParts(functionLikeSymbol)
     }
   }

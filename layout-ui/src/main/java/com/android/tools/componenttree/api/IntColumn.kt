@@ -36,9 +36,8 @@ import javax.swing.table.TableCellRenderer
  * @param tooltip tooltip to show when hovering over the column.
  * @param leftDivider show a divider line to the left of the column.
  *
- * Warning: Use this if the component tree only has data in this column from a single [NodeType]. If
- * multiple [NodeType]s should show data in this column, then a custom implementation of
- * [ColumnInfo] should be created possibly using [IntColumn].
+ * Warning: Use this if the component tree only has data in this column from a single [NodeType]. If multiple [NodeType]s should show data
+ * in this column, then a custom implementation of [ColumnInfo] should be created possibly using [IntColumn].
  */
 inline fun <reified T> createIntColumn(
   name: String,

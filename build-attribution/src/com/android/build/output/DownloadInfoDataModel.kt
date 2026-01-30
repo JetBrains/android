@@ -22,22 +22,18 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.util.Disposer
 
 /**
- * This class is responsible for processing incoming Gradle download updates in time and in the right order.
- * Updates are coming in build worker thread but should be passed to subscribed models in EDT.
- * The order of scheduled 'invokeLater' can change that's why we need more complex logic using intermediate [updatesMap]
- * to process updates in the right order. [updatesMap] holds latest received request data by it's key.
- * We also try to avoid scheduling too many 'invokeLater' calls in case of EDT lagging behind.
+ * This class is responsible for processing incoming Gradle download updates in time and in the right order. Updates are coming in build
+ * worker thread but should be passed to subscribed models in EDT. The order of scheduled 'invokeLater' can change that's why we need more
+ * complex logic using intermediate [updatesMap] to process updates in the right order. [updatesMap] holds latest received request data by
+ * it's key. We also try to avoid scheduling too many 'invokeLater' calls in case of EDT lagging behind.
  *
- * On build finished we also schedule last 'process updates' task to process any possible stale updates. No further updates
- * should be coming after this point.
+ * On build finished we also schedule last 'process updates' task to process any possible stale updates. No further updates should be coming
+ * after this point.
  *
- * It records all the received updates in a list so that it can be replayed to any model subscribed later. This guarantees that no
- * events will be missed by UI.
+ * It records all the received updates in a list so that it can be replayed to any model subscribed later. This guarantees that no events
+ * will be missed by UI.
  */
-class DownloadInfoDataModel(
-  buildFinishedDisposable: Disposable,
-  private val longDownloadsNotifier: LongDownloadsNotifier? = null
-) {
+class DownloadInfoDataModel(buildFinishedDisposable: Disposable, private val longDownloadsNotifier: LongDownloadsNotifier? = null) {
   private val updatesMap = mutableMapOf<DownloadRequestKey, DownloadRequestItem>()
   @Volatile private var immediateUpdateScheduled: Boolean = false
 
@@ -53,18 +49,20 @@ class DownloadInfoDataModel(
   }
 
   fun downloadFinished(downloadResult: DownloadsAnalyzer.DownloadResult) {
-    val requestItem = DownloadRequestItem(
-      requestKey = DownloadRequestKey(downloadResult.timestamp, downloadResult.url),
-      repository = downloadResult.repository,
-      completed = true,
-      receivedBytes = downloadResult.bytes,
-      duration = downloadResult.duration,
-      failureMessage = when (downloadResult.status) {
-        DownloadsAnalyzer.DownloadStatus.SUCCESS -> null
-        DownloadsAnalyzer.DownloadStatus.MISSED -> "Not Found"
-        DownloadsAnalyzer.DownloadStatus.FAILURE -> downloadResult.failureMessage
-      }
-    )
+    val requestItem =
+      DownloadRequestItem(
+        requestKey = DownloadRequestKey(downloadResult.timestamp, downloadResult.url),
+        repository = downloadResult.repository,
+        completed = true,
+        receivedBytes = downloadResult.bytes,
+        duration = downloadResult.duration,
+        failureMessage =
+          when (downloadResult.status) {
+            DownloadsAnalyzer.DownloadStatus.SUCCESS -> null
+            DownloadsAnalyzer.DownloadStatus.MISSED -> "Not Found"
+            DownloadsAnalyzer.DownloadStatus.FAILURE -> downloadResult.failureMessage
+          },
+      )
     onNewItemUpdate(requestItem)
   }
 
@@ -75,12 +73,12 @@ class DownloadInfoDataModel(
   }
 
   /**
-   * This function guarantees that there will be at least 1 execution of [processUpdates] after calling this without overwhelming
-   * EDT with runnable objects after each new update.
-   * - when [immediateUpdateScheduled] is false it means that there is no runnable executions scheduled,
-   * though 1 could be executing right now. It makes sense to schedule one more in this case.
-   * - when [immediateUpdateScheduled] is true it means that at least 1 runnable was scheduled and did not start execution yet so
-   * no need to schedule more.
+   * This function guarantees that there will be at least 1 execution of [processUpdates] after calling this without overwhelming EDT with
+   * runnable objects after each new update.
+   * - when [immediateUpdateScheduled] is false it means that there is no runnable executions scheduled, though 1 could be executing right
+   *   now. It makes sense to schedule one more in this case.
+   * - when [immediateUpdateScheduled] is true it means that at least 1 runnable was scheduled and did not start execution yet so no need to
+   *   schedule more.
    */
   private fun scheduleImmediateUpdateIfNecessary() {
     if (!immediateUpdateScheduled) {
@@ -99,12 +97,7 @@ class DownloadInfoDataModel(
 
   @UiThread
   fun processUpdates() {
-    val newUpdates = synchronized(updatesMap) {
-      ArrayList(updatesMap.values).also {
-        updatesMap.clear()
-      }
-    }
-
+    val newUpdates = synchronized(updatesMap) { ArrayList(updatesMap.values).also { updatesMap.clear() } }
 
     for (requestItem in newUpdates) {
       processedEvents[requestItem.requestKey] = requestItem

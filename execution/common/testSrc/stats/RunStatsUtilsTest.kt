@@ -51,57 +51,57 @@ class RunStatsUtilsTest {
   private val mockIDevice: IDevice = mock()
   private val deviceProvisionerService: DeviceProvisionerService = mock()
   private val deviceProvisioner: DeviceProvisioner = mock()
-  private val properties = DeviceProperties.build {
-    isRemote = true
-    isVirtual = false
-    icon = StudioDefaultDeviceIcons.handheld
-    populateDeviceInfoProto("TestPlugin", "localhost:12345", emptyMap(), "connectionId")
-  }
-  private val deviceHandle = object : DeviceHandle {
-    override val id = DeviceId("", false, "")
-    override val scope: CoroutineScope
-      get() = TODO("Not yet implemented")
-    override val stateFlow: StateFlow<DeviceState>
-      get() = _stateFlow
+  private val properties =
+    DeviceProperties.build {
+      isRemote = true
+      isVirtual = false
+      icon = StudioDefaultDeviceIcons.handheld
+      populateDeviceInfoProto("TestPlugin", "localhost:12345", emptyMap(), "connectionId")
+    }
+  private val deviceHandle =
+    object : DeviceHandle {
+      override val id = DeviceId("", false, "")
+      override val scope: CoroutineScope
+        get() = TODO("Not yet implemented")
 
-    private val _stateFlow: MutableStateFlow<DeviceState> = MutableStateFlow(DeviceState.Disconnected(properties))
+      override val stateFlow: StateFlow<DeviceState>
+        get() = _stateFlow
 
-    fun setState(state: DeviceState) = _stateFlow.update { state }
-  }
-  private val connectedDevice = object : ConnectedDevice {
-    override val session: AdbSession
-      get() = TODO("Not yet implemented")
-    override val cache: CoroutineScopeCache
-      get() = TODO("Not yet implemented")
-    override val deviceInfoFlow: StateFlow<DeviceInfo>
-      get() = _deviceInfoFlow
-    private val _deviceInfoFlow: MutableStateFlow<DeviceInfo> = MutableStateFlow(DeviceInfo("", mock()))
+      private val _stateFlow: MutableStateFlow<DeviceState> = MutableStateFlow(DeviceState.Disconnected(properties))
 
-    fun setDeviceInfo(info: DeviceInfo) = _deviceInfoFlow.update { info }
-  }
+      fun setState(state: DeviceState) = _stateFlow.update { state }
+    }
+  private val connectedDevice =
+    object : ConnectedDevice {
+      override val session: AdbSession
+        get() = TODO("Not yet implemented")
+
+      override val cache: CoroutineScopeCache
+        get() = TODO("Not yet implemented")
+
+      override val deviceInfoFlow: StateFlow<DeviceInfo>
+        get() = _deviceInfoFlow
+
+      private val _deviceInfoFlow: MutableStateFlow<DeviceInfo> = MutableStateFlow(DeviceInfo("", mock()))
+
+      fun setDeviceInfo(info: DeviceInfo) = _deviceInfoFlow.update { info }
+    }
 
   @Before
   fun setup() {
-    projectRule.project.replaceService(
-      DeviceProvisionerService::class.java,
-      deviceProvisionerService,
-      projectRule.disposable
-    )
+    projectRule.project.replaceService(DeviceProvisionerService::class.java, deviceProvisionerService, projectRule.disposable)
     doReturn(deviceProvisioner).whenever(deviceProvisionerService).deviceProvisioner
     val mockDeviceListStateFlow: StateFlow<List<DeviceHandle>> = mock()
     doReturn(mockDeviceListStateFlow).whenever(deviceProvisioner).devices
     val deviceHandleList = listOf(deviceHandle)
     doReturn(deviceHandleList).whenever(mockDeviceListStateFlow).value
   }
+
   @Test
   fun testGetDeviceInfoWhenIDeviceMatchesConnectedDeviceHandle() {
     mockIDevice.setSerialNumber("localhost:12345")
-    connectedDevice.setDeviceInfo(
-      DeviceInfo("localhost:12345", com.android.adblib.DeviceState.ONLINE)
-    )
-    deviceHandle.setState(
-      DeviceState.Connected(properties, connectedDevice)
-    )
+    connectedDevice.setDeviceInfo(DeviceInfo("localhost:12345", com.android.adblib.DeviceState.ONLINE))
+    deviceHandle.setState(DeviceState.Connected(properties, connectedDevice))
     val deviceInfo = getDeviceInfo(mockIDevice, projectRule.project)
     assertThat(deviceInfo.deviceProvisionerId).isNotEmpty()
     assertThat(deviceInfo.deviceProvisionerId).isEqualTo("TestPlugin")

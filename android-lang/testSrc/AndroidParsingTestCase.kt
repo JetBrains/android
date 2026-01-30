@@ -27,10 +27,8 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.ParsingTestCase
 import junit.framework.TestCase
 
-abstract class AndroidParsingTestCase(
-  fileExtension: String,
-  parserDefinition: ParserDefinition
-) : ParsingTestCase("no_data_path_needed", fileExtension, parserDefinition) {
+abstract class AndroidParsingTestCase(fileExtension: String, parserDefinition: ParserDefinition) :
+  ParsingTestCase("no_data_path_needed", fileExtension, parserDefinition) {
 
   override fun getTestDataPath() = com.android.tools.idea.lang.getTestDataPath()
 
@@ -47,7 +45,7 @@ abstract class AndroidParsingTestCase(
   private fun getErrorMessage(psiFile: PsiFile?) = PsiTreeUtil.findChildOfType(psiFile, PsiErrorElement::class.java)?.errorDescription
 }
 
-abstract class AndroidLexerTestCase(private val lexer: FlexAdapter): TestCase() {
+abstract class AndroidLexerTestCase(private val lexer: FlexAdapter) : TestCase() {
 
   protected val SPACE = " " to TokenType.WHITE_SPACE
   protected val NEWLINE = "\n" to TokenType.WHITE_SPACE

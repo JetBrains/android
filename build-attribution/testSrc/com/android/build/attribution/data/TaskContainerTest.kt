@@ -26,16 +26,21 @@ import org.junit.Test
 
 class TaskContainerTest {
 
-  private val data = AndroidGradlePluginAttributionData(
-     taskNameToTaskInfoMap = mapOf("a" to AndroidGradlePluginAttributionData.TaskInfo(
-       className = "b",
-       taskCategoryInfo = AndroidGradlePluginAttributionData.TaskCategoryInfo(
-         primaryTaskCategory = TaskCategory.ANDROID_RESOURCES,
-         secondaryTaskCategories = listOf(
-           TaskCategory.COMPILATION,
-           TaskCategory.SOURCE_PROCESSING
-         ))))
-  )
+  private val data =
+    AndroidGradlePluginAttributionData(
+      taskNameToTaskInfoMap =
+        mapOf(
+          "a" to
+            AndroidGradlePluginAttributionData.TaskInfo(
+              className = "b",
+              taskCategoryInfo =
+                AndroidGradlePluginAttributionData.TaskCategoryInfo(
+                  primaryTaskCategory = TaskCategory.ANDROID_RESOURCES,
+                  secondaryTaskCategories = listOf(TaskCategory.COMPILATION, TaskCategory.SOURCE_PROCESSING),
+                ),
+            )
+        )
+    )
 
   @After
   fun clearOverride() {
@@ -48,11 +53,12 @@ class TaskContainerTest {
     val taskContainer = TaskContainer()
     val pluginContainer = PluginContainer()
     val pluginA = createBinaryPluginIdentifierStub("pluginA", "my.gradle.plugin.PluginA")
-    val sampleTask = createTaskFinishEventStub(":a", pluginA, emptyList(), 0, 0 )
+    val sampleTask = createTaskFinishEventStub(":a", pluginA, emptyList(), 0, 0)
     taskContainer.getTask(sampleTask, pluginContainer)
     taskContainer.updateTasksData(data)
     assertThat(taskContainer.getTask(":a")?.primaryTaskCategory).isEqualTo(TaskCategory.ANDROID_RESOURCES)
-    assertThat(taskContainer.getTask(":a")?.secondaryTaskCategories).containsExactlyElementsIn(listOf(TaskCategory.COMPILATION, TaskCategory.SOURCE_PROCESSING))
+    assertThat(taskContainer.getTask(":a")?.secondaryTaskCategories)
+      .containsExactlyElementsIn(listOf(TaskCategory.COMPILATION, TaskCategory.SOURCE_PROCESSING))
   }
 
   @Test
@@ -61,7 +67,7 @@ class TaskContainerTest {
     val taskContainer = TaskContainer()
     val pluginContainer = PluginContainer()
     val pluginA = createBinaryPluginIdentifierStub("pluginA", "my.gradle.plugin.PluginA")
-    val sampleTask = createTaskFinishEventStub(":sampleTask", pluginA, emptyList(), 0, 0 )
+    val sampleTask = createTaskFinishEventStub(":sampleTask", pluginA, emptyList(), 0, 0)
     taskContainer.getTask(sampleTask, pluginContainer)
     taskContainer.updateTasksData(data)
     assertThat(taskContainer.getTask(":sampleTask")?.primaryTaskCategory).isEqualTo(TaskCategory.UNCATEGORIZED)
@@ -73,7 +79,7 @@ class TaskContainerTest {
     val taskContainer = TaskContainer()
     val pluginContainer = PluginContainer()
     val pluginA = createBinaryPluginIdentifierStub("pluginA", "my.gradle.plugin.PluginA")
-    val sampleTask = createTaskFinishEventStub(":sampleTask", pluginA, emptyList(), 0, 0 )
+    val sampleTask = createTaskFinishEventStub(":sampleTask", pluginA, emptyList(), 0, 0)
     taskContainer.getTask(sampleTask, pluginContainer)
     taskContainer.updateTasksData(data)
     assertThat(taskContainer.getTask(":sampleTask")?.primaryTaskCategory).isEqualTo(TaskCategory.UNCATEGORIZED)

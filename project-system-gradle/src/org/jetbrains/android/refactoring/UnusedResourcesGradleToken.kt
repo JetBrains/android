@@ -30,11 +30,9 @@ class UnusedResourcesGradleToken : UnusedResourcesToken<GradleProjectSystem>, Gr
   override fun getPerformerFor(projectSystem: GradleProjectSystem, psiFile: PsiFile): UnusedResourcesPerformer? {
     if (
       (psiFile is GroovyFile || psiFile is KtFile) &&
-      (psiFile.name.endsWith(SdkConstants.EXT_GRADLE) ||
-       psiFile.name.endsWith(SdkConstants.EXT_GRADLE_KTS))
+        (psiFile.name.endsWith(SdkConstants.EXT_GRADLE) || psiFile.name.endsWith(SdkConstants.EXT_GRADLE_KTS))
     ) {
-      val buildModel =
-        GradleModelProvider.getInstance().parseBuildFile(psiFile.virtualFile, projectSystem.project)
+      val buildModel = GradleModelProvider.getInstance().parseBuildFile(psiFile.virtualFile, projectSystem.project)
       return GradleUnusedResourcesPerformer(buildModel)
     }
     return null
@@ -57,8 +55,7 @@ class GradleUnusedResourcesPerformer(private val buildModel: GradleBuildModel) :
     for (resValue in resValues) {
       val psiElement = resValue.getModel().getPsiElement() ?: continue
       // See if this is one of the unused resources
-      val expectedResourceName =
-        "${SdkConstants.R_PREFIX}${resValue.type()}.${resValue.name()}"
+      val expectedResourceName = "${SdkConstants.R_PREFIX}${resValue.type()}.${resValue.name()}"
       if (names.contains(expectedResourceName)) {
         result.add(psiElement)
         resValue.remove()

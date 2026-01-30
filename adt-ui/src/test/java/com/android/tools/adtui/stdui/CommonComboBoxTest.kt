@@ -32,8 +32,7 @@ import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class CommonComboBoxTest {
-  private val model =
-    TestCommonComboBoxModel("t", listOf("one", "two", "three", "four", "five", "six", "t"))
+  private val model = TestCommonComboBoxModel("t", listOf("one", "two", "three", "four", "five", "six", "t"))
   private val comboBox = CommonComboBox(model)
 
   @Test

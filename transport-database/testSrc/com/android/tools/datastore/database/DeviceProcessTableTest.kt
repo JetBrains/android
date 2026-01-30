@@ -21,8 +21,8 @@ import com.android.tools.profiler.proto.Transport.GetDevicesResponse
 import com.android.tools.profiler.proto.Transport.GetProcessesRequest
 import com.android.tools.profiler.proto.Transport.GetProcessesResponse
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.util.function.Consumer
+import org.junit.Test
 
 class DeviceProcessTableTest : DatabaseTest<DeviceProcessTable>() {
   companion object {
@@ -44,16 +44,20 @@ class DeviceProcessTableTest : DatabaseTest<DeviceProcessTable>() {
       }),
       (Consumer { it.insertOrUpdateDevice(Common.Device.getDefaultInstance()) }),
       (Consumer { it.insertOrUpdateProcess(-1, Common.Process.getDefaultInstance()) }),
-      (Consumer {
-        it.updateAgentStatus(-1, Common.Process.getDefaultInstance(), Common.AgentData.getDefaultInstance())
-      }))
+      (Consumer { it.updateAgentStatus(-1, Common.Process.getDefaultInstance(), Common.AgentData.getDefaultInstance()) }),
+    )
   }
 
   @Test
   fun testExistingProcessIsUpdated() {
-    val process = Common.Process.newBuilder().setDeviceId(FAKE_DEVICE_ID).setPid(99).setName("FakeProcess").setState(
-      Common.Process.State.ALIVE)
-      .setStartTimestampNs(10).build()
+    val process =
+      Common.Process.newBuilder()
+        .setDeviceId(FAKE_DEVICE_ID)
+        .setPid(99)
+        .setName("FakeProcess")
+        .setState(Common.Process.State.ALIVE)
+        .setStartTimestampNs(10)
+        .build()
 
     // Setup initial process and status.
     val status = Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build()

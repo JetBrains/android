@@ -36,9 +36,11 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import icons.StudioIcons
+import java.io.BufferedReader
+import javax.swing.Icon
+import javax.swing.ImageIcon
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
-import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.types.KaFunctionType
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -57,10 +59,6 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
 import org.jetbrains.kotlin.psi.psiUtil.getPrevSiblingIgnoringWhitespace
-import org.jetbrains.kotlin.types.typeUtil.isUnit
-import java.io.BufferedReader
-import javax.swing.Icon
-import javax.swing.ImageIcon
 
 private val COMPOSABLE_FUNCTION_ICON = StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
 
@@ -73,8 +71,7 @@ private fun InsertionContext.getParent(): PsiElement? = file.findElementAt(start
  * shouldn't apply.
  */
 private fun PsiElement?.isDefaultOrDotCall(): Boolean {
-  val namedExpression =
-    (this as? KtSimpleNameExpression)?.mainReference?.expression ?: return false
+  val namedExpression = (this as? KtSimpleNameExpression)?.mainReference?.expression ?: return false
   if (
     namedExpression.parentOfType<KDocName>() != null ||
       namedExpression.parentOfType<KtImportDirective>() != null ||
@@ -94,14 +91,8 @@ private fun PsiElement?.isDefaultOrDotCall(): Boolean {
 
 /** Modifies [LookupElement]s for composable functions, to improve Compose editing UX. */
 class ComposeCompletionContributor : CompletionContributor() {
-  override fun fillCompletionVariants(
-    parameters: CompletionParameters,
-    resultSet: CompletionResultSet,
-  ) {
-    if (
-      parameters.position.getModuleSystem()?.usesCompose != true ||
-        parameters.position.language != KotlinLanguage.INSTANCE
-    ) {
+  override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
+    if (parameters.position.getModuleSystem()?.usesCompose != true || parameters.position.language != KotlinLanguage.INSTANCE) {
       return
     }
 
@@ -117,22 +108,15 @@ class ComposeCompletionContributor : CompletionContributor() {
     val psi = lookupElement.psiElement ?: return completionResult
 
     if (psi.isComposableFunction()) {
-      val functionInfo =
-        (lookupElement.psiElement as? KtNamedFunction)?.getFunctionInfoForCompletion()
-          ?: return completionResult
+      val functionInfo = (lookupElement.psiElement as? KtNamedFunction)?.getFunctionInfoForCompletion() ?: return completionResult
 
       // Get rid of the extra variants suggested by the Kotlin plugin that aren't wanted for
       // @Composable methods.
-      if (
-        lookupElement.isForSpecialLambdaLookupElement() ||
-          lookupElement.isVariantWithTrailingLambda(functionInfo)
-      ) {
+      if (lookupElement.isForSpecialLambdaLookupElement() || lookupElement.isVariantWithTrailingLambda(functionInfo)) {
         return null
       }
 
-      return completionResult.withLookupElement(
-        ComposableFunctionLookupElement(lookupElement, functionInfo)
-      )
+      return completionResult.withLookupElement(ComposableFunctionLookupElement(lookupElement, functionInfo))
     }
     if (ComposeMaterialIconLookupElement.appliesTo(psi)) {
       return completionResult.withLookupElement(ComposeMaterialIconLookupElement(lookupElement))
@@ -141,10 +125,9 @@ class ComposeCompletionContributor : CompletionContributor() {
   }
 
   /**
-   * Checks if the [LookupElement] is an additional, "special" lookup element created for functions
-   * that can be invoked using the lambda syntax. These are created by
-   * [LookupElementFactory.addSpecialFunctionCallElements] and can be confusing for Compose APIs
-   * that often use overloaded function names.
+   * Checks if the [LookupElement] is an additional, "special" lookup element created for functions that can be invoked using the lambda
+   * syntax. These are created by [LookupElementFactory.addSpecialFunctionCallElements] and can be confusing for Compose APIs that often use
+   * overloaded function names.
    */
   private fun LookupElement.isForSpecialLambdaLookupElement(): Boolean {
     val presentation = LookupElementPresentation()
@@ -153,18 +136,16 @@ class ComposeCompletionContributor : CompletionContributor() {
   }
 
   /**
-   * Checks if the [LookupElement] has a required final lambda argument written as a trailing
-   * lambda.
+   * Checks if the [LookupElement] has a required final lambda argument written as a trailing lambda.
    *
-   * In K2 starting with 2024.3, the Kotlin plugin is returning two autocomplete variants for
-   * functions with required final lambda arguments:
+   * In K2 starting with 2024.3, the Kotlin plugin is returning two autocomplete variants for functions with required final lambda
+   * arguments:
    * 1. foo(a: Int) { b: () -> Unit } (com.example)
    * 2. foo(a: Int, b: () -> Unit) (com.example)
    *
-   * After rewriting the lookup string, both of these will look the same so we want to exclude one.
-   * Excluding the one with curly braces is safer to detect since parentheses are used in multiple
-   * ways in the lookup string, and the variant with parentheses allows us to customize the
-   * insertion more easily.
+   * After rewriting the lookup string, both of these will look the same so we want to exclude one. Excluding the one with curly braces is
+   * safer to detect since parentheses are used in multiple ways in the lookup string, and the variant with parentheses allows us to
+   * customize the insertion more easily.
    */
   private fun LookupElement.isVariantWithTrailingLambda(functionInfo: FunctionInfo): Boolean {
     // If there's no required or varargs lambda at the end, don't worry about this case.
@@ -178,10 +159,8 @@ class ComposeCompletionContributor : CompletionContributor() {
 }
 
 /** Wraps original Kotlin [LookupElement]s for composable functions to make them stand out more. */
-private class ComposableFunctionLookupElement(
-  original: LookupElement,
-  private val functionInfo: FunctionInfo,
-) : LookupElementDecorator<LookupElement>(original) {
+private class ComposableFunctionLookupElement(original: LookupElement, private val functionInfo: FunctionInfo) :
+  LookupElementDecorator<LookupElement>(original) {
   init {
     require(original.psiElement?.isComposableFunction() == true)
   }
@@ -220,8 +199,7 @@ private class ComposableFunctionLookupElement(
 
     // There's a special case where the cursor (prior to completion) was immediately before a block
     // opening, in which case we don't need to add the braces for the lambda.
-    val cursorWasBeforeBlockOpening =
-      context.getNextElementAfterOffset()?.text?.startsWith("{") ?: false
+    val cursorWasBeforeBlockOpening = context.getNextElementAfterOffset()?.text?.startsWith("{") ?: false
     if (!cursorWasBeforeBlockOpening) {
       // When there are no parameters before the lambda, the caret will be placed in the
       // lambda, so there needs to be an extra space. When there are parameters, a single
@@ -238,9 +216,7 @@ private class ComposableFunctionLookupElement(
     if (functionInfo.hasParametersBeforeLambda) return
 
     // Since there are no required parameters, delete the function's parens.
-    val valueArgumentList =
-      context.getLastElementInOffset()?.parentOfType<KtCallExpression>()?.valueArgumentList
-        ?: return
+    val valueArgumentList = context.getLastElementInOffset()?.parentOfType<KtCallExpression>()?.valueArgumentList ?: return
     valueArgumentList.delete()
     psiDocumentManager.commitDocument(context.document)
 
@@ -273,37 +249,28 @@ private class ComposableFunctionLookupElement(
     // written out above; these are always dropped.
     // If the second fragment contains the string "->", then it's a type specifier for the trailing
     // lambda that we want to omit for rewritten Composables.
-    val dropCount =
-      if (existingTailFragments.elementAtOrNull(1)?.text?.contains("->") == true) 2 else 1
+    val dropCount = if (existingTailFragments.elementAtOrNull(1)?.text?.contains("->") == true) 2 else 1
     for (fragment in existingTailFragments.drop(dropCount)) {
       // Technically each fragment may have a color associated with it which we are not persisting.
       // But the only time that can be set is with LookupElementPresentation.setTailText, which
       // clears the tail before adding the fragment with color. That means only the first fragment
       // can have a color, and since we've dropped the first fragment none of the remaining ones
       // will have a color.
-      if (fragment.isItalic) appendTailTextItalic(fragment.text, fragment.isGrayed)
-      else appendTailText(fragment.text, fragment.isGrayed)
+      if (fragment.isItalic) appendTailTextItalic(fragment.text, fragment.isGrayed) else appendTailText(fragment.text, fragment.isGrayed)
     }
   }
 }
 
-/**
- * A function to extract the package name (eg " (com.example)") at the end of a
- * [LookupElementPresentation.TextFragment].
- */
+/** A function to extract the package name (eg " (com.example)") at the end of a [LookupElementPresentation.TextFragment]. */
 private fun LookupElementPresentation.TextFragment.removeParameters(): String {
   val lastParen = text.lastIndexOf(" (")
   if (lastParen == -1) return text
   return text.substring(lastParen)
 }
 
-/**
- * Lookup element that decorates a Compose material icon property with the actual icon it
- * represents.
- */
+/** Lookup element that decorates a Compose material icon property with the actual icon it represents. */
 @VisibleForTesting
-internal class ComposeMaterialIconLookupElement(private val original: LookupElement) :
-  LookupElementDecorator<LookupElement>(original) {
+internal class ComposeMaterialIconLookupElement(private val original: LookupElement) : LookupElementDecorator<LookupElement>(original) {
 
   init {
     // We know we'll want material icons, so start warming up the cache.
@@ -323,9 +290,8 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
      *
      * The key is the package name, coming from a fully-qualified icon name.
      *
-     * The value is a pair that identifies how to construct names that represent these icons. The
-     * first string in each pair represents part of a directory name where the theme's icons are
-     * stored. The second string value represents the prefix of each image's file name.
+     * The value is a pair that identifies how to construct names that represent these icons. The first string in each pair represents part
+     * of a directory name where the theme's icons are stored. The second string value represents the prefix of each image's file name.
      */
     private val themeNamingPatterns =
       mapOf(
@@ -341,24 +307,20 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
       if (psiElement !is KtProperty) return false
       val fqName = psiElement.kotlinFqName?.asString() ?: return false
 
-      if (
-        !fqName.startsWith("androidx.compose.material.icons") ||
-          psiElement.typeReference?.text?.endsWith("ImageVector") != true
-      )
+      if (!fqName.startsWith("androidx.compose.material.icons") || psiElement.typeReference?.text?.endsWith("ImageVector") != true)
         return false
 
       return themeNamingPatterns.containsKey(fqName.substringBeforeLast('.'))
     }
 
     /**
-     * Converts the property name of a Compose material icon to the snake-case equivalent used in
-     * file names, with additional underscores separating digits from non-digit characters.
+     * Converts the property name of a Compose material icon to the snake-case equivalent used in file names, with additional underscores
+     * separating digits from non-digit characters.
      *
      * eg: "AccountBox3" -> "account_box_3"
      *
-     * If a material icon's name starts with a number, the property name has an underscore prepended
-     * to make it a valid identifier, even though the underscore doesn't appear in the file path and
-     * name.
+     * If a material icon's name starts with a number, the property name has an underscore prepended to make it a valid identifier, even
+     * though the underscore doesn't appear in the file path and name.
      *
      * eg: "_1kPlus42" -> "1k_plus_42"
      */
@@ -384,38 +346,26 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
 
     /** Returns an [Icon] given an Android Studio resource path. */
     @VisibleForTesting
-    internal fun getIcon(fqName: String): Icon? =
-      getIconFromMaterialIconsProvider(fqName) ?: getIconFromResources(fqName)
+    internal fun getIcon(fqName: String): Icon? = getIconFromMaterialIconsProvider(fqName) ?: getIconFromResources(fqName)
 
     private fun getIconFromMaterialIconsProvider(fqName: String): Icon? {
       val iconFileName = fqName.iconFileNameFromFqName() ?: return null
-      return ComposeMaterialIconService.getInstance(ApplicationManager.getApplication())
-        .getIcon(iconFileName)
+      return ComposeMaterialIconService.getInstance(ApplicationManager.getApplication()).getIcon(iconFileName)
     }
 
     private fun getIconFromResources(fqName: String): Icon? {
       val resourcePath = fqName.resourcePathFromFqName() ?: return null
 
-      return ComposeMaterialIconLookupElement::class
-        .java
-        .classLoader
-        .getResourceAsStream(resourcePath)
-        ?.use { inputStream ->
-          val content = inputStream.bufferedReader().use(BufferedReader::readText)
-          val errorLog = StringBuilder()
-          val bufferedImage =
-            VdPreview.getPreviewFromVectorXml(
-              VdPreview.TargetSize.createFromMaxDimension(16),
-              content,
-              errorLog,
-            )
-          if (errorLog.isNotEmpty()) {
-            Logger.getInstance(ComposeMaterialIconLookupElement::class.java)
-              .error(errorLog.toString())
-          }
-
-          ImageIcon(bufferedImage)
+      return ComposeMaterialIconLookupElement::class.java.classLoader.getResourceAsStream(resourcePath)?.use { inputStream ->
+        val content = inputStream.bufferedReader().use(BufferedReader::readText)
+        val errorLog = StringBuilder()
+        val bufferedImage = VdPreview.getPreviewFromVectorXml(VdPreview.TargetSize.createFromMaxDimension(16), content, errorLog)
+        if (errorLog.isNotEmpty()) {
+          Logger.getInstance(ComposeMaterialIconLookupElement::class.java).error(errorLog.toString())
         }
+
+        ImageIcon(bufferedImage)
+      }
     }
   }
 }
@@ -427,11 +377,7 @@ private fun InsertionContext.getNextElementAfterOffset(): PsiElement? =
   file.findElementAt(tailOffset)?.getNextSiblingIgnoringWhitespace(true)
 
 /** A class used to keep the result of analysis API for information about parameters. */
-private data class FunctionInfo(
-  val endsInRequiredLambda: Boolean,
-  val endsInVarargLambda: Boolean,
-  val hasParametersBeforeLambda: Boolean,
-)
+private data class FunctionInfo(val endsInRequiredLambda: Boolean, val endsInVarargLambda: Boolean, val hasParametersBeforeLambda: Boolean)
 
 @OptIn(KaExperimentalApi::class)
 private fun KtNamedFunction.getFunctionInfoForCompletion(): FunctionInfo =
@@ -440,12 +386,9 @@ private fun KtNamedFunction.getFunctionInfoForCompletion(): FunctionInfo =
 
     val lastParameter = allParameters.lastOrNull()
     val endsInRequiredLambda =
-      lastParameter?.let { !it.isVararg && it.returnType is KaFunctionType && !it.hasDeclaredDefaultValue }
-        ?: false
+      lastParameter?.let { !it.isVararg && it.returnType is KaFunctionType && !it.hasDeclaredDefaultValue } ?: false
 
-    val endsInVarargLambda =
-      lastParameter?.let { it.isVararg && it.returnType is KaFunctionType && !it.hasDeclaredDefaultValue }
-        ?: false
+    val endsInVarargLambda = lastParameter?.let { it.isVararg && it.returnType is KaFunctionType && !it.hasDeclaredDefaultValue } ?: false
 
     val hasRequiredParametersBeforeLambda =
       endsInRequiredLambda && allParameters.dropLast(1).any { !it.hasDeclaredDefaultValue && !it.isVararg }

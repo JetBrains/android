@@ -15,12 +15,12 @@
  */
 package com.android.screenshottest.action
 
-import com.android.screenshottest.util.UPDATE_ACTION_DESCRIPTION
-import com.android.screenshottest.util.UPDATE_ACTION_TEXT
-import com.android.tools.idea.flags.StudioFlags
 import com.android.screenshottest.producers.isClassDeclarationWithPreviewTestAnnotatedMethods
 import com.android.screenshottest.producers.isMethodDeclarationPreviewTestAnnotated
 import com.android.screenshottest.producers.isScreenshotTestSourceSet
+import com.android.screenshottest.util.UPDATE_ACTION_DESCRIPTION
+import com.android.screenshottest.util.UPDATE_ACTION_TEXT
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -36,16 +36,13 @@ import org.jetbrains.kotlin.asJava.toLightMethods
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 
-class UpdateReferenceImagesInClassAction : UpdateReferenceImagesBaseAction(
-  UPDATE_ACTION_TEXT,
-  UPDATE_ACTION_DESCRIPTION,
-  AllIcons.FileTypes.Image
-) {
+class UpdateReferenceImagesInClassAction :
+  UpdateReferenceImagesBaseAction(UPDATE_ACTION_TEXT, UPDATE_ACTION_DESCRIPTION, AllIcons.FileTypes.Image) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = false
-    if(!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()){
+    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()) {
       return
     }
 
@@ -66,15 +63,17 @@ class UpdateReferenceImagesInClassAction : UpdateReferenceImagesBaseAction(
       is KtFile -> {
         val hasClassTests = psiElement.classes.any { isClassDeclarationWithPreviewTestAnnotatedMethods(it) }
 
-        val hasTopLevelTests = psiElement.declarations.any { declaration: KtDeclaration ->
-          declaration.toLightMethods().any { isMethodDeclarationPreviewTestAnnotated(it) }
-        }
+        val hasTopLevelTests =
+          psiElement.declarations.any { declaration: KtDeclaration ->
+            declaration.toLightMethods().any { isMethodDeclarationPreviewTestAnnotated(it) }
+          }
         hasClassTests || hasTopLevelTests
       }
       is PsiClass -> isClassDeclarationWithPreviewTestAnnotatedMethods(psiElement)
       is PsiFile -> psiElement.children.filterIsInstance<PsiClass>().any { isClassDeclarationWithPreviewTestAnnotatedMethods(it) }
-      else -> PsiTreeUtil.getParentOfType(psiElement, PsiClass::class.java, false)
-        ?.let { isClassDeclarationWithPreviewTestAnnotatedMethods(it) } ?: false
+      else ->
+        PsiTreeUtil.getParentOfType(psiElement, PsiClass::class.java, false)?.let { isClassDeclarationWithPreviewTestAnnotatedMethods(it) }
+          ?: false
     }
   }
 }

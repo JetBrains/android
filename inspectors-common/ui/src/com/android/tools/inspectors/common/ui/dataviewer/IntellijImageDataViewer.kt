@@ -22,13 +22,13 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.intellij.openapi.Disposable
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.components.BorderLayoutPanel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.awt.BorderLayout.CENTER
 import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 import javax.swing.JLabel
 import javax.swing.SwingConstants
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * An [DataViewer] that displays an image loaded from a byte array
@@ -42,15 +42,12 @@ class IntellijImageDataViewer(imageBytes: ByteArray, parentDisposable: Disposabl
     AndroidCoroutineScope(parentDisposable, workerThread).launch {
       val image = ImageIO.read(ByteArrayInputStream(imageBytes))
       withContext(uiThread) {
-        val contents = if (image != null) {
-          ResizableImage(image).apply {
-            toolTipText = "Dimension: ${image.width} x ${image.height}"
+        val contents =
+          if (image != null) {
+            ResizableImage(image).apply { toolTipText = "Dimension: ${image.width} x ${image.height}" }
+          } else {
+            JLabel("No preview available", SwingConstants.CENTER).apply { setFont(JBFont.label().asPlain()) }
           }
-        } else {
-          JLabel("No preview available", SwingConstants.CENTER).apply {
-            setFont(JBFont.label().asPlain())
-          }
-        }
         panel.add(contents, CENTER)
         panel.revalidate()
       }

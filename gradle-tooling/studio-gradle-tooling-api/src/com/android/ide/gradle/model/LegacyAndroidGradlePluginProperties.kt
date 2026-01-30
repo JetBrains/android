@@ -18,15 +18,15 @@ package com.android.ide.gradle.model
 import java.io.File
 
 /**
- * Model that fetches information from older versions of AGP of various properties which
- * were added to the returned models of newer AGPs, in order to simplify consuming code in
- * Android Studio.
+ * Model that fetches information from older versions of AGP of various properties which were added to the returned models of newer AGPs, in
+ * order to simplify consuming code in Android Studio.
  */
 interface LegacyAndroidGradlePluginProperties {
   /**
    * Map from Android Gradle Plugin Component name to the associated application ID.
    *
    * For example for a simple application project this might be
+   *
    * ```
    * mapOf(
    *     "debug" to "com.example.app.debug",
@@ -47,19 +47,18 @@ interface LegacyAndroidGradlePluginProperties {
   /** For AGP < 9.0, we have the matchingFallbacks information in the DSL components only. */
   val buildTypesMatchingFallbacks: Map<String, List<String>>
 
-  /** For AGP < 9.0, we have the matchingFallbacks information in the DSL components only.
-   * We don't need the information about the dimension here because the flavor's name is already unique. */
+  /**
+   * For AGP < 9.0, we have the matchingFallbacks information in the DSL components only. We don't need the information about the dimension
+   * here because the flavor's name is already unique.
+   */
   val productFlavorsMatchingFallbacks: Map<String, List<String>>
 
   /**
-   * For AGP < 9.0, we get information about the missingDimensionStrategy (defined by DefaultConfig/ProductFlavors)
-   * from the DSL component only.
-   * This represents a mapping of: flavorName -> mapOf(Dimension_ame, listOf(flavors_to_match_with))
+   * For AGP < 9.0, we get information about the missingDimensionStrategy (defined by DefaultConfig/ProductFlavors) from the DSL component
+   * only. This represents a mapping of: flavorName -> mapOf(Dimension_ame, listOf(flavors_to_match_with))
    */
   val missingDimensionStrategies: Map<String, Map<String, List<String>>>
 
-  /**
-   * Exceptions caught from trying to read the additional information from the model, which should be reported as sync warnings.
-   */
+  /** Exceptions caught from trying to read the additional information from the model, which should be reported as sync warnings. */
   val problems: List<Exception>
 }

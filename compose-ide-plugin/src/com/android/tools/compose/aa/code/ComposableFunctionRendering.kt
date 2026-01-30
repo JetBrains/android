@@ -27,14 +27,11 @@ private const val DEFAULT_LAMBDA_PRESENTATION = "{...}"
 /**
  * Generates [ComposableFunctionRenderParts] for a given Composable function.
  *
- * Since Composable functions tend to have numerous optional parameters, those are omitted from the
- * rendered parameters and replaced with an ellipsis ("..."). Additional modifications are made to
- * ensure that a lambda can be added in cases where the Composable function requires a function as
- * its final argument.
+ * Since Composable functions tend to have numerous optional parameters, those are omitted from the rendered parameters and replaced with an
+ * ellipsis ("..."). Additional modifications are made to ensure that a lambda can be added in cases where the Composable function requires
+ * a function as its final argument.
  */
-internal fun KaSession.getComposableFunctionRenderParts(
-  functionSymbol: KaFunctionSymbol
-): ComposableFunctionRenderParts {
+internal fun KaSession.getComposableFunctionRenderParts(functionSymbol: KaFunctionSymbol): ComposableFunctionRenderParts {
   val allParameters = functionSymbol.valueParameters
   val requiredParameters = allParameters.filter { isRequired(it) }
   val hasTrailingLambda = allParameters.lastOrNull()?.let { isRequiredTrailingLambda(it) } ?: false
@@ -46,8 +43,7 @@ internal fun KaSession.getComposableFunctionRenderParts(
     when {
       hasOptionalParams -> if (inParens.isEmpty()) "..." else ", ..."
       // Don't render empty parentheses if we're rendering a lambda afterward.
-      inParens.isEmpty() && hasTrailingLambda ->
-        return ComposableFunctionRenderParts(allParameters.size, null, tail)
+      inParens.isEmpty() && hasTrailingLambda -> return ComposableFunctionRenderParts(allParameters.size, null, tail)
       else -> ""
     }
 
@@ -55,22 +51,15 @@ internal fun KaSession.getComposableFunctionRenderParts(
   return ComposableFunctionRenderParts(allParameters.size, parameters, tail)
 }
 
-private fun KaSession.renderValueParameters(
-  valueParamsInParen: List<KaValueParameterSymbol>,
-  closingString: String,
-) = buildString {
+private fun KaSession.renderValueParameters(valueParamsInParen: List<KaValueParameterSymbol>, closingString: String) = buildString {
   append("(")
-  @OptIn(KaExperimentalApi::class)
-  valueParamsInParen.joinTo(buffer = this) {
-    it.render(KaDeclarationRendererForSource.WITH_SHORT_NAMES)
-  }
+  @OptIn(KaExperimentalApi::class) valueParamsInParen.joinTo(buffer = this) { it.render(KaDeclarationRendererForSource.WITH_SHORT_NAMES) }
   append(closingString)
   append(")")
 }
 
 @OptIn(KaExperimentalApi::class)
-private fun KaSession.isRequired(valueParamSymbol: KaValueParameterSymbol): Boolean =
-  !valueParamSymbol.hasDeclaredDefaultValue
+private fun KaSession.isRequired(valueParamSymbol: KaValueParameterSymbol): Boolean = !valueParamSymbol.hasDeclaredDefaultValue
 
 internal fun KaSession.isRequiredTrailingLambda(valueParamSymbol: KaValueParameterSymbol): Boolean {
   // Since vararg is not a function type parameter, we have to return false for a parameter with a

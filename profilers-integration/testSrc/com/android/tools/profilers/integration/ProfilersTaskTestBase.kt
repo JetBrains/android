@@ -20,9 +20,13 @@ import com.android.tools.asdriver.tests.AndroidStudio
 abstract class ProfilersTaskTestBase : ProfilersTestBase() {
 
   abstract fun selectTask(studio: AndroidStudio)
+
   abstract fun verifyTaskStarted(studio: AndroidStudio)
+
   abstract fun verifyTaskStopped(studio: AndroidStudio)
+
   abstract fun verifyUIComponents(studio: AndroidStudio)
+
   open fun stopCurrentTask(studio: AndroidStudio) = stopTask(studio)
 
   protected fun testTask() {
@@ -47,7 +51,7 @@ abstract class ProfilersTaskTestBase : ProfilersTestBase() {
         stopCurrentTask(studio)
         verifyTaskStopped(studio)
         verifyUIComponents(studio)
-      }
+      },
     )
   }
 }

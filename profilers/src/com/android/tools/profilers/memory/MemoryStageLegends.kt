@@ -28,12 +28,15 @@ import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveA
 import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
 
-class MemoryStageLegends private constructor(range: Range,
-                                             isTooltip: Boolean,
-                                             usage: DetailedMemoryUsage,
-                                             isLiveAllocationTrackingReady: () -> Boolean) : LegendComponentModel(range) {
-  constructor(usage: DetailedMemoryUsage, range: Range, isTooltip: Boolean, isLiveAllocationTrackingReady: () -> Boolean) :
-    this(range, isTooltip, usage, isLiveAllocationTrackingReady)
+class MemoryStageLegends
+private constructor(range: Range, isTooltip: Boolean, usage: DetailedMemoryUsage, isLiveAllocationTrackingReady: () -> Boolean) :
+  LegendComponentModel(range) {
+  constructor(
+    usage: DetailedMemoryUsage,
+    range: Range,
+    isTooltip: Boolean,
+    isLiveAllocationTrackingReady: () -> Boolean,
+  ) : this(range, isTooltip, usage, isLiveAllocationTrackingReady)
 
   val javaLegend = SeriesLegend(usage.javaSeries, MEMORY_AXIS_FORMATTER, range)
   val nativeLegend = SeriesLegend(usage.nativeSeries, MEMORY_AXIS_FORMATTER, range)
@@ -42,26 +45,46 @@ class MemoryStageLegends private constructor(range: Range,
   val codeLegend = SeriesLegend(usage.codeSeries, MEMORY_AXIS_FORMATTER, range)
   val otherLegend = SeriesLegend(usage.otherSeries, MEMORY_AXIS_FORMATTER, range)
   val totalLegend = SeriesLegend(usage.totalMemorySeries, MEMORY_AXIS_FORMATTER, range)
-  val objectsLegend = SeriesLegend(usage.objectsSeries, OBJECT_COUNT_AXIS_FORMATTER, range, usage.objectsSeries.name,
-                                   Interpolatable.RoundedSegmentInterpolator, Predicate { r ->
-    // If live allocation is not enabled, show the object series as long as there is data.
-    !isLiveAllocationTrackingReady() ||
-    // Controls whether the series should be shown by looking at whether there is a FULL tracking mode event within the query range.
-    usage.allocationSamplingRateDurations.series.getSeriesForRange(r).let { data ->
-      data.isNotEmpty() && getModeFromFrequency(data.last().value.currentRate.samplingNumInterval) == FULL
+  val objectsLegend =
+    SeriesLegend(
+      usage.objectsSeries,
+      OBJECT_COUNT_AXIS_FORMATTER,
+      range,
+      usage.objectsSeries.name,
+      Interpolatable.RoundedSegmentInterpolator,
+      Predicate { r ->
+        // If live allocation is not enabled, show the object series as long as there is data.
+        !isLiveAllocationTrackingReady() ||
+          // Controls whether the series should be shown by looking at whether there is a FULL tracking mode event within the query range.
+          usage.allocationSamplingRateDurations.series.getSeriesForRange(r).let { data ->
+            data.isNotEmpty() && getModeFromFrequency(data.last().value.currentRate.samplingNumInterval) == FULL
+          }
+      },
+    )
+  val gcDurationLegend =
+    EventLegend("GC Duration") { duration: GcDurationData ->
+      TimeAxisFormatter.DEFAULT.getFormattedString(TimeUnit.MILLISECONDS.toMicros(1).toDouble(), duration.durationUs.toDouble(), true)
     }
-  })
-  val gcDurationLegend = EventLegend("GC Duration") { duration: GcDurationData ->
-    TimeAxisFormatter.DEFAULT.getFormattedString(TimeUnit.MILLISECONDS.toMicros(1).toDouble(), duration.durationUs.toDouble(), true)
-  }
-  val samplingRateDurationLegend = EventLegend("Tracking") { duration: AllocationSamplingRateDurationData ->
-    getModeFromFrequency(duration.currentRate.samplingNumInterval).displayName
-  }
+  val samplingRateDurationLegend =
+    EventLegend("Tracking") { duration: AllocationSamplingRateDurationData ->
+      getModeFromFrequency(duration.currentRate.samplingNumInterval).displayName
+    }
 
   init {
     val legends =
-      if (isTooltip) listOf(otherLegend, codeLegend, stackLegend, graphicsLegend, nativeLegend, javaLegend,
-                            objectsLegend, samplingRateDurationLegend, gcDurationLegend, totalLegend)
+      if (isTooltip)
+        listOf(
+          otherLegend,
+          codeLegend,
+          stackLegend,
+          graphicsLegend,
+          nativeLegend,
+          javaLegend,
+          objectsLegend,
+          samplingRateDurationLegend,
+          gcDurationLegend,
+          totalLegend,
+        )
       else listOf(totalLegend, javaLegend, nativeLegend, graphicsLegend, stackLegend, codeLegend, otherLegend, objectsLegend)
     legends.forEach(::add)
   }

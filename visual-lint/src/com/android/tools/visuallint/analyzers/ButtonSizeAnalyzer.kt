@@ -30,10 +30,7 @@ object ButtonSizeAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BUTTON_SIZE
 
-  override fun findIssues(
-    renderResult: RenderResult,
-    configuration: Configuration,
-  ): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
     while (viewsToAnalyze.isNotEmpty()) {
@@ -59,9 +56,7 @@ object ButtonSizeAnalyzer : VisualLintAnalyzer() {
     val simpleName = simpleName(view)
     val provider = { count: Int ->
       HtmlBuilder()
-        .add(
-          "The button $simpleName is wider than ${MAX_BUTTON_WIDTH_DP}dp in ${previewConfigurations(count)}."
-        )
+        .add("The button $simpleName is wider than ${MAX_BUTTON_WIDTH_DP}dp in ${previewConfigurations(count)}.")
         .newline()
         .add("Material Design recommends buttons to be no wider than ${MAX_BUTTON_WIDTH_DP}dp")
     }

@@ -260,9 +260,7 @@ class ComposeCompletionWeigherTest {
     val renderedLookupElements = myFixture.renderedLookupElements
     val targetItemsAtBeginning =
       renderedLookupElements
-        .map { renderedLookupElement ->
-          expectedItems.firstOrNull { renderedLookupElement.startsWith(it) }
-        }
+        .map { renderedLookupElement -> expectedItems.firstOrNull { renderedLookupElement.startsWith(it) } }
         .takeWhile { it != null }
 
     assertThat(targetItemsAtBeginning.toSet()).containsExactlyElementsIn(expectedItems)

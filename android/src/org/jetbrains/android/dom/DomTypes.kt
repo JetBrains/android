@@ -24,8 +24,7 @@ import com.intellij.util.xml.Namespace
  *
  * @see AndroidResourceDomFileDescription.initializeFileDescription
  */
-@Namespace(SdkConstants.ANDROID_NS_NAME)
-interface AndroidAttributeValue<T> : GenericAttributeValue<T>
+@Namespace(SdkConstants.ANDROID_NS_NAME) interface AndroidAttributeValue<T> : GenericAttributeValue<T>
 
 /**
  * Attribute in the res-auto XML namespace.

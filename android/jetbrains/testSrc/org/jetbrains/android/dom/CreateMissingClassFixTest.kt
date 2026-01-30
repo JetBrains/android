@@ -50,9 +50,7 @@ class CreateMissingClassFixTest : AndroidDomTestCase("dom/manifest") {
     kotlin.test.assertNotNull(action)
 
     action.invoke(project, myFixture.editor, myFixture.file)
-    val psiClass =
-      JavaPsiFacade.getInstance(project)
-        .findClass("p1.p2.MyActivity", GlobalSearchScope.allScope(project))
+    val psiClass = JavaPsiFacade.getInstance(project).findClass("p1.p2.MyActivity", GlobalSearchScope.allScope(project))
 
     // Class has been created
     kotlin.test.assertNotNull(psiClass)
@@ -68,9 +66,7 @@ class CreateMissingClassFixTest : AndroidDomTestCase("dom/manifest") {
     kotlin.test.assertNotNull(action)
 
     action.invoke(project, myFixture.editor, myFixture.file)
-    val psiClass =
-      JavaPsiFacade.getInstance(project)
-        .findClass("p1.p2.MyApplication", GlobalSearchScope.allScope(project))
+    val psiClass = JavaPsiFacade.getInstance(project).findClass("p1.p2.MyApplication", GlobalSearchScope.allScope(project))
 
     kotlin.test.assertNotNull(psiClass)
     assertThat(psiClass.superClass?.qualifiedName).isEqualTo("android.app.Application")
@@ -85,9 +81,7 @@ class CreateMissingClassFixTest : AndroidDomTestCase("dom/manifest") {
     kotlin.test.assertNotNull(action)
 
     action.invoke(project, myFixture.editor, myFixture.file)
-    val psiClass =
-      JavaPsiFacade.getInstance(project)
-        .findClass("p1.p2.MyActivity", GlobalSearchScope.allScope(project))
+    val psiClass = JavaPsiFacade.getInstance(project).findClass("p1.p2.MyActivity", GlobalSearchScope.allScope(project))
 
     // Class has been created
     kotlin.test.assertNotNull(psiClass)
@@ -103,9 +97,7 @@ class CreateMissingClassFixTest : AndroidDomTestCase("dom/manifest") {
     kotlin.test.assertNotNull(action)
 
     action.invoke(project, myFixture.editor, myFixture.file)
-    val psiClass =
-      JavaPsiFacade.getInstance(project)
-        .findClass("p1.p2.MyApplication", GlobalSearchScope.allScope(project))
+    val psiClass = JavaPsiFacade.getInstance(project).findClass("p1.p2.MyApplication", GlobalSearchScope.allScope(project))
 
     kotlin.test.assertNotNull(psiClass)
     assertThat(psiClass.superClass?.qualifiedName).isEqualTo("android.app.Application")

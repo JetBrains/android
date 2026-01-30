@@ -15,7 +15,6 @@
  */
 package com.android.tools.configurations
 
-
 import com.android.tools.configurations.ConversionUtil.dpToPx
 import com.android.tools.configurations.ConversionUtil.pxToDp
 import com.google.common.truth.Truth.assertThat
@@ -39,8 +38,7 @@ class ConversionUtilsTest {
 
     // Test case 5: Fractional result (rounding)
     assertThat(dpToPx(dp = 10, density = 240)).isEqualTo(15) // 10 * 240 / 160 = 15.0
-    assertThat(dpToPx(dp = 7, density = 200))
-      .isEqualTo(9) // 7 * 200 / 160 = 8.75f -> roundToInt() = 9
+    assertThat(dpToPx(dp = 7, density = 200)).isEqualTo(9) // 7 * 200 / 160 = 8.75f -> roundToInt() = 9
   }
 
   @Test
@@ -58,10 +56,8 @@ class ConversionUtilsTest {
     assertThat(pxToDp(px = 0, density = 160)).isEqualTo(0)
 
     // Test case 5: Fractional result (rounding)
-    assertThat(pxToDp(px = 15, density = 240))
-      .isEqualTo(10) // 15 * 160 / 240 = 10.0f -> roundToInt() = 10
-    assertThat(pxToDp(px = 9, density = 200))
-      .isEqualTo(7) // 9 * 160 / 200 = 7.2f -> roundToInt() = 7
+    assertThat(pxToDp(px = 15, density = 240)).isEqualTo(10) // 15 * 160 / 240 = 10.0f -> roundToInt() = 10
+    assertThat(pxToDp(px = 9, density = 200)).isEqualTo(7) // 9 * 160 / 200 = 7.2f -> roundToInt() = 7
   }
 
   @Test

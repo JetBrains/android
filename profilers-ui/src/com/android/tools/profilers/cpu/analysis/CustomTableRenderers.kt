@@ -23,9 +23,7 @@ import javax.swing.JTable
 import javax.swing.border.Border
 import javax.swing.table.DefaultTableCellRenderer
 
-/**
- * Renders duration in microseconds in human readable format.
- */
+/** Renders duration in microseconds in human readable format. */
 internal open class DurationRenderer(border: Border = DEFAULT_CELL_BORDER) : CustomBorderTableCellRenderer(border) {
   override fun setValue(value: Any?) {
     val duration = value as Long
@@ -33,9 +31,7 @@ internal open class DurationRenderer(border: Border = DEFAULT_CELL_BORDER) : Cus
   }
 }
 
-/**
- * Renders timestamp in microseconds in human readable format.
- */
+/** Renders timestamp in microseconds in human readable format. */
 internal class TimestampRenderer(border: Border = DEFAULT_CELL_BORDER) : CustomBorderTableCellRenderer(border) {
   override fun setValue(value: Any?) {
     val timestamp = value as Long
@@ -43,9 +39,7 @@ internal class TimestampRenderer(border: Border = DEFAULT_CELL_BORDER) : CustomB
   }
 }
 
-/**
- * Renders percentage number in human readable format.
- */
+/** Renders percentage number in human readable format. */
 internal class PercentRenderer(border: Border = DEFAULT_CELL_BORDER) : CustomBorderTableCellRenderer(border) {
   private val percentFormatter = DecimalFormat("#.##%")
 
@@ -55,9 +49,7 @@ internal class PercentRenderer(border: Border = DEFAULT_CELL_BORDER) : CustomBor
   }
 }
 
-/**
- * Renders an integer as String. May be used for consistent alignment.
- */
+/** Renders an integer as String. May be used for consistent alignment. */
 internal class IntegerAsStringTableCellRender(border: Border = DEFAULT_CELL_BORDER) : CustomBorderTableCellRenderer(border) {
   override fun setValue(value: Any?) {
     text = (value as Long).toString()
@@ -70,12 +62,14 @@ internal class IntegerAsStringTableCellRender(border: Border = DEFAULT_CELL_BORD
  * @param customBorder a custom border to apply to the table cells.
  */
 internal open class CustomBorderTableCellRenderer(private val customBorder: Border = DEFAULT_CELL_BORDER) : DefaultTableCellRenderer() {
-  override fun getTableCellRendererComponent(table: JTable?,
-                                             value: Any?,
-                                             isSelected: Boolean,
-                                             hasFocus: Boolean,
-                                             row: Int,
-                                             column: Int): Component {
+  override fun getTableCellRendererComponent(
+    table: JTable?,
+    value: Any?,
+    isSelected: Boolean,
+    hasFocus: Boolean,
+    row: Int,
+    column: Int,
+  ): Component {
     super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
     border = JBUI.Borders.merge(border, customBorder, false)
     return this

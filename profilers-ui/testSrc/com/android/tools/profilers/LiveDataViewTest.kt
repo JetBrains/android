@@ -50,12 +50,14 @@ class LiveDataViewTest {
 
 class FakeAllocationView(model: LiveDataModel) : LiveDataView<LiveDataModel>(model) {
   /**
-   * Helper function to register LiveData components on tooltips. This function is responsible for setting the
-   * active tooltip on the stage when a mouse enters the desired component.
+   * Helper function to register LiveData components on tooltips. This function is responsible for setting the active tooltip on the stage
+   * when a mouse enters the desired component.
    */
-  override fun registerTooltip(binder: ViewBinder<StageView<Stage<*>>, TooltipModel, TooltipView>?,
-                               tooltip: RangeTooltipComponent,
-                               stage: Stage<*>?) {
+  override fun registerTooltip(
+    binder: ViewBinder<StageView<Stage<*>>, TooltipModel, TooltipView>?,
+    tooltip: RangeTooltipComponent,
+    stage: Stage<*>?,
+  ) {
     throw NotImplementedError("UnitTestFake")
   }
 

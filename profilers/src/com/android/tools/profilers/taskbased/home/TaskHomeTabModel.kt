@@ -31,16 +31,16 @@ import com.android.tools.profilers.taskbased.logging.TaskLoggingUtils
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.TaskTypeMappingUtils
 import com.google.common.annotations.VisibleForTesting
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * The TaskHomeTabModel serves as the data model for the task home tab. It owns the process list model to manage the available processes
- * to the user to select from, as well as current process selection. It also implements the behavior on start Profiler task button click,
+ * The TaskHomeTabModel serves as the data model for the task home tab. It owns the process list model to manage the available processes to
+ * the user to select from, as well as current process selection. It also implements the behavior on start Profiler task button click,
  * reading the process and Profiler task selection and using such values to launch the Profiler task.
  */
 class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profilers) {
@@ -53,9 +53,7 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
   private val _isPrevTaskStartDone = MutableStateFlow(true)
   val isPrevTaskStartDone = _isPrevTaskStartDone.asStateFlow()
 
-  /**
-   *  This field is only used/matters when TaskHomeTabModel#doesTaskHaveRecordingTypes returns true.
-   */
+  /** This field is only used/matters when TaskHomeTabModel#doesTaskHaveRecordingTypes returns true. */
   private val _taskRecordingType = MutableStateFlow(TaskRecordingType.INSTRUMENTED)
   val taskRecordingType = _taskRecordingType.asStateFlow()
 
@@ -73,12 +71,11 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
    * However, one fundamental difference is that this state persists and is never reset by the program automatically, while
    * `selectionStateOnTaskEnter` is.
    *
-   * Why this is needed:
-   * When executing a startup task, certain information needs to persist beyond the task's initial launch. For instance, during a
-   * Java/Kotlin Method Recording startup task, the `selectionStateOnTaskEnter` gets reset upon task initiation. However, to keep track
-   * of the recording type selected in the task metrics, we require the previously selected recording type for the current task. Therefore,
-   * the state of the recording type selection remains persistent and is never reset. Nevertheless, it can be modified or updated when
-   * another task is initiated.
+   * Why this is needed: When executing a startup task, certain information needs to persist beyond the task's initial launch. For instance,
+   * during a Java/Kotlin Method Recording startup task, the `selectionStateOnTaskEnter` gets reset upon task initiation. However, to keep
+   * track of the recording type selected in the task metrics, we require the previously selected recording type for the current task.
+   * Therefore, the state of the recording type selection remains persistent and is never reset. Nevertheless, it can be modified or updated
+   * when another task is initiated.
    */
   var persistentStateOnTaskEnter = PersistentSelectionStateOnTaskEnter(null)
 
@@ -104,8 +101,7 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
     if (_profilingProcessStartingPoint.value == ProfilingProcessStartingPoint.UNSPECIFIED) {
       if (isNowOptionEnabled) {
         setProfilingProcessStartingPoint(ProfilingProcessStartingPoint.NOW)
-      }
-      else {
+      } else {
         setProfilingProcessStartingPoint(ProfilingProcessStartingPoint.PROCESS_START)
       }
     }
@@ -113,8 +109,7 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
     else {
       if (isNowOptionEnabled && !isProcessStartOptionEnabled) {
         setProfilingProcessStartingPoint(ProfilingProcessStartingPoint.NOW)
-      }
-      else if (!isNowOptionEnabled && isProcessStartOptionEnabled) {
+      } else if (!isNowOptionEnabled && isProcessStartOptionEnabled) {
         setProfilingProcessStartingPoint(ProfilingProcessStartingPoint.PROCESS_START)
       }
     }
@@ -137,17 +132,16 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
   }
 
   /**
-   * Disables the start task button, and then re-enables it once whichever of the following conditions is met first:
-   * (1) there is confirmation the previous task has started successfully or (2) a timeout value is met.
+   * Disables the start task button, and then re-enables it once whichever of the following conditions is met first: (1) there is
+   * confirmation the previous task has started successfully or (2) a timeout value is met.
    */
   fun disableStartButtonUntilPrevTaskStarts() {
     _isPrevTaskStartDone.value = false
-    CompletableFuture.runAsync({ waitForTaskStart(profilers) }, AndroidExecutors.getInstance().workerThreadExecutor)
-      .exceptionally {
-        // If any exception occurs, default to enabling the button.
-        _isPrevTaskStartDone.value = true
-        null
-      }
+    CompletableFuture.runAsync({ waitForTaskStart(profilers) }, AndroidExecutors.getInstance().workerThreadExecutor).exceptionally {
+      // If any exception occurs, default to enabling the button.
+      _isPrevTaskStartDone.value = true
+      null
+    }
   }
 
   private fun waitForTaskStart(profilers: StudioProfilers) {
@@ -181,10 +175,12 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
   }
 
   @VisibleForTesting
-  val selectedDevice: ProfilerDeviceSelection? get() = processListModel.selectedDevice.value
+  val selectedDevice: ProfilerDeviceSelection?
+    get() = processListModel.selectedDevice.value
 
   @VisibleForTesting
-  val selectedProcess: Common.Process get() = processListModel.selectedProcess.value
+  val selectedProcess: Common.Process
+    get() = processListModel.selectedProcess.value
 
   override fun doEnterTaskButton() {
     // Save snapshot of the task home selections made just in case user changes any selection in between enter task button click and usage
@@ -197,8 +193,10 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
     profilers.sessionsManager.currentTaskType = ProfilerTaskType.UNSPECIFIED
 
     // Log selections to aid troubleshooting future user-reported issues.
-    LogUtils.log(javaClass, TaskLoggingUtils.buildStartTaskLogMessage(selectedTaskType, profilingProcessStartingPoint,
-                                                                      selectedProcess.isProfileable()))
+    LogUtils.log(
+      javaClass,
+      TaskLoggingUtils.buildStartTaskLogMessage(selectedTaskType, profilingProcessStartingPoint, selectedProcess.isProfileable()),
+    )
 
     when (profilingProcessStartingPoint) {
       ProfilingProcessStartingPoint.PROCESS_START -> {
@@ -228,24 +226,22 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
 
   data class SelectionStateOnTaskEnter(
     val profilingProcessStartingPoint: ProfilingProcessStartingPoint,
-    val selectedStartupTaskType: ProfilerTaskType
+    val selectedStartupTaskType: ProfilerTaskType,
   )
 
-  data class PersistentSelectionStateOnTaskEnter(
-    val recordingType: TaskRecordingType?
-  )
+  data class PersistentSelectionStateOnTaskEnter(val recordingType: TaskRecordingType?)
 
   enum class ProfilingProcessStartingPoint {
     UNSPECIFIED,
     NOW,
-    PROCESS_START
+    PROCESS_START,
   }
 
   enum class TaskRecordingType {
     // The INSTRUMENTED type is listed first as this is the default and recommended option. This ordering will be reflected in the
     // recording type dropdown options order.
     INSTRUMENTED,
-    SAMPLED
+    SAMPLED,
   }
 
   companion object {

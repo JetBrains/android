@@ -19,37 +19,36 @@ import com.android.tools.profiler.proto.Common.Process.ExposureLevel
 import com.android.tools.profilers.SupportLevel.Feature.*
 import com.android.tools.profilers.cpu.CpuProfiler
 import com.android.tools.profilers.cpu.CpuProfilerStage
-import com.android.tools.profilers.memory.MemoryProfiler
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
+import com.android.tools.profilers.memory.MemoryProfiler
 
 /**
- * Profiler's support level depending on a process's exposure level.
- * For example, support is `DEBUGGABLE` for debuggable processes, and `PROFILEABLE` for profileable processes.
+ * Profiler's support level depending on a process's exposure level. For example, support is `DEBUGGABLE` for debuggable processes, and
+ * `PROFILEABLE` for profileable processes.
  */
-enum class SupportLevel(private val enablesMonitor: (Class<out StudioProfiler>) -> Boolean,
-                        private val enablesStage: (Class<out Stage<*>>) -> Boolean,
-                        private val enablesFeature: (Feature) -> Boolean) {
+enum class SupportLevel(
+  private val enablesMonitor: (Class<out StudioProfiler>) -> Boolean,
+  private val enablesStage: (Class<out Stage<*>>) -> Boolean,
+  private val enablesFeature: (Feature) -> Boolean,
+) {
   NONE(none(), none(), none()),
-  PROFILEABLE(only(CpuProfiler::class.java,
-                   MemoryProfiler::class.java),
-              only(CpuProfilerStage::class.java,
-                   MainMemoryProfilerStage::class.java),
-              except(MEMORY_HEAP_DUMP,
-                     MEMORY_JVM_RECORDING,
-                     MEMORY_GC,
-                     EVENT_MONITOR,
-                     MEMORY_LEAK_WITH_LEAKCANARY)),
+  PROFILEABLE(
+    only(CpuProfiler::class.java, MemoryProfiler::class.java),
+    only(CpuProfilerStage::class.java, MainMemoryProfilerStage::class.java),
+    except(MEMORY_HEAP_DUMP, MEMORY_JVM_RECORDING, MEMORY_GC, EVENT_MONITOR, MEMORY_LEAK_WITH_LEAKCANARY),
+  ),
   DEBUGGABLE(all(), all(), all());
 
   fun isMonitorSupported(profiler: StudioProfiler) = enablesMonitor(profiler::class.java)
+
   fun isStageSupported(stage: Class<out Stage<*>>) = enablesStage(stage)
+
   fun isFeatureSupported(feature: Feature) = enablesFeature(feature)
 
   /**
    * Features that may or may not be supported depending on exposure level
    *
-   * API-initiated CPU tracing doesn't need to be listed here because its entry point
-   * is in the app code, not Studio UI
+   * API-initiated CPU tracing doesn't need to be listed here because its entry point is in the app code, not Studio UI
    */
   enum class Feature(val title: String) {
     MEMORY_HEAP_DUMP("Heap dump capturing"),
@@ -64,15 +63,21 @@ enum class SupportLevel(private val enablesMonitor: (Class<out StudioProfiler>) 
     const val DOC_LINK = "https://d.android.com/r/studio-ui/profiler/profileable"
 
     @JvmStatic
-    fun of(level: ExposureLevel) = when (level) {
-      ExposureLevel.UNKNOWN, ExposureLevel.RELEASE, ExposureLevel.UNRECOGNIZED -> NONE
-      ExposureLevel.PROFILEABLE -> PROFILEABLE
-      ExposureLevel.DEBUGGABLE -> DEBUGGABLE
-    }
+    fun of(level: ExposureLevel) =
+      when (level) {
+        ExposureLevel.UNKNOWN,
+        ExposureLevel.RELEASE,
+        ExposureLevel.UNRECOGNIZED -> NONE
+        ExposureLevel.PROFILEABLE -> PROFILEABLE
+        ExposureLevel.DEBUGGABLE -> DEBUGGABLE
+      }
   }
 }
 
-private fun<T> all(): (T) -> Boolean = { true }
-private fun<T> none(): (T) -> Boolean = { false }
-private fun<T> only(vararg included: T): (T) -> Boolean = included.toSet().let { included -> { it in included } }
-private fun<T> except(vararg excluded: T): (T) -> Boolean = excluded.toSet().let { excluded -> { it !in excluded } }
+private fun <T> all(): (T) -> Boolean = { true }
+
+private fun <T> none(): (T) -> Boolean = { false }
+
+private fun <T> only(vararg included: T): (T) -> Boolean = included.toSet().let { included -> { it in included } }
+
+private fun <T> except(vararg excluded: T): (T) -> Boolean = excluded.toSet().let { excluded -> { it !in excluded } }

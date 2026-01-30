@@ -48,9 +48,8 @@ import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Note: There are some additional tests for goto declaration in [AndroidValueResourcesTest] such
- * as [AndroidValueResourcesTest.testDeclareStyleableNameNavigation1], as well as in
- * [AndroidResourcesLineMarkerTest]
+ * Note: There are some additional tests for goto declaration in [AndroidValueResourcesTest] such as
+ * [AndroidValueResourcesTest.testDeclareStyleableNameNavigation1], as well as in [AndroidResourcesLineMarkerTest]
  *
  * TODO: Test the manifest-oriented logic in [AndroidGotoDeclarationHandler]
  * TODO: Test jumping from a layout to an XML declare styleable attribute!
@@ -58,24 +57,28 @@ import org.jetbrains.android.facet.AndroidFacet
 abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
   val basePath = "/gotoDeclaration/"
 
-  override fun configureAdditionalModules(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
-                                          modules: List<MyAdditionalModuleData>) {
+  override fun configureAdditionalModules(
+    projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
+    modules: List<MyAdditionalModuleData>,
+  ) {
     addModuleWithAndroidFacet(projectBuilder, modules, "lib", PROJECT_TYPE_LIBRARY)
   }
 
   companion object {
     @JvmStatic
-    fun navigateToElementAtCaretFromDifferentFile(myFixture: JavaCodeInsightTestFixture) = with(myFixture) {
-      val element = GotoDeclarationAction.findTargetElement(project, editor, editor.caretModel.offset)
-      val destinationFile = element!!.navigationElement.containingFile.virtualFile
-      assertThat(destinationFile).isNotEqualTo(myFixture.file.virtualFile)
+    fun navigateToElementAtCaretFromDifferentFile(myFixture: JavaCodeInsightTestFixture) =
+      with(myFixture) {
+        val element = GotoDeclarationAction.findTargetElement(project, editor, editor.caretModel.offset)
+        val destinationFile = element!!.navigationElement.containingFile.virtualFile
+        assertThat(destinationFile).isNotEqualTo(myFixture.file.virtualFile)
 
-      openFileInEditor(destinationFile)
-      (element as Navigatable).navigate(true)
-    }
+        openFileInEditor(destinationFile)
+        (element as Navigatable).navigate(true)
+      }
   }
 
-  protected val JavaCodeInsightTestFixture.elementAtCurrentOffset: PsiElement get() = file.findElementAt(editor.caretModel.offset)!!
+  protected val JavaCodeInsightTestFixture.elementAtCurrentOffset: PsiElement
+    get() = file.findElementAt(editor.caretModel.offset)!!
 
   override fun setUp() {
     super.setUp()
@@ -90,107 +93,131 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
       fun createDeclarationDescription(element: PsiElement): DeclarationDescription {
         return DeclarationDescription(
           element.containingFile.parent!!.name + "/" + element.containingFile.name,
-          element.parentOfType<XmlTag>()?.text?.trim() ?: "")
+          element.parentOfType<XmlTag>()?.text?.trim() ?: "",
+        )
       }
     }
   }
 
   fun testFrameworkAttrFromXml() {
-    val file = myFixture.addFileToProject(
-      "res/values/attrs.xml",
-      //language=XML
-      """<?xml version="1.0" encoding="utf-8"?>
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/values/attrs.xml",
+          // language=XML
+          """<?xml version="1.0" encoding="utf-8"?>
       <resources>
           <attr name="android:text${caret}Style" />
       </resources>
-      """).virtualFile
+      """,
+        )
+        .virtualFile
     val declarations = getDeclarationsFrom(file)
-    val listOfDescriptions = declarations.map {
-      DeclarationDescription.createDeclarationDescription(it.navigationElement)
-    }
-    assertThat(listOfDescriptions).containsExactly(
-      DeclarationDescription(
-        "values/attrs.xml",
-        //language=XML
-        """<attr name="textStyle">
+    val listOfDescriptions = declarations.map { DeclarationDescription.createDeclarationDescription(it.navigationElement) }
+    assertThat(listOfDescriptions)
+      .containsExactly(
+        DeclarationDescription(
+          "values/attrs.xml",
+          // language=XML
+          """<attr name="textStyle">
         <flag name="normal" value="0" />
         <flag name="bold" value="1" />
         <flag name="italic" value="2" />
-    </attr>""".trim()))
+    </attr>"""
+            .trim(),
+        )
+      )
   }
 
   fun testGotoResourceFromStartOfReferenceXml() {
-    val file = myFixture.addFileToProject(
-      "res/values/colors.xml",
-      //language=XML
-      """<?xml version="1.0" encoding="utf-8"?>
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/values/colors.xml",
+          // language=XML
+          """<?xml version="1.0" encoding="utf-8"?>
       <resources>
         <color name="colorPrimary">#3f51b5</color>
         <color name="colorPrimaryDark">${caret}@color/colorPrimary</color>
       </resources>
-      """).virtualFile
+      """,
+        )
+        .virtualFile
     val declaration = getDeclarationsFrom(file)
     assertThat(declaration).hasLength(1)
     assertThat(describeElements(declaration))
-      .isEqualTo("""
+      .isEqualTo(
+        """
         values/colors.xml:3:
           <color name="colorPrimary">#3f51b5</color>
                       ~|~~~~~~~~~~~~~               
 
-      """.trimIndent())
+        """
+          .trimIndent()
+      )
   }
 
   fun testGotoResourceFromStartOfReferenceLayoutXml() {
     myFixture.addFileToProject(
       "res/values/colors.xml",
-      //language=XML
+      // language=XML
       """<?xml version="1.0" encoding="utf-8"?>
       <resources>
         <color name="colorPrimary">#3f51b5</color>
       </resources>
-      """)
-    val layoutFile = myFixture.addFileToProject(
-      "res/layout/layout_main.xml",
-      //language=XML
-      """<?xml version="1.0" encoding="utf-8"?>
+      """,
+    )
+    val layoutFile =
+      myFixture
+        .addFileToProject(
+          "res/layout/layout_main.xml",
+          // language=XML
+          """<?xml version="1.0" encoding="utf-8"?>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
           <TextView android:textColor="${caret}@color/colorPrimary"/>
         </LinearLayout>
-      """).virtualFile
+      """,
+        )
+        .virtualFile
     val declaration = getDeclarationsFrom(layoutFile)
     assertThat(declaration).hasLength(1)
     assertThat(describeElements(declaration))
-      .isEqualTo("""
+      .isEqualTo(
+        """
         values/colors.xml:3:
           <color name="colorPrimary">#3f51b5</color>
                       ~|~~~~~~~~~~~~~               
 
-      """.trimIndent())
+        """
+          .trimIndent()
+      )
   }
 
   fun testGotoString() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
     val file = myFixture.copyFileToProject(basePath + "GotoString.java", "src/p1/p2/GotoString.java")
-    assertEquals("values/strings.xml:2:\n" +
-                 "  <string name=\"hello\">hello</string>\n" +
-                 "               ~|~~~~~~              \n",
-                 describeElements(getDeclarationsFrom(file))
+    assertEquals(
+      "values/strings.xml:2:\n" + "  <string name=\"hello\">hello</string>\n" + "               ~|~~~~~~              \n",
+      describeElements(getDeclarationsFrom(file)),
     )
   }
 
   fun testGotoFlattenableResource() {
     myFixture.addFileToProject(
       "res/values/flattencolors.xml",
-      //language=XML
+      // language=XML
       """<?xml version="1.0" encoding="utf-8"?>
       <resources>
           <color name="foo.bar" />
       </resources>
-      """)
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/Activity.kt",
-      """
+      """,
+    )
+    val file =
+      myFixture
+        .addFileToProject(
+          "src/p1/p2/Activity.kt",
+          """
         package p1.p2
         import android.app.Activity
         class ExampleActivity: Activity() {
@@ -198,19 +225,22 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                 R.color.foo_${caret}bar
             }
         }
-      """.trimIndent()).virtualFile
-    assertEquals("values/flattencolors.xml:3:\n" +
-                 "  <color name=\"foo.bar\" />\n" +
-                 "              ~|~~~~~~~~  \n",
-                 describeElements(getDeclarationsFrom(file))
+      """
+            .trimIndent(),
+        )
+        .virtualFile
+    assertEquals(
+      "values/flattencolors.xml:3:\n" + "  <color name=\"foo.bar\" />\n" + "              ~|~~~~~~~~  \n",
+      describeElements(getDeclarationsFrom(file)),
     )
   }
 
   fun testGotoStringFromKotlin() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/Activity.kt",
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/Activity.kt",
+        """
         package p1.p2
 
         import android.app.Activity
@@ -220,11 +250,12 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                 R.string.he${caret}llo
             }
         }
-      """.trimIndent())
-    assertEquals("values/strings.xml:2:\n" +
-                 "  <string name=\"hello\">hello</string>\n" +
-                 "               ~|~~~~~~              \n",
-                 describeElements(getDeclarationsFrom(file.virtualFile))
+      """
+          .trimIndent(),
+      )
+    assertEquals(
+      "values/strings.xml:2:\n" + "  <string name=\"hello\">hello</string>\n" + "               ~|~~~~~~              \n",
+      describeElements(getDeclarationsFrom(file.virtualFile)),
     )
   }
 
@@ -233,16 +264,18 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     myFixture.copyFileToProject(basePath + "ids.xml", "res/values/ids.xml")
     myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
     val file = myFixture.copyFileToProject(basePath + "GotoId.java", "src/p1/p2/GotoId.java")
-    assertEquals("""
-                  layout/layout.xml:4:
-                    <EditText android:id="@+id/anchor"/>
-                                         ~|~~~~~~~~~~~~ 
-                  values/ids.xml:2:
-                    <item name="anchor" type="id"/>
-                               ~|~~~~~~~           
+    assertEquals(
+      """
+      layout/layout.xml:4:
+        <EditText android:id="@+id/anchor"/>
+                             ~|~~~~~~~~~~~~ 
+      values/ids.xml:2:
+        <item name="anchor" type="id"/>
+                   ~|~~~~~~~           
 
-                    """.trimIndent(),
-                 describeElements(getDeclarationsFrom(file))
+      """
+        .trimIndent(),
+      describeElements(getDeclarationsFrom(file)),
     )
   }
 
@@ -250,9 +283,10 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     myFixture.copyFileToProject(basePath + "ids.xml", "res/values/ids.xml")
     myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/Activity.kt",
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/Activity.kt",
+        """
         package p1.p2
 
         import android.app.Activity
@@ -262,17 +296,21 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                 R.id.a${caret}nchor
             }
         }
-      """.trimIndent())
-    assertEquals("""
-                  layout/layout.xml:4:
-                    <EditText android:id="@+id/anchor"/>
-                                         ~|~~~~~~~~~~~~ 
-                  values/ids.xml:2:
-                    <item name="anchor" type="id"/>
-                               ~|~~~~~~~           
+      """
+          .trimIndent(),
+      )
+    assertEquals(
+      """
+      layout/layout.xml:4:
+        <EditText android:id="@+id/anchor"/>
+                             ~|~~~~~~~~~~~~ 
+      values/ids.xml:2:
+        <item name="anchor" type="id"/>
+                   ~|~~~~~~~           
 
-                 """.trimIndent(),
-                 describeElements(getDeclarationsFrom(file.virtualFile))
+      """
+        .trimIndent(),
+      describeElements(getDeclarationsFrom(file.virtualFile)),
     )
   }
 
@@ -283,19 +321,20 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values-en-rUS/strings.xml")
     myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
     val file = myFixture.copyFileToProject(basePath + "GotoString.java", "src/p1/p2/GotoString.java")
-    assertEquals("values/strings.xml:2:\n" +
-                 "  <string name=\"hello\">hello</string>\n" +
-                 "               ~|~~~~~~              \n" +
-                 "values-en/strings.xml:2:\n" +
-                 "  <string name=\"hello\">hello</string>\n" +
-                 "               ~|~~~~~~              \n" +
-                 "values-en-rUS/strings.xml:2:\n" +
-                 "  <string name=\"hello\">hello</string>\n" +
-                 "               ~|~~~~~~              \n" +
-                 "values-no/strings.xml:2:\n" +
-                 "  <string name=\"hello\">hello</string>\n" +
-                 "               ~|~~~~~~              \n",
-                 describeElements(getDeclarationsFrom(file))
+    assertEquals(
+      "values/strings.xml:2:\n" +
+        "  <string name=\"hello\">hello</string>\n" +
+        "               ~|~~~~~~              \n" +
+        "values-en/strings.xml:2:\n" +
+        "  <string name=\"hello\">hello</string>\n" +
+        "               ~|~~~~~~              \n" +
+        "values-en-rUS/strings.xml:2:\n" +
+        "  <string name=\"hello\">hello</string>\n" +
+        "               ~|~~~~~~              \n" +
+        "values-no/strings.xml:2:\n" +
+        "  <string name=\"hello\">hello</string>\n" +
+        "               ~|~~~~~~              \n",
+      describeElements(getDeclarationsFrom(file)),
     )
   }
 
@@ -305,48 +344,48 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values-en-rUS/strings.xml")
     val file = myFixture.copyFileToProject(basePath + "layout2.xml", "res/layout/layout2.xml")
-    assertEquals("values/strings.xml:2:\n" +
-                 "  <string name=\"hello\">hello</string>\n" +
-                 "               ~|~~~~~~              \n" +
-                 "values-en/strings.xml:2:\n" +
-                 "  <string name=\"hello\">hello</string>\n" +
-                 "               ~|~~~~~~              \n" +
-                 "values-en-rUS/strings.xml:2:\n" +
-                 "  <string name=\"hello\">hello</string>\n" +
-                 "               ~|~~~~~~              \n" +
-                 "values-no/strings.xml:2:\n" +
-                 "  <string name=\"hello\">hello</string>\n" +
-                 "               ~|~~~~~~              \n",
-                 describeElements(getDeclarationsFrom(file))
+    assertEquals(
+      "values/strings.xml:2:\n" +
+        "  <string name=\"hello\">hello</string>\n" +
+        "               ~|~~~~~~              \n" +
+        "values-en/strings.xml:2:\n" +
+        "  <string name=\"hello\">hello</string>\n" +
+        "               ~|~~~~~~              \n" +
+        "values-en-rUS/strings.xml:2:\n" +
+        "  <string name=\"hello\">hello</string>\n" +
+        "               ~|~~~~~~              \n" +
+        "values-no/strings.xml:2:\n" +
+        "  <string name=\"hello\">hello</string>\n" +
+        "               ~|~~~~~~              \n",
+      describeElements(getDeclarationsFrom(file)),
     )
   }
 
   fun testGotoStringFromXml() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     val file = myFixture.copyFileToProject(basePath + "layout2.xml", "res/layout/layout2.xml")
-    assertEquals("values/strings.xml:2:\n" +
-                 "  <string name=\"hello\">hello</string>\n" +
-                 "               ~|~~~~~~              \n",
-                 describeElements(getDeclarationsFrom(file))
+    assertEquals(
+      "values/strings.xml:2:\n" + "  <string name=\"hello\">hello</string>\n" + "               ~|~~~~~~              \n",
+      describeElements(getDeclarationsFrom(file)),
     )
   }
 
   fun testGotoStyleableAttr() {
     myFixture.copyFileToProject(basePath + "attrs.xml", "res/values/attrs.xml")
     val file = myFixture.copyFileToProject(basePath + "MyView2.java", "src/p1/p2/MyView.java")
-    assertEquals("values/attrs.xml:4:\n" +
-                 "  <attr name=\"answer\">\n" +
-                 "             ~|~~~~~~~\n",
-                 describeElements(getDeclarationsFrom(file))
+    assertEquals(
+      "values/attrs.xml:4:\n" + "  <attr name=\"answer\">\n" + "             ~|~~~~~~~\n",
+      describeElements(getDeclarationsFrom(file)),
     )
   }
 
   fun testGotoStyleableAttr_frameworkAttr() {
     myFixture.copyFileToProject(basePath + "attrs.xml", "res/values/attrs.xml")
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/SomeClass.java",
-      //language=JAVA
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/SomeClass.java",
+        // language=JAVA
+        """
       package p1.p2;
 
       public class SomeClass {
@@ -355,21 +394,21 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
           }
 
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
     assertEquals(
-      "values/attrs.xml:8:\n" +
-      "  <attr name=\"android:maxHeight\" />\n" +
-      "             ~|~~~~~~~~~~~~~~~~~~  \n",
-      describeElements(getDeclarationsFrom(file.virtualFile))
+      "values/attrs.xml:8:\n" + "  <attr name=\"android:maxHeight\" />\n" + "             ~|~~~~~~~~~~~~~~~~~~  \n",
+      describeElements(getDeclarationsFrom(file.virtualFile)),
     )
   }
 
   fun testGotoStyleableAttr_frameworkAttrKotlin() {
     myFixture.copyFileToProject(basePath + "attrs.xml", "res/values/attrs.xml")
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/ExampleActivity.kt",
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/ExampleActivity.kt",
+        """
       package p1.p2
       import android.app.Activity
 
@@ -378,13 +417,12 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
               R.styleable.MyView_android_m${caret}axHeight
           }
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
     assertEquals(
-      "values/attrs.xml:8:\n" +
-      "  <attr name=\"android:maxHeight\" />\n" +
-      "             ~|~~~~~~~~~~~~~~~~~~  \n",
-      describeElements(getDeclarationsFrom(file.virtualFile))
+      "values/attrs.xml:8:\n" + "  <attr name=\"android:maxHeight\" />\n" + "             ~|~~~~~~~~~~~~~~~~~~  \n",
+      describeElements(getDeclarationsFrom(file.virtualFile)),
     )
   }
 
@@ -392,17 +430,16 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     myFixture.copyFileToProject(basePath + "MyActivity.java", "src/p1/p2/MyActivity.java")
     val file = myFixture.copyFileToProject(basePath + "tools_layout1.xml", "res/layout/layout2.xml")
-    assertEquals("MyActivity.java:6:\n" +
-                 "  public class MyActivity extends Activity {\n" +
-                 "  ~~~~~~~~~~~~~|~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
-                 describeElements(getDeclarationsFrom(file))
+    assertEquals(
+      "MyActivity.java:6:\n" + "  public class MyActivity extends Activity {\n" + "  ~~~~~~~~~~~~~|~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
+      describeElements(getDeclarationsFrom(file)),
     )
   }
 
   fun testGotoDeclareStyleableFromXML() {
     myFixture.addFileToProject(
       "src/p1/p2/MyView.java",
-      //language=Java
+      // language=Java
       """
       package p1.p2;
 
@@ -416,37 +453,41 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
               super(context, attrs, defStyle);
           }
       }
-    """.trimIndent())
-    val file = myFixture.addFileToProject(
-      "res/values/styles.xml",
-      //language=XML
       """
-        <resources>
-          <declare-styleable name="My<caret>View">
-            <attr name="libAttr" format="string" />
-          </declare-styleable>
-        </resources>
-        """.trimIndent()
-    ).virtualFile
+        .trimIndent(),
+    )
+    val file =
+      myFixture
+        .addFileToProject(
+          "res/values/styles.xml",
+          // language=XML
+          """
+          <resources>
+            <declare-styleable name="My<caret>View">
+              <attr name="libAttr" format="string" />
+            </declare-styleable>
+          </resources>
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     val expectedResult =
-        """
-          values/styles.xml:2:
-            <declare-styleable name="MyView">
-                                    ~|~~~~~~~
+      """
+      values/styles.xml:2:
+        <declare-styleable name="MyView">
+                                ~|~~~~~~~
 
-        """.trimIndent()
-    assertEquals(expectedResult,
-                 describeElements(getDeclarationsFrom(file)))
-
+      """
+        .trimIndent()
+    assertEquals(expectedResult, describeElements(getDeclarationsFrom(file)))
   }
 
   fun testGotoResourceFromToolsAttribute() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     val file = myFixture.copyFileToProject(basePath + "tools_layout2.xml", "res/layout/layout2.xml")
-    assertEquals("values/strings.xml:2:\n" +
-                 "  <string name=\"hello\">hello</string>\n" +
-                 "               ~|~~~~~~              \n",
-                 describeElements(getDeclarationsFrom(file))
+    assertEquals(
+      "values/strings.xml:2:\n" + "  <string name=\"hello\">hello</string>\n" + "               ~|~~~~~~              \n",
+      describeElements(getDeclarationsFrom(file)),
     )
   }
 
@@ -459,10 +500,9 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     deleteManifest(myModule)
 
     val file = myFixture.copyFileToProject(basePath + "ImportedGotoString.java", "src/p1/p2/ImportedGotoString.java")
-    assertEquals("values/strings.xml:2:\n" +
-                 "  <string name=\"hello\">hello</string>\n" +
-                 "               ~|~~~~~~              \n",
-                 describeElements(getDeclarationsFrom(file))
+    assertEquals(
+      "values/strings.xml:2:\n" + "  <string name=\"hello\">hello</string>\n" + "               ~|~~~~~~              \n",
+      describeElements(getDeclarationsFrom(file)),
     )
   }
 
@@ -470,9 +510,10 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     myFixture.copyFileToProject(basePath + "ids.xml", "res/values/ids.xml")
     myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/Activity.kt",
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/Activity.kt",
+        """
         package p1.p2
 
         import android.app.Activity
@@ -483,27 +524,33 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                 LibR.id.a${caret}nchor
             }
         }
-      """.trimIndent())
-    assertEquals("""
-                  layout/layout.xml:4:
-                    <EditText android:id="@+id/anchor"/>
-                                         ~|~~~~~~~~~~~~ 
-                  values/ids.xml:2:
-                    <item name="anchor" type="id"/>
-                               ~|~~~~~~~           
+      """
+          .trimIndent(),
+      )
+    assertEquals(
+      """
+      layout/layout.xml:4:
+        <EditText android:id="@+id/anchor"/>
+                             ~|~~~~~~~~~~~~ 
+      values/ids.xml:2:
+        <item name="anchor" type="id"/>
+                   ~|~~~~~~~           
 
-                 """.trimIndent(),
-                 describeElements(getDeclarationsFrom(file.virtualFile)))
+      """
+        .trimIndent(),
+      describeElements(getDeclarationsFrom(file.virtualFile)),
+    )
   }
 
   fun testGotoStaticallyImportedResourceJava() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     myFixture.copyFileToProject(basePath + "ids.xml", "res/values/ids.xml")
     myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/ExampleActivity.java",
-      //language=Java
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/ExampleActivity.java",
+        // language=Java
+        """
         package p1.p2;
 
         import android.app.Activity;
@@ -514,23 +561,29 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                 anch<caret>or;
             }
         }
-      """.trimIndent())
-    assertEquals("""
-                 layout/layout.xml:4:
-                   <EditText android:id="@+id/anchor"/>
-                                        ~|~~~~~~~~~~~~ 
-                 values/ids.xml:2:
-                   <item name="anchor" type="id"/>
-                              ~|~~~~~~~           
+        """
+          .trimIndent(),
+      )
+    assertEquals(
+      """
+      layout/layout.xml:4:
+        <EditText android:id="@+id/anchor"/>
+                             ~|~~~~~~~~~~~~ 
+      values/ids.xml:2:
+        <item name="anchor" type="id"/>
+                   ~|~~~~~~~           
 
-                  """.trimIndent(),
-                 describeElements(getDeclarationsFrom(file.virtualFile)))
+      """
+        .trimIndent(),
+      describeElements(getDeclarationsFrom(file.virtualFile)),
+    )
   }
 
   fun testGotoFrameworkResourceKotlin() {
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/Activity.kt",
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/Activity.kt",
+        """
         package p1.p2
 
         import android.app.Activity
@@ -540,23 +593,29 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                 android.R.color.backg${caret}round_dark
             }
         }
-      """.trimIndent())
-    assertEquals("""
-                  values/colors.xml:44:
-                    <color name="background_dark">#ff000000</color>
-                                ~|~~~~~~~~~~~~~~~~                 
+      """
+          .trimIndent(),
+      )
+    assertEquals(
+      """
+      values/colors.xml:44:
+        <color name="background_dark">#ff000000</color>
+                    ~|~~~~~~~~~~~~~~~~                 
 
-                 """.trimIndent(),
-                 describeElements(getDeclarationsFrom(file.virtualFile)))
+      """
+        .trimIndent(),
+      describeElements(getDeclarationsFrom(file.virtualFile)),
+    )
   }
 
   fun testGotoStaticallyImportedResourceKotlin() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     myFixture.copyFileToProject(basePath + "ids.xml", "res/values/ids.xml")
     myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/Activity.kt",
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/Activity.kt",
+        """
         package p1.p2
 
         import android.app.Activity
@@ -567,26 +626,33 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                 a${caret}nchor
             }
         }
-      """.trimIndent())
-    assertEquals("""
-                  layout/layout.xml:4:
-                    <EditText android:id="@+id/anchor"/>
-                                         ~|~~~~~~~~~~~~ 
-                  values/ids.xml:2:
-                    <item name="anchor" type="id"/>
-                               ~|~~~~~~~           
+      """
+          .trimIndent(),
+      )
+    assertEquals(
+      """
+      layout/layout.xml:4:
+        <EditText android:id="@+id/anchor"/>
+                             ~|~~~~~~~~~~~~ 
+      values/ids.xml:2:
+        <item name="anchor" type="id"/>
+                   ~|~~~~~~~           
 
-                 """.trimIndent(),
-                 describeElements(getDeclarationsFrom(file.virtualFile)))
+      """
+        .trimIndent(),
+      describeElements(getDeclarationsFrom(file.virtualFile)),
+    )
   }
 
   open fun testGotoAarResourceFromCode_libRClass() {
     addAarDependencyToMyModule()
 
-    val virtualFile = myFixture.addFileToProject(
-      "src/p1/p2/GotoAarStyle.java",
-      // language=java
-      """
+    val virtualFile =
+      myFixture
+        .addFileToProject(
+          "src/p1/p2/GotoAarStyle.java",
+          // language=java
+          """
        package p1.p2;
 
        public class GotoAarStyle {
@@ -594,29 +660,32 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                int id1 = com.example.aarLib.R.style.Lib${caret}Style;
            }
        }
-       """.trimIndent()
-    ).virtualFile
+       """
+            .trimIndent(),
+        )
+        .virtualFile
 
     myFixture.configureFromExistingVirtualFile(virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
     assertThat(elementAtCaret).isInstanceOf(ResourceLightField::class.java)
     assertThat(elementAtCaret.parent.parent).isInstanceOf(TransitiveAarRClass::class.java)
 
-    assertEquals("values/styles.xml:5:\n" +
-                 "  <style name=\"LibStyle\" parent=\"ParentStyle\">\n" +
-                 "              ~|~~~~~~~~~                     \n",
-                 describeElements(getDeclarationsFrom(virtualFile))
+    assertEquals(
+      "values/styles.xml:5:\n" +
+        "  <style name=\"LibStyle\" parent=\"ParentStyle\">\n" +
+        "              ~|~~~~~~~~~                     \n",
+      describeElements(getDeclarationsFrom(virtualFile)),
     )
 
-    assertEquals("values/styles.xml:9:\n" +
-                 "  <attr name=\"libAttr\" format=\"string\" />\n" +
-                 "             ~|~~~~~~~~                  \n",
-                 describeElements(
-                   getDeclarationsFrom(
-                     myFixture.addFileToProject(
-                       "src/p1/p2/GotoAarStyleableAttr.java",
-                       // language=java
-                       """
+    assertEquals(
+      "values/styles.xml:9:\n" + "  <attr name=\"libAttr\" format=\"string\" />\n" + "             ~|~~~~~~~~                  \n",
+      describeElements(
+        getDeclarationsFrom(
+          myFixture
+            .addFileToProject(
+              "src/p1/p2/GotoAarStyleableAttr.java",
+              // language=java
+              """
                        package p1.p2;
 
                        public class GotoAarStyleableAttr {
@@ -624,10 +693,12 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                                int id1 = com.example.aarLib.R.attr.lib${caret}Attr;
                            }
                        }
-                       """.trimIndent()
-                     ).virtualFile
-                   )
-                 )
+                       """
+                .trimIndent(),
+            )
+            .virtualFile
+        )
+      ),
     )
   }
 
@@ -637,10 +708,11 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
       Manifest.getMainManifest(myFacet)!!.addPermission()?.apply { name.value = "com.example.SEND-MESSAGE" }
     }
 
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/GotoPermission.java",
-      // language=java
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/GotoPermission.java",
+        // language=java
+        """
       package p1.p2;
 
       public class GotoPermission {
@@ -648,8 +720,9 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
               String permissionName = Manifest.permission.SEND${caret}_MESSAGE;
           }
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     CodeInsightTestFixtureImpl.ensureIndexesUpToDate(project)
 
@@ -661,12 +734,13 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
       AndroidManifest.xml:7:
         <permission android:name="com.example.SEND_MESSAGE" />
                                  ~|~~~~~~~~~~~~~~~~~~~~~~~~~
-      """.trimIndent(),
+      """
+        .trimIndent(),
       describeElements(getDeclarationsFrom(file.virtualFile))
         .lineSequence()
         .map { it.trimEnd() }
         .filter { it.isNotEmpty() }
-        .joinToString(separator = "\n")
+        .joinToString(separator = "\n"),
     )
   }
 
@@ -676,12 +750,13 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     // AndroidGotoDeclarationHandler only handles .java files. We also want to check .xml files, so
     // we use GotoDeclarationAction instead of creating AndroidGotoDeclarationHandler and invoking getGotoDeclarationTargets
     // on it directly.
-    return GotoDeclarationAction.findAllTargetElements(myFixture.project, myFixture.editor, myFixture.caretOffset)
-             .takeUnless { it.isEmpty() }
-           ?: TargetElementUtil.findReference(myFixture.editor, myFixture.caretOffset)
-             ?.let { TargetElementUtil.getInstance().getTargetCandidates(it) }
-             ?.let { PsiUtilCore.toPsiElementArray(it) }
-           ?: PsiElement.EMPTY_ARRAY
+    return GotoDeclarationAction.findAllTargetElements(myFixture.project, myFixture.editor, myFixture.caretOffset).takeUnless {
+      it.isEmpty()
+    }
+      ?: TargetElementUtil.findReference(myFixture.editor, myFixture.caretOffset)
+        ?.let { TargetElementUtil.getInstance().getTargetCandidates(it) }
+        ?.let { PsiUtilCore.toPsiElementArray(it) }
+      ?: PsiElement.EMPTY_ARRAY
   }
 
   protected abstract fun addAarDependencyToMyModule()
@@ -691,8 +766,10 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
 
   override fun addAarDependencyToMyModule() {
     addAarDependency(myFixture, myModule, "aarLib", "com.example.aarLib") { resDir ->
-      resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
-        """
+      resDir.parentFile
+        .resolve(SdkConstants.FN_RESOURCE_TEXT)
+        .writeText(
+          """
           int attr libAttr 0x7f010000
           int drawable libLogo 0x7f020000
           int style ParentStyle 0x7f040001
@@ -701,35 +778,42 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
           int dimen libDimen 0x7f080002
           int[] styleable LibStyleable { 0x7f040001}
           int styleable LibStyleable_libAttr 0
-          """.trimIndent()
-      )
-      resDir.resolve("values/styles.xml").writeText(
-        // language=XML
-        """
-        <resources>
-          <dimen name="smallText">10dp</dimen>
-          <dimen name="libDimen">@dimen/smallText</dimen>
-          <style name="ParentStyle"></style>
-          <style name="LibStyle" parent="ParentStyle">
-            <item name="android:textSize">@dimen/libDimen</item>
-          </style>
-          <declare-styleable name="LibStyleable">
-            <attr name="libAttr" format="string" />
-          </declare-styleable>
-        </resources>
-        """.trimIndent()
-      )
+          """
+            .trimIndent()
+        )
+      resDir
+        .resolve("values/styles.xml")
+        .writeText(
+          // language=XML
+          """
+          <resources>
+            <dimen name="smallText">10dp</dimen>
+            <dimen name="libDimen">@dimen/smallText</dimen>
+            <style name="ParentStyle"></style>
+            <style name="LibStyle" parent="ParentStyle">
+              <item name="android:textSize">@dimen/libDimen</item>
+            </style>
+            <declare-styleable name="LibStyleable">
+              <attr name="libAttr" format="string" />
+            </declare-styleable>
+          </resources>
+          """
+            .trimIndent()
+        )
       resDir.resolve("drawable").mkdirs()
-      resDir.resolve("drawable/libLogo.xml").writeText(
-        // language=XML
-        """
-        <vector xmlns:android="http://schemas.android.com/apk/res/android">
-          <group android:name="g">
-            <vector android:pathData="xxx" />
-          </group>
-        </vector>
-        """.trimIndent()
-      )
+      resDir
+        .resolve("drawable/libLogo.xml")
+        .writeText(
+          // language=XML
+          """
+          <vector xmlns:android="http://schemas.android.com/apk/res/android">
+            <group android:name="g">
+              <vector android:pathData="xxx" />
+            </group>
+          </vector>
+          """
+            .trimIndent()
+        )
     }
 
     // Sanity check.
@@ -743,10 +827,11 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
     myFixture.copyFileToProject(basePath + "strings.xml", "additionalModules/lib/res/values/strings.xml")
     myFixture.copyFileToProject(basePath + "layout.xml", "additionalModules/lib/res/layout/layout.xml")
 
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/LibString.java",
-      // language=java
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/LibString.java",
+        // language=java
+        """
       package p1.p2;
 
       public class LibString {
@@ -754,28 +839,30 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
               int id1 = R.string.hel${caret}lo;
           }
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
-    assertEquals("values/strings.xml:2:\n" +
-                 "  <string name=\"hello\">hello</string>\n" +
-                 "               ~|~~~~~~              \n",
-                 describeElements(getDeclarationsFrom(file.virtualFile))
+    assertEquals(
+      "values/strings.xml:2:\n" + "  <string name=\"hello\">hello</string>\n" + "               ~|~~~~~~              \n",
+      describeElements(getDeclarationsFrom(file.virtualFile)),
     )
   }
 
   fun testGotoAarResourceFromCode_ownRClass() {
     addAarDependencyToMyModule()
 
-    assertEquals("values/styles.xml:5:\n" +
-                 "  <style name=\"LibStyle\" parent=\"ParentStyle\">\n" +
-                 "              ~|~~~~~~~~~                     \n",
-                 describeElements(
-                   getDeclarationsFrom(
-                     myFixture.addFileToProject(
-                       "src/p1/p2/GotoAarStyle.java",
-                       // language=java
-                       """
+    assertEquals(
+      "values/styles.xml:5:\n" +
+        "  <style name=\"LibStyle\" parent=\"ParentStyle\">\n" +
+        "              ~|~~~~~~~~~                     \n",
+      describeElements(
+        getDeclarationsFrom(
+          myFixture
+            .addFileToProject(
+              "src/p1/p2/GotoAarStyle.java",
+              // language=java
+              """
                        package p1.p2;
 
                        public class GotoAarStyle {
@@ -783,21 +870,23 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
                                int id1 = R.style.Lib${caret}Style;
                            }
                        }
-                       """.trimIndent()
-                     ).virtualFile
-                   )
-                 )
+                       """
+                .trimIndent(),
+            )
+            .virtualFile
+        )
+      ),
     )
 
-    assertEquals("values/styles.xml:9:\n" +
-                 "  <attr name=\"libAttr\" format=\"string\" />\n" +
-                 "             ~|~~~~~~~~                  \n",
-                 describeElements(
-                   getDeclarationsFrom(
-                     myFixture.addFileToProject(
-                       "src/p1/p2/GotoAarStyleableAttr.java",
-                       // language=java
-                       """
+    assertEquals(
+      "values/styles.xml:9:\n" + "  <attr name=\"libAttr\" format=\"string\" />\n" + "             ~|~~~~~~~~                  \n",
+      describeElements(
+        getDeclarationsFrom(
+          myFixture
+            .addFileToProject(
+              "src/p1/p2/GotoAarStyleableAttr.java",
+              // language=java
+              """
                        package p1.p2;
 
                        public class GotoAarStyleableAttr {
@@ -805,20 +894,23 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
                                int id1 = R.attr.lib${caret}Attr;
                            }
                        }
-                       """.trimIndent()
-                     ).virtualFile
-                   )
-                 )
+                       """
+                .trimIndent(),
+            )
+            .virtualFile
+        )
+      ),
     )
   }
 
   fun testGotoAarFileResourceFromCode_ownRClass() {
     addAarDependencyToMyModule()
 
-    val javaFile = myFixture.addFileToProject(
-      "src/p1/p2/GotoAarDrawable.java",
-      // language=java
-      """
+    val javaFile =
+      myFixture.addFileToProject(
+        "src/p1/p2/GotoAarDrawable.java",
+        // language=java
+        """
       package p1.p2;
 
       public class GotoAarDrawable {
@@ -826,8 +918,9 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
               int id1 = R.drawable.lib${caret}Logo;
           }
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     val targets = getDeclarationsFrom(javaFile.virtualFile)
     assertThat(targets).hasLength(1)
@@ -836,81 +929,88 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
     assertThat((target as PsiFile).virtualFile.name).isEqualTo("libLogo.xml")
   }
 
-  fun testGotoAarResourceFromAarXml() = with(myFixture) {
-    addAarDependencyToMyModule()
+  fun testGotoAarResourceFromAarXml() =
+    with(myFixture) {
+      addAarDependencyToMyModule()
 
-    configureFromExistingVirtualFile(
-      addFileToProject(
-        "res/values/styles.xml",
-        // language=xml
-        """
+      configureFromExistingVirtualFile(
+        addFileToProject(
+            "res/values/styles.xml",
+            // language=xml
+            """
       <!--suppress CheckTagEmptyBody -->
       <resources>
         <style name="AppStyle" parent="Lib${caret}Style"></style>
       </resources>
-    """.trimIndent()
-      ).virtualFile
-    )
+    """
+              .trimIndent(),
+          )
+          .virtualFile
+      )
 
-    navigateToElementAtCaretFromDifferentFile(myFixture)
-    assertThat(elementAtCurrentOffset.text).isEqualTo("LibStyle")
-    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text)
-      .isEqualTo("""
-        <style name="LibStyle" parent="ParentStyle">
-            <item name="android:textSize">@dimen/libDimen</item>
-          </style>""".trimIndent())
+      navigateToElementAtCaretFromDifferentFile(myFixture)
+      assertThat(elementAtCurrentOffset.text).isEqualTo("LibStyle")
+      assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text)
+        .isEqualTo(
+          """
+          <style name="LibStyle" parent="ParentStyle">
+              <item name="android:textSize">@dimen/libDimen</item>
+            </style>
+          """
+            .trimIndent()
+        )
 
-    // ParentStyleConverter:
-    moveCaret("""parent="Parent|Style""")
-    goToElementAtCaret()
-    assertThat(elementAtCurrentOffset.text).isEqualTo("ParentStyle")
-    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo("""<style name="ParentStyle"></style>""")
+      // ParentStyleConverter:
+      moveCaret("""parent="Parent|Style""")
+      goToElementAtCaret()
+      assertThat(elementAtCurrentOffset.text).isEqualTo("ParentStyle")
+      assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo("""<style name="ParentStyle"></style>""")
 
-    // StyleItemConverter:
-    moveCaret("""<item name="android:textSize">@dimen/|libDimen""")
-    goToElementAtCaret()
-    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo("""<dimen name="libDimen">@dimen/smallText</dimen>""")
+      // StyleItemConverter:
+      moveCaret("""<item name="android:textSize">@dimen/|libDimen""")
+      goToElementAtCaret()
+      assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo("""<dimen name="libDimen">@dimen/smallText</dimen>""")
 
-    // ResourceReferenceConverter:
-    moveCaret("""@dimen/|smallText""")
-    goToElementAtCaret()
-    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo("""<dimen name="smallText">10dp</dimen>""")
-  }
+      // ResourceReferenceConverter:
+      moveCaret("""@dimen/|smallText""")
+      goToElementAtCaret()
+      assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo("""<dimen name="smallText">10dp</dimen>""")
+    }
 
-  fun testGotoFrameworkResourceFromFrameworkXml() = with(myFixture) {
-    addAarDependencyToMyModule()
+  fun testGotoFrameworkResourceFromFrameworkXml() =
+    with(myFixture) {
+      addAarDependencyToMyModule()
 
-    configureFromExistingVirtualFile(
-      addFileToProject(
-        "res/values/styles.xml",
-        // language=xml
-        """
+      configureFromExistingVirtualFile(
+        addFileToProject(
+            "res/values/styles.xml",
+            // language=xml
+            """
       <!--suppress CheckTagEmptyBody -->
       <resources>
         <style name="AppStyle" parent="android:Theme.${caret}InputMethod"></style>
       </resources>
-    """.trimIndent()
-      ).virtualFile
-    )
+    """
+              .trimIndent(),
+          )
+          .virtualFile
+      )
 
-    navigateToElementAtCaretFromDifferentFile(myFixture)
-    assertThat(elementAtCurrentOffset.text).isEqualTo("Theme.InputMethod")
-    editor.caretModel.moveToOffset(editor.caretModel.offset + 35)
-    assertThat(elementAtCurrentOffset.text).isEqualTo("Theme.Panel")
-    assertThat(elementAtCurrentOffset.parentOfType<XmlAttribute>()!!.text).isEqualTo("parent=\"Theme.Panel\"")
-    goToElementAtCaret()
-    assertThat(elementAtCurrentOffset.parentOfType<XmlAttribute>()!!.text).isEqualTo("name=\"Theme.Panel\"")
-  }
+      navigateToElementAtCaretFromDifferentFile(myFixture)
+      assertThat(elementAtCurrentOffset.text).isEqualTo("Theme.InputMethod")
+      editor.caretModel.moveToOffset(editor.caretModel.offset + 35)
+      assertThat(elementAtCurrentOffset.text).isEqualTo("Theme.Panel")
+      assertThat(elementAtCurrentOffset.parentOfType<XmlAttribute>()!!.text).isEqualTo("parent=\"Theme.Panel\"")
+      goToElementAtCaret()
+      assertThat(elementAtCurrentOffset.parentOfType<XmlAttribute>()!!.text).isEqualTo("name=\"Theme.Panel\"")
+    }
 }
 
 class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandlerTestBase() {
   override fun setUp() {
     super.setUp()
     enableNamespacing(myFacet, "p1.p2")
-    enableNamespacing(
-      AndroidFacet.getInstance(getAdditionalModuleByName("lib")!!)!!,
-      "p1.p2.lib"
-    )
+    enableNamespacing(AndroidFacet.getInstance(getAdditionalModuleByName("lib")!!)!!, "p1.p2.lib")
   }
 
   fun testGotoStringFromLib_ownRClass() {
@@ -918,10 +1018,11 @@ class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandle
     myFixture.copyFileToProject(basePath + "strings.xml", "additionalModules/lib/res/values/strings.xml")
     myFixture.copyFileToProject(basePath + "layout.xml", "additionalModules/lib/res/layout/layout.xml")
 
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/LibString.java",
-      // language=java
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/LibString.java",
+        // language=java
+        """
       package p1.p2;
 
       public class LibString {
@@ -929,8 +1030,9 @@ class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandle
               int id1 = R.string.hel${caret}lo;
           }
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     assertEmpty(getDeclarationsFrom(file.virtualFile))
   }
@@ -942,10 +1044,11 @@ class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandle
   override fun testGotoAarResourceFromCode_libRClass() {
     addAarDependencyToMyModule()
 
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/AarString.java",
-      // language=java
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/AarString.java",
+        // language=java
+        """
       package p1.p2;
 
       public class AarString {
@@ -953,13 +1056,18 @@ class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandle
               int id1 = com.example.mylibrary.R.string.my_aar_str${caret}ing;
           }
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
-    assertThat(describeElements(getDeclarationsFrom(file.virtualFile)).trimEnd()).isEqualTo("""
+    assertThat(describeElements(getDeclarationsFrom(file.virtualFile)).trimEnd())
+      .isEqualTo(
+        """
         values/strings.xml:3:
           <string name="my_aar_string">This string came from an AARv2</string>
                        ~|~~~~~~~~~~~~~~
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
   }
 }

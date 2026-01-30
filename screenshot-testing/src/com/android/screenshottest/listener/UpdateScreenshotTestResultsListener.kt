@@ -33,46 +33,40 @@ class UpdateScreenshotTestResultsListener(private val dialog: UpdateReferenceIma
   override fun onTestCaseFinished(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {
     ApplicationManager.getApplication().invokeLater {
       val className = testCase.className
-      val methodName = testCase.additionalTestArtifacts["PreviewScreenshot.methodName"]?: " "
-      val rawPreviewName = testCase.additionalTestArtifacts["PreviewScreenshot.previewName"]?: " "
+      val methodName = testCase.additionalTestArtifacts["PreviewScreenshot.methodName"] ?: " "
+      val rawPreviewName = testCase.additionalTestArtifacts["PreviewScreenshot.previewName"] ?: " "
       val previewName = cleanPreviewName(rawPreviewName)
       val testId = "$className.$methodName.$previewName"
-      val previewDetails = PreviewDetails(
-        testId = testId,
-        className = className,
-        methodName = methodName,
-        previewName = previewName,
-        testResult = testCase.result,
-        destImagePath = testCase.additionalTestArtifacts["PreviewScreenshot.refImagePath"],
-        srcImagePath = testCase.additionalTestArtifacts["PreviewScreenshot.newImagePath"],
-        diffImagePath = testCase.additionalTestArtifacts["PreviewScreenshot.diffImagePath"],
-        diffPercent = testCase.additionalTestArtifacts["PreviewScreenshot.diffPercent"]
-      )
+      val previewDetails =
+        PreviewDetails(
+          testId = testId,
+          className = className,
+          methodName = methodName,
+          previewName = previewName,
+          testResult = testCase.result,
+          destImagePath = testCase.additionalTestArtifacts["PreviewScreenshot.refImagePath"],
+          srcImagePath = testCase.additionalTestArtifacts["PreviewScreenshot.newImagePath"],
+          diffImagePath = testCase.additionalTestArtifacts["PreviewScreenshot.diffImagePath"],
+          diffPercent = testCase.additionalTestArtifacts["PreviewScreenshot.diffPercent"],
+        )
       dialog.updateDialogWithTestResult(previewDetails, true)
     }
   }
 
   override fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite) {
-    ApplicationManager.getApplication().invokeLater {
-      dialog.onTestSuiteFinished()
-    }
+    ApplicationManager.getApplication().invokeLater { dialog.onTestSuiteFinished() }
   }
 
   /**
    * Cleans the preview name by formatting parameter lists.
    *
-   * Parses raw strings like "[{provider=com.example.MyProvider}]" into "MyProvider",
-   * extracting simple class names for providers.
+   * Parses raw strings like "[{provider=com.example.MyProvider}]" into "MyProvider", extracting simple class names for providers.
    */
   private fun cleanPreviewName(name: String): String {
     if (name.startsWith("[{") && name.contains("}]")) {
-      return name.substringAfter("[{")
-        .substringBefore("}]")
-        .split(", ")
-        .joinToString("_") { part ->
-          if (part.startsWith("provider=")) part.substringAfter("provider=").substringAfterLast('.')
-          else part
-        } + name.substringAfter("}]")
+      return name.substringAfter("[{").substringBefore("}]").split(", ").joinToString("_") { part ->
+        if (part.startsWith("provider=")) part.substringAfter("provider=").substringAfterLast('.') else part
+      } + name.substringAfter("}]")
     }
     return name
   }

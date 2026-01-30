@@ -22,13 +22,7 @@ import org.junit.Test
 class TraceProcessorModelUtilsTest {
   @Test
   fun testFindValueNearKeyWithTolerance() {
-    val hashmap = linkedMapOf(
-      1L to 10,
-      5L to 50,
-      10L to 100,
-      15L to 150,
-      20L to 200
-    )
+    val hashmap = linkedMapOf(1L to 10, 5L to 50, 10L to 100, 15L to 150, 20L to 200)
 
     // Test when target key is within tolerance
     assertThat(findValueNearKey(hashmap, 9L, 2L)).isEqualTo(100)

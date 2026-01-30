@@ -21,102 +21,82 @@ import com.android.tools.idea.IdeInfo
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.SystemProperties
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.io.File
 
 class AndroidSdkOrDefaultUtilTest {
 
-  @get:Rule
-  val tempDir = TemporaryFolder()
+  @get:Rule val tempDir = TemporaryFolder()
 
   private val selectedSdk by lazy { tempDir.root.resolve("selectedSdk").asFakeSdk() }
   private val alternativeSdk by lazy { tempDir.root.resolve("alternativeSdk").asFakeSdk() }
 
   @Test
   fun `getAndroidSdkPathOrDefault() should prefer ANDROID_HOME over ANDROID_SDK_ROOT and default`() {
-    val foundSdk = AndroidSdkUtils.getAndroidSdkOrDefault(
-      mapOf(
-        SdkConstants.ANDROID_HOME_ENV to selectedSdk.absolutePath,
-        SdkConstants.ANDROID_SDK_ROOT_ENV to alternativeSdk.absolutePath,
-      ),
-      AndroidSdkType(),
-      getAndroidStudioIde()
-    )
+    val foundSdk =
+      AndroidSdkUtils.getAndroidSdkOrDefault(
+        mapOf(SdkConstants.ANDROID_HOME_ENV to selectedSdk.absolutePath, SdkConstants.ANDROID_SDK_ROOT_ENV to alternativeSdk.absolutePath),
+        AndroidSdkType(),
+        getAndroidStudioIde(),
+      )
     Truth.assertThat(foundSdk).isEqualTo(selectedSdk)
   }
 
   @Test
   fun `getAndroidSdkPathOrDefault() should prefer ANDROID_SDK_ROOT over default`() {
-    val foundSdk = AndroidSdkUtils.getAndroidSdkOrDefault(
-      mapOf(
-        SdkConstants.ANDROID_SDK_ROOT_ENV to selectedSdk.absolutePath,
-      ),
-      AndroidSdkType(),
-      getAndroidStudioIde()
-    )
+    val foundSdk =
+      AndroidSdkUtils.getAndroidSdkOrDefault(
+        mapOf(SdkConstants.ANDROID_SDK_ROOT_ENV to selectedSdk.absolutePath),
+        AndroidSdkType(),
+        getAndroidStudioIde(),
+      )
     Truth.assertThat(foundSdk).isEqualTo(selectedSdk)
   }
 
-  @get:Rule
-  val ignoreTests = IgnoreTestRule()
+  @get:Rule val ignoreTests = IgnoreTestRule()
 
   @Test
   fun `getAndroidSdkPathOrDefault() should fallback to default`() {
-    val foundSdk = AndroidSdkUtils.getAndroidSdkOrDefault(
-      emptyMap(),
-      AndroidSdkType(),
-      getAndroidStudioIde()
-    )
+    val foundSdk = AndroidSdkUtils.getAndroidSdkOrDefault(emptyMap(), AndroidSdkType(), getAndroidStudioIde())
     when {
-      SystemInfo.isWindows ->
-        Truth.assertThat(foundSdk).isEqualTo(File(System.getenv("LOCALAPPDATA")).resolve("Android/Sdk"))
-      SystemInfo.isMac ->
-        Truth.assertThat(foundSdk).isEqualTo(File(SystemProperties.getUserHome()).resolve("Library/Android/sdk"))
+      SystemInfo.isWindows -> Truth.assertThat(foundSdk).isEqualTo(File(System.getenv("LOCALAPPDATA")).resolve("Android/Sdk"))
+      SystemInfo.isMac -> Truth.assertThat(foundSdk).isEqualTo(File(SystemProperties.getUserHome()).resolve("Library/Android/sdk"))
       else -> Truth.assertThat(foundSdk).isEqualTo(File(SystemProperties.getUserHome()).resolve("Android/Sdk"))
     }
   }
 
   @Test
   fun `getAndroidSdkPathOrDefault() for game tools should prioritize ANDROID_HOME over ANDROID_SDK_ROOT`() {
-    val foundSdk = AndroidSdkUtils.getAndroidSdkOrDefault(
-      mapOf(
-        SdkConstants.ANDROID_HOME_ENV to selectedSdk.absolutePath,
-        SdkConstants.ANDROID_SDK_ROOT_ENV to alternativeSdk.absolutePath,
-      ),
-      AndroidSdkType(),
-      getGameToolsIde()
-    )
+    val foundSdk =
+      AndroidSdkUtils.getAndroidSdkOrDefault(
+        mapOf(SdkConstants.ANDROID_HOME_ENV to selectedSdk.absolutePath, SdkConstants.ANDROID_SDK_ROOT_ENV to alternativeSdk.absolutePath),
+        AndroidSdkType(),
+        getGameToolsIde(),
+      )
     Truth.assertThat(foundSdk).isEqualTo(selectedSdk)
   }
 
   @Test
   fun `getAndroidSdkPathOrDefault() for game tools should prioritize ANDROID_SDK_ROOT over default`() {
-    val foundSdk = AndroidSdkUtils.getAndroidSdkOrDefault(
-      mapOf(
-        SdkConstants.ANDROID_SDK_ROOT_ENV to selectedSdk.absolutePath,
-      ),
-      AndroidSdkType(),
-      getGameToolsIde()
-    )
+    val foundSdk =
+      AndroidSdkUtils.getAndroidSdkOrDefault(
+        mapOf(SdkConstants.ANDROID_SDK_ROOT_ENV to selectedSdk.absolutePath),
+        AndroidSdkType(),
+        getGameToolsIde(),
+      )
     Truth.assertThat(foundSdk).isEqualTo(selectedSdk)
   }
 
   @Test
   fun `getAndroidSdkPathOrDefault() for game tools should return default if no env var set`() {
-    val foundSdk = AndroidSdkUtils.getAndroidSdkOrDefault(
-      emptyMap(),
-      AndroidSdkType(),
-      getGameToolsIde()
-    )
+    val foundSdk = AndroidSdkUtils.getAndroidSdkOrDefault(emptyMap(), AndroidSdkType(), getGameToolsIde())
     when {
-      SystemInfo.isWindows ->
-        Truth.assertThat(foundSdk).isEqualTo(File(System.getenv("LOCALAPPDATA")).resolve("Android/Sdk"))
-      SystemInfo.isMac ->
-        Truth.assertThat(foundSdk).isEqualTo(File(SystemProperties.getUserHome()).resolve("Library/Android/sdk"))
+      SystemInfo.isWindows -> Truth.assertThat(foundSdk).isEqualTo(File(System.getenv("LOCALAPPDATA")).resolve("Android/Sdk"))
+      SystemInfo.isMac -> Truth.assertThat(foundSdk).isEqualTo(File(SystemProperties.getUserHome()).resolve("Library/Android/sdk"))
       else -> Truth.assertThat(foundSdk).isEqualTo(File(SystemProperties.getUserHome()).resolve("Android/Sdk"))
     }
   }
@@ -130,13 +110,13 @@ class AndroidSdkOrDefaultUtilTest {
     val mockIdeInfo = mock<IdeInfo>()
     whenever(mockIdeInfo.isGameTools).thenReturn(false)
     whenever(mockIdeInfo.isAndroidStudio).thenReturn(true)
-    return mockIdeInfo;
+    return mockIdeInfo
   }
 
   private fun getGameToolsIde(): IdeInfo {
     val mockIdeInfo = mock<IdeInfo>()
     whenever(mockIdeInfo.isGameTools).thenReturn(true)
     whenever(mockIdeInfo.isAndroidStudio).thenReturn(false)
-    return mockIdeInfo;
+    return mockIdeInfo
   }
 }

@@ -20,8 +20,8 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.util.io.ZipUtil
-import org.jetbrains.android.AndroidTestCase
 import java.io.File
+import org.jetbrains.android.AndroidTestCase
 
 class NavigationSchemaNoFragmentTest : AndroidTestCase() {
   @Throws(Exception::class)

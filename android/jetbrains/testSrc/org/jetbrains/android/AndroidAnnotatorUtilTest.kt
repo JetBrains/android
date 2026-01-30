@@ -35,8 +35,7 @@ class AndroidAnnotatorUtilTest : AndroidTestCase() {
 
     val task = AndroidAnnotatorUtil.SetAttributeConsumer(element, ResourceType.COLOR)
 
-    task.testJavaConsumer("@color/color2" to "R.color.color2",
-                          "@android:color/color3" to "android.R.color.color3")
+    task.testJavaConsumer("@color/color2" to "R.color.color2", "@android:color/color3" to "android.R.color.color3")
   }
 
   fun testSetColorInKotlinFile() {
@@ -44,8 +43,7 @@ class AndroidAnnotatorUtilTest : AndroidTestCase() {
 
     val task = AndroidAnnotatorUtil.SetAttributeConsumer(element, ResourceType.COLOR)
 
-    task.testKotlinConsumer("@color/color2" to "R.color.color2",
-                            "@android:color/color3" to "android.R.color.color3")
+    task.testKotlinConsumer("@color/color2" to "R.color.color2", "@android:color/color3" to "android.R.color.color3")
 
     // Verify that the current element in the consumer is the PsiElement that corresponds to the name only
     assertEquals("color3", task.element.text)
@@ -93,8 +91,7 @@ class AndroidAnnotatorUtilTest : AndroidTestCase() {
 
     val task = AndroidAnnotatorUtil.SetAttributeConsumer(element, ResourceType.DRAWABLE)
 
-    task.testJavaConsumer("@drawable/drawable2" to "R.drawable.drawable2",
-                          "@android:drawable/drawable3" to "android.R.drawable.drawable3")
+    task.testJavaConsumer("@drawable/drawable2" to "R.drawable.drawable2", "@android:drawable/drawable3" to "android.R.drawable.drawable3")
   }
 
   fun testSetDrawableInKotlinFile() {
@@ -102,8 +99,10 @@ class AndroidAnnotatorUtilTest : AndroidTestCase() {
 
     val task = AndroidAnnotatorUtil.SetAttributeConsumer(element, ResourceType.DRAWABLE)
 
-    task.testKotlinConsumer("@drawable/drawable2" to "R.drawable.drawable2",
-                            "@android:drawable/drawable3" to "android.R.drawable.drawable3")
+    task.testKotlinConsumer(
+      "@drawable/drawable2" to "R.drawable.drawable2",
+      "@android:drawable/drawable3" to "android.R.drawable.drawable3",
+    )
 
     // Verify that the current element in the consumer is the PsiElement that corresponds to the name only
     assertEquals("drawable3", task.element.text)
@@ -123,9 +122,7 @@ class AndroidAnnotatorUtilTest : AndroidTestCase() {
 
   private fun createKotlinElement(text: String) = (KtPsiFactory(project, false).createExpression(text) as PsiElement).lastChild
 
-  /**
-   * Test the [AndroidAnnotatorUtil.SetAttributeConsumer] for multiple changes when the [PsiElement] in the consumer is in a Java file.
-   */
+  /** Test the [AndroidAnnotatorUtil.SetAttributeConsumer] for multiple changes when the [PsiElement] in the consumer is in a Java file. */
   private fun AndroidAnnotatorUtil.SetAttributeConsumer.testJavaConsumer(vararg resourceAttributeAndExpected: Pair<String, String>) {
     for ((resource, expectedResult) in resourceAttributeAndExpected) {
       consume(resource)

@@ -52,242 +52,255 @@ import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction
 import org.jetbrains.android.refactoring.isAndroidx
 import org.junit.Test
 
-/**
- * Tests semantic highlighting and completion in layout XML files.
- */
+/** Tests semantic highlighting and completion in layout XML files. */
 class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   @Language("JAVA")
   private val recyclerViewOld =
-      """
-      package android.support.v7.widget;
+    """
+    package android.support.v7.widget;
 
-      import android.view.ViewGroup;
+    import android.view.ViewGroup;
 
-      public class RecyclerView extends ViewGroup {
-        public abstract static class LayoutManager {
-        }
+    public class RecyclerView extends ViewGroup {
+      public abstract static class LayoutManager {
       }
+    }
 
-      public class GridLayoutManager extends RecyclerView.LayoutManager {
-      }
+    public class GridLayoutManager extends RecyclerView.LayoutManager {
+    }
 
-      public class LinearLayoutManager extends RecyclerView.LayoutManager {
-      }
-      """.trimIndent()
+    public class LinearLayoutManager extends RecyclerView.LayoutManager {
+    }
+    """
+      .trimIndent()
 
   @Language("JAVA")
   private val recyclerViewNew =
     """
-      package androidx.recyclerview.widget;
+    package androidx.recyclerview.widget;
 
-      import android.view.ViewGroup;
+    import android.view.ViewGroup;
 
-      public class RecyclerView extends ViewGroup {
-        public abstract static class LayoutManager {
-        }
+    public class RecyclerView extends ViewGroup {
+      public abstract static class LayoutManager {
       }
+    }
 
-      public class GridLayoutManager extends RecyclerView.LayoutManager {
-      }
+    public class GridLayoutManager extends RecyclerView.LayoutManager {
+    }
 
-      public class LinearLayoutManager extends RecyclerView.LayoutManager {
-      }
-      """.trimIndent()
+    public class LinearLayoutManager extends RecyclerView.LayoutManager {
+    }
+    """
+      .trimIndent()
 
   @Language("XML")
   private val recyclerViewAttrs =
-      """
-      <resources>
-        <declare-styleable name="RecyclerView">
-          <attr name="layoutManager" format="string" />
-        </declare-styleable>
-        <string name='my_layout_manager'>com.example.MyLayoutManager</string>
-      </resources>
-      """.trimIndent()
+    """
+    <resources>
+      <declare-styleable name="RecyclerView">
+        <attr name="layoutManager" format="string" />
+      </declare-styleable>
+      <string name='my_layout_manager'>com.example.MyLayoutManager</string>
+    </resources>
+    """
+      .trimIndent()
 
   @Language("JAVA")
   private val myLayoutManager =
-      """
-      package p1.p2;
+    """
+    package p1.p2;
 
-      import android.support.v7.widget.LinearLayoutManager;
+    import android.support.v7.widget.LinearLayoutManager;
 
-      class MyLayoutManager extends LinearLayoutManager {
-      }
-      """.trimIndent()
+    class MyLayoutManager extends LinearLayoutManager {
+    }
+    """
+      .trimIndent()
 
   @Language("JAVA")
   private val restrictText =
-      """
-      package android.support.annotation;
+    """
+    package android.support.annotation;
 
-      import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
-      import static java.lang.annotation.ElementType.CONSTRUCTOR;
-      import static java.lang.annotation.ElementType.FIELD;
-      import static java.lang.annotation.ElementType.METHOD;
-      import static java.lang.annotation.ElementType.PACKAGE;
-      import static java.lang.annotation.ElementType.TYPE;
-      import static java.lang.annotation.RetentionPolicy.CLASS;
+    import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+    import static java.lang.annotation.ElementType.CONSTRUCTOR;
+    import static java.lang.annotation.ElementType.FIELD;
+    import static java.lang.annotation.ElementType.METHOD;
+    import static java.lang.annotation.ElementType.PACKAGE;
+    import static java.lang.annotation.ElementType.TYPE;
+    import static java.lang.annotation.RetentionPolicy.CLASS;
 
-      import java.lang.annotation.Retention;
-      import java.lang.annotation.Target;
+    import java.lang.annotation.Retention;
+    import java.lang.annotation.Target;
 
-      @Retention(CLASS)
-      @Target({ANNOTATION_TYPE,TYPE,METHOD,CONSTRUCTOR,FIELD,PACKAGE})
-      public @interface RestrictTo {
-        Scope[] value();
+    @Retention(CLASS)
+    @Target({ANNOTATION_TYPE,TYPE,METHOD,CONSTRUCTOR,FIELD,PACKAGE})
+    public @interface RestrictTo {
+      Scope[] value();
 
-        enum Scope {
-          LIBRARY,
-          LIBRARY_GROUP,
-          @Deprecated
-          GROUP_ID,
-          TESTS,
-          SUBCLASSES,
-        }
+      enum Scope {
+        LIBRARY,
+        LIBRARY_GROUP,
+        @Deprecated
+        GROUP_ID,
+        TESTS,
+        SUBCLASSES,
       }
-      """.trimIndent()
+    }
+    """
+      .trimIndent()
 
   @Language("JAVA")
   private val protectedView =
-      """
-      package p1.p2;
+    """
+    package p1.p2;
 
-      import android.content.Context;
-      import android.widget.ImageView;
+    import android.content.Context;
+    import android.widget.ImageView;
 
-      class MyAddedProtectedImageView extends ImageView {
-        MyAddedProtectedImageView(Context context) {
-          super(context);
-        }
+    class MyAddedProtectedImageView extends ImageView {
+      MyAddedProtectedImageView(Context context) {
+        super(context);
       }
-      """.trimIndent()
+    }
+    """
+      .trimIndent()
 
   @Language("JAVA")
   private val restrictedView =
-      """
-      package p1.p2;
+    """
+    package p1.p2;
 
-      import android.content.Context;
-      import android.support.annotation.RestrictTo;
-      import android.widget.ImageView;
+    import android.content.Context;
+    import android.support.annotation.RestrictTo;
+    import android.widget.ImageView;
 
-      @RestrictTo(RestrictTo.Scope.SUBCLASSES)
-      public class MyAddedHiddenImageView extends ImageView {
-        public MyAddedHiddenImageView(Context context) {
-          super(context);
-        }
+    @RestrictTo(RestrictTo.Scope.SUBCLASSES)
+    public class MyAddedHiddenImageView extends ImageView {
+      public MyAddedHiddenImageView(Context context) {
+        super(context);
       }
-      """.trimIndent()
+    }
+    """
+      .trimIndent()
 
   @Language("JAVA")
   private val view =
-      """
-      package p1.p2;
+    """
+    package p1.p2;
 
-      import android.content.Context;
-      import android.widget.ImageView;
+    import android.content.Context;
+    import android.widget.ImageView;
 
-      public class MyAddedImageView extends ImageView {
-        public MyAddedImageView(Context context) {
-          super(context);
-        }
+    public class MyAddedImageView extends ImageView {
+      public MyAddedImageView(Context context) {
+        super(context);
       }
-      """.trimIndent()
+    }
+    """
+      .trimIndent()
 
   @Language("JAVA")
   private val innerClass =
-      """
-      package p1.p2;
+    """
+    package p1.p2;
 
-      import android.content.Context;
-      import android.widget.ImageView;
-      import android.widget.LinearLayout;
-      import android.widget.TextView;
+    import android.content.Context;
+    import android.widget.ImageView;
+    import android.widget.LinearLayout;
+    import android.widget.TextView;
 
-      public class MyImageView extends ImageView {
-        public MyImageView(Context context) {
+    public class MyImageView extends ImageView {
+      public MyImageView(Context context) {
+        super(context);
+      }
+      public static class MyTextView extends TextView {
+        public MyTextView(Context context) {
           super(context);
         }
-        public static class MyTextView extends TextView {
-          public MyTextView(Context context) {
-            super(context);
-          }
-        }
-        public static class MyLinearLayout extends LinearLayout {
-          public MyLinearLayout(Context context) {
-            super(context);
-          }
+      }
+      public static class MyLinearLayout extends LinearLayout {
+        public MyLinearLayout(Context context) {
+          super(context);
         }
       }
-      """.trimIndent()
+    }
+    """
+      .trimIndent()
 
   @Language("JAVA")
   private val coordinatorLayout =
     """
-      package androidx.coordinatorlayout.widget;
+    package androidx.coordinatorlayout.widget;
 
-      public class CoordinatorLayout extends android.view.ViewGroup {
-        public static abstract class Behavior {}
-      }
-      """.trimIndent()
+    public class CoordinatorLayout extends android.view.ViewGroup {
+      public static abstract class Behavior {}
+    }
+    """
+      .trimIndent()
 
   @Language("XML")
   private val coordinatorLayoutResources =
     """
-      <resources>
-        <declare-styleable name="CoordinatorLayout_Layout">
-          <attr name="layout_behavior" format="string" />
-        </declare-styleable>
-        <string name='appbar_scrolling_view_behavior'>foo.Bar</string>
-      </resources>
-      """.trimIndent()
+    <resources>
+      <declare-styleable name="CoordinatorLayout_Layout">
+        <attr name="layout_behavior" format="string" />
+      </declare-styleable>
+      <string name='appbar_scrolling_view_behavior'>foo.Bar</string>
+    </resources>
+    """
+      .trimIndent()
 
   @Language("JAVA")
   private val constraintLayout =
     """
-      package androidx.constraintlayout.widget;
+    package androidx.constraintlayout.widget;
 
-      public class ConstraintLayout extends android.view.ViewGroup {
-      }
-      """.trimIndent()
-
+    public class ConstraintLayout extends android.view.ViewGroup {
+    }
+    """
+      .trimIndent()
 
   @Language("JAVA")
   private val barrier =
     """
-      package androidx.constraintlayout.widget;
+    package androidx.constraintlayout.widget;
 
-      public class Barrier extends androidx.constraintlayout.widget.ConstraintLayout {
-      }
-      """.trimIndent()
+    public class Barrier extends androidx.constraintlayout.widget.ConstraintLayout {
+    }
+    """
+      .trimIndent()
 
   @Language("JAVA")
   private val composeView =
     """
-      package androidx.compose.ui.platform;
-      public class ComposeView extends android.view.View {}
-      """.trimIndent()
+    package androidx.compose.ui.platform;
+    public class ComposeView extends android.view.View {}
+    """
+      .trimIndent()
 
   @Language("JAVA")
   private val fragmentContainerView =
     """
-      package androidx.fragment.app;
+    package androidx.fragment.app;
 
-      import android.view.ViewGroup;
-      
-      public class FragmentContainerView extends ViewGroup {}
-      """.trimIndent()
+    import android.view.ViewGroup;
+
+    public class FragmentContainerView extends ViewGroup {}
+    """
+      .trimIndent()
 
   @Language("XML")
   private val constraintLayoutResources =
     """
-      <resources>
-        <declare-styleable name="ConstraintLayout_Layout">
-          <attr name="constraint_referenced_ids" format="string" />
-        </declare-styleable>
-      </resources>
-      """.trimIndent()
+    <resources>
+      <declare-styleable name="ConstraintLayout_Layout">
+        <attr name="constraint_referenced_ids" format="string" />
+      </declare-styleable>
+    </resources>
+    """
+      .trimIndent()
 
   override fun providesCustomManifest(): Boolean {
     return true
@@ -307,7 +320,9 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
       """
       package p1.p2;
       public class CustomViewGroup extends android.view.ViewGroup {}
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.addFileToProject(
       "res/values/values.xml",
@@ -323,13 +338,15 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
           <attr format="integer" name="notLayoutParam"/>
         </declare-styleable>
       </resources>
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
-    val layoutFile = myFixture.addFileToProject(
-      "res/layout/activity_main.xml",
-      //language=XML
-      """<p1.p2.CustomViewGroup
+    val layoutFile =
+      myFixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=XML
+        """<p1.p2.CustomViewGroup
             xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:orientation="vertical"
@@ -339,7 +356,9 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               app:${caret}/>
-        </p1.p2.CustomViewGroup>""".trimIndent())
+        </p1.p2.CustomViewGroup>"""
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
 
     myFixture.completeBasic()
@@ -351,17 +370,21 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testColorLiteralResourceCompletion() {
     myFixture.addFileToProject(
       "res/values/other_colors.xml",
-      //language=XML
+      // language=XML
       """
       <resources>
         <color name="foocolor">#150</integer>
       </resources>
-      """.trimIndent())
-
-    val layoutFile = myFixture.addFileToProject(
-      "res/layout/layout.xml",
-      //language=XML
       """
+        .trimIndent(),
+    )
+
+    val layoutFile =
+      myFixture
+        .addFileToProject(
+          "res/layout/layout.xml",
+          // language=XML
+          """
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
               android:layout_width="match_parent"
@@ -372,35 +395,43 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
                   android:layout_height="match_parent"
                   android:textColor="$caret"/>
           </LinearLayout>
-      """.trimIndent()).virtualFile
+      """
+            .trimIndent(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(layoutFile)
 
     // Expect color related resources
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsAllOf("@android:","@color/foocolor")
+    assertThat(myFixture.lookupElementStrings).containsAllOf("@android:", "@color/foocolor")
   }
 
   fun testColorLiteralResourceHighlighting() {
-    val highlightedFile = myFixture.addFileToProject(
-      "res/layout/incorrect_layout.xml",
-      """
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
+    val highlightedFile =
+      myFixture
+        .addFileToProject(
+          "res/layout/incorrect_layout.xml",
+          """
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-              <Button
-                  android:layout_width="match_parent"
-                  android:layout_height="match_parent"
-                  android:textColor="#F12"
-                  android:shadowColor="#F123"
-                  android:textColorHighlight="#FF1234"
-                  android:textColorHint="#FF432343k"
-                  android:textColorLink="@android:color/black"
-                  android:outlineSpotShadowColor="<error descr="Cannot resolve color 'This is not a color'">This is not a color</error>"
-                  android:outlineAmbientShadowColor="<error descr="Cannot resolve color '#FA342'">#FA342</error>"/>
-          </LinearLayout>
-      """.trimIndent()).virtualFile
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textColor="#F12"
+                    android:shadowColor="#F123"
+                    android:textColorHighlight="#FF1234"
+                    android:textColorHint="#FF432343k"
+                    android:textColorLink="@android:color/black"
+                    android:outlineSpotShadowColor="<error descr="Cannot resolve color 'This is not a color'">This is not a color</error>"
+                    android:outlineAmbientShadowColor="<error descr="Cannot resolve color '#FA342'">#FA342</error>"/>
+            </LinearLayout>
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(highlightedFile)
     myFixture.checkHighlighting()
   }
@@ -408,17 +439,21 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testFloatLiteralResourceCompletion() {
     myFixture.addFileToProject(
       "res/values/other_integers.xml",
-      //language=XML
+      // language=XML
       """
       <resources>
         <integer name="foo">150</integer>
       </resources>
-      """.trimIndent())
-
-    val layoutFile = myFixture.addFileToProject(
-      "res/layout/layout.xml",
-      //language=XML
       """
+        .trimIndent(),
+    )
+
+    val layoutFile =
+      myFixture
+        .addFileToProject(
+          "res/layout/layout.xml",
+          // language=XML
+          """
         <LinearLayout
                 xmlns:android="http://schemas.android.com/apk/res/android"
                 android:orientation="vertical"
@@ -426,35 +461,45 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
                 android:layout_height="match_parent"
                 android:rotationX="$caret">
         </LinearLayout>
-      """.trimIndent()).virtualFile
+      """
+            .trimIndent(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(layoutFile)
 
     // Expect integer related resources
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsAllOf("@android:","@integer/foo")
+    assertThat(myFixture.lookupElementStrings).containsAllOf("@android:", "@integer/foo")
   }
 
   fun testFloatLiteralResourceHighlighting() {
-    val highlightedFile = myFixture.addFileToProject(
-      "res/layout/incorrect_layout.xml",
-      """
-        <LinearLayout
-                xmlns:android="http://schemas.android.com/apk/res/android"
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:rotationX="<error descr="Cannot resolve float 'bad float'">bad float</error>">
-        </LinearLayout>
-      """.trimIndent()).virtualFile
+    val highlightedFile =
+      myFixture
+        .addFileToProject(
+          "res/layout/incorrect_layout.xml",
+          """
+          <LinearLayout
+                  xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:orientation="vertical"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:rotationX="<error descr="Cannot resolve float 'bad float'">bad float</error>">
+          </LinearLayout>
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(highlightedFile)
     myFixture.checkHighlighting()
   }
 
   fun testAutoFillHints() {
-    val layoutFile = myFixture.addFileToProject(
-      "res/layout/layout.xml",
-      //language=XML
-      """
+    val layoutFile =
+      myFixture
+        .addFileToProject(
+          "res/layout/layout.xml",
+          // language=XML
+          """
         <LinearLayout
                 xmlns:android="http://schemas.android.com/apk/res/android"
                 android:orientation="vertical"
@@ -462,14 +507,16 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
                 android:layout_height="match_parent"
                 android:autofillHints="$caret">
         </LinearLayout>
-      """.trimIndent()).virtualFile
+      """
+            .trimIndent(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(layoutFile)
 
     // Expect auto fill hints from the framework only
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsAllOf(
-      "creditCardExpirationDate", "emailAddress", "name", "password", "phone", "postalAddress",
-      "postalCode", "username")
+    assertThat(myFixture.lookupElementStrings)
+      .containsAllOf("creditCardExpirationDate", "emailAddress", "name", "password", "phone", "postalAddress", "postalCode", "username")
   }
 
   fun testAutoFillHintsAndroidX() {
@@ -481,13 +528,16 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
       public class HintConstants {
         public static final String AUTOFILL_HINT_PHONE_NATIONAL = "phoneNational";
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    val layoutFile = myFixture.addFileToProject(
-      "res/layout/layout.xml",
-      //language=XML
-      """
+    val layoutFile =
+      myFixture
+        .addFileToProject(
+          "res/layout/layout.xml",
+          // language=XML
+          """
         <LinearLayout
                 xmlns:android="http://schemas.android.com/apk/res/android"
                 android:orientation="vertical"
@@ -495,14 +545,26 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
                 android:layout_height="match_parent"
                 android:autofillHints="$caret">
         </LinearLayout>
-      """.trimIndent()).virtualFile
+      """
+            .trimIndent(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(layoutFile)
 
     // Expect auto fill hints from the framework only
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsAllOf(
-      "phoneNational", "creditCardExpirationDate", "emailAddress", "name", "password", "phone",
-      "postalAddress", "postalCode", "username")
+    assertThat(myFixture.lookupElementStrings)
+      .containsAllOf(
+        "phoneNational",
+        "creditCardExpirationDate",
+        "emailAddress",
+        "name",
+        "password",
+        "phone",
+        "postalAddress",
+        "postalCode",
+        "username",
+      )
   }
 
   fun testFragmentContainerViewNameAttribute() {
@@ -515,7 +577,8 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
       package p1.p2;
       public class FirstFragmentActivity extends androidx.fragment.app.Fragment{
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.addClass(
@@ -524,13 +587,16 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
       package p1.p2;
       public class SecondFragmentActivity extends androidx.fragment.app.Fragment{
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    val layout = myFixture.addFileToProject(
-      "res/layout/layout.xml",
-      //language=XML
-      """
+    val layout =
+      myFixture
+        .addFileToProject(
+          "res/layout/layout.xml",
+          // language=XML
+          """
         <androidx.fragment.app.FragmentContainerView
             xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/fragment_container_view"
@@ -539,7 +605,10 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
             android:name="p1.p2.${caret}FirstFragmentActivity"
             android:tag="my_tag">
         </androidx.fragment.app.FragmentContainerView>
-      """.trimIndent()).virtualFile
+      """
+            .trimIndent(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(layout)
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsAllOf("FirstFragmentActivity", "SecondFragmentActivity")
@@ -554,10 +623,12 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testComposableNameToolsAttributeCompletion() {
     myFixture.addClass(composeView)
     @Suppress("RequiredAttributes")
-    val composeLayout = myFixture.addFileToProject(
-      "res/layout/layout.xml",
-      //language=XML
-      """
+    val composeLayout =
+      myFixture
+        .addFileToProject(
+          "res/layout/layout.xml",
+          // language=XML
+          """
         <LinearLayout
           android:layout_width="match_parent"
           android:layout_height="match_parent"
@@ -569,7 +640,10 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
             android:layout_height="match_parent"
             tools:${caret}=""/>
         </LinearLayout>
-      """.trimIndent()).virtualFile
+      """
+            .trimIndent(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(composeLayout)
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).contains("tools:composableName")
@@ -583,10 +657,12 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testComposableNameIdAttributeCompletion() {
     myFixture.addClass(composeView)
     @Suppress("RequiredAttributes")
-    val composeLayout = myFixture.addFileToProject(
-      "res/layout/layout.xml",
-      //language=XML
-      """
+    val composeLayout =
+      myFixture
+        .addFileToProject(
+          "res/layout/layout.xml",
+          // language=XML
+          """
         <LinearLayout
           android:layout_width="match_parent"
           android:layout_height="match_parent"
@@ -597,27 +673,33 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
             android:layout_height="match_parent"
             andro${caret}=""/>
         </LinearLayout>
-      """.trimIndent()).virtualFile
+      """
+            .trimIndent(),
+        )
+        .virtualFile
     myFixture.configureFromExistingVirtualFile(composeLayout)
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).contains("android:id")
   }
 
   /**
-   * Regression test for http://b/136596952
-   * This test checks that an attribute eg. <attr name="defaultValue" format="color|string|boolean"\>, which has Boolean in the formats, but
-   * also has other [ResourceType] options, accepts literals which are not "true" or "false". See [testResourceLiteralWithBooleanFormat]
-   * where this validation is enforced.
+   * Regression test for http://b/136596952 This test checks that an attribute eg. <attr name="defaultValue"
+   * format="color|string|boolean"\>, which has Boolean in the formats, but also has other [ResourceType] options, accepts literals which
+   * are not "true" or "false". See [testResourceLiteralWithBooleanFormat] where this validation is enforced.
    */
   fun testResourceLiteralWithMultipleFormats() {
     //
-    val file = myFixture.addFileToProject(
-      "res/xml/preferences.xml",
-      //language=XML
-      """
-      <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-        <ListPreference android:defaultValue="he<caret>llo"/>
-      </PreferenceScreen>""".trimIndent())
+    val file =
+      myFixture.addFileToProject(
+        "res/xml/preferences.xml",
+        // language=XML
+        """
+        <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+          <ListPreference android:defaultValue="he<caret>llo"/>
+        </PreferenceScreen>
+        """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val xmlAttribute = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<XmlAttribute>()
     val domElement = DomManager.getDomManager(myFixture.project).getDomElement(xmlAttribute)
@@ -633,14 +715,17 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
    * accepts literals which are only "true" or "false".
    */
   fun testResourceLiteralWithBooleanFormat() {
-    val file = myFixture.addFileToProject(
-      "res/xml/preferences.xml",
-      //language=XML
-      """
-      <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-        <ListPreference android:shouldDisableView="t<caret>e"/>
-      </PreferenceScreen>
-      """.trimIndent())
+    val file =
+      myFixture.addFileToProject(
+        "res/xml/preferences.xml",
+        // language=XML
+        """
+        <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+          <ListPreference android:shouldDisableView="t<caret>e"/>
+        </PreferenceScreen>
+        """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val xmlAttribute = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<XmlAttribute>()
     val domElement = DomManager.getDomManager(myFixture.project).getDomElement(xmlAttribute)
@@ -648,14 +733,17 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     assertThat(domElement.value).isNull()
 
     // With a valid literal for a boolean only attribute
-    val validFile = myFixture.addFileToProject(
-      "res/xml/preferences_valid.xml",
-      //language=XML
-      """
-      <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-        <ListPreference android:shouldDisableView="tr<caret>ue"/>
-      </PreferenceScreen>
-      """.trimIndent())
+    val validFile =
+      myFixture.addFileToProject(
+        "res/xml/preferences_valid.xml",
+        // language=XML
+        """
+        <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+          <ListPreference android:shouldDisableView="tr<caret>ue"/>
+        </PreferenceScreen>
+        """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(validFile.virtualFile)
     val newXmlAttribute = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<XmlAttribute>()
     val newDomElement = DomManager.getDomManager(myFixture.project).getDomElement(newXmlAttribute)
@@ -667,14 +755,19 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   }
 
   fun testStylesItemReferenceAndroid() {
-    val psiFile = myFixture.addFileToProject("res/values/styles.xml",
-      //language=XML
-                                             """
-      <resources>
-        <style name="TextAppearance.Theme.PlainText">
-          <item name="android:textStyle"/>
-        </style>
-      </resources>""".trimIndent())
+    val psiFile =
+      myFixture.addFileToProject(
+        "res/values/styles.xml",
+        // language=XML
+        """
+        <resources>
+          <style name="TextAppearance.Theme.PlainText">
+            <item name="android:textStyle"/>
+          </style>
+        </resources>
+        """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.moveCaret("android:textS|tyle")
     val fakePsiElement = myFixture.elementAtCaret
@@ -685,14 +778,19 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   fun testStylesItemReferenceResAuto() {
     myFixture.addFileToProject("res/values/coordinatorlayout_attrs.xml", coordinatorLayoutResources)
-    val psiFile = myFixture.addFileToProject("res/values/styles.xml",
-      //language=XML
-                                             """
-      <resources>
-        <style name="TextAppearance.Theme.PlainText">
-          <item name="layout_behavior"/>
-        </style>
-      </resources>""".trimIndent())
+    val psiFile =
+      myFixture.addFileToProject(
+        "res/values/styles.xml",
+        // language=XML
+        """
+        <resources>
+          <style name="TextAppearance.Theme.PlainText">
+            <item name="layout_behavior"/>
+          </style>
+        </resources>
+        """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.moveCaret("la|yout_behavior")
     val fakePsiElement = myFixture.elementAtCaret
@@ -702,14 +800,19 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   }
 
   fun testStylesItemCompletionAndroid() {
-    val psiFile = myFixture.addFileToProject("res/values/styles.xml",
-      //language=XML
-                                             """
-      <resources>
-        <style name="TextAppearance.Theme.PlainText">
-          <item name="layout_wid"/>
-        </style>
-      </resources>""".trimIndent())
+    val psiFile =
+      myFixture.addFileToProject(
+        "res/values/styles.xml",
+        // language=XML
+        """
+        <resources>
+          <style name="TextAppearance.Theme.PlainText">
+            <item name="layout_wid"/>
+          </style>
+        </resources>
+        """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.moveCaret("layout_wid|")
     myFixture.completeBasic()
@@ -718,15 +821,19 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   fun testStylesItemCompletionResAuto() {
     myFixture.addFileToProject("res/values/coordinatorlayout_attrs.xml", coordinatorLayoutResources)
-    val psiFile = myFixture.addFileToProject("res/values/styles.xml",
-      //language=xml
-                                             """
-      <resources>
-        <style name="TextAppearance.Theme.PlainText">
-          <item name="layout_be"/>
-        </style>
-      </resources>
-      """.trimIndent())
+    val psiFile =
+      myFixture.addFileToProject(
+        "res/values/styles.xml",
+        // language=xml
+        """
+        <resources>
+          <style name="TextAppearance.Theme.PlainText">
+            <item name="layout_be"/>
+          </style>
+        </resources>
+        """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.moveCaret("layout_be|")
     myFixture.completeBasic()
@@ -764,9 +871,14 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.configureFromExistingVirtualFile(copyFileToProject("an7.xml"))
     myFixture.complete(CompletionType.BASIC)
     val lookupElementStrings = myFixture.lookupElementStrings!!.subList(0, 5)
-    assertThat(lookupElementStrings).containsExactly(
-      "android:layout_above", "android:layout_alignBaseline",
-      "android:layout_alignBottom", "android:layout_alignEnd", "android:layout_alignLeft")
+    assertThat(lookupElementStrings)
+      .containsExactly(
+        "android:layout_above",
+        "android:layout_alignBaseline",
+        "android:layout_alignBottom",
+        "android:layout_alignEnd",
+        "android:layout_alignLeft",
+      )
   }
 
   fun testAttributeNameInheritedAttributesForViewTag() {
@@ -812,8 +924,13 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   // ListView has some specific autocompletion attributes, like "listfooter", they should be autocompleted as well
   fun testToolsListViewAttributes() {
-    doTestCompletionVariantsContains("tools_listview_attrs.xml", "tools:targetApi", "tools:listfooter", "tools:listheader",
-                                     "tools:listitem")
+    doTestCompletionVariantsContains(
+      "tools_listview_attrs.xml",
+      "tools:targetApi",
+      "tools:listfooter",
+      "tools:listheader",
+      "tools:listitem",
+    )
   }
 
   // tools:targetApi values are autocompleted
@@ -847,8 +964,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   // Designtime attributes completion is completing attribute names correctly
   fun testDesigntimeAttributesCompletion2() {
-    toTestFirstCompletion("tools_designtime_completion_background.xml",
-                          "tools_designtime_completion_background_after.xml")
+    toTestFirstCompletion("tools_designtime_completion_background.xml", "tools_designtime_completion_background_after.xml")
   }
 
   // Designtime attributes completion after having typed tools:
@@ -857,11 +973,14 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   }
 
   fun testToolsUseHandlerAttribute() {
-    doTestCompletionVariants("tools_use_handler_completion.xml", "android.view.TextureView",
-                             "android.widget.AutoCompleteTextView",
-                             "android.widget.CheckedTextView",
-                             "android.widget.MultiAutoCompleteTextView",
-                             "android.widget.TextView")
+    doTestCompletionVariants(
+      "tools_use_handler_completion.xml",
+      "android.view.TextureView",
+      "android.widget.AutoCompleteTextView",
+      "android.widget.CheckedTextView",
+      "android.widget.MultiAutoCompleteTextView",
+      "android.widget.TextView",
+    )
   }
 
   // fontFamily attribute values are autocompleted
@@ -932,9 +1051,11 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     // the RecyclerView.LayoutManager class.
     myFixture.addClass(recyclerViewOld)
     myFixture.addFileToProject("res/values/recyclerView_attrs.xml", recyclerViewAttrs)
-    doTestCompletionVariants("recycler_view.xml",
-                             "android.support.v7.widget.GridLayoutManager",
-                             "android.support.v7.widget.LinearLayoutManager")
+    doTestCompletionVariants(
+      "recycler_view.xml",
+      "android.support.v7.widget.GridLayoutManager",
+      "android.support.v7.widget.LinearLayoutManager",
+    )
   }
 
   fun testLayoutManagerAttributeForNewRecyclerView() {
@@ -943,9 +1064,11 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     setAndroidx()
     myFixture.addClass(recyclerViewNew)
     myFixture.addFileToProject("res/values/recyclerView_attrs.xml", recyclerViewAttrs)
-    doTestCompletionVariants("recycler_view_0.xml",
-                             "androidx.recyclerview.widget.GridLayoutManager",
-                             "androidx.recyclerview.widget.LinearLayoutManager")
+    doTestCompletionVariants(
+      "recycler_view_0.xml",
+      "androidx.recyclerview.widget.GridLayoutManager",
+      "androidx.recyclerview.widget.LinearLayoutManager",
+    )
   }
 
   fun testLayoutManagerAttributeHighlighting() {
@@ -958,20 +1081,12 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   fun testToolsAttributesForOldRecyclerView() {
     myFixture.addClass(recyclerViewOld)
-    doTestCompletionVariantsContains("recycler_view_2.xml",
-                                     "tools:targetApi",
-                                     "tools:itemCount",
-                                     "tools:listitem",
-                                     "tools:viewBindingType")
+    doTestCompletionVariantsContains("recycler_view_2.xml", "tools:targetApi", "tools:itemCount", "tools:listitem", "tools:viewBindingType")
   }
 
   fun testToolsAttributesForNewRecyclerView() {
     myFixture.addClass(recyclerViewNew)
-    doTestCompletionVariantsContains("recycler_view_3.xml",
-                                     "tools:targetApi",
-                                     "tools:itemCount",
-                                     "tools:listitem",
-                                     "tools:viewBindingType")
+    doTestCompletionVariantsContains("recycler_view_3.xml", "tools:targetApi", "tools:itemCount", "tools:listitem", "tools:viewBindingType")
   }
 
   fun testCustomTagCompletion() {
@@ -1002,8 +1117,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     runWriteCommandAction(project) {
       try {
         labelViewJava.delete(null)
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         throw RuntimeException(e)
       }
     }
@@ -1085,9 +1199,17 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   fun testCustomAttributeNameCompletion1() {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
-    doTestCompletionVariants("can1.xml",
-                             "context", "contextClickable", "text", "textAlignment", "textColor", "textDirection", "textSize",
-                             "tooltipText")
+    doTestCompletionVariants(
+      "can1.xml",
+      "context",
+      "contextClickable",
+      "text",
+      "textAlignment",
+      "textColor",
+      "textDirection",
+      "textSize",
+      "tooltipText",
+    )
   }
 
   fun testCustomAttributeNameCompletion2() {
@@ -1097,9 +1219,16 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.complete(CompletionType.BASIC)
     myFixture.type("text")
 
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-        "android:contextClickable", "android:textAlignment", "android:textDirection", "android:tooltipText", "text", "textColor",
-        "textSize")
+    assertThat(myFixture.lookupElementStrings)
+      .containsExactly(
+        "android:contextClickable",
+        "android:textAlignment",
+        "android:textDirection",
+        "android:tooltipText",
+        "text",
+        "textColor",
+        "textSize",
+      )
   }
 
   fun testCustomAttributeNameCompletion3() {
@@ -1150,17 +1279,46 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   }
 
   fun testFlagCompletion1() {
-    doTestCompletionVariants("flagCompletion1.xml", "center", "center_horizontal", "center_vertical", "center|bottom",
-                             "center|center_horizontal", "center|center_vertical", "center|clip_horizontal", "center|clip_vertical",
-                             "center|end", "center|fill", "center|fill_horizontal", "center|fill_vertical", "center|left",
-                             "center|right", "center|start", "center|top")
+    doTestCompletionVariants(
+      "flagCompletion1.xml",
+      "center",
+      "center_horizontal",
+      "center_vertical",
+      "center|bottom",
+      "center|center_horizontal",
+      "center|center_vertical",
+      "center|clip_horizontal",
+      "center|clip_vertical",
+      "center|end",
+      "center|fill",
+      "center|fill_horizontal",
+      "center|fill_vertical",
+      "center|left",
+      "center|right",
+      "center|start",
+      "center|top",
+    )
   }
 
   fun testFlagCompletion2() {
-    doTestCompletionVariants("flagCompletion2.xml", "center", "center_horizontal", "center_vertical", "center|center_horizontal",
-                             "center|center_vertical", "center|clip_horizontal", "center|clip_vertical", "center|end", "center|fill",
-                             "center|fill_horizontal", "center|fill_vertical", "center|left", "center|right", "center|start",
-                             "center|top")
+    doTestCompletionVariants(
+      "flagCompletion2.xml",
+      "center",
+      "center_horizontal",
+      "center_vertical",
+      "center|center_horizontal",
+      "center|center_vertical",
+      "center|clip_horizontal",
+      "center|clip_vertical",
+      "center|end",
+      "center|fill",
+      "center|fill_horizontal",
+      "center|fill_vertical",
+      "center|left",
+      "center|right",
+      "center|start",
+      "center|top",
+    )
     myFixture.type("|fill")
 
     assertThat(myFixture.lookupElementStrings).containsExactly("center|fill", "center|fill_horizontal", "center|fill_vertical")
@@ -1168,8 +1326,20 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   fun testResourceCompletion() {
     doTestCompletionVariantsContains("av3.xml", "@color/color0", "@color/color1", "@android:", "@drawable/picture2", "@drawable/picture1")
-    doTestCompletionVariantsContains("av8.xml", "@android:", "@anim/anim1", "@color/color0", "@color/color1", "@dimen/myDimen",
-                                     "@drawable/picture1", "@layout/av3", "@layout/av8", "@string/itStr", "@string/hello", "@style/style1")
+    doTestCompletionVariantsContains(
+      "av8.xml",
+      "@android:",
+      "@anim/anim1",
+      "@color/color0",
+      "@color/color1",
+      "@dimen/myDimen",
+      "@drawable/picture1",
+      "@layout/av3",
+      "@layout/av8",
+      "@string/itStr",
+      "@string/hello",
+      "@style/style1",
+    )
   }
 
   fun testLocalResourceCompletion1() {
@@ -1181,13 +1351,27 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   }
 
   fun testLocalResourceCompletion3() {
-    doTestCompletionVariants("av7.xml", "@android:", "@string/hello", "@string/hello1", "@string/welcome", "@string/welcome1",
-                             "@string/itStr")
+    doTestCompletionVariants(
+      "av7.xml",
+      "@android:",
+      "@string/hello",
+      "@string/hello1",
+      "@string/welcome",
+      "@string/welcome1",
+      "@string/itStr",
+    )
   }
 
   fun testLocalResourceCompletion4() {
-    doTestCompletionVariants("av7.xml", "@android:", "@string/hello", "@string/hello1", "@string/welcome", "@string/welcome1",
-                             "@string/itStr")
+    doTestCompletionVariants(
+      "av7.xml",
+      "@android:",
+      "@string/hello",
+      "@string/hello1",
+      "@string/welcome",
+      "@string/welcome1",
+      "@string/itStr",
+    )
   }
 
   fun testLocalResourceCompletion5() {
@@ -1195,8 +1379,17 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   }
 
   fun testLocalResourceCompletion6() {
-    doTestCompletionVariants("av14.xml", "@android:", "@color/color0", "@color/color1", "@color/color2", "@drawable/cdrawable",
-                             "@drawable/picture1", "@drawable/picture2", "@drawable/picture3")
+    doTestCompletionVariants(
+      "av14.xml",
+      "@android:",
+      "@color/color0",
+      "@color/color1",
+      "@color/color2",
+      "@drawable/cdrawable",
+      "@drawable/picture1",
+      "@drawable/picture2",
+      "@drawable/picture3",
+    )
   }
 
   fun testForceLocalResourceCompletion() {
@@ -1237,13 +1430,41 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   }
 
   fun testTagNameCompletion3() {
-    doTestCompletionVariants("tn3.xml", "ActionMenuView", "AdapterViewFlipper", "AutoCompleteTextView", "CalendarView", "CheckedTextView",
-                             "ExpandableListView", "GridView", "HorizontalScrollView", "ImageView", "ListView", "MultiAutoCompleteTextView",
-                             "ScrollView", "SearchView", "StackView", "SurfaceView", "TextView", "TextureView", "VideoView", "View",
-                             "ViewAnimator", "ViewFlipper", "ViewStub", "ViewSwitcher", "WebView", "android.appwidget.AppWidgetHostView",
-                             "android.gesture.GestureOverlayView", "android.inputmethodservice.KeyboardView",
-                             "android.media.tv.interactive.TvInteractiveAppView", "android.media.tv.TvView",
-                             "android.opengl.GLSurfaceView", "android.widget.inline.InlineContentView", "android.window.SplashScreenView")
+    doTestCompletionVariants(
+      "tn3.xml",
+      "ActionMenuView",
+      "AdapterViewFlipper",
+      "AutoCompleteTextView",
+      "CalendarView",
+      "CheckedTextView",
+      "ExpandableListView",
+      "GridView",
+      "HorizontalScrollView",
+      "ImageView",
+      "ListView",
+      "MultiAutoCompleteTextView",
+      "ScrollView",
+      "SearchView",
+      "StackView",
+      "SurfaceView",
+      "TextView",
+      "TextureView",
+      "VideoView",
+      "View",
+      "ViewAnimator",
+      "ViewFlipper",
+      "ViewStub",
+      "ViewSwitcher",
+      "WebView",
+      "android.appwidget.AppWidgetHostView",
+      "android.gesture.GestureOverlayView",
+      "android.inputmethodservice.KeyboardView",
+      "android.media.tv.interactive.TvInteractiveAppView",
+      "android.media.tv.TvView",
+      "android.opengl.GLSurfaceView",
+      "android.widget.inline.InlineContentView",
+      "android.window.SplashScreenView",
+    )
   }
 
   /*public void testTagNameCompletion4() throws Throwable {
@@ -1296,8 +1517,14 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.complete(CompletionType.BASIC)
 
     // Gallery is deprecated and thus should be the last in completion list
-    myFixture.assertPreferredCompletionItems(0, "GridLayout", "GridView", "android.gesture.GestureOverlayView",
-                                             "android.opengl.GLSurfaceView", "Gallery")
+    myFixture.assertPreferredCompletionItems(
+      0,
+      "GridLayout",
+      "GridView",
+      "android.gesture.GestureOverlayView",
+      "android.opengl.GLSurfaceView",
+      "Gallery",
+    )
   }
 
   // Completion by simple class name in layouts should work, inserting fully-qualified names
@@ -1338,8 +1565,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     val file = copyFileToProject(fileName)
     myFixture.configureFromExistingVirtualFile(file)
     val elements = myFixture.complete(CompletionType.BASIC)
-    val elementsToCheck = HashSet(Arrays.asList(
-      "view", "include", "requestFocus", "fragment", "Button"))
+    val elementsToCheck = HashSet(Arrays.asList("view", "include", "requestFocus", "fragment", "Button"))
 
     for (element in elements) {
       val s = element.lookupString
@@ -1362,9 +1588,15 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   }
 
   fun testIdCompletion2() {
-    doTestCompletionVariantsContains("idcompl2.xml",
-                                     "@android:id/text1", "@android:id/text2", "@android:id/inputExtractEditText",
-                                     "@android:id/selectTextMode", "@android:id/startSelectingText", "@android:id/stopSelectingText")
+    doTestCompletionVariantsContains(
+      "idcompl2.xml",
+      "@android:id/text1",
+      "@android:id/text2",
+      "@android:id/inputExtractEditText",
+      "@android:id/selectTextMode",
+      "@android:id/startSelectingText",
+      "@android:id/stopSelectingText",
+    )
   }
 
   fun testIdCompletion3() {
@@ -1443,8 +1675,14 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   }
 
   fun testTextViewRootTag_IDEA_62889() {
-    doTestCompletionVariants("textViewRootTag.xml", "AutoCompleteTextView", "CheckedTextView", "MultiAutoCompleteTextView", "TextView",
-                             "TextureView")
+    doTestCompletionVariants(
+      "textViewRootTag.xml",
+      "AutoCompleteTextView",
+      "CheckedTextView",
+      "MultiAutoCompleteTextView",
+      "TextView",
+      "TextureView",
+    )
   }
 
   fun testRequestFocus() {
@@ -1493,7 +1731,8 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
       public class MyFragmentActivity {
         public static class MyFragment extends androidx.fragment.app.Fragment {}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     toTestCompletion("fragmentCompletion1.xml", "fragmentCompletion1_after.xml")
@@ -1525,10 +1764,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   }
 
   fun testFragmentCompletion7() {
-    doTestCompletionVariantsContains("fragmentCompletion7.xml",
-                                     "tools:layout",
-                                     "tools:targetApi",
-                                     "tools:ignore")
+    doTestCompletionVariantsContains("fragmentCompletion7.xml", "tools:layout", "tools:targetApi", "tools:ignore")
   }
 
   fun testSupportGridLayoutCompletion() {
@@ -1837,8 +2073,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
     assertThat(myFixture.lookupElementStrings).containsExactly("3dp", "3px", "3sp", "3pt", "3mm", "3in")
 
-    val originalElement = myFixture.file.findElementAt(
-      myFixture.editor.caretModel.offset)
+    val originalElement = myFixture.file.findElementAt(myFixture.editor.caretModel.offset)
 
     val lookup = myFixture.lookup
     var dpElement: LookupElement? = null
@@ -1847,8 +2082,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     for (element in lookup.items) {
       if (element.lookupString.endsWith("dp")) {
         dpElement = element
-      }
-      else if (element.lookupString.endsWith("px")) {
+      } else if (element.lookupString.endsWith("px")) {
         pxElement = element
       }
     }
@@ -1858,37 +2092,47 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     lookup.setCurrentItem(dpElement)
     docTargetElement = DocumentationManager.getInstance(project).findTargetElement(myFixture.editor, myFixture.file, originalElement)
     provider = DocumentationManager.getProviderFromElement(docTargetElement)
-    assertThat(provider.generateDoc(docTargetElement, originalElement)).isEqualTo(
-      "<html><body><b>Density-independent Pixels</b> - an abstract unit that is based on the physical " + "density of the screen.</body></html>")
+    assertThat(provider.generateDoc(docTargetElement, originalElement))
+      .isEqualTo(
+        "<html><body><b>Density-independent Pixels</b> - an abstract unit that is based on the physical " +
+          "density of the screen.</body></html>"
+      )
 
     lookup.setCurrentItem(pxElement)
     docTargetElement = DocumentationManager.getInstance(project).findTargetElement(myFixture.editor, myFixture.file, originalElement)
     provider = DocumentationManager.getProviderFromElement(docTargetElement)
-    assertThat(provider.generateDoc(docTargetElement, originalElement)).isEqualTo(
-      "<html><body><b>Pixels</b> - corresponds to actual pixels on the screen. Not recommended.</body></html>")
+    assertThat(provider.generateDoc(docTargetElement, originalElement))
+      .isEqualTo("<html><body><b>Pixels</b> - corresponds to actual pixels on the screen. Not recommended.</body></html>")
   }
 
   fun testMipMapCompletionInDrawableXML() {
     myFixture.addFileToProject(
       "res/mipmap/mipmap.xml",
-      //language=XML
+      // language=XML
       """
       <adaptive-icon></adaptive-icon>
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
     myFixture.addFileToProject(
-        "res/mipmap/launcher.xml",
-      //language=XML
+      "res/mipmap/launcher.xml",
+      // language=XML
       """
       <adaptive-icon></adaptive-icon>
-      """.trimIndent())
-    val valuesFile = myFixture.addFileToProject(
-      "res/drawable/testDrawable.xml",
-      //language=XML
       """
+        .trimIndent(),
+    )
+    val valuesFile =
+      myFixture.addFileToProject(
+        "res/drawable/testDrawable.xml",
+        // language=XML
+        """
       <selector xmlns:android="http://schemas.android.com/apk/res/android">
            <item android:drawable="@mipmap/${caret}" />
       </selector>
-      """.trimIndent())
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(valuesFile.virtualFile)
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsAllOf("@mipmap/launcher", "@mipmap/mipmap")
@@ -1897,33 +2141,41 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testMipMapCompletionNotInValuesXML() {
     myFixture.addFileToProject(
       "res/mipmap/launcher.xml",
-      //language=XML
+      // language=XML
       """
       <adaptive-icon></adaptive-icon>
-      """.trimIndent())
-    val valuesFile = myFixture.addFileToProject(
-      "res/values/styles.xml",
-      //language=XML
       """
+        .trimIndent(),
+    )
+    val valuesFile =
+      myFixture.addFileToProject(
+        "res/values/styles.xml",
+        // language=XML
+        """
       <resources>
         <drawable name="alias_for_mipmap">@mipmap/${caret}</drawable>
       </resources>
-      """.trimIndent())
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(valuesFile.virtualFile)
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).doesNotContain("@mipmap/launcher")
   }
 
   fun testAttributeValueAttrCompletionDocumentation() {
-    val file = myFixture.addFileToProject(
-      "res/layout/activity_main.xml",
-      //language=XML
-      """<LinearLayout
+    val file =
+      myFixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=XML
+        """<LinearLayout
             xmlns:android="http://schemas.android.com/apk/res/android"
             android:orientation="vertical"
             android:layout_width="${caret}"
             android:layout_height="match_parent">
-        </LinearLayout>""".trimIndent())
+        </LinearLayout>"""
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     myFixture.complete(CompletionType.BASIC)
 
@@ -1943,35 +2195,47 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
     lookup.currentItem = matchParentElement
     var ref = myFixture.file.findReferenceAt(myFixture.editor.caretModel.offset)!!
-    var docTargetElement = DocumentationManager.getInstance(project).findTargetElement(
-      myFixture.editor, myFixture.file, ref.element)
+    var docTargetElement = DocumentationManager.getInstance(project).findTargetElement(myFixture.editor, myFixture.file, ref.element)
     var documentationProvider = DocumentationManager.getProviderFromElement(docTargetElement)
-    assertThat(documentationProvider.generateDoc(docTargetElement, ref.element)).isEqualTo(
-      """The view should be as big as its parent (minus padding).
-                 Introduced in API Level 8.""".trimIndent())
+    assertThat(documentationProvider.generateDoc(docTargetElement, ref.element))
+      .isEqualTo(
+        """
+        The view should be as big as its parent (minus padding).
+                         Introduced in API Level 8.
+        """
+          .trimIndent()
+      )
 
     lookup.currentItem = fillParentElement
     ref = myFixture.file.findReferenceAt(myFixture.editor.caretModel.offset)!!
-    docTargetElement = DocumentationManager.getInstance(project).findTargetElement(
-      myFixture.editor, myFixture.file, ref.element)
+    docTargetElement = DocumentationManager.getInstance(project).findTargetElement(myFixture.editor, myFixture.file, ref.element)
     documentationProvider = DocumentationManager.getProviderFromElement(docTargetElement)
-    assertThat(documentationProvider.generateDoc(docTargetElement, ref.element)).isEqualTo(
-      """The view should be as big as its parent (minus padding).
-                 This constant is deprecated starting from API Level 8 and
-                 is replaced by {@code match_parent}.""".trimIndent())
+    assertThat(documentationProvider.generateDoc(docTargetElement, ref.element))
+      .isEqualTo(
+        """
+        The view should be as big as its parent (minus padding).
+                         This constant is deprecated starting from API Level 8 and
+                         is replaced by {@code match_parent}.
+        """
+          .trimIndent()
+      )
   }
 
   fun testAttributeValueColorCompletionDocumentation() {
     myFixture.addFileToProject(
       "res/values/colors.xml",
-      """<resources>
-        <color name="colorPrimary">#008577</color>
-      </resources>
-      """.trimIndent())
-    val file = myFixture.addFileToProject(
-      "res/layout/activity_main.xml",
-      //language=XML
-      """<LinearLayout
+      """
+      <resources>
+              <color name="colorPrimary">#008577</color>
+            </resources>
+      """
+        .trimIndent(),
+    )
+    val file =
+      myFixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=XML
+        """<LinearLayout
             xmlns:android="http://schemas.android.com/apk/res/android"
             android:orientation="vertical"
             android:layout_width="match_parent"
@@ -1980,7 +2244,9 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:shadowColor="${caret}">
-        </LinearLayout>""".trimIndent())
+        </LinearLayout>"""
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     myFixture.complete(CompletionType.BASIC)
 
@@ -1995,15 +2261,15 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
     lookup.currentItem = colorElement
     val ref = myFixture.file.findReferenceAt(myFixture.editor.caretModel.offset)!!
-    val docTargetElement = DocumentationManager.getInstance(project).findTargetElement(
-      myFixture.editor, myFixture.file, ref.element)
+    val docTargetElement = DocumentationManager.getInstance(project).findTargetElement(myFixture.editor, myFixture.file, ref.element)
     val documentationProvider = DocumentationManager.getProviderFromElement(docTargetElement)
-    assertThat(documentationProvider.generateDoc(docTargetElement, ref.element)).isEqualTo(
-      """<html><body><table style="background-color:rgb(0,133,119);width:200px;text-align:center;vertical-align:middle;" border="0">""" +
-        """<tr height="100"><td align="center" valign="middle" height="100" style="color:black">#008577</td></tr></table><BR/>""" +
-        """@color/colorPrimary => #008577<BR/></body></html>""")
+    assertThat(documentationProvider.generateDoc(docTargetElement, ref.element))
+      .isEqualTo(
+        """<html><body><table style="background-color:rgb(0,133,119);width:200px;text-align:center;vertical-align:middle;" border="0">""" +
+          """<tr height="100"><td align="center" valign="middle" height="100" style="color:black">#008577</td></tr></table><BR/>""" +
+          """@color/colorPrimary => #008577<BR/></body></html>"""
+      )
   }
-
 
   fun testDimenUnitsCompletion2() {
     doTestCompletionVariants(getTestName(true) + ".xml", "@android:", "@dimen/myDimen")
@@ -2131,8 +2397,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   fun testAarDependencyCompletion() {
     // See org.jetbrains.android.facet.ResourceFolderManager#isAarDependency
-    PsiTestUtil.addLibrary(myModule, "myapklib.aar", getTestDataPath() + "/" + myTestFolder + "/myaar", "classes.jar",
-                           "res")
+    PsiTestUtil.addLibrary(myModule, "myapklib.aar", getTestDataPath() + "/" + myTestFolder + "/myaar", "classes.jar", "res")
     doTestCompletion()
   }
 
@@ -2140,12 +2405,13 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     addAarDependency(myFixture, myModule, "myaar", "com.example.myaar") { resDir ->
       @Language("XML")
       val stringsXml =
-          """
-          <resources>
-            <string name="my_aar_private_string">private</string>
-            <string name="my_aar_public_string">private</string>
-          </resources>
-          """.trimIndent()
+        """
+        <resources>
+          <string name="my_aar_private_string">private</string>
+          <string name="my_aar_public_string">private</string>
+        </resources>
+        """
+          .trimIndent()
       resDir.resolve("values/strings.xml").writeText(stringsXml)
       resDir.resolveSibling("public.txt").writeText("string my_aar_public_string")
     }
@@ -2162,23 +2428,20 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testToolsCompletion() {
     // Don't offer tools: completion for the mockup editor yet.
     // Also tests that the current expected set of tools attributes are offered.
-    doTestCompletionVariantsContains("toolsCompletion.xml",
-                                     "tools:listfooter",
-                                     "tools:listheader",
-                                     "tools:listitem",
-                                     "tools:targetApi",
-                                     "tools:viewBindingType",
-                                     "tools:ignore")
+    doTestCompletionVariantsContains(
+      "toolsCompletion.xml",
+      "tools:listfooter",
+      "tools:listheader",
+      "tools:listitem",
+      "tools:targetApi",
+      "tools:viewBindingType",
+      "tools:ignore",
+    )
   }
 
   // Regression test for http://b/66240917
   fun testToolsCompletion2() {
-    doTestPresentableCompletionVariants("toolsCompletion2.xml",
-                                        "listfooter",
-                                        "listheader",
-                                        "listitem",
-                                        "listSelector",
-                                        "stateListAnimator")
+    doTestPresentableCompletionVariants("toolsCompletion2.xml", "listfooter", "listheader", "listitem", "listSelector", "stateListAnimator")
   }
 
   fun testIncludeCompletion() {
@@ -2188,55 +2451,56 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     //  and <include> tag in AbsoluteLayout support android:layout_x/y attributes.
 
     // Check all attributes here
-    doTestCompletionVariants("include_in_linear_layout.xml",
-                             "android:id",
-                             "android:layout_gravity",
-                             "android:layout_height",
-                             "android:layout_margin",
-                             "android:layout_marginBottom",
-                             "android:layout_marginEnd",
-                             "android:layout_marginHorizontal",
-                             "android:layout_marginLeft",
-                             "android:layout_marginRight",
-                             "android:layout_marginStart",
-                             "android:layout_marginTop",
-                             "android:layout_marginVertical",
-                             "android:layout_weight",
-                             "android:layout_width",
-                             "android:visibility")
+    doTestCompletionVariants(
+      "include_in_linear_layout.xml",
+      "android:id",
+      "android:layout_gravity",
+      "android:layout_height",
+      "android:layout_margin",
+      "android:layout_marginBottom",
+      "android:layout_marginEnd",
+      "android:layout_marginHorizontal",
+      "android:layout_marginLeft",
+      "android:layout_marginRight",
+      "android:layout_marginStart",
+      "android:layout_marginTop",
+      "android:layout_marginVertical",
+      "android:layout_weight",
+      "android:layout_width",
+      "android:visibility",
+    )
 
     // The duplicated attributes have been tested, only test the specified attributes for the remaining test cases.
 
-    doTestCompletionVariantsContains("include_in_relative_layout.xml",
-                                     "android:layout_above",
-                                     "android:layout_alignBaseline",
-                                     "android:layout_alignBottom",
-                                     "android:layout_alignEnd",
-                                     "android:layout_alignLeft",
-                                     "android:layout_alignParentBottom",
-                                     "android:layout_alignParentEnd",
-                                     "android:layout_alignParentLeft",
-                                     "android:layout_alignParentRight",
-                                     "android:layout_alignParentStart",
-                                     "android:layout_alignParentTop",
-                                     "android:layout_alignRight",
-                                     "android:layout_alignStart",
-                                     "android:layout_alignTop",
-                                     "android:layout_alignWithParentIfMissing",
-                                     "android:layout_centerHorizontal",
-                                     "android:layout_centerInParent",
-                                     "android:layout_centerVertical",
-                                     "android:layout_toEndOf",
-                                     "android:layout_toLeftOf",
-                                     "android:layout_toRightOf",
-                                     "android:layout_toStartOf")
+    doTestCompletionVariantsContains(
+      "include_in_relative_layout.xml",
+      "android:layout_above",
+      "android:layout_alignBaseline",
+      "android:layout_alignBottom",
+      "android:layout_alignEnd",
+      "android:layout_alignLeft",
+      "android:layout_alignParentBottom",
+      "android:layout_alignParentEnd",
+      "android:layout_alignParentLeft",
+      "android:layout_alignParentRight",
+      "android:layout_alignParentStart",
+      "android:layout_alignParentTop",
+      "android:layout_alignRight",
+      "android:layout_alignStart",
+      "android:layout_alignTop",
+      "android:layout_alignWithParentIfMissing",
+      "android:layout_centerHorizontal",
+      "android:layout_centerInParent",
+      "android:layout_centerVertical",
+      "android:layout_toEndOf",
+      "android:layout_toLeftOf",
+      "android:layout_toRightOf",
+      "android:layout_toStartOf",
+    )
 
-    doTestCompletionVariantsContains("include_in_absolute_layout.xml",
-                                     "android:layout_x",
-                                     "android:layout_y")
+    doTestCompletionVariantsContains("include_in_absolute_layout.xml", "android:layout_x", "android:layout_y")
 
-    doTestCompletionVariantsContains("include_in_frame_layout.xml",
-                                     "android:layout_gravity")
+    doTestCompletionVariantsContains("include_in_frame_layout.xml", "android:layout_gravity")
 
     // <include> tag should also support auto-completion of layout_XXX attributes with cusomized domain name.
     // For example, app:layout_constraintXXX attributes should be supported when it is in the ConstraintLayout.
@@ -2287,9 +2551,11 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.addClass(constraintLayout)
     myFixture.addClass(barrier)
     myFixture.addFileToProject("res/values/values.xml", constraintLayoutResources)
-    val file = myFixture.addFileToProject("res/layout/activity_main.xml",
-      // language=xml
-      """
+    val file =
+      myFixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=xml
+        """
       <androidx.constraintlayout.widget.ConstraintLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -2312,7 +2578,9 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
           android:layout_height="match_parent"
           app:constraint_referenced_ids="text${caret}View"/>
       </androidx.constraintlayout.widget.ConstraintLayout>
-      """.trimIndent())
+      """
+          .trimIndent(),
+      )
     // Checking the textView goto action
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val textViewReference = TargetElementUtil.findReference(myFixture.editor, myFixture.editor.caretModel.offset)
@@ -2334,7 +2602,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     assertThat(textAgain).isNotNull()
     assertThat(textAgain!!.canonicalText).isEqualTo("textView")
 
-    //Add leading whitespace to an id in the constraint_referenced_ids
+    // Add leading whitespace to an id in the constraint_referenced_ids
     myFixture.moveCaret("app:constraint_referenced_ids=\"textView,|")
     myFixture.type("  ")
     PsiDocumentManager.getInstance(myFixture.project).commitAllDocuments()
@@ -2350,9 +2618,11 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.addClass(constraintLayout)
     myFixture.addClass(barrier)
     myFixture.addFileToProject("res/values/values.xml", constraintLayoutResources)
-    val file = myFixture.addFileToProject("res/layout/activity_main.xml",
-      // language=xml
-      """
+    val file =
+      myFixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=xml
+        """
       <androidx.constraintlayout.widget.ConstraintLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -2375,7 +2645,9 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
           android:layout_height="match_parent"
           app:constraint_referenced_ids="${caret}"/>
       </androidx.constraintlayout.widget.ConstraintLayout>
-      """.trimIndent())
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactlyElementsIn(arrayOf("editText", "textView"))
@@ -2394,18 +2666,20 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   fun testViewBindingTypeCompletion() {
     run { // test autocompleting the tools:viewBindingType label
-      val file = myFixture.addFileToProject(
-        "res/layout/activity_view_binding_type_label.xml",
-        // language=XML
-        """
+      val file =
+        myFixture.addFileToProject(
+          "res/layout/activity_view_binding_type_label.xml",
+          // language=XML
+          """
           <?xml version="1.0" encoding="utf-8"?>
           <LinearLayout>
             <EditText
                 xmlns:tools="http://schemas.android.com/tools"
                 tools:${caret} />
           </LinearLayout>
-        """.trimIndent()
-      )
+        """
+            .trimIndent(),
+        )
 
       myFixture.configureFromExistingVirtualFile(file.virtualFile)
       myFixture.completeBasic()
@@ -2413,26 +2687,26 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     }
 
     run { // Test that Android views are suggested for the value of the tools:viewBindingType attribute
-      val file = myFixture.addFileToProject(
-        "res/layout/activity_view_binding_type_value.xml",
-        // language=XML
-        """
+      val file =
+        myFixture.addFileToProject(
+          "res/layout/activity_view_binding_type_value.xml",
+          // language=XML
+          """
           <?xml version="1.0" encoding="utf-8"?>
           <LinearLayout>
             <EditText
                 xmlns:tools="http://schemas.android.com/tools"
                 tools:viewBindingType="Text${caret}" />
           </LinearLayout>
-      """.trimIndent()
-      )
+      """
+            .trimIndent(),
+        )
 
       myFixture.configureFromExistingVirtualFile(file.virtualFile)
       myFixture.completeBasic()
       // Just choose a random sampling of autocompleted values, enough to show a pattern
-      assertThat(myFixture.lookupElementStrings).containsAllOf(
-        "android.widget.EditText",
-        "android.widget.TextView",
-        "android.view.TextureView")
+      assertThat(myFixture.lookupElementStrings)
+        .containsAllOf("android.widget.EditText", "android.widget.TextView", "android.view.TextureView")
       // Make sure random non-view classes aren't showing up in the list
       assertThat(myFixture.lookupElementStrings!!.all { suggestion -> suggestion.startsWith("android.") }).isTrue()
     }
@@ -2446,31 +2720,34 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.addClass(
       // language=java
       """
-        package com.example.behaviors;
+      package com.example.behaviors;
 
-        import androidx.coordinatorlayout.widget.CoordinatorLayout;
+      import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
-        public class MyBehavior extends CoordinatorLayout.Behavior {}
-      """.trimIndent()
+      public class MyBehavior extends CoordinatorLayout.Behavior {}
+      """
+        .trimIndent()
     )
 
     myFixture.addClass(
       // language=java
       """
-        package com.example.behaviors;
+      package com.example.behaviors;
 
-        import androidx.coordinatorlayout.widget.CoordinatorLayout;
+      import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
-        public class SomeView {
-          public static class SomeBehavior extends CoordinatorLayout.Behavior {}
-        }
-      """.trimIndent()
+      public class SomeView {
+        public static class SomeBehavior extends CoordinatorLayout.Behavior {}
+      }
+      """
+        .trimIndent()
     )
 
-    val layout = myFixture.addFileToProject(
-      "res/layout/my_layout.xml",
-      // language=xml
-      """
+    val layout =
+      myFixture.addFileToProject(
+        "res/layout/my_layout.xml",
+        // language=xml
+        """
       <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:app="http://schemas.android.com/apk/res-auto"
           android:layout_width="match_parent"
@@ -2483,16 +2760,15 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
               app:layout_behavior="$caret" />
 
       </androidx.coordinatorlayout.widget.CoordinatorLayout>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(layout.virtualFile)
     myFixture.completeBasic()
 
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "com.example.behaviors.MyBehavior",
-      "com.example.behaviors.SomeView\$SomeBehavior"
-    )
+    assertThat(myFixture.lookupElementStrings)
+      .containsExactly("com.example.behaviors.MyBehavior", "com.example.behaviors.SomeView\$SomeBehavior")
 
     myFixture.type('\n')
     myFixture.checkHighlighting()
@@ -2503,50 +2779,53 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.addClass(coordinatorLayout)
     myFixture.addFileToProject("res/values/coordinatorlayout_attrs.xml", coordinatorLayoutResources)
 
-    val layout = myFixture.addFileToProject(
-      "res/layout/my_layout.xml",
-      // language=xml
-      """
-      <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:app="http://schemas.android.com/apk/res-auto"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent">
+    val layout =
+      myFixture.addFileToProject(
+        "res/layout/my_layout.xml",
+        // language=xml
+        """
+        <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-          <TextView
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="Hello World!"
-              app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hello World!"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-      </androidx.coordinatorlayout.widget.CoordinatorLayout>
-      """.trimIndent()
-    )
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(layout.virtualFile)
     myFixture.checkHighlighting()
   }
 
   /**
-   * Previously, "< ", a tag without a name, would cause the inspection logic to throw an
-   * exception with a message like:
+   * Previously, "< ", a tag without a name, would cause the inspection logic to throw an exception with a message like:
    *
    * "Argument rangeInElement (39,40) endOffset must not exceed descriptor text range (39, 40) length (1)."
    *
-   * This was caused because the inspection code that found XML tags without a name would
-   * incorrectly receive an absolute offset instead of a relative one.
+   * This was caused because the inspection code that found XML tags without a name would incorrectly receive an absolute offset instead of
+   * a relative one.
    *
    * For more context, see https://youtrack.jetbrains.com/issue/IDEA-205629
    */
   @Test
   fun testNamelessXmlTag_doesntThrowException() {
-    val layout = myFixture.addFileToProject(
-      "res/layout/my_layout.xml",
-      // language=xml
-      """
-      <!-- Blank line intentionally added, which used to trigger an out of range exception -->
-      <<EOLError descr="Tag name expected"></EOLError>
-      """.trimIndent()
-    )
+    val layout =
+      myFixture.addFileToProject(
+        "res/layout/my_layout.xml",
+        // language=xml
+        """
+        <!-- Blank line intentionally added, which used to trigger an out of range exception -->
+        <<EOLError descr="Tag name expected"></EOLError>
+        """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(layout.virtualFile)
     myFixture.checkHighlighting()
@@ -2565,7 +2844,8 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
           android:layout_width="match_parent"
           android:layout_height="match_parent" />
       </LinearLayout>
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     myFixture.checkHighlighting()
@@ -2605,8 +2885,9 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.enableInspections(setOf(inspectionClass))
   }
 
-  private fun setAndroidx() = runWriteCommandAction(project) {
-    (myModule.getModuleSystem() as DefaultModuleSystem).useAndroidX = true
-    assertThat(project.isAndroidx()).isTrue()  // Sanity check, regression test for b/145854589.
-  }
+  private fun setAndroidx() =
+    runWriteCommandAction(project) {
+      (myModule.getModuleSystem() as DefaultModuleSystem).useAndroidX = true
+      assertThat(project.isAndroidx()).isTrue() // Sanity check, regression test for b/145854589.
+    }
 }

@@ -22,17 +22,15 @@ import com.android.resources.aar.CachingData
 import com.android.resources.aar.FrameworkResourceRepository
 import com.android.resources.aar.RESOURCE_CACHE_DIRECTORY
 import com.google.common.hash.Hashing
-import org.jetbrains.annotations.TestOnly
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
+import org.jetbrains.annotations.TestOnly
 
-/**
- * Class for caching and reusing instances of [FrameworkResourceRepository].
- */
+/** Class for caching and reusing instances of [FrameworkResourceRepository]. */
 open class FrameworkResourceRepositoryManagerImpl(
   private val systemCachePath: String = "", // Empty path means no caching
   private val diskIoExecutor: Executor,
@@ -42,15 +40,15 @@ open class FrameworkResourceRepositoryManagerImpl(
   private val cache = ConcurrentHashMap<CacheKey, FrameworkResourceRepository>()
 
   /**
-   * Returns a [FrameworkResourceRepository] for the given "res" directory or a jar file. The [languages] parameter
-   * determines a subset of framework resources to be loaded. The returned repository is guaranteed to contain
-   * resources for the given set of languages plus the language-neutral ones, but may contain resources for more
-   * languages than was requested. The repository loads faster if the set of languages is smaller.
+   * Returns a [FrameworkResourceRepository] for the given "res" directory or a jar file. The [languages] parameter determines a subset of
+   * framework resources to be loaded. The returned repository is guaranteed to contain resources for the given set of languages plus the
+   * language-neutral ones, but may contain resources for more languages than was requested. The repository loads faster if the set of
+   * languages is smaller.
    *
    * @param resourceJarFile the jar file containing resources of the Android framework
    * @param useCompiled9Patches whether the created directory should use compiled 9-patch files
-   * @param languages a set of ISO 639 language codes that the repository should contain. The returned repository
-   *     may contain data for more languages.
+   * @param languages a set of ISO 639 language codes that the repository should contain. The returned repository may contain data for more
+   *   languages.
    * @param overlays a list of overlays to add to the base framework resources
    * @return the repository of Android framework resources
    */
@@ -67,8 +65,8 @@ open class FrameworkResourceRepositoryManagerImpl(
       return baseRepository
     }
 
-    val overlayRepositories = overlays.map {
-      getFrameworkRepository(resourceJarFile, it.overlayName, useCompiled9Patches, languages, cachingData) }
+    val overlayRepositories =
+      overlays.map { getFrameworkRepository(resourceJarFile, it.overlayName, useCompiled9Patches, languages, cachingData) }
     return FrameworkWithOverlaysResourceRepository(baseRepository, overlayRepositories)
   }
 
@@ -77,16 +75,17 @@ open class FrameworkResourceRepositoryManagerImpl(
     overlay: String,
     useCompiled9Patches: Boolean,
     languages: Set<String>,
-    cachingData: CachingData?
+    cachingData: CachingData?,
   ): FrameworkResourceRepository {
     val cacheKey = CacheKey(path, overlay, useCompiled9Patches)
-    val cached = cache.computeIfAbsent(cacheKey) {
-      if (overlay.isEmpty()) {
-        FrameworkResourceRepository.create(path, languages, cachingData, useCompiled9Patches)
-      } else {
-        FrameworkResourceRepository.createForOverlay(path, overlay, languages, cachingData, useCompiled9Patches)
+    val cached =
+      cache.computeIfAbsent(cacheKey) {
+        if (overlay.isEmpty()) {
+          FrameworkResourceRepository.create(path, languages, cachingData, useCompiled9Patches)
+        } else {
+          FrameworkResourceRepository.createForOverlay(path, overlay, languages, cachingData, useCompiled9Patches)
+        }
       }
-    }
     if (languages.isEmpty()) {
       return cached
     }
@@ -106,12 +105,12 @@ open class FrameworkResourceRepositoryManagerImpl(
       return null
     }
     val codeVersion = CodeVersionAdapter.getCodeVersion() ?: return null
-    val contentVersion = try {
-      Files.getLastModifiedTime(resFolderOrJar.resolve("../../package.xml")).toString()
-    }
-    catch (e: NoSuchFileException) {
-      ""
-    }
+    val contentVersion =
+      try {
+        Files.getLastModifiedTime(resFolderOrJar.resolve("../../package.xml")).toString()
+      } catch (e: NoSuchFileException) {
+        ""
+      }
 
     val pathHash = Hashing.farmHashFingerprint64().hashUnencodedChars(resFolderOrJar.toString()).toString()
     val prefix = resFolderOrJar.parent?.parent?.fileName?.toString() ?: "framework"

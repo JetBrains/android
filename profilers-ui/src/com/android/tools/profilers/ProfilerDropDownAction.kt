@@ -32,13 +32,13 @@ import javax.swing.JComponent
 import kotlinx.coroutines.flow.StateFlow
 
 /** A simple, private action for items within the dropdown menu. */
-private class SimpleAction(title: String, icon: Icon?, private val action: () -> Unit) :
-  AnAction(title, null, icon) {
+private class SimpleAction(title: String, icon: Icon?, private val action: () -> Unit) : AnAction(title, null, icon) {
   override fun actionPerformed(e: AnActionEvent) = action()
 }
+
 /**
- * A dropdown action driven by a [StateFlow] of [Selection]s, used for profiler toolbars.
- * This is a modified version of `com.android.tools.idea.insights.ui.actions.AppInsightsDropDownAction`.
+ * A dropdown action driven by a [StateFlow] of [Selection]s, used for profiler toolbars. This is a modified version of
+ * `com.android.tools.idea.insights.ui.actions.AppInsightsDropDownAction`.
  */
 open class ProfilerDropDownAction<T>(
   text: String?,
@@ -76,17 +76,14 @@ open class ProfilerDropDownAction<T>(
 
     val buttonHeight = button.height / 2 + button.border.getBorderInsets(button).bottom
     val toolbarComponent: JComponent? = button.parent as? JComponent
-    val toolbarHeight = if (toolbarComponent != null) {
-      toolbarComponent.height + toolbarComponent.insets.top + toolbarComponent.insets.bottom
-    }
-    else {
-      0
-    }
+    val toolbarHeight =
+      if (toolbarComponent != null) {
+        toolbarComponent.height + toolbarComponent.insets.top + toolbarComponent.insets.bottom
+      } else {
+        0
+      }
 
-    JBPopupMenu.showAt(
-      RelativePoint(button, Point(0, buttonHeight + toolbarHeight)),
-      popUpMenu.component,
-    )
+    JBPopupMenu.showAt(RelativePoint(button, Point(0, buttonHeight + toolbarHeight)), popUpMenu.component)
   }
 
   /** Creates a selection action for a given item. */

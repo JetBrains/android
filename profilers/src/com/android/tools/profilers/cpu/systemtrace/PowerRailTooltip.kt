@@ -22,22 +22,19 @@ import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.model.TooltipModel
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode
 
-class PowerRailTooltip(val timeline: Timeline,
-                       val counterName: String,
-                       private val primaryPowerRailValues: RangedSeries<Long>,
-                       private val secondaryPowerRailValues: RangedSeries<Long>,
-                       val displayMode: PowerProfilerDisplayMode) : TooltipModel, AspectModel<PowerRailTooltip.Aspect>() {
+class PowerRailTooltip(
+  val timeline: Timeline,
+  val counterName: String,
+  private val primaryPowerRailValues: RangedSeries<Long>,
+  private val secondaryPowerRailValues: RangedSeries<Long>,
+  val displayMode: PowerProfilerDisplayMode,
+) : TooltipModel, AspectModel<PowerRailTooltip.Aspect>() {
   enum class Aspect {
-    /**
-     * The hovering power rail value changed.
-     */
+    /** The hovering power rail value changed. */
     VALUE_CHANGED
   }
 
-  data class PowerCounterActiveValuesUws(
-    val primaryValue: Long,
-    val secondaryValue: Long
-  )
+  data class PowerCounterActiveValuesUws(val primaryValue: Long, val secondaryValue: Long)
 
   // Unit of energy is microwatt-seconds (µWs)
   var activeValueUws = PowerCounterActiveValuesUws(0L, 0L)

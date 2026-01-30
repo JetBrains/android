@@ -32,40 +32,43 @@ private const val SERVICE_NAME = "Known gradle plugins info"
 private const val PLUGINS_DATA_URL = "https://dl.google.com/android/studio/metadata/known_gradle_plugins.json"
 private const val FILENAME = "plugins.json"
 private const val DOWNLOAD_FILENAME = "plugins_temp.json"
-private val FALLBACK_URL = ResourceUtil.getResource(KnownGradlePluginsServiceImpl::class.java.classLoader, "knownGradlePluginsData", FILENAME)
+private val FALLBACK_URL =
+  ResourceUtil.getResource(KnownGradlePluginsServiceImpl::class.java.classLoader, "knownGradlePluginsData", FILENAME)
 private val CACHE_PATH = File(PathManager.getSystemPath(), "knownGradlePluginsData")
 
-/**
- * Knowledge database that provides information on known gradle plugins.
- */
+/** Knowledge database that provides information on known gradle plugins. */
 interface KnownGradlePluginsService {
   val gradlePluginsData: GradlePluginsData
 
-  /** Triggers async data refresh attempt.*/
+  /** Triggers async data refresh attempt. */
   fun asyncRefresh()
 }
 
 /**
- * Implementation of gradle plugins knowledge database that tries to pull latest json data from the server ([PLUGINS_DATA_URL]).
- * In case of failure it reads default data provided with release version from the local file ([FALLBACK_URL]).
- * Received data is cached and new requests will not repeat more often than once in a day.
+ * Implementation of gradle plugins knowledge database that tries to pull latest json data from the server ([PLUGINS_DATA_URL]). In case of
+ * failure it reads default data provided with release version from the local file ([FALLBACK_URL]). Received data is cached and new
+ * requests will not repeat more often than once in a day.
  *
- * To keep data updated [asyncRefresh] and [refreshSynchronously] call should be used. The intended usage is that [asyncRefresh]
- * would be called on service creation and each build start and [refreshSynchronously] would be called during build analysis
- * to make sure data is ready before proceeding. Note that data refresh interval is 1 day thus most of these requests will
- * not proceed making any delay to be an extremely rare case.
+ * To keep data updated [asyncRefresh] and [refreshSynchronously] call should be used. The intended usage is that [asyncRefresh] would be
+ * called on service creation and each build start and [refreshSynchronously] would be called during build analysis to make sure data is
+ * ready before proceeding. Note that data refresh interval is 1 day thus most of these requests will not proceed making any delay to be an
+ * extremely rare case.
  */
 class KnownGradlePluginsServiceImpl constructor(downloader: FileDownloader, cachePath: File) :
-  DownloadService(downloader, SERVICE_NAME, FALLBACK_URL, cachePath, FILENAME),
-  KnownGradlePluginsService {
+  DownloadService(downloader, SERVICE_NAME, FALLBACK_URL, cachePath, FILENAME), KnownGradlePluginsService {
 
-  constructor() : this(DownloadableFileService.getInstance().run {
-    createDownloader(listOf(createFileDescription(PLUGINS_DATA_URL, DOWNLOAD_FILENAME)), SERVICE_NAME)
-  }, CACHE_PATH)
+  constructor() :
+    this(
+      DownloadableFileService.getInstance().run {
+        createDownloader(listOf(createFileDescription(PLUGINS_DATA_URL, DOWNLOAD_FILENAME)), SERVICE_NAME)
+      },
+      CACHE_PATH,
+    )
 
   override var gradlePluginsData: GradlePluginsData = GradlePluginsData.emptyData
     private set
-    @Slow get() {
+    @Slow
+    get() {
       refreshSynchronously()
       return field
     }
@@ -82,20 +85,19 @@ class KnownGradlePluginsServiceImpl constructor(downloader: FileDownloader, cach
     try {
       val jsonString = ResourceUtil.loadText(URLUtil.openStream(url))
       gradlePluginsData = GradlePluginsData.loadFromJson(jsonString)
-    }
-    catch (e: IOException) {
+    } catch (e: IOException) {
       Logger.getInstance(KnownGradlePluginsServiceImpl::class.java).error("Error while trying to load plugins file", e)
     }
   }
 }
 
 class LocalKnownGradlePluginsServiceImpl : KnownGradlePluginsService {
-  override val gradlePluginsData = try {
-    GradlePluginsData.loadFromJson(ResourceUtil.loadText(URLUtil.openStream(FALLBACK_URL)))
-  }
-  catch (e: Throwable) {
-    GradlePluginsData.emptyData
-  }
+  override val gradlePluginsData =
+    try {
+      GradlePluginsData.loadFromJson(ResourceUtil.loadText(URLUtil.openStream(FALLBACK_URL)))
+    } catch (e: Throwable) {
+      GradlePluginsData.emptyData
+    }
 
   override fun asyncRefresh() = Unit
 }

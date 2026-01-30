@@ -49,15 +49,15 @@ import com.intellij.notification.Notifications
 import com.intellij.notification.impl.NotificationsConfigurationImpl
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.ui.content.impl.ContentImpl
+import java.util.UUID
+import javax.swing.JPanel
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 import org.mockito.kotlin.mock
-import java.util.UUID
-import javax.swing.JPanel
 
 /**
- * This test copies setup of BuildAttributionUiManagerTest and also operates on BuildAttributionUiManager
- * but focuses solely on notification logic.
+ * This test copies setup of BuildAttributionUiManagerTest and also operates on BuildAttributionUiManager but focuses solely on notification
+ * logic.
  */
 class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
 
@@ -70,20 +70,25 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     UsageTracker.setWriterForTest(tracker)
-    project.messageBus.connect(testRootDisposable).subscribe(Notifications.TOPIC, object : Notifications {
-      override fun notify(notification: Notification) {
-        if (notification.groupId == BUILD_ANALYZER_NOTIFICATION_GROUP_ID) {
-          notificationCounter++
-        }
-      }
-    })
+    project.messageBus
+      .connect(testRootDisposable)
+      .subscribe(
+        Notifications.TOPIC,
+        object : Notifications {
+          override fun notify(notification: Notification) {
+            if (notification.groupId == BUILD_ANALYZER_NOTIFICATION_GROUP_ID) {
+              notificationCounter++
+            }
+          }
+        },
+      )
     registerProjectService(BuildContentManager::class.java, BuildContentManagerImpl(project))
     registerProjectService(BuildAnalyzerStorageManager::class.java, buildAnalyzerStorageMock)
 
     // Add a fake build tab
-    project.getService(BuildContentManager::class.java).addContent(
-      ContentImpl(JPanel(), BuildContentManagerImpl.BUILD_TAB_TITLE_SUPPLIER.get(), true)
-    )
+    project
+      .getService(BuildContentManager::class.java)
+      .addContent(ContentImpl(JPanel(), BuildContentManagerImpl.BUILD_TAB_TITLE_SUPPLIER.get(), true))
 
     buildAttributionUiManager = BuildAttributionUiManagerImpl(project)
   }
@@ -97,9 +102,12 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
     val buildSessionId = UUID.randomUUID().toString()
     val plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "compiler.plugin")
     val task = TaskData("compile", ":app", plugin, 0, 2000, TaskData.TaskExecutionMode.FULL, emptyList())
-    val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
-      alwaysRunTasksAnalyzerResult = AlwaysRunTasksAnalyzer.Result(listOf(AlwaysRunTaskData(task, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)))
-    )
+    val result =
+      constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project))
+        .copy(
+          alwaysRunTasksAnalyzerResult =
+            AlwaysRunTasksAnalyzer.Result(listOf(AlwaysRunTaskData(task, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)))
+        )
     setNewReportData(result)
 
     verifyNotificationShownForSessions(listOf(buildSessionId))
@@ -111,13 +119,19 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
     val plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "compiler.plugin")
     val task = TaskData("compile", ":app", plugin, 0, 2000, TaskData.TaskExecutionMode.FULL, emptyList())
 
-    val result1 = constructEmptyBuildResultsObject(buildSessionId1, Projects.getBaseDirPath(project)).copy(
-      alwaysRunTasksAnalyzerResult = AlwaysRunTasksAnalyzer.Result(listOf(AlwaysRunTaskData(task, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)))
-    )
+    val result1 =
+      constructEmptyBuildResultsObject(buildSessionId1, Projects.getBaseDirPath(project))
+        .copy(
+          alwaysRunTasksAnalyzerResult =
+            AlwaysRunTasksAnalyzer.Result(listOf(AlwaysRunTaskData(task, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)))
+        )
     setNewReportData(result1)
-    val result2 = constructEmptyBuildResultsObject(buildSessionId2, Projects.getBaseDirPath(project)).copy(
-      alwaysRunTasksAnalyzerResult = AlwaysRunTasksAnalyzer.Result(listOf(AlwaysRunTaskData(task, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)))
-    )
+    val result2 =
+      constructEmptyBuildResultsObject(buildSessionId2, Projects.getBaseDirPath(project))
+        .copy(
+          alwaysRunTasksAnalyzerResult =
+            AlwaysRunTasksAnalyzer.Result(listOf(AlwaysRunTaskData(task, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)))
+        )
     setNewReportData(result2)
 
     verifyNotificationShownForSessions(listOf(buildSessionId1))
@@ -129,14 +143,17 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
     val plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "compiler.plugin")
     val task = TaskData("compile", ":app", plugin, 0, 2000, TaskData.TaskExecutionMode.FULL, emptyList())
 
-    val result1 = constructEmptyBuildResultsObject(buildSessionId1, Projects.getBaseDirPath(project)).copy(
-      jetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierUsedCheckRequired)
-    )
+    val result1 =
+      constructEmptyBuildResultsObject(buildSessionId1, Projects.getBaseDirPath(project))
+        .copy(jetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierUsedCheckRequired))
     setNewReportData(result1)
-    val result2 = constructEmptyBuildResultsObject(buildSessionId2, Projects.getBaseDirPath(project)).copy(
-      alwaysRunTasksAnalyzerResult = AlwaysRunTasksAnalyzer.Result(listOf(AlwaysRunTaskData(task, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS))),
-      jetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierUsedCheckRequired)
-    )
+    val result2 =
+      constructEmptyBuildResultsObject(buildSessionId2, Projects.getBaseDirPath(project))
+        .copy(
+          alwaysRunTasksAnalyzerResult =
+            AlwaysRunTasksAnalyzer.Result(listOf(AlwaysRunTaskData(task, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS))),
+          jetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierUsedCheckRequired),
+        )
     setNewReportData(result2)
 
     verifyNotificationShownForSessions(listOf(buildSessionId1, buildSessionId2))
@@ -144,10 +161,12 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
 
   fun testBalloonNotShownOnReportWithConfigCacheWarningOnly() {
     val buildSessionId = UUID.randomUUID().toString()
-    val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
-      //TODO (b/243175483): should we start showing warning for stable?
-      configurationCachingCompatibilityAnalyzerResult = NoIncompatiblePlugins(emptyList(), false)
-    )
+    val result =
+      constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project))
+        .copy(
+          // TODO (b/243175483): should we start showing warning for stable?
+          configurationCachingCompatibilityAnalyzerResult = NoIncompatiblePlugins(emptyList(), false)
+        )
     setNewReportData(result)
 
     verifyNotificationShownForSessions(emptyList())
@@ -155,9 +174,9 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
 
   fun testBalloonNotShownOnConfigCacheTrialBuild() {
     val buildSessionId = UUID.randomUUID().toString()
-    val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
-      configurationCachingCompatibilityAnalyzerResult = ConfigurationCacheCompatibilityTestFlow(false)
-    )
+    val result =
+      constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project))
+        .copy(configurationCachingCompatibilityAnalyzerResult = ConfigurationCacheCompatibilityTestFlow(false))
     setNewReportData(result)
 
     verifyNotificationShownForSessions(emptyList())
@@ -165,9 +184,9 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
 
   fun testBalloonNotShownOnJetifierCheckBuild() {
     val buildSessionId = UUID.randomUUID().toString()
-    val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
-      jetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierCanBeRemoved, 123456789, checkJetifierBuild = true)
-    )
+    val result =
+      constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project))
+        .copy(jetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierCanBeRemoved, 123456789, checkJetifierBuild = true))
     setNewReportData(result)
 
     verifyNotificationShownForSessions(emptyList())
@@ -184,36 +203,33 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
     val buildSessionId2 = UUID.randomUUID().toString()
     val buildSessionId3 = UUID.randomUUID().toString()
     val plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "compiler.plugin")
-    val task1 = TaskData("task1", ":app", plugin, 0, 2000, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
-      setTaskCategories(TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD.taskCategory, emptyList())
-    }
-    val task2 = TaskData("task2", ":app", plugin, 0, 2000, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
-      setTaskCategories(TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED.taskCategory, emptyList())
-    }
-    val criticalPathAnalyzerResult = CriticalPathAnalyzer.Result(
-      listOf(task1, task2),
-      emptyList(),
-      0,
-      0
-    )
-    val result1 = constructEmptyBuildResultsObject(buildSessionId1, Projects.getBaseDirPath(project)).copy(
-      taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.IssuesResult(listOf(
-        TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD
-      )),
-      criticalPathAnalyzerResult = criticalPathAnalyzerResult,
-      taskMap = mapOf(task1.taskName to task1, task2.taskName to task2),
-      pluginMap = mapOf(plugin.idName to plugin)
-    )
-    val result2 = result1.copy(
-      buildSessionID = buildSessionId2
-    )
-    val result3 = result1.copy(
-      buildSessionID = buildSessionId3,
-      taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.IssuesResult(listOf(
-        TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD,
-        TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED
-      )),
-    )
+    val task1 =
+      TaskData("task1", ":app", plugin, 0, 2000, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
+        setTaskCategories(TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD.taskCategory, emptyList())
+      }
+    val task2 =
+      TaskData("task2", ":app", plugin, 0, 2000, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
+        setTaskCategories(TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED.taskCategory, emptyList())
+      }
+    val criticalPathAnalyzerResult = CriticalPathAnalyzer.Result(listOf(task1, task2), emptyList(), 0, 0)
+    val result1 =
+      constructEmptyBuildResultsObject(buildSessionId1, Projects.getBaseDirPath(project))
+        .copy(
+          taskCategoryWarningsAnalyzerResult =
+            TaskCategoryWarningsAnalyzer.IssuesResult(listOf(TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD)),
+          criticalPathAnalyzerResult = criticalPathAnalyzerResult,
+          taskMap = mapOf(task1.taskName to task1, task2.taskName to task2),
+          pluginMap = mapOf(plugin.idName to plugin),
+        )
+    val result2 = result1.copy(buildSessionID = buildSessionId2)
+    val result3 =
+      result1.copy(
+        buildSessionID = buildSessionId3,
+        taskCategoryWarningsAnalyzerResult =
+          TaskCategoryWarningsAnalyzer.IssuesResult(
+            listOf(TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD, TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED)
+          ),
+      )
     setNewReportData(result1)
     setNewReportData(result2)
     setNewReportData(result3)
@@ -231,11 +247,7 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
   fun testSettingMigration() {
     Truth.assertThat(NotificationsConfigurationImpl.getSettings(BUILD_ANALYZER_NOTIFICATION_GROUP_ID).displayType)
       .isEqualTo(NotificationDisplayType.TOOL_WINDOW)
-    fun testCombination(
-      oldSetting: String,
-      newSettingBefore: NotificationDisplayType,
-      newSettingAfter: NotificationDisplayType
-    ) {
+    fun testCombination(oldSetting: String, newSettingBefore: NotificationDisplayType, newSettingAfter: NotificationDisplayType) {
       BuildAnalyzerSettings.getInstance(project).settingsState.notifyAboutWarnings = oldSetting
       NotificationsConfigurationImpl.getSettings(BUILD_ANALYZER_NOTIFICATION_GROUP_ID).displayType = newSettingBefore
 
@@ -243,8 +255,7 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
 
       Truth.assertThat(NotificationsConfigurationImpl.getSettings(BUILD_ANALYZER_NOTIFICATION_GROUP_ID).displayType)
         .isEqualTo(newSettingAfter)
-      Truth.assertThat(BuildAnalyzerSettings.getInstance(project).settingsState.notifyAboutWarnings)
-        .isEqualTo("deprecated")
+      Truth.assertThat(BuildAnalyzerSettings.getInstance(project).settingsState.notifyAboutWarnings).isEqualTo("deprecated")
     }
 
     // Previously set false flag should convert to NONE in Notification settings.
@@ -268,10 +279,11 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
 
   private fun verifyNotificationShownForSessions(expectedSessionsWithNotification: List<String>) {
     Truth.assertThat(notificationCounter).isEqualTo(expectedSessionsWithNotification.size)
-    val buildAttributionEvents = tracker.usages
-      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-      .filter { it.studioEvent.buildAttributionUiEvent.eventType == BuildAttributionUiEvent.EventType.TOOL_WINDOW_BALLOON_SHOWN }
-      .map { it.studioEvent.buildAttributionUiEvent.buildAttributionReportSessionId }
+    val buildAttributionEvents =
+      tracker.usages
+        .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+        .filter { it.studioEvent.buildAttributionUiEvent.eventType == BuildAttributionUiEvent.EventType.TOOL_WINDOW_BALLOON_SHOWN }
+        .map { it.studioEvent.buildAttributionUiEvent.buildAttributionReportSessionId }
 
     Truth.assertThat(buildAttributionEvents).containsExactlyElementsIn(expectedSessionsWithNotification).inOrder()
   }

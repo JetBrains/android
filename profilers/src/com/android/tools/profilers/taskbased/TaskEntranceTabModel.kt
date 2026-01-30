@@ -23,24 +23,24 @@ import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabMod
 import com.android.tools.profilers.taskbased.task.TaskGridModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
 
-/**
- * This class is to be extended by tab UI models allowing the user to select and enter a Profiler task.
- */
+/** This class is to be extended by tab UI models allowing the user to select and enter a Profiler task. */
 abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
   private val ongoingSessionEndedObserver = AspectObserver()
 
   val taskGridModel: TaskGridModel = TaskGridModel(profilers)
 
-  val selectedTaskType get() = taskGridModel.selectedTaskType.value
-  val taskHandlers get() = profilers.taskHandlers
+  val selectedTaskType
+    get() = taskGridModel.selectedTaskType.value
 
-  val sessionsManager get() = profilers.sessionsManager
+  val taskHandlers
+    get() = profilers.taskHandlers
+
+  val sessionsManager
+    get() = profilers.sessionsManager
 
   open fun updateProfilingProcessStartingPointDropdown() {}
 
-  /**
-   * Handles click of start or open Profiler task button.
-   */
+  /** Handles click of start or open Profiler task button. */
   open fun onEnterTaskButtonClick() {
     val isTaskOngoing = profilers.sessionsManager.isSessionAlive
 
@@ -53,8 +53,11 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
       // existing task tab will be re-opened.
       is PastRecordingsTabModel -> {
         val selectedSession = selectedRecording!!.session
-        if (selectedSession == profilers.session && !(profilers.ideServices.featureConfig.isSystemTraceInEditorEnabled &&
-                                                      selectedRecording!!.getTaskType() == ProfilerTaskType.SYSTEM_TRACE)) {
+        if (
+          selectedSession == profilers.session &&
+            !(profilers.ideServices.featureConfig.isSystemTraceInEditorEnabled &&
+              selectedRecording!!.getTaskType() == ProfilerTaskType.SYSTEM_TRACE)
+        ) {
           profilers.openTaskTab()
           return
         }
@@ -66,15 +69,18 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
     if (currentTaskHandler != null) {
       val dialogTitle = if (isTaskOngoing) "Confirm Termination of Ongoing Recording" else "Confirm Close of Currently Open Task"
       // Prompt/warn the user that there can only be one task tab open at a time, so starting a new task will close the current one first.
-      val dialogMsg = "Profiler displays only one task at this time. Starting a new task or opening a task " +
-                      "recording will ${if (isTaskOngoing) "terminate your ongoing recording." else "close your currently open task."}"
+      val dialogMsg =
+        "Profiler displays only one task at this time. Starting a new task or opening a task " +
+          "recording will ${if (isTaskOngoing) "terminate your ongoing recording." else "close your currently open task."}"
 
       // Retrieve user selection for "Do not ask again" checkbox on dialog. Prevent dialog from showing if true.
       val hidePrompt = profilers.ideServices.persistentProfilerPreferences.getBoolean(HIDE_NEW_TASK_PROMPT, false)
-      val confirm = hidePrompt || profilers.ideServices.openOkCancelDialog(dialogMsg, dialogTitle) { doNotShow: Boolean ->
-        // Save user's preference to not see dialog again.
-        profilers.ideServices.persistentProfilerPreferences.setBoolean(HIDE_NEW_TASK_PROMPT, doNotShow)
-      }
+      val confirm =
+        hidePrompt ||
+          profilers.ideServices.openOkCancelDialog(dialogMsg, dialogTitle) { doNotShow: Boolean ->
+            // Save user's preference to not see dialog again.
+            profilers.ideServices.persistentProfilerPreferences.setBoolean(HIDE_NEW_TASK_PROMPT, doNotShow)
+          }
 
       // If the user cancels, we cancel the stoppage of the current task and start of the new one.
       if (!confirm) {

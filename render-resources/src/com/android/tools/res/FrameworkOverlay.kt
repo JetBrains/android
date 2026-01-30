@@ -18,10 +18,8 @@ package com.android.tools.res
 /**
  * All available framework resource overlays.
  *
- * The Android framework uses resource overlays to customize the values of some
- * of its resources at runtime. Several overlays can be applied at the same time,
- * but not all combinations make sense are some overlays override the same resources
- * as others.
+ * The Android framework uses resource overlays to customize the values of some of its resources at runtime. Several overlays can be applied
+ * at the same time, but not all combinations make sense are some overlays override the same resources as others.
  */
 enum class FrameworkOverlay(val overlayName: String) {
   AVOID_APPS_IN_CUTOUT("AvoidAppsInCutoutOverlay"),
@@ -39,7 +37,6 @@ enum class FrameworkOverlay(val overlayName: String) {
   NAV_GESTURE("NavigationBarModeGesturalOverlay"),
   NOTES_ROLE_ENABLED("NotesRoleEnabledOverlay"),
   TRANSPARENT_NAV_BAR("TransparentNavigationBarOverlay"),
-
   PIXEL_6("pixel_6"),
   PIXEL_6A("pixel_6a"),
   PIXEL_6_PRO("pixel_6_pro"),

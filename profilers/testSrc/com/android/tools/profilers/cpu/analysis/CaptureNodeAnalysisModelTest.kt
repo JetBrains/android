@@ -28,14 +28,14 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
 
-
 class CaptureNodeAnalysisModelTest {
   @Test
   fun analysisTabs() {
-    val capture = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(this.range).thenReturn(Range())
-      whenever(this.type).thenReturn(TraceType.PERFETTO)
-    }
+    val capture =
+      Mockito.mock(CpuCapture::class.java).apply {
+        whenever(this.range).thenReturn(Range())
+        whenever(this.type).thenReturn(TraceType.PERFETTO)
+      }
     val model = CaptureNodeAnalysisModel(CaptureNode(SingleNameModel("Foo")), capture, Utils::runOnUi)
     val tabs = model.analysisModel.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()
     assertThat(tabs).containsExactly(Type.SUMMARY, Type.FLAME_CHART, Type.TOP_DOWN, Type.BOTTOM_UP, Type.EVENTS)
@@ -43,19 +43,21 @@ class CaptureNodeAnalysisModelTest {
 
   @Test
   fun getLongestRunningOccurrences() {
-    val capture = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(this.range).thenReturn(Range())
-    }
-    assertThat(CaptureNodeAnalysisModel(ROOT_NODE, capture, Utils::runOnUi).getLongestRunningOccurrences(3)).containsExactly(ROOT_NODE).inOrder()
-    assertThat(CaptureNodeAnalysisModel(FOO_1, capture, Utils::runOnUi).getLongestRunningOccurrences(3)).containsExactly(FOO_2, FOO_1).inOrder()
-    assertThat(CaptureNodeAnalysisModel(BAR_11, capture, Utils::runOnUi).getLongestRunningOccurrences(3)).containsExactly(BAR_23, BAR_12, BAR_11).inOrder()
+    val capture = Mockito.mock(CpuCapture::class.java).apply { whenever(this.range).thenReturn(Range()) }
+    assertThat(CaptureNodeAnalysisModel(ROOT_NODE, capture, Utils::runOnUi).getLongestRunningOccurrences(3))
+      .containsExactly(ROOT_NODE)
+      .inOrder()
+    assertThat(CaptureNodeAnalysisModel(FOO_1, capture, Utils::runOnUi).getLongestRunningOccurrences(3))
+      .containsExactly(FOO_2, FOO_1)
+      .inOrder()
+    assertThat(CaptureNodeAnalysisModel(BAR_11, capture, Utils::runOnUi).getLongestRunningOccurrences(3))
+      .containsExactly(BAR_23, BAR_12, BAR_11)
+      .inOrder()
   }
 
   @Test
   fun getAllOccurrencesStatsWithoutNameMapping() {
-    val capture = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(this.range).thenReturn(Range())
-    }
+    val capture = Mockito.mock(CpuCapture::class.java).apply { whenever(this.range).thenReturn(Range()) }
     val stats = CaptureNodeAnalysisModel(BAR_11, capture, Utils::runOnUi).allOccurrenceStats
     assertThat(stats.count).isEqualTo(5)
     assertThat(stats.average).isWithin(EPSILON).of(13.2)
@@ -66,9 +68,7 @@ class CaptureNodeAnalysisModelTest {
 
   @Test
   fun getAllOccurrencesStatsWithNameMapping() {
-    val capture = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(this.range).thenReturn(Range())
-    }
+    val capture = Mockito.mock(CpuCapture::class.java).apply { whenever(this.range).thenReturn(Range()) }
     val nameToNodes = CpuThreadTrackModel.getNameToNodesMapping(ROOT_NODE)
     val stats = CaptureNodeAnalysisModel(BAR_11, capture, Utils::runOnUi, nameToNodes).allOccurrenceStats
     assertThat(stats.count).isEqualTo(5)
@@ -95,55 +95,56 @@ class CaptureNodeAnalysisModelTest {
     /**
      * Build a capture node tree with different timestamp.
      *
-     * Name    Start-End (us) Duration
+     * Name Start-End (us) Duration
      * -------------------------------
-     * Root    ( 0-99)        99
-     * |-Foo   ( 0-35)        35
-     *   |-Bar ( 0-10)        10
-     *   |-Bar (20-35)        15
-     * |-Foo   (40-90)        50
-     *   |-Bar (40-45)         5
-     *   |-Bar (50-51)         1
-     *   |-Bar (55-90)        35
+     * Root ( 0-99) 99 |-Foo ( 0-35) 35 |-Bar ( 0-10) 10 |-Bar (20-35) 15 |-Foo (40-90) 50 |-Bar (40-45) 5 |-Bar (50-51) 1 |-Bar (55-90) 35
      */
-    private val BAR_11 = CaptureNode(SingleNameModel("Bar")).apply {
-      startGlobal = 0
-      endGlobal = 10
-    }
-    private val BAR_12 = CaptureNode(SingleNameModel("Bar")).apply {
-      startGlobal = 20
-      endGlobal = 35
-    }
-    private val BAR_21 = CaptureNode(SingleNameModel("Bar")).apply {
-      startGlobal = 40
-      endGlobal = 45
-    }
-    private val BAR_22 = CaptureNode(SingleNameModel("Bar")).apply {
-      startGlobal = 50
-      endGlobal = 51
-    }
-    private val BAR_23 = CaptureNode(SingleNameModel("Bar")).apply {
-      startGlobal = 55
-      endGlobal = 90
-    }
-    private val FOO_1 = CaptureNode(SingleNameModel("Foo")).apply {
-      startGlobal = 0
-      endGlobal = 35
-      addChild(BAR_11)
-      addChild(BAR_12)
-    }
-    private val FOO_2 = CaptureNode(SingleNameModel("Foo")).apply {
-      startGlobal = 40
-      endGlobal = 90
-      addChild(BAR_21)
-      addChild(BAR_22)
-      addChild(BAR_23)
-    }
-    private val ROOT_NODE = CaptureNode(SingleNameModel("Root")).apply {
-      startGlobal = 0
-      endGlobal = 99
-      addChild(FOO_1)
-      addChild(FOO_2)
-    }
+    private val BAR_11 =
+      CaptureNode(SingleNameModel("Bar")).apply {
+        startGlobal = 0
+        endGlobal = 10
+      }
+    private val BAR_12 =
+      CaptureNode(SingleNameModel("Bar")).apply {
+        startGlobal = 20
+        endGlobal = 35
+      }
+    private val BAR_21 =
+      CaptureNode(SingleNameModel("Bar")).apply {
+        startGlobal = 40
+        endGlobal = 45
+      }
+    private val BAR_22 =
+      CaptureNode(SingleNameModel("Bar")).apply {
+        startGlobal = 50
+        endGlobal = 51
+      }
+    private val BAR_23 =
+      CaptureNode(SingleNameModel("Bar")).apply {
+        startGlobal = 55
+        endGlobal = 90
+      }
+    private val FOO_1 =
+      CaptureNode(SingleNameModel("Foo")).apply {
+        startGlobal = 0
+        endGlobal = 35
+        addChild(BAR_11)
+        addChild(BAR_12)
+      }
+    private val FOO_2 =
+      CaptureNode(SingleNameModel("Foo")).apply {
+        startGlobal = 40
+        endGlobal = 90
+        addChild(BAR_21)
+        addChild(BAR_22)
+        addChild(BAR_23)
+      }
+    private val ROOT_NODE =
+      CaptureNode(SingleNameModel("Root")).apply {
+        startGlobal = 0
+        endGlobal = 99
+        addChild(FOO_1)
+        addChild(FOO_2)
+      }
   }
 }

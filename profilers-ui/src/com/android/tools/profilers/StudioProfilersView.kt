@@ -19,9 +19,7 @@ import com.intellij.openapi.Disposable
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * The top-level view of a profiling tab in the Profiler tool window.
- */
+/** The top-level view of a profiling tab in the Profiler tool window. */
 interface StudioProfilersView : Disposable {
   val studioProfilers: StudioProfilers
   val ideProfilerComponents: IdeProfilerComponents

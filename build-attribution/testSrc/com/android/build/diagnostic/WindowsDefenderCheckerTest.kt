@@ -25,8 +25,7 @@ import org.junit.Test
 
 class WindowsDefenderCheckerTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   companion object {
     @BeforeClass
@@ -45,9 +44,8 @@ class WindowsDefenderCheckerTest {
   }
 
   /**
-   * This test verifies WindowsDefenderChecker validity, that it can be instantiated and can read defender status
-   * from the system without an error.
-   * There is no way to safely test the correctness of this interaction but at least it should not break unexpectedly.
+   * This test verifies WindowsDefenderChecker validity, that it can be instantiated and can read defender status from the system without an
+   * error. There is no way to safely test the correctness of this interaction but at least it should not break unexpectedly.
    */
   @Test
   fun testProtectionStatusRead() {

@@ -39,30 +39,26 @@ import com.google.devrel.gmscore.tools.apk.arsc.StringPoolChunk
 import com.google.devrel.gmscore.tools.apk.arsc.TypeChunk
 import java.util.EnumMap
 
-/** [ResourceRepository] for reading resources stored in binary encoded format e.g. in application apk.  */
-class ApkResourceRepository(
-  apkPath: String,
-  private val resourceIdResolver: (Int) -> ResourceReference?
-) : AbstractResourceRepository(), CacheableResourceRepository {
+/** [ResourceRepository] for reading resources stored in binary encoded format e.g. in application apk. */
+class ApkResourceRepository(apkPath: String, private val resourceIdResolver: (Int) -> ResourceReference?) :
+  AbstractResourceRepository(), CacheableResourceRepository {
 
   private val resourceMap =
     EnumMap<ResourceType, MutableMap<ResourceNamespace, ListMultimap<String, ResourceItem>>>(ResourceType::class.java)
+
   init {
     forEveryResource(apkPath) { stringPool, resType, folderConfig, _, typeChunkEntry ->
       val namespacedName = typeChunkEntry.key()
       val (namespace, name) = extractNameAndNamespace(namespacedName)
       val resRef = ResourceReference(namespace, resType, name)
-      val resValue = typeChunkEntry.createResValue(resRef, apkPath, stringPool) { resId ->
-        resourceIdResolver.invoke(resId)
-      }
+      val resValue = typeChunkEntry.createResValue(resRef, apkPath, stringPool) { resId -> resourceIdResolver.invoke(resId) }
 
       val resourceItem = ApkResourceItem(resRef, folderConfig, resValue)
 
-      resourceMap.computeIfAbsent(resType) {
-        mutableMapOf()
-      }.computeIfAbsent(namespace) {
-        ArrayListMultimap.create()
-      }.put(name, resourceItem)
+      resourceMap
+        .computeIfAbsent(resType) { mutableMapOf() }
+        .computeIfAbsent(namespace) { ArrayListMultimap.create() }
+        .put(name, resourceItem)
     }
   }
 
@@ -109,22 +105,16 @@ private const val ATTR_ONE = 0x01000006
 private const val ATTR_TWO = 0x01000007
 private const val ATTR_FEW = 0x01000008
 private const val ATTR_MANY = 0x01000009
-private val PLURALS_NAMES = mapOf(
-  ATTR_OTHER to "other",
-  ATTR_ZERO to "zero",
-  ATTR_ONE to "one",
-  ATTR_TWO to "two",
-  ATTR_FEW to "few",
-  ATTR_MANY to "many"
-)
+private val PLURALS_NAMES =
+  mapOf(ATTR_OTHER to "other", ATTR_ZERO to "zero", ATTR_ONE to "one", ATTR_TWO to "two", ATTR_FEW to "few", ATTR_MANY to "many")
 
 private fun TypeChunk.Entry.createResValue(
   resRef: ResourceReference,
   apkPath: String,
   stringPool: StringPoolChunk,
-  resLookUp: (Int) -> ResourceReference?
+  resLookUp: (Int) -> ResourceReference?,
 ): ResourceValue {
-  return when(resRef.resourceType) {
+  return when (resRef.resourceType) {
     // Following logic in frameworks/base/tools/aapt2/format/binary/ResEntryWriter.cpp
     // MapFlattenVisitor.Visit(Attribute)
     ResourceType.ATTR -> {
@@ -134,9 +124,7 @@ private fun TypeChunk.Entry.createResValue(
       val attrValue = AttrResourceValueImpl(resRef, null)
       this.values()
         .filter { it.key !in SERVICE_VALS }
-        .forEach { (resId, binVal) ->
-          attrValue.addValue(resLookUp(resId)?.name ?: resId.toString(), binVal.data(), null)
-        }
+        .forEach { (resId, binVal) -> attrValue.addValue(resLookUp(resId)?.name ?: resId.toString(), binVal.data(), null) }
       attrValue
     }
     ResourceType.STYLE -> {
@@ -199,8 +187,8 @@ private fun formatVal(binResVal: BinaryResourceValue, stringPool: StringPoolChun
 }
 
 /**
- * Some resources have references to resource files as their values. This makes these references
- * fully resolvable by prepending the containing apk path and specifying apk protocol.
+ * Some resources have references to resource files as their values. This makes these references fully resolvable by prepending the
+ * containing apk path and specifying apk protocol.
  */
 internal fun convertToApkRefIfNeeded(resValue: String, resType: ResourceType, apkPath: String): String =
   if (isResourceFileReference(resValue, resType)) "apk://$apkPath!/$resValue" else resValue

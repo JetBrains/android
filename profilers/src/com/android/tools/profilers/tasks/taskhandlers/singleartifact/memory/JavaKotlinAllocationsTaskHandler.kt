@@ -31,12 +31,11 @@ import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.JavaKotlinAllocationsTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.LegacyJavaKotlinAllocationsTaskArgs
 
-/**
- * This class defines the task handler to perform a java/kotlin allocations task.
- */
+/** This class defines the task handler to perform a java/kotlin allocations task. */
 class JavaKotlinAllocationsTaskHandler(private val sessionsManager: SessionsManager) : MemoryTaskHandler(sessionsManager) {
 
-  val profilers get() = sessionsManager.studioProfilers
+  val profilers
+    get() = sessionsManager.studioProfilers
 
   override fun startCapture(stage: MainMemoryProfilerStage) {
     stage.startJavaKotlinAllocationCapture()
@@ -84,11 +83,12 @@ class JavaKotlinAllocationsTaskHandler(private val sessionsManager: SessionsMana
     }
   }
 
-  override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = when (artifact) {
-    is LegacyAllocationsSessionArtifact -> LegacyJavaKotlinAllocationsTaskArgs(false, artifact)
-    is AllocationSessionArtifact -> JavaKotlinAllocationsTaskArgs(false, artifact)
-    else -> throw IllegalStateException("Unexpected artifact type: $artifact")
-  }
+  override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) =
+    when (artifact) {
+      is LegacyAllocationsSessionArtifact -> LegacyJavaKotlinAllocationsTaskArgs(false, artifact)
+      is AllocationSessionArtifact -> JavaKotlinAllocationsTaskArgs(false, artifact)
+      else -> throw IllegalStateException("Unexpected artifact type: $artifact")
+    }
 
   override fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError? {
     val isFeatureSupported = SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_JVM_RECORDING)

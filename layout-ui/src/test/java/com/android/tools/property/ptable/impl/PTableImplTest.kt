@@ -142,40 +142,11 @@ class PTableImplTest {
         Group("weiss", Item("siphon"), Item("extra"), Group("flower", Item("rose"))),
         Item("new"),
       )
-    table1 =
-      PTableImpl(
-        model1!!,
-        null,
-        rendererProvider!!,
-        editorProvider!!,
-        nameColumnFraction = nameColumnFraction!!,
-      )
-    model2 =
-      createModel(Item("minWidth"), Item("maxWidth"), Item("minHeight", "9dp"), Item("maxHeight"))
-    table2 =
-      PTableImpl(
-        model2!!,
-        null,
-        rendererProvider!!,
-        editorProvider!!,
-        nameColumnFraction = nameColumnFraction!!,
-      )
-    model3 =
-      createModel(
-        Item("paddingLeft"),
-        Item("paddingRight"),
-        Item("elevation"),
-        Item("enabled", "true"),
-        Item("gravity"),
-      )
-    table3 =
-      PTableImpl(
-        model3!!,
-        null,
-        rendererProvider!!,
-        editorProvider!!,
-        nameColumnFraction = nameColumnFraction!!,
-      )
+    table1 = PTableImpl(model1!!, null, rendererProvider!!, editorProvider!!, nameColumnFraction = nameColumnFraction!!)
+    model2 = createModel(Item("minWidth"), Item("maxWidth"), Item("minHeight", "9dp"), Item("maxHeight"))
+    table2 = PTableImpl(model2!!, null, rendererProvider!!, editorProvider!!, nameColumnFraction = nameColumnFraction!!)
+    model3 = createModel(Item("paddingLeft"), Item("paddingRight"), Item("elevation"), Item("enabled", "true"), Item("gravity"))
+    table3 = PTableImpl(model3!!, null, rendererProvider!!, editorProvider!!, nameColumnFraction = nameColumnFraction!!)
     table1!!.nextTable = table2
     table2!!.nextTable = table3
     table3!!.previousTable = table2
@@ -191,11 +162,7 @@ class PTableImplTest {
     panel.add(table3)
     scrollPane = JBScrollPane(panel)
     val app = ApplicationManager.getApplication()
-    app.replaceService(
-      IdeFocusManager::class.java,
-      PassThroughIdeFocusManager.getInstance(),
-      disposableRule.disposable,
-    )
+    app.replaceService(IdeFocusManager::class.java, PassThroughIdeFocusManager.getInstance(), disposableRule.disposable)
   }
 
   @After
@@ -586,14 +553,7 @@ class PTableImplTest {
     table1!!.setRowSelectionInterval(5, 5)
     dispatchAction(KeyStrokes.ENTER)
 
-    model1!!.updateTo(
-      true,
-      Item("weight"),
-      Item("size"),
-      Item("readonly"),
-      Item("visible"),
-      Group("weiss", Item("siphon"), Item("extra")),
-    )
+    model1!!.updateTo(true, Item("weight"), Item("size"), Item("readonly"), Item("visible"), Group("weiss", Item("siphon"), Item("extra")))
 
     assertThat(table1!!.selectedRow).isEqualTo(-1)
     assertThat(table1!!.isEditing).isFalse()
@@ -798,8 +758,7 @@ class PTableImplTest {
   fun testCopyFromTextFieldEditor() {
     table1!!.setRowSelectionInterval(3, 3)
     table1!!.editCellAt(3, 1)
-    val textField =
-      (table1!!.editorComponent as SimpleEditorComponent).getComponent(0) as JTextField
+    val textField = (table1!!.editorComponent as SimpleEditorComponent).getComponent(0) as JTextField
     textField.text = "Text being edited"
     textField.select(5, 10)
     val transferHandler = table1!!.transferHandler
@@ -857,19 +816,16 @@ class PTableImplTest {
     val selectedColor = UIUtil.getTableBackground(true, true)
 
     // Without focus:
-    assertThat(cellBackground(table1!!, selected = false, hovered = false))
-      .isEqualTo(table1!!.background)
+    assertThat(cellBackground(table1!!, selected = false, hovered = false)).isEqualTo(table1!!.background)
     assertThat(cellBackground(table1!!, selected = false, hovered = true)).isEqualTo(hoverColor)
-    assertThat(cellBackground(table1!!, selected = true, hovered = false))
-      .isEqualTo(table1!!.background)
+    assertThat(cellBackground(table1!!, selected = true, hovered = false)).isEqualTo(table1!!.background)
     assertThat(cellBackground(table1!!, selected = true, hovered = true)).isEqualTo(hoverColor)
 
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     focusManager.focusOwner = table1
 
     // With focus:
-    assertThat(cellBackground(table1!!, selected = false, hovered = false))
-      .isEqualTo(table1!!.background)
+    assertThat(cellBackground(table1!!, selected = false, hovered = false)).isEqualTo(table1!!.background)
     assertThat(cellBackground(table1!!, selected = false, hovered = true)).isEqualTo(hoverColor)
     assertThat(cellBackground(table1!!, selected = true, hovered = false)).isEqualTo(selectedColor)
     assertThat(cellBackground(table1!!, selected = true, hovered = true)).isEqualTo(selectedColor)
@@ -895,18 +851,9 @@ class PTableImplTest {
   @Test
   fun testCustomCursor() {
     val component = JPanel(BorderLayout())
-    val left =
-      JLabel(StudioIcons.Common.ANDROID_HEAD).also {
-        it.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-      }
-    val middle =
-      JLabel(StudioIcons.Common.CHECKED).also {
-        it.cursor = Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR)
-      }
-    val right =
-      JLabel(StudioIcons.Common.CLEAR).also {
-        it.cursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR)
-      }
+    val left = JLabel(StudioIcons.Common.ANDROID_HEAD).also { it.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) }
+    val middle = JLabel(StudioIcons.Common.CHECKED).also { it.cursor = Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) }
+    val right = JLabel(StudioIcons.Common.CLEAR).also { it.cursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR) }
     component.add(left, BorderLayout.WEST)
     component.add(middle, BorderLayout.CENTER)
     component.add(right, BorderLayout.EAST)
@@ -925,11 +872,7 @@ class PTableImplTest {
       }
     val rendererProvider =
       object : PTableCellRendererProvider {
-        override fun invoke(
-          table: PTable,
-          property: PTableItem,
-          column: PTableColumn,
-        ): PTableCellRenderer {
+        override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellRenderer {
           return specialRenderer
         }
       }
@@ -997,9 +940,7 @@ class PTableImplTest {
             JPanel().apply {
               preferredSize = Dimension(5 * (row + 4), 16)
               name = "row: $row, left"
-              ClientProperty.put(this, KEY_IS_VISUALLY_RESTRICTED) {
-                width < preferredSize.width && !isExpanded
-              }
+              ClientProperty.put(this, KEY_IS_VISUALLY_RESTRICTED) { width < preferredSize.width && !isExpanded }
             }
           val right =
             JPanel().apply {
@@ -1152,8 +1093,7 @@ class PTableImplTest {
 
   private fun middleOf(row: Int, column: Int, left: Boolean): Point {
     val rect = table1!!.getCellRect(row, column, true)
-    return if (left) Point(rect.x + rect.width / 4, rect.centerY.toInt())
-    else Point(rect.x + 3 * rect.width / 4, rect.centerY.toInt())
+    return if (left) Point(rect.x + rect.width / 4, rect.centerY.toInt()) else Point(rect.x + 3 * rect.width / 4, rect.centerY.toInt())
   }
 
   private fun checkAllRowsFit(rows: IntRange) {
@@ -1179,8 +1119,7 @@ class PTableImplTest {
         val pair = handler.computeCellRendererAndBounds(cell!!)
         val renderer = pair!!.first
         val bounds = pair.second
-        assertThat(bounds.width)
-          .isEqualTo(10 * (row + 4) + JBUIScale.scale(EXPANSION_RIGHT_PADDING))
+        assertThat(bounds.width).isEqualTo(10 * (row + 4) + JBUIScale.scale(EXPANSION_RIGHT_PADDING))
         assertThat(renderer.firstChild().firstChild().name).isEqualTo("row: $row, left")
 
         // Check that the same cell is returned even when the cell is already expanded.
@@ -1273,11 +1212,7 @@ class PTableImplTest {
   private inner class SimplePTableCellEditorProvider : PTableCellEditorProvider {
     val editor = SimplePTableCellEditor()
 
-    override fun invoke(
-      table: PTable,
-      property: PTableItem,
-      column: PTableColumn,
-    ): PTableCellEditor {
+    override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellEditor {
       editor.property = property
       editor.column = column
       return editor
@@ -1287,11 +1222,7 @@ class PTableImplTest {
   class SimplePTableCellRendererProvider : PTableCellRendererProvider {
     var renderer: PTableCellRenderer = DefaultPTableCellRenderer()
 
-    override fun invoke(
-      table: PTable,
-      property: PTableItem,
-      column: PTableColumn,
-    ): PTableCellRenderer {
+    override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellRenderer {
       return renderer
     }
   }

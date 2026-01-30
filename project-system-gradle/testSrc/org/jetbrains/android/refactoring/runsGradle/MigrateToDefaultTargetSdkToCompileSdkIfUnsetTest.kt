@@ -32,16 +32,15 @@ class MigrateToDefaultTargetSdkToCompileSdkIfUnsetTest {
 
   val projectRule = AndroidGradleProjectRule()
 
-  @JvmField
-  @Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @JvmField @Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   @Test
   @RunsInEdt
   fun testTargetSdkDefaultsToMinSdkRefactoring() {
     projectRule.loadProject(
       TestProjectPaths.PROJECT_WITH_APP_AND_LIB_WITHOUT_TARGET_SDK,
-      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST)
+      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST,
+    )
 
     val project = projectRule.project
 

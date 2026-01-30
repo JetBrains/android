@@ -30,8 +30,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class TaskCategoryWarningsAnalyzerTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Before
   fun setUp() {
@@ -52,13 +51,12 @@ class TaskCategoryWarningsAnalyzerTest {
       val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
       val results = buildAnalyzerStorageManager.getSuccessfulResult()
       assertThat(results.getTaskCategoryWarningsAnalyzerResult()).isInstanceOf(TaskCategoryWarningsAnalyzer.IssuesResult::class.java)
-      assertThat(
-        (results.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult).taskCategoryIssues
-      ).containsExactly(
-        TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
-        TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED,
-        TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD
-      )
+      assertThat((results.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult).taskCategoryIssues)
+        .containsExactly(
+          TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
+          TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED,
+          TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD,
+        )
     }
   }
 }

@@ -53,27 +53,18 @@ import org.junit.runners.Parameterized
 class TaskProfilersViewTest(private val isTestingProfileable: Boolean) {
 
   private val timer = FakeTimer()
-  private val service = if (isTestingProfileable) FakeTransportService(timer, true,
-                                                                       AndroidVersion.VersionCodes.S,
-                                                                       Common.Process.ExposureLevel.PROFILEABLE)
-                        else FakeTransportService(timer)
+  private val service =
+    if (isTestingProfileable) FakeTransportService(timer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
+    else FakeTransportService(timer)
   private val ideProfilerServices = FakeIdeProfilerServices()
 
-  @JvmField
-  @Rule
-  val grpcChannel: FakeGrpcServer = FakeGrpcServer.createFakeGrpcServer("TaskProfilersViewTestChannel", service)
+  @JvmField @Rule val grpcChannel: FakeGrpcServer = FakeGrpcServer.createFakeGrpcServer("TaskProfilersViewTestChannel", service)
 
-  @JvmField
-  @Rule
-  val edtRule = EdtRule()
+  @JvmField @Rule val edtRule = EdtRule()
 
-  @JvmField
-  @Rule
-  val appRule = ApplicationRule() // For initializing HelpTooltip.
+  @JvmField @Rule val appRule = ApplicationRule() // For initializing HelpTooltip.
 
-  @JvmField
-  @Rule
-  val disposableRule = DisposableRule()
+  @JvmField @Rule val disposableRule = DisposableRule()
 
   private lateinit var studioProfilers: StudioProfilers
   private lateinit var view: TaskProfilersView
@@ -120,17 +111,14 @@ class TaskProfilersViewTest(private val isTestingProfileable: Boolean) {
 
   private fun updateAgentStatus(pid: Int, agentData: AgentData) {
     val sessionStreamId = studioProfilers.session.streamId
-    service.addEventToStream(sessionStreamId, Common.Event.newBuilder()
-      .setPid(pid)
-      .setKind(Common.Event.Kind.AGENT)
-      .setAgentData(agentData)
-      .build())
+    service.addEventToStream(
+      sessionStreamId,
+      Common.Event.newBuilder().setPid(pid).setKind(Common.Event.Kind.AGENT).setAgentData(agentData).build(),
+    )
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
   }
 
   companion object {
-    @JvmStatic
-    @Parameterized.Parameters
-    fun isTestingProfileable() = listOf(false, true)
+    @JvmStatic @Parameterized.Parameters fun isTestingProfileable() = listOf(false, true)
   }
 }

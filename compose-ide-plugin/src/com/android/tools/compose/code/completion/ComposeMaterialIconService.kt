@@ -24,25 +24,22 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import org.jetbrains.annotations.VisibleForTesting
 import java.lang.ref.SoftReference
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.Icon
 import javax.swing.ImageIcon
+import org.jetbrains.annotations.VisibleForTesting
 
-typealias IconLoader =
-  ((MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit, Disposable) -> Unit
+typealias IconLoader = ((MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit, Disposable) -> Unit
 
 /**
  * Light service providing cached Material icons for usage in the autocomplete dialog.
  *
- * Icons are loaded using [MaterialVdIconsProvider], sized to 16x16 to fit autocomplete UI, and are
- * stored using soft references so that they will be discarded if there is memory pressure.
+ * Icons are loaded using [MaterialVdIconsProvider], sized to 16x16 to fit autocomplete UI, and are stored using soft references so that
+ * they will be discarded if there is memory pressure.
  */
 @Service
-internal class ComposeMaterialIconService
-@VisibleForTesting
-internal constructor(private val loadIcons: IconLoader) : Disposable {
+internal class ComposeMaterialIconService @VisibleForTesting internal constructor(private val loadIcons: IconLoader) : Disposable {
   constructor() : this(ComposeMaterialIconService::callLoadMaterialVdIcons)
 
   private var iconsWrapper: SoftReference<MaterialVdIconsWrapper> = SoftReference(null)
@@ -56,9 +53,8 @@ internal constructor(private val loadIcons: IconLoader) : Disposable {
   /**
    * Gets an icon given its expected filename.
    *
-   * The filename should follow the idiomatic file format for Material icons of
-   * "<theme>_<iconname>_24.xml". For example, the Attachment icon in the Sharp theme would have the
-   * name "sharp_attachment_24.xml".
+   * The filename should follow the idiomatic file format for Material icons of "<theme>_<iconname>_24.xml". For example, the Attachment
+   * icon in the Sharp theme would have the name "sharp_attachment_24.xml".
    */
   fun getIcon(iconFileName: String): Icon? {
     // Return an icon if we currently have a reference to the icon wrapper.
@@ -73,9 +69,8 @@ internal constructor(private val loadIcons: IconLoader) : Disposable {
   }
 
   /**
-   * Icons are loaded using [MaterialVdIconsProvider], which will download icons if they aren't
-   * already available on disk. This method kicks off the loading process, and can be used in
-   * situations when we know we might be requesting icons shortly.
+   * Icons are loaded using [MaterialVdIconsProvider], which will download icons if they aren't already available on disk. This method kicks
+   * off the loading process, and can be used in situations when we know we might be requesting icons shortly.
    */
   fun ensureIconsLoaded() {
     // If we have the icon wrapper, there's no need to start a new loading process.
@@ -97,10 +92,7 @@ internal constructor(private val loadIcons: IconLoader) : Disposable {
     loadIcons(this::materialVdIconsLoadedCallback, this)
   }
 
-  private fun materialVdIconsLoadedCallback(
-    icons: MaterialVdIcons,
-    status: MaterialVdIconsProvider.Status,
-  ) {
+  private fun materialVdIconsLoadedCallback(icons: MaterialVdIcons, status: MaterialVdIconsProvider.Status) {
     // Store a wrapper using returned icons. When this callback is called multiple times, each call
     // supersedes the last and contains a
     // superset of its icons.
@@ -110,10 +102,7 @@ internal constructor(private val loadIcons: IconLoader) : Disposable {
     if (status == MaterialVdIconsProvider.Status.FINISHED) iconLoadingInProgress.set(false)
   }
 
-  /**
-   * Wrapper around [MaterialVdIcons] providing lookup access by icon name and resizing the icons
-   * for auto-complete.
-   */
+  /** Wrapper around [MaterialVdIcons] providing lookup access by icon name and resizing the icons for auto-complete. */
   private class MaterialVdIconsWrapper(materialVdIcons: MaterialVdIcons) {
 
     private val iconMap: Map<String, Supplier<Icon?>> =
@@ -129,10 +118,7 @@ internal constructor(private val loadIcons: IconLoader) : Disposable {
   companion object {
     fun getInstance(application: Application): ComposeMaterialIconService = application.service()
 
-    /**
-     * Call to [MaterialVdIconsProvider.loadMaterialVdIcons] wrapped in a function to allow
-     * overriding for tests.
-     */
+    /** Call to [MaterialVdIconsProvider.loadMaterialVdIcons] wrapped in a function to allow overriding for tests. */
     private fun callLoadMaterialVdIcons(
       refreshUiCallback: (MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit,
       parentDisposable: Disposable,

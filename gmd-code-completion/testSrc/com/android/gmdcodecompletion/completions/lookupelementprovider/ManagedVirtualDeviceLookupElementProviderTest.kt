@@ -34,14 +34,19 @@ import org.junit.Test
 
 class ManagedVirtualDeviceLookupElementProviderTest {
 
-  private fun managedVirtualTestHelper(configurationParameterName: ConfigurationParameterName,
-                                       currentDeviceProperties: CurrentDeviceProperties,
-                                       deviceCatalog: GmdDeviceCatalog,
-                                       expectedResult: Collection<GmdCodeCompletionLookupElement>) {
-    val result = ManagedVirtualLookupElementProvider.generateDevicePropertyValueSuggestionList(configurationParameterName,
-                                                                                               currentDeviceProperties,
-                                                                                               testMinAndTargetApiLevel,
-                                                                                               deviceCatalog)
+  private fun managedVirtualTestHelper(
+    configurationParameterName: ConfigurationParameterName,
+    currentDeviceProperties: CurrentDeviceProperties,
+    deviceCatalog: GmdDeviceCatalog,
+    expectedResult: Collection<GmdCodeCompletionLookupElement>,
+  ) {
+    val result =
+      ManagedVirtualLookupElementProvider.generateDevicePropertyValueSuggestionList(
+        configurationParameterName,
+        currentDeviceProperties,
+        testMinAndTargetApiLevel,
+        deviceCatalog,
+      )
     verifyConfigurationLookupElementProviderResult(result, expectedResult)
   }
 
@@ -49,53 +54,63 @@ class ManagedVirtualDeviceLookupElementProviderTest {
   fun testGenerateDeviceIdSuggestion_matchApiPreview() {
     val testApiPreview = "testPreview"
     val currentDeviceProperties: CurrentDeviceProperties = hashMapOf(API_PREVIEW to testApiPreview)
-    val deviceMap = mapOf(
-      "device1" to AndroidDeviceInfo(
-        deviceName = "Phone1",
-        deviceForm = "physical",
-        formFactor = "phone",
-        brand = "Google",
-        supportedApis = listOf(24)
-      ),
-      "device2" to AndroidDeviceInfo(
-        deviceName = "Phone2",
-        deviceForm = "virtual",
-        formFactor = "tablet",
-        brand = "Samsung",
-        supportedApis = listOf(25)
-      ),
-    )
-    val testDeviceCatalog = ManagedVirtualDeviceCatalog().apply {
-      this.devices.putAll(deviceMap)
-      this.apiLevels.add(ApiVersionInfo(apiLevel = 25, apiPreview = testApiPreview))
-    }
-    val expectedResult = listOf(
-      GmdCodeCompletionLookupElement(myValue = "device2",
-                                     myScore = 35u,
-                                     myInsertHandler = GmdDevicePropertyInsertHandler(),
-                                     myPresentation = LookupElementPresentation().apply {
-                                       itemText = "device2"
-                                       tailText = "  Phone2  virtual"
-                                     })
-    )
+    val deviceMap =
+      mapOf(
+        "device1" to
+          AndroidDeviceInfo(
+            deviceName = "Phone1",
+            deviceForm = "physical",
+            formFactor = "phone",
+            brand = "Google",
+            supportedApis = listOf(24),
+          ),
+        "device2" to
+          AndroidDeviceInfo(
+            deviceName = "Phone2",
+            deviceForm = "virtual",
+            formFactor = "tablet",
+            brand = "Samsung",
+            supportedApis = listOf(25),
+          ),
+      )
+    val testDeviceCatalog =
+      ManagedVirtualDeviceCatalog().apply {
+        this.devices.putAll(deviceMap)
+        this.apiLevels.add(ApiVersionInfo(apiLevel = 25, apiPreview = testApiPreview))
+      }
+    val expectedResult =
+      listOf(
+        GmdCodeCompletionLookupElement(
+          myValue = "device2",
+          myScore = 35u,
+          myInsertHandler = GmdDevicePropertyInsertHandler(),
+          myPresentation =
+            LookupElementPresentation().apply {
+              itemText = "device2"
+              tailText = "  Phone2  virtual"
+            },
+        )
+      )
     managedVirtualTestHelper(DEVICE_ID, currentDeviceProperties, testDeviceCatalog, expectedResult)
   }
 
   @Test
   fun testGenerateApiLevelSuggestion_matchAllCriteria() {
-    val expectedResult = listOf(
-      GmdCodeCompletionLookupElement(myValue = "${testMinAndTargetApiLevel.targetSdk}", myScore = 1u),
-      GmdCodeCompletionLookupElement(myValue = "${testMinAndTargetApiLevel.targetSdk - 2}", myScore = 0u)
-    )
+    val expectedResult =
+      listOf(
+        GmdCodeCompletionLookupElement(myValue = "${testMinAndTargetApiLevel.targetSdk}", myScore = 1u),
+        GmdCodeCompletionLookupElement(myValue = "${testMinAndTargetApiLevel.targetSdk - 2}", myScore = 0u),
+      )
     testApiLevelAndPreviewHelper(API_LEVEL, expectedResult)
   }
 
   @Test
   fun testGenerateApiPreviewSuggestion_matchAllCriteria() {
-    val expectedResult = listOf(
-      GmdCodeCompletionLookupElement(myValue = "preview1", myScore = 1u),
-      GmdCodeCompletionLookupElement(myValue = "preview4", myScore = 0u)
-    )
+    val expectedResult =
+      listOf(
+        GmdCodeCompletionLookupElement(myValue = "preview1", myScore = 1u),
+        GmdCodeCompletionLookupElement(myValue = "preview4", myScore = 0u),
+      )
     testApiLevelAndPreviewHelper(API_PREVIEW, expectedResult)
   }
 
@@ -105,38 +120,39 @@ class ManagedVirtualDeviceLookupElementProviderTest {
     val testImageSource = "testSource"
     val testRequires64Bit = true
     val testApiPreview = "preview1"
-    val currentDeviceProperties: CurrentDeviceProperties = hashMapOf(
-      DEVICE_ID to testDeviceId,
-      SYS_IMAGE_SOURCE to testImageSource,
-      API_PREVIEW to testApiPreview
-    )
-    val deviceMap = mapOf(
-      testDeviceId to AndroidDeviceInfo(
-        deviceName = "Phone1",
-        deviceForm = "physical",
-        formFactor = "phone",
-        brand = "Google",
-        supportedApis = (testMinAndTargetApiLevel.minSdk..testMinAndTargetApiLevel.targetSdk).toList()
+    val currentDeviceProperties: CurrentDeviceProperties =
+      hashMapOf(DEVICE_ID to testDeviceId, SYS_IMAGE_SOURCE to testImageSource, API_PREVIEW to testApiPreview)
+    val deviceMap =
+      mapOf(
+        testDeviceId to
+          AndroidDeviceInfo(
+            deviceName = "Phone1",
+            deviceForm = "physical",
+            formFactor = "phone",
+            brand = "Google",
+            supportedApis = (testMinAndTargetApiLevel.minSdk..testMinAndTargetApiLevel.targetSdk).toList(),
+          )
       )
-    )
-    val testApiInfo = listOf(
-      ApiVersionInfo(
-        apiLevel = testMinAndTargetApiLevel.targetSdk,
-        imageSource = testImageSource,
-        require64Bit = testRequires64Bit,
-        apiPreview = testApiPreview
-      ),
-      ApiVersionInfo(
-        apiLevel = testMinAndTargetApiLevel.targetSdk,
-        imageSource = testImageSource,
-        require64Bit = !testRequires64Bit,
-        apiPreview = "preview2"
+    val testApiInfo =
+      listOf(
+        ApiVersionInfo(
+          apiLevel = testMinAndTargetApiLevel.targetSdk,
+          imageSource = testImageSource,
+          require64Bit = testRequires64Bit,
+          apiPreview = testApiPreview,
+        ),
+        ApiVersionInfo(
+          apiLevel = testMinAndTargetApiLevel.targetSdk,
+          imageSource = testImageSource,
+          require64Bit = !testRequires64Bit,
+          apiPreview = "preview2",
+        ),
       )
-    )
-    val testDeviceCatalog = ManagedVirtualDeviceCatalog().apply {
-      this.devices.putAll(deviceMap)
-      this.apiLevels.addAll(testApiInfo)
-    }
+    val testDeviceCatalog =
+      ManagedVirtualDeviceCatalog().apply {
+        this.devices.putAll(deviceMap)
+        this.apiLevels.addAll(testApiInfo)
+      }
     val expectedResult = listOf(GmdCodeCompletionLookupElement(myValue = testRequires64Bit.toString()))
     managedVirtualTestHelper(REQUIRE64BIT, currentDeviceProperties, testDeviceCatalog, expectedResult)
   }
@@ -146,27 +162,24 @@ class ManagedVirtualDeviceLookupElementProviderTest {
     val testImageSource = "testSource"
     val testRequires64Bit = true
     val testApiPreview = "preview1"
-    val currentDeviceProperties: CurrentDeviceProperties = hashMapOf(
-      API_PREVIEW to testApiPreview,
-      REQUIRE64BIT to testRequires64Bit.toString()
-    )
-    val testApiInfo = listOf(
-      ApiVersionInfo(
-        apiLevel = testMinAndTargetApiLevel.targetSdk,
-        imageSource = testImageSource,
-        require64Bit = testRequires64Bit,
-        apiPreview = testApiPreview
-      ),
-      ApiVersionInfo(
-        apiLevel = testMinAndTargetApiLevel.targetSdk,
-        imageSource = testImageSource,
-        require64Bit = testRequires64Bit,
-        apiPreview = "$testApiPreview additional"
+    val currentDeviceProperties: CurrentDeviceProperties =
+      hashMapOf(API_PREVIEW to testApiPreview, REQUIRE64BIT to testRequires64Bit.toString())
+    val testApiInfo =
+      listOf(
+        ApiVersionInfo(
+          apiLevel = testMinAndTargetApiLevel.targetSdk,
+          imageSource = testImageSource,
+          require64Bit = testRequires64Bit,
+          apiPreview = testApiPreview,
+        ),
+        ApiVersionInfo(
+          apiLevel = testMinAndTargetApiLevel.targetSdk,
+          imageSource = testImageSource,
+          require64Bit = testRequires64Bit,
+          apiPreview = "$testApiPreview additional",
+        ),
       )
-    )
-    val testDeviceCatalog = ManagedVirtualDeviceCatalog().apply {
-      this.apiLevels.addAll(testApiInfo)
-    }
+    val testDeviceCatalog = ManagedVirtualDeviceCatalog().apply { this.apiLevels.addAll(testApiInfo) }
     val expectedResult = listOf(GmdCodeCompletionLookupElement(myValue = testImageSource))
     managedVirtualTestHelper(SYS_IMAGE_SOURCE, currentDeviceProperties, testDeviceCatalog, expectedResult)
   }
@@ -175,92 +188,90 @@ class ManagedVirtualDeviceLookupElementProviderTest {
   fun testGenerateSystemImageSuggestion_suggestionRanker() {
     val testImageSource = "google"
     val testRequires64Bit = true
-    val currentDeviceProperties: CurrentDeviceProperties = hashMapOf(
-      API_LEVEL to testMinAndTargetApiLevel.targetSdk.toString(),
-      REQUIRE64BIT to testRequires64Bit.toString()
-    )
-    val testApiInfo = listOf(
-      ApiVersionInfo(
-        apiLevel = testMinAndTargetApiLevel.targetSdk,
-        imageSource = "${testImageSource}_atd_custom_test",
-        require64Bit = testRequires64Bit,
-      ),
-      ApiVersionInfo(
-        apiLevel = testMinAndTargetApiLevel.targetSdk,
-        imageSource = "${testImageSource}-atd",
-        require64Bit = testRequires64Bit,
-      ),
-      ApiVersionInfo(
-        apiLevel = testMinAndTargetApiLevel.targetSdk,
-        imageSource = testImageSource,
-        require64Bit = testRequires64Bit,
-      ),
-      ApiVersionInfo(
-        apiLevel = testMinAndTargetApiLevel.targetSdk,
-        imageSource = "${testImageSource}excluded",
-        require64Bit = !testRequires64Bit,
-        apiPreview = "preview2"
+    val currentDeviceProperties: CurrentDeviceProperties =
+      hashMapOf(API_LEVEL to testMinAndTargetApiLevel.targetSdk.toString(), REQUIRE64BIT to testRequires64Bit.toString())
+    val testApiInfo =
+      listOf(
+        ApiVersionInfo(
+          apiLevel = testMinAndTargetApiLevel.targetSdk,
+          imageSource = "${testImageSource}_atd_custom_test",
+          require64Bit = testRequires64Bit,
+        ),
+        ApiVersionInfo(
+          apiLevel = testMinAndTargetApiLevel.targetSdk,
+          imageSource = "${testImageSource}-atd",
+          require64Bit = testRequires64Bit,
+        ),
+        ApiVersionInfo(apiLevel = testMinAndTargetApiLevel.targetSdk, imageSource = testImageSource, require64Bit = testRequires64Bit),
+        ApiVersionInfo(
+          apiLevel = testMinAndTargetApiLevel.targetSdk,
+          imageSource = "${testImageSource}excluded",
+          require64Bit = !testRequires64Bit,
+          apiPreview = "preview2",
+        ),
       )
-    )
-    val testDeviceCatalog = ManagedVirtualDeviceCatalog().apply {
-      this.apiLevels.addAll(testApiInfo)
-    }
-    val expectedResult = listOf(
-      GmdCodeCompletionLookupElement(myValue = testImageSource, myScore = 4u),
-      GmdCodeCompletionLookupElement(myValue = "${testImageSource}-atd", myScore = 3u),
-      GmdCodeCompletionLookupElement(myValue = "${testImageSource}_atd_custom_test"),
-    )
+    val testDeviceCatalog = ManagedVirtualDeviceCatalog().apply { this.apiLevels.addAll(testApiInfo) }
+    val expectedResult =
+      listOf(
+        GmdCodeCompletionLookupElement(myValue = testImageSource, myScore = 4u),
+        GmdCodeCompletionLookupElement(myValue = "${testImageSource}-atd", myScore = 3u),
+        GmdCodeCompletionLookupElement(myValue = "${testImageSource}_atd_custom_test"),
+      )
     managedVirtualTestHelper(SYS_IMAGE_SOURCE, currentDeviceProperties, testDeviceCatalog, expectedResult)
   }
 
-  private fun testApiLevelAndPreviewHelper(configurationParameterName: ConfigurationParameterName,
-                                           expectedResult: List<GmdCodeCompletionLookupElement>) {
+  private fun testApiLevelAndPreviewHelper(
+    configurationParameterName: ConfigurationParameterName,
+    expectedResult: List<GmdCodeCompletionLookupElement>,
+  ) {
     val testDeviceId = "testDeviceId"
     val testImageSource = "testSource"
     val testRequires64Bit = true
-    val currentDeviceProperties: CurrentDeviceProperties = hashMapOf(
-      DEVICE_ID to testDeviceId,
-      REQUIRE64BIT to testRequires64Bit.toString(),
-      SYS_IMAGE_SOURCE to testImageSource)
-    val deviceMap = mapOf(
-      testDeviceId to AndroidDeviceInfo(
-        deviceName = "Phone1",
-        deviceForm = "physical",
-        formFactor = "phone",
-        brand = "Google",
-        supportedApis = (testMinAndTargetApiLevel.minSdk..testMinAndTargetApiLevel.targetSdk).toList()
+    val currentDeviceProperties: CurrentDeviceProperties =
+      hashMapOf(DEVICE_ID to testDeviceId, REQUIRE64BIT to testRequires64Bit.toString(), SYS_IMAGE_SOURCE to testImageSource)
+    val deviceMap =
+      mapOf(
+        testDeviceId to
+          AndroidDeviceInfo(
+            deviceName = "Phone1",
+            deviceForm = "physical",
+            formFactor = "phone",
+            brand = "Google",
+            supportedApis = (testMinAndTargetApiLevel.minSdk..testMinAndTargetApiLevel.targetSdk).toList(),
+          )
       )
-    )
-    val testApiInfo = listOf(
-      ApiVersionInfo(
-        apiLevel = testMinAndTargetApiLevel.targetSdk,
-        imageSource = testImageSource,
-        require64Bit = testRequires64Bit,
-        apiPreview = "preview1"
-      ),
-      ApiVersionInfo(
-        apiLevel = testMinAndTargetApiLevel.targetSdk,
-        imageSource = testImageSource,
-        require64Bit = !testRequires64Bit,
-        apiPreview = "preview2"
-      ),
-      ApiVersionInfo(
-        apiLevel = testMinAndTargetApiLevel.targetSdk,
-        imageSource = "${testImageSource}extra string",
-        require64Bit = testRequires64Bit,
-        apiPreview = "preview3"
-      ),
-      ApiVersionInfo(
-        apiLevel = testMinAndTargetApiLevel.targetSdk - 2,
-        imageSource = testImageSource,
-        require64Bit = testRequires64Bit,
-        apiPreview = "preview4"
-      ),
-    )
-    val testDeviceCatalog = ManagedVirtualDeviceCatalog().apply {
-      this.devices.putAll(deviceMap)
-      this.apiLevels.addAll(testApiInfo)
-    }
+    val testApiInfo =
+      listOf(
+        ApiVersionInfo(
+          apiLevel = testMinAndTargetApiLevel.targetSdk,
+          imageSource = testImageSource,
+          require64Bit = testRequires64Bit,
+          apiPreview = "preview1",
+        ),
+        ApiVersionInfo(
+          apiLevel = testMinAndTargetApiLevel.targetSdk,
+          imageSource = testImageSource,
+          require64Bit = !testRequires64Bit,
+          apiPreview = "preview2",
+        ),
+        ApiVersionInfo(
+          apiLevel = testMinAndTargetApiLevel.targetSdk,
+          imageSource = "${testImageSource}extra string",
+          require64Bit = testRequires64Bit,
+          apiPreview = "preview3",
+        ),
+        ApiVersionInfo(
+          apiLevel = testMinAndTargetApiLevel.targetSdk - 2,
+          imageSource = testImageSource,
+          require64Bit = testRequires64Bit,
+          apiPreview = "preview4",
+        ),
+      )
+    val testDeviceCatalog =
+      ManagedVirtualDeviceCatalog().apply {
+        this.devices.putAll(deviceMap)
+        this.apiLevels.addAll(testApiInfo)
+      }
     managedVirtualTestHelper(configurationParameterName, currentDeviceProperties, testDeviceCatalog, expectedResult)
   }
 }

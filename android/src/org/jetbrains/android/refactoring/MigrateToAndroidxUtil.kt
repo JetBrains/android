@@ -42,9 +42,7 @@ fun Project.isAndroidx(): Boolean = cacheInvalidatingOnSyncModifications {
   getAndroidFacets().firstOrNull()?.getModuleSystem()?.useAndroidX ?: false
 }
 
-/**
- * Checks that the "enableJetifier" property is set to true
- */
+/** Checks that the "enableJetifier" property is set to true */
 fun Project.isEnableJetifier(): Boolean = runReadAction {
   getProjectProperties()?.findPropertyByKey(ENABLE_JETIFIER_PROPERTY)?.value?.toBoolean() ?: false
 }
@@ -52,6 +50,4 @@ fun Project.isEnableJetifier(): Boolean = runReadAction {
 /**
  * Returns the actual name of an [AndroidxName] class to be used in a given [Project], based on the AndroidX properties set by the project.
  */
-fun AndroidxName.getNameInProject(project: Project): String = runReadAction {
-  if (project.isAndroidx()) newName() else oldName()
-}
+fun AndroidxName.getNameInProject(project: Project): String = runReadAction { if (project.isAndroidx()) newName() else oldName() }

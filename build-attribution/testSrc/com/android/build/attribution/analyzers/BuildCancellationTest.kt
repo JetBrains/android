@@ -36,11 +36,9 @@ import org.junit.Rule
 import org.junit.Test
 
 class BuildCancellationTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
   @Test
   @RunsInEdt
@@ -54,8 +52,7 @@ class BuildCancellationTest {
       fun buildEventHandler(event: BuildEvent) {
         (event as? OutputBuildEvent)?.let { println(event::class.java.name + " : " + it.message) }
         if ((event as? OutputBuildEvent)?.message?.contains("waiting!") == true) {
-          val buildProgress = CoreProgressManager.getCurrentIndicators()
-            .singleOrNull() { it.text.contains("Gradle Build Running") }
+          val buildProgress = CoreProgressManager.getCurrentIndicators().singleOrNull() { it.text.contains("Gradle Build Running") }
           buildProgress ?: throw AssertionError("Build Progress is null")
           buildProgress.cancel()
         }

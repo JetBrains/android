@@ -37,24 +37,31 @@ fun ProcessList(processListModel: ProcessListModel, modifier: Modifier = Modifie
     val deviceList by processListModel.deviceList.collectAsState()
     val selectedDevice by processListModel.selectedDevice.collectAsState()
     val selectedDevicesCount by processListModel.selectedDevicesCount.collectAsState()
-    DeviceSelection(deviceList = deviceList, selectedDevice = selectedDevice, selectedDevicesCount = selectedDevicesCount,
-                    onDeviceSelection = processListModel::onDeviceSelection)
+    DeviceSelection(
+      deviceList = deviceList,
+      selectedDevice = selectedDevice,
+      selectedDevicesCount = selectedDevicesCount,
+      onDeviceSelection = processListModel::onDeviceSelection,
+    )
 
     val preferredProcessName by processListModel.preferredProcessName.collectAsState()
     val selectedProcess by processListModel.selectedProcess.collectAsState()
     val deviceToProcessList by processListModel.deviceToProcesses.collectAsState()
-    val processList = if (selectedDevice != null && deviceToProcessList.containsKey(selectedDevice!!.device)) {
-      deviceToProcessList[selectedDevice!!.device]!!
-    }
-    else {
-      listOf()
-    }
+    val processList =
+      if (selectedDevice != null && deviceToProcessList.containsKey(selectedDevice!!.device)) {
+        deviceToProcessList[selectedDevice!!.device]!!
+      } else {
+        listOf()
+      }
 
     if (selectedDevicesCount == 1) {
-      ProcessTable(processList = processList, selectedProcess = selectedProcess, preferredProcessName = preferredProcessName,
-                   onProcessSelection = processListModel::onProcessSelection)
-    }
-    else {
+      ProcessTable(
+        processList = processList,
+        selectedProcess = selectedProcess,
+        preferredProcessName = preferredProcessName,
+        onProcessSelection = processListModel::onProcessSelection,
+      )
+    } else {
       val processListMessage =
         if (selectedDevicesCount == 0) TaskBasedUxStrings.NO_DEVICE_SELECTED_MESSAGE
         else TaskBasedUxStrings.MULTIPLE_DEVICES_SELECTED_MESSAGE
@@ -66,6 +73,6 @@ fun ProcessList(processListModel: ProcessListModel, modifier: Modifier = Modifie
 @Composable
 fun InvalidDeviceSelectionProcessListMessageText(text: String) {
   Box(modifier = Modifier.fillMaxSize().padding(40.dp)) {
-   Text(text = text, modifier = Modifier.align(Alignment.Center), textAlign = TextAlign.Center)
+    Text(text = text, modifier = Modifier.align(Alignment.Center), textAlign = TextAlign.Center)
   }
 }
