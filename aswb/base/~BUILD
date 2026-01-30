@@ -379,13 +379,10 @@ java_library(
 java_library(
     name = "integration_test_utils",
     testonly = 1,
-    srcs = glob(["tests/utils/integration/**/*.java"]),
-    data = [
-        "//tools/adt/idea/aswb/base/tests/utils/testdata/java/com/test",
-        "//tools/adt/idea/aswb/base/tests/utils/testdata/java/com/test:test_srcs",
-        "//tools/adt/idea/aswb/base/tests/utils/testdata/java/com/test2",
-        "//tools/adt/idea/aswb/base/tests/utils/testdata/java/com/test2:test2_srcs",
-    ],
+    srcs = glob([
+        "tests/utils/integration/**/*.java",
+        "tests/utils/integration/**/*.kt",
+    ]),
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
         ":base",
