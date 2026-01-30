@@ -98,7 +98,6 @@ internal const val USE_UINPUT = 0x08
 internal const val DEVICE_IS_XR = 0x10 // TODO: Remove when b/406870742 is fixed.
 internal const val UNICODE_TYPING = 0x20
 internal const val TRACE_CLIPBOARD_SYNCHRONIZATION = 0x40
-internal const val USE_REMOTE_SUBMIX = 0x80
 
 /** Maximum cumulative length of agent messages to remember. */
 private const val MAX_TOTAL_AGENT_MESSAGE_LENGTH = 10_000
@@ -115,11 +114,7 @@ private val logger = Logger.getInstance(DeviceClient::class.java)
 
 private val pushSerializer = ExecutionSerializer()
 
-class DeviceClient(
-  val deviceSerialNumber: String,
-  val deviceConfig: DeviceConfiguration,
-  private val deviceAbi: String
-) : Disposable {
+class DeviceClient(val deviceSerialNumber: String, val deviceConfig: DeviceConfiguration, private val deviceAbi: String) : Disposable {
 
   val deviceName: String = deviceConfig.deviceName
   internal val streamingSessionTracker: DeviceStreamingSessionTracker = DeviceStreamingSessionTracker(deviceConfig)
@@ -576,7 +571,7 @@ class DeviceClient(
     fun deviceDisconnected()
   }
 
-  private inner class AgentHandler() {
+  private inner class AgentHandler {
     private val log = Logger.getInstance("ScreenSharingAgent $deviceName")
     private val errors = OutputAccumulator(MAX_TOTAL_AGENT_MESSAGE_LENGTH, MAX_ERROR_MESSAGE_AGE_MILLIS)
 
