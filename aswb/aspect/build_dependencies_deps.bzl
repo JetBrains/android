@@ -13,3 +13,12 @@ IDE_JAVA_PROTO = _IDE_JAVA_PROTO
 IDE_KOTLIN = _IDE_KOTLIN
 
 ZIP_TOOL_LABEL = "@bazel_tools//tools/zip:zipper"
+
+def _skip_target(
+        target,  # @unused
+        rule):  # @unused
+    return False
+
+IDE_BAZEL = struct(
+    skip_target = _skip_target,
+)
