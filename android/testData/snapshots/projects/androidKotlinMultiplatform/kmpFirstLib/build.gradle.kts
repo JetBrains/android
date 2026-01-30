@@ -40,6 +40,7 @@ kotlin {
     }
 
     aarMetadata.minAgpVersion = "7.2.0"
+    androidResources.enable = true
   }
 
   sourceSets.getByName("androidMain") {

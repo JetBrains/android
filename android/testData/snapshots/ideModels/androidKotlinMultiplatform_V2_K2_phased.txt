@@ -2227,7 +2227,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-        AndroidResourcesEnabled       : false
+        AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
         GenerateManifestClass         : false
     - basicVariant:               : androidMain

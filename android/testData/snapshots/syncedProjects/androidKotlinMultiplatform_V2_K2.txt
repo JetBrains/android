@@ -791,7 +791,9 @@ PROJECT                       : Kotlin Multiplatform
             AdditionalVisibleModuleNames  : [:kmpFirstLib:androidMain, :kmpFirstLib:commonMain]
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest
             JavaSource (test)             : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest/kotlin
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidDeviceTest/resources [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -985,7 +987,9 @@ PROJECT                       : Kotlin Multiplatform
             AdditionalVisibleModuleNames  : [:kmpFirstLib:androidMain, :kmpFirstLib:commonMain]
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/androidHostTest
             JavaSource (test)             : file://<PROJECT>/kmpFirstLib/src/androidHostTest/kotlin
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidHostTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpFirstLib/src/androidHostTest/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidHostTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidHostTest/resources [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -1100,6 +1104,8 @@ PROJECT                       : Kotlin Multiplatform
             JavaSource                    : file://<PROJECT>/kmpFirstLib/src/androidMain/java
             JavaSource                    : file://<PROJECT>/kmpFirstLib/src/androidMain/kotlin
             JavaResource                  : file://<PROJECT>/kmpFirstLib/src/androidMain/resources
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpFirstLib/src/androidMain/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpFirstLib/src/androidMain/res [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
