@@ -107,4 +107,44 @@ class VersionCatalogReferenceResolutionTest : GradleFileModelTestCase() {
 
     assertThat(myVersionCatalogFile.readText().replace(" ", "")).contains("version=\"2\"")
   }
+
+  @Test
+  @Throws(Exception::class)
+  fun testResolveCatalogReferenceInAssignment() {
+    writeToVersionCatalogFile(
+      """
+      [versions]
+      version = "Tiramisu"
+      """
+        .trimIndent()
+    )
+    writeToBuildFile(TestFileNameImpl.REFERENCE_RESOLUTION_FROM_VERSION_CATALOG_ASSIGNMENT)
+
+    val android = getGradleBuildModel().android()
+    assertNotNull(android)
+    val propertyModel = android.compileSdkVersion()
+    assertThat(propertyModel).isNotNull()
+    assertThat(propertyModel.valueType).isEqualTo(GradlePropertyModel.ValueType.STRING)
+    assertThat(propertyModel.toString()).isEqualTo("Tiramisu")
+  }
+
+  @Test
+  @Throws(Exception::class)
+  fun testResolveCatalogReferenceWithInAssignmentInt() {
+    writeToVersionCatalogFile(
+      """
+      [versions]
+      version = "1"
+      """
+        .trimIndent()
+    )
+    writeToBuildFile(TestFileNameImpl.REFERENCE_RESOLUTION_FROM_VERSION_CATALOG_ASSIGNMENT_INT)
+
+    val android = getGradleBuildModel().android()
+    assertNotNull(android)
+    val propertyModel = android.compileSdkVersion()
+    assertThat(propertyModel).isNotNull()
+    assertThat(propertyModel.valueType).isEqualTo(GradlePropertyModel.ValueType.INTEGER)
+    assertThat(propertyModel.toInt()).isEqualTo(1)
+  }
 }

@@ -1,0 +1,3 @@
+android {
+  compileSdkVersion = libs.versions.version.get()
+}

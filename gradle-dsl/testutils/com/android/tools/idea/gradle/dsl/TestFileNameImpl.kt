@@ -201,6 +201,8 @@ enum class TestFileNameImpl(@TestDataFile val path: String) : TestFileName {
   REFERENCE_RESOLUTION_RESOLVE_ROOT_PROJECT_SUB("referenceResolution/resolveRootProject_sub"),
   REFERENCE_RESOLUTION_FROM_VERSION_CATALOG("referenceResolution/resolveVersionFromCatalog"),
   REFERENCE_RESOLUTION_FROM_VERSION_CATALOG_TO_INT("referenceResolution/resolveVersionFromCatalogToInt"),
+  REFERENCE_RESOLUTION_FROM_VERSION_CATALOG_ASSIGNMENT("referenceResolution/resolveVersionFromCatalogAssignment"),
+  REFERENCE_RESOLUTION_FROM_VERSION_CATALOG_ASSIGNMENT_INT("referenceResolution/resolveVersionFromCatalogAssignmentInt"),
   DEPENDENCIES_ALL_DEPENDENCIES("dependencies/allDependencies"),
   DEPENDENCIES_KOTLIN_DEPENDENCIES("dependencies/kotlinDependencies"),
   DEPENDENCIES_REMOVE_JAR_DEPENDENCIES("dependencies/removeJarDependencies"),

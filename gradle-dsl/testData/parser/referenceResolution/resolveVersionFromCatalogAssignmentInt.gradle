@@ -1,0 +1,3 @@
+android {
+  compileSdk libs.versions.version.get().toInteger()
+}
