@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.External
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.SET_METHOD;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN;
+import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.isDomainObjectConfiguratorMethodName;
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.maybeTrimForParent;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.applyDslLiteralOrReference;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.closableBlockNeedsNewline;
@@ -163,7 +164,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     if (element instanceof GradleDslNamedDomainElement) {
       assert externalNameInfo.externalNameParts.size() == 1;
       String name = externalNameInfo.externalNameParts.getFirst();
-      if (name.equals("of")) {
+      if (name.equals("of") || isDomainObjectConfiguratorMethodName(name)) {
         statementText = "create('" + name + "')";
       } else {
         statementText = quotePartsIfNecessary(externalNameInfo);

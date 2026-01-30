@@ -1156,6 +1156,11 @@ class AndroidModelTest : AndroidGradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddAndApplyNDOCMethodBuildTypeBlock() {
+    doTestAddAndApplyOneBuildTypeBlock("create", TestFile.ADD_AND_APPLY_NDOC_METHOD_BUILD_TYPE_BLOCK_EXPECTED)
+  }
+
+  @Test
   fun testAddAndApplyBuildTypeBlock() {
     writeToBuildFile(TestFile.ADD_AND_APPLY_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
@@ -2620,6 +2625,7 @@ class AndroidModelTest : AndroidGradleFileModelTestCase() {
     ADD_AND_APPLY_DEREF_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyDerefBuildTypeBlockExpected"),
     ADD_AND_APPLY_DOTTED_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyDottedBuildTypeBlockExpected"),
     ADD_AND_APPLY_LANGUAGE_KEYWORD_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyLanguageKeywordBuildTypeBlockExpected"),
+    ADD_AND_APPLY_NDOC_METHOD_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyNDOCMethodBuildTypeBlockExpected"),
     ADD_AND_APPLY_NON_ASCII_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyNonAsciiBuildTypeBlockExpected"),
     ADD_AND_APPLY_NUMERIC_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyNumericBuildTypeBlockExpected"),
     ADD_AND_APPLY_OPERATOR_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyOperatorBuildTypeBlockExpected"),

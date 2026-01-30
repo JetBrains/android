@@ -1,0 +1,7 @@
+android {
+  buildTypes {
+    create("create") {
+      applicationIdSuffix = "foo"
+    }
+  }
+}
