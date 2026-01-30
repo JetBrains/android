@@ -19,7 +19,6 @@ import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.ComposeGradleProjectRule
 import com.android.tools.idea.compose.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.SimpleComposeAppPaths
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatusManager
@@ -28,6 +27,7 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.command.WriteCommandAction
@@ -40,6 +40,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.utils.vfs.createFile
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.After
@@ -72,7 +73,7 @@ class RenderingBuildStatusManagerTest {
     val projectRoot = projectRule.project.guessProjectDir()!!
     val mainFile = projectRoot.findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
 
-    withContext(uiThread) { projectRule.fixture.openFileInEditor(mainFile) }
+    withContext(Dispatchers.EDT) { projectRule.fixture.openFileInEditor(mainFile) }
 
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
 

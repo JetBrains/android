@@ -34,8 +34,6 @@ import com.android.tools.idea.compose.preview.displayName
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.compose.waitForRender
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -56,6 +54,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.actionSystem.impl.Utils
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
@@ -73,6 +72,7 @@ import java.awt.Dimension
 import javax.swing.JPanel
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -147,7 +147,7 @@ class RenderErrorTest {
 
     runBlocking {
       fakeUi =
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           FakeUi(
               JPanel().apply {
                 layout = BorderLayout()
@@ -165,7 +165,7 @@ class RenderErrorTest {
 
   @Test
   fun testSceneViewWithRenderErrors() =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       fakeUi.findComponent<SceneViewPanel>()?.setNoComposeHeadersForTests()
       startUiCheckForModel("PreviewWithRenderErrors")
 
@@ -189,7 +189,7 @@ class RenderErrorTest {
 
   @Test
   fun testSceneViewWithoutRenderErrors() =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       fakeUi.findComponent<SceneViewPanel>()?.setNoComposeHeadersForTests()
       startUiCheckForModel("PreviewWithoutRenderErrors")
 
@@ -219,7 +219,7 @@ class RenderErrorTest {
 
   @Test
   fun testAtfErrors() =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       startUiCheckForModel("PreviewWithContrastError")
 
       assertIssueIsGenerated { issue ->
@@ -229,7 +229,7 @@ class RenderErrorTest {
 
   @Test
   fun testAtfErrorsOnSecondModel() =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       startUiCheckForModel("PreviewWithContrastErrorAgain")
 
       assertIssueIsGenerated { issue ->
@@ -259,14 +259,14 @@ class RenderErrorTest {
 
   @Test
   fun testSwitchLayoutWithoutRenderErrors() =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       lateinit var sceneViewPanelWithoutErrors: SceneViewPeerPanel
 
       // We ensure we are starting from a non-Focus mode.
       assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Default)
 
       // Render the Preview of the current mode.
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         waitForRender(fakeUi.findAllComponents<SceneViewPeerPanel>().toSet(), timeout = 2.minutes)
         fakeUi.root.validate()
       }
@@ -284,7 +284,7 @@ class RenderErrorTest {
 
       // Wait to render the selected preview that is now in Focus mode.
       // Notice Focus Mode shows only one item per tab and we shouldn't have more than one item.
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         waitForRender(setOf(sceneViewPanelWithoutErrors), timeout = 2.minutes)
         fakeUi.root.validate()
       }
@@ -328,7 +328,7 @@ class RenderErrorTest {
 
     // Once we enable Ui Check we need to render again since we are now showing the selected preview
     // with the different analyzers of Ui Check (for example screen sizes, colorblind check etc).
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       waitForRender(fakeUi.findAllComponents<SceneViewPeerPanel>().toSet(), timeout = 2.minutes)
       fakeUi.root.validate()
     }

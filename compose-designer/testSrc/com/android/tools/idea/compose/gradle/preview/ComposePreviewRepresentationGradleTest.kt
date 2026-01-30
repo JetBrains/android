@@ -35,7 +35,6 @@ import com.android.tools.idea.compose.preview.TestComposePreviewView
 import com.android.tools.idea.compose.preview.displayName
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.editors.build.PsiCodeFileUpToDateStatusRecorder
 import com.android.tools.idea.editors.fast.FastPreviewManager
@@ -52,6 +51,7 @@ import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.moveCaretLines
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -71,6 +71,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.test.assertFails
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -143,7 +144,7 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `panel renders correctly first time`() = runBlocking {
-    withContext(uiThread) { fakeUi.layoutAndDispatchEvents() }
+    withContext(Dispatchers.EDT) { fakeUi.layoutAndDispatchEvents() }
     delayUntilCondition(100, 5.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 5 }
 
     val output = fakeUi.render()
@@ -234,7 +235,7 @@ class ComposePreviewRepresentationGradleTest {
         FileDocumentManager.getInstance().saveAllDocuments()
       }
     }
-    withContext(uiThread) { fakeUi.findComponent<SceneViewPanel>()?.doLayout() }
+    withContext(Dispatchers.EDT) { fakeUi.findComponent<SceneViewPanel>()?.doLayout() }
     projectRule.validate()
 
     delayUntilCondition(100, 2.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().size == 4 }
@@ -269,10 +270,10 @@ class ComposePreviewRepresentationGradleTest {
       }
     }
     fakeUi.findComponent<SceneViewPanel>()!!.setNoComposeHeadersForTests()
-    withContext(uiThread) { fakeUi.findComponent<SceneViewPanel>()?.doLayout() }
+    withContext(Dispatchers.EDT) { fakeUi.findComponent<SceneViewPanel>()?.doLayout() }
     projectRule.validate()
 
-    withContext(uiThread) { fakeUi.layoutAndDispatchEvents() }
+    withContext(Dispatchers.EDT) { fakeUi.layoutAndDispatchEvents() }
     delayUntilCondition(100, 10.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().size == 6 }
 
     val allSceneViewPeerPanels = fakeUi.findAllComponents<SceneViewPeerPanel>()
@@ -322,7 +323,7 @@ class ComposePreviewRepresentationGradleTest {
 
     projectRule.validate()
 
-    withContext(uiThread) { fakeUi.layoutAndDispatchEvents() }
+    withContext(Dispatchers.EDT) { fakeUi.layoutAndDispatchEvents() }
     delayUntilCondition(100, 5.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 6 }
 
     assertEquals(
@@ -350,7 +351,7 @@ class ComposePreviewRepresentationGradleTest {
     }
 
     projectRule.validate()
-    withContext(uiThread) { fakeUi.layoutAndDispatchEvents() }
+    withContext(Dispatchers.EDT) { fakeUi.layoutAndDispatchEvents() }
     delayUntilCondition(100, 5.seconds) { "newName - DefaultPreview" == fakeUi.findAllComponents<SceneViewPeerPanel>().first().displayName }
 
     assertEquals(
@@ -752,7 +753,7 @@ class ComposePreviewRepresentationGradleTest {
         firstPreview = fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.isShowing }
         firstPreview!!.sceneView.let { previewView.mainSurface.zoomAndCenter(it, Rectangle(Point(it.x, it.y), it.scaledContentSize)) }
       }
-      withContext(uiThread) { fakeUi.root.validate() }
+      withContext(Dispatchers.EDT) { fakeUi.root.validate() }
       // Default quality should have been used
       assertEquals(
         getDefaultPreviewQuality(),
@@ -765,7 +766,7 @@ class ComposePreviewRepresentationGradleTest {
       projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
         previewView.mainSurface.zoomController.setScale(DefaultRenderQualityPolicy.scaleVisibilityThreshold / 2.0)
       }
-      withContext(uiThread) { fakeUi.root.validate() }
+      withContext(Dispatchers.EDT) { fakeUi.root.validate() }
       assertEquals(
         DefaultRenderQualityPolicy.lowestQuality,
         (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager
@@ -777,7 +778,7 @@ class ComposePreviewRepresentationGradleTest {
       projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
         previewView.mainSurface.zoomController.setScale(DefaultRenderQualityPolicy.scaleVisibilityThreshold * 2.0)
       }
-      withContext(uiThread) { fakeUi.root.validate() }
+      withContext(Dispatchers.EDT) { fakeUi.root.validate() }
       assertEquals(
         DefaultRenderQualityPolicy.scaleVisibilityThreshold * 2,
         (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager
@@ -796,7 +797,7 @@ class ComposePreviewRepresentationGradleTest {
         firstPreview = fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.isShowing }
         firstPreview!!.sceneView.let { previewView.mainSurface.zoomAndCenter(it, Rectangle(Point(it.x, it.y), it.scaledContentSize)) }
       }
-      withContext(uiThread) { fakeUi.root.validate() }
+      withContext(Dispatchers.EDT) { fakeUi.root.validate() }
       // Default quality should have been used
       assertEquals(
         getDefaultPreviewQuality(),
@@ -809,7 +810,7 @@ class ComposePreviewRepresentationGradleTest {
       projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
         composePreviewRepresentation.onDeactivate()
       }
-      withContext(uiThread) { fakeUi.root.validate() }
+      withContext(Dispatchers.EDT) { fakeUi.root.validate() }
       assertEquals(
         DefaultRenderQualityPolicy.lowestQuality,
         (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager
@@ -821,7 +822,7 @@ class ComposePreviewRepresentationGradleTest {
       projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
         composePreviewRepresentation.onActivate()
       }
-      withContext(uiThread) { fakeUi.root.validate() }
+      withContext(Dispatchers.EDT) { fakeUi.root.validate() }
       assertEquals(
         getDefaultPreviewQuality(),
         (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager

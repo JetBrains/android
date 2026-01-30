@@ -24,13 +24,13 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.TestComposePreviewView
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.model.y
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -45,6 +45,7 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JPanel
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -84,7 +85,7 @@ class AccessibilityModelUpdaterTest {
     previewView = TestComposePreviewView(fixture.testRootDisposable, project)
     composePreviewRepresentation = createComposePreviewRepresentation(psiMainFile, previewView)
 
-    withContext(AndroidDispatchers.uiThread) {
+    withContext(Dispatchers.EDT) {
       fakeUi =
         FakeUi(
           JPanel().apply {

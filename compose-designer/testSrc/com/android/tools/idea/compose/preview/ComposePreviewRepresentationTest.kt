@@ -29,7 +29,6 @@ import com.android.tools.idea.compose.preview.actions.UiCheckReopenTabAction
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationSubscriber
 import com.android.tools.idea.compose.preview.resize.ResizePanel
 import com.android.tools.idea.compose.preview.util.previewElement
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.concurrency.coroutineScope
@@ -481,7 +480,7 @@ class ComposePreviewRepresentationTest {
 
   @Test
   fun testActivationDoesNotCleanOverlayClassLoader() =
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val composeTest = runWriteActionAndWait {
         fixture.addFileToProjectAndInvalidate(
           "Test.kt",
@@ -1248,7 +1247,7 @@ class ComposePreviewRepresentationTest {
             composeView
           }
       Disposer.register(fixture.testRootDisposable, preview)
-      withContext(workerThread) {
+      withContext(Dispatchers.Default) {
         logger.info("compile")
         buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.SUCCESS)
         logger.info("activate")

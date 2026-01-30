@@ -23,9 +23,9 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
+import com.intellij.openapi.application.EDT
 import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JButton
@@ -34,6 +34,7 @@ import javax.swing.JPanel
 import javax.swing.JSlider
 import junit.framework.TestCase.assertTrue
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runCurrent
@@ -159,7 +160,7 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
     runBlocking {
       surface.sceneManagers.forEach { it.requestRenderAndWait() }
       animationPreview.addAnimation(animation).join()
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         ui = FakeUi(animationPreview.component.apply { size = Dimension(500, 400) })
         ui.updateToolbars()
         ui.layout()
@@ -222,7 +223,7 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
     surface.sceneManagers.forEach { it.requestRenderAndWait() }
     animationPreview.addAnimation(animation).join()
     assertTrue("No animation is added", 1 == animationPreview.animations.size)
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       val ui = FakeUi(animationPreview.component.apply { size = Dimension(500, 400) })
       ui.updateToolbars()
       ui.layout()
