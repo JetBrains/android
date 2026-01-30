@@ -176,8 +176,8 @@ class VersionsTomlAnnotator : Annotator {
         .newAnnotation(
           HighlightSeverity.ERROR,
           "Invalid alias `${text}`. Aliases '${
-                             reservedNames.joinToString(",")
-                           }' are reserved names in Gradle which prevents generation of accessors.",
+            reservedNames.joinToString(",")
+          }' are reserved names in Gradle which prevents generation of accessors.",
         )
         .create()
     } else if (text.split('_').contains("class")) {
