@@ -19,6 +19,7 @@ import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.util.scaled
 import com.intellij.ide.ActivityTracker
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
 import java.beans.PropertyChangeEvent
@@ -142,6 +143,7 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeList
       fractionalScaleRange = 0.0
     }
     if (sizeChanged) {
+      thisLogger().info("ZoomablePanel.setBounds: triggering toolbar update") // b/479059316
       ActivityTracker.getInstance().inc() // Trigger a toolbar update.
     }
   }

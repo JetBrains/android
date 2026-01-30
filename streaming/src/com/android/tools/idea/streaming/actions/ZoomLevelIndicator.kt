@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.UIUtil
@@ -52,6 +53,10 @@ class ZoomLevelIndicator : DumbAwareAction(EmptyIcon.ICON_16), CustomComponentAc
       val scale = zoomable.scale
       val scaleText = String.format(Locale.ROOT, "%d%%", (scale * 100).roundToInt())
       presentation.text = "Zoom Level: $scaleText"
+      thisLogger().info("Zoom level indicator updated from ${presentation.description} to $scaleText") // b/479059316
+      if (scaleText != presentation.description) {
+        zoomLevelChanged = true;
+      }
       presentation.description = scaleText
     }
   }
@@ -105,6 +110,10 @@ class ZoomLevelIndicator : DumbAwareAction(EmptyIcon.ICON_16), CustomComponentAc
       val textBounds = textBounds
       val textX = centerIn.x - textBounds.x + (centerIn.width - textBounds.width) / 2
       val textY = centerIn.y - textBounds.y + (centerIn.height - textBounds.height) / 2
+      if (zoomLevelChanged) { // b/479059316
+        thisLogger().info("Painting zoom level indicator $text")
+        zoomLevelChanged = false
+      }
       g.drawString(text, textX, textY)
     }
 
@@ -165,3 +174,5 @@ private fun createFontRenderContext(): FontRenderContext {
   val fmHint = UIManager.get(RenderingHints.KEY_FRACTIONALMETRICS) ?: RenderingHints.VALUE_FRACTIONALMETRICS_DEFAULT
   return FontRenderContext(null, aaHint, fmHint)
 }
+
+private var zoomLevelChanged = false; // b/479059316
