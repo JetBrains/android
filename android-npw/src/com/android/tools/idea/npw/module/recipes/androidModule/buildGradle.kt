@@ -41,6 +41,7 @@ fun buildGradle(
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
   useVersionCatalog: Boolean,
+  hasCode: Boolean = true,
 ): String {
   val androidConfigBlock =
     androidConfig(
@@ -58,6 +59,7 @@ fun buildGradle(
       addLintOptions = addLintOptions,
       enableCpp = enableCpp,
       cppStandard = cppStandard,
+      hasCode = hasCode,
     )
 
   if (isDynamicFeature) {
@@ -129,6 +131,7 @@ internal fun String.gradleToKtsIfKts(isKts: Boolean): String =
         .toKtsFunction("cppFlags")
         .toKtsFunction("path")
         .toKtsProperty("version")
+        .toKtsProperty("enableKotlin")
     }
   } else {
     this

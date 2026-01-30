@@ -52,6 +52,7 @@ fun RecipeExecutor.generateCommonModule(
   noKtx: Boolean = false,
   useVersionCatalog: Boolean,
   appTitleResName: String = "app_name",
+  hasCode: Boolean = true,
 ) {
   val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = data
   val (useAndroidX, agpVersion) = projectData
@@ -82,6 +83,7 @@ fun RecipeExecutor.generateCommonModule(
       enableCpp = enableCpp,
       cppStandard = cppStandard,
       useVersionCatalog = useVersionCatalog,
+      hasCode = hasCode,
     ),
     moduleOut.resolve(buildFile),
   )
@@ -95,8 +97,10 @@ fun RecipeExecutor.generateCommonModule(
     data.isDynamic -> addPlugin("com.android.dynamic-feature", classpathModule, version)
     else -> addPlugin("com.android.application", classpathModule, version)
   }
-  addKotlinIfNeeded(projectData, targetApi = apis.targetApi.apiLevel, noKtx = noKtx)
-  setJavaKotlinCompileOptions(data.projectTemplateData.language == Language.Kotlin)
+  if (hasCode) {
+    addKotlinIfNeeded(projectData, targetApi = apis.targetApi.apiLevel, noKtx = noKtx)
+    setJavaKotlinCompileOptions(data.projectTemplateData.language == Language.Kotlin)
+  }
 
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
   save(gitignore(), moduleOut.resolve(".gitignore"))

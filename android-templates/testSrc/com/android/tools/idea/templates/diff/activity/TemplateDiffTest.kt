@@ -766,7 +766,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
   @Test
   fun testBasicWatchFace() {
     StudioFlags.NPW_ENABLE_BASIC_WATCH_FACE_TEMPLATE.override(true)
-    checkCreateTemplate("Basic Watch Face", { moduleData, _ -> moduleData.isWatchFace = true })
+    checkCreateTemplate("Basic Watch Face", withKotlin(), { moduleData, _ -> moduleData.isWatchFace = true })
   }
 }
 

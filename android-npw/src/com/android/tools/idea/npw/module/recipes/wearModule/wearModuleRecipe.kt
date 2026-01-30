@@ -69,5 +69,6 @@ private fun RecipeExecutor.generateWearWatchFaceModule(
     colorsXml = null,
     noKtx = true,
     useVersionCatalog = useVersionCatalog,
+    hasCode = false,
   )
 }

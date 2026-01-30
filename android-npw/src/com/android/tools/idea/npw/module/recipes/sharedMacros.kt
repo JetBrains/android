@@ -26,6 +26,7 @@ import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.RecipeExecutor
+import com.android.tools.idea.wizard.template.common.AGP_VERSION_WITH_BUILT_IN_KOTLIN
 import com.android.tools.idea.wizard.template.getMaterialComponentName
 import com.android.tools.idea.wizard.template.renderIf
 import java.io.File
@@ -134,6 +135,7 @@ fun androidConfig(
   addLintOptions: Boolean,
   enableCpp: Boolean,
   cppStandard: CppStandardType,
+  hasCode: Boolean,
 ): String {
   val propertiesBlock =
     if (isDynamicFeature) {
@@ -183,6 +185,9 @@ fun androidConfig(
     }
     """
     }
+  // This is to prevent having a "kotlin" artifact in APKs that are not supposed to have code such
+  // as declarative watch faces
+  val disableKotlinBlock = renderIf(!hasCode && agpVersion >= AGP_VERSION_WITH_BUILT_IN_KOTLIN) { "enableKotlin false" }
 
   return """
     android {
@@ -198,6 +203,7 @@ fun androidConfig(
     $proguardConfigBlock
     $lintOptionsBlock
     $cppReferenceBlock
+    $disableKotlinBlock
     }
     """
 }
