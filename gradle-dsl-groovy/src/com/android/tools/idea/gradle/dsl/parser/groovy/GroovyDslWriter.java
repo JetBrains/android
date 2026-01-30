@@ -158,7 +158,19 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
     ExternalNameInfo externalNameInfo = maybeTrimForParent(element, this);
-    String statementText = quotePartsIfNecessary(externalNameInfo);
+    String statementText;
+
+    if (element instanceof GradleDslNamedDomainElement) {
+      assert externalNameInfo.externalNameParts.size() == 1;
+      String name = externalNameInfo.externalNameParts.getFirst();
+      if (name.equals("of")) {
+        statementText = "create('" + name + "')";
+      } else {
+        statementText = quotePartsIfNecessary(externalNameInfo);
+      }
+    } else {
+      statementText = quotePartsIfNecessary(externalNameInfo);
+    }
     assert !statementText.isEmpty() : "Element name can't be empty! This will cause statement creation to error.";
 
     ExternalNameSyntax syntax = externalNameInfo.syntax;
@@ -166,6 +178,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
       case UNKNOWN: syntax = element.getExternalSyntax(); break;
       default: element.setExternalSyntax(syntax);
     }
+
     if (element.isBlockElement()) {
       if (element instanceof MavenRepositoryDslElement && element.getContainedElements(true).isEmpty()) {
         statementText += "()";

@@ -33,8 +33,8 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import java.io.File
-import com.android.tools.idea.gradle.dsl.android.model.android.ExternalNativeBuildModelImpl
 import com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl
+import com.android.tools.idea.gradle.dsl.android.model.android.ExternalNativeBuildModelImpl
 import com.android.tools.idea.gradle.dsl.android.model.android.ProductFlavorModelImpl
 import com.android.tools.idea.gradle.dsl.android.model.android.android
 
@@ -1148,6 +1148,11 @@ class AndroidModelTest : AndroidGradleFileModelTestCase() {
   @Test
   fun testAddAndApplyLanguageKeywordBuildTypeBlock() {
     doTestAddAndApplyOneBuildTypeBlock("class", TestFile.ADD_AND_APPLY_LANGUAGE_KEYWORD_BUILD_TYPE_BLOCK_EXPECTED)
+  }
+
+  @Test
+  fun testAddAndApplySetMethodBuildTypeBlock() {
+    doTestAddAndApplyOneBuildTypeBlock("of", TestFile.ADD_AND_APPLY_SET_METHOD_BUILD_TYPE_BLOCK_EXPECTED)
   }
 
   @Test
@@ -2618,6 +2623,7 @@ class AndroidModelTest : AndroidGradleFileModelTestCase() {
     ADD_AND_APPLY_NON_ASCII_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyNonAsciiBuildTypeBlockExpected"),
     ADD_AND_APPLY_NUMERIC_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyNumericBuildTypeBlockExpected"),
     ADD_AND_APPLY_OPERATOR_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyOperatorBuildTypeBlockExpected"),
+    ADD_AND_APPLY_SET_METHOD_BUILD_TYPE_BLOCK_EXPECTED("addAndApplySetMethodBuildTypeBlockExpected"),
     ADD_AND_APPLY_SPACE_BUILD_TYPE_BLOCK_EXPECTED("addAndApplySpaceBuildTypeBlockExpected"),
     ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK("addAndApplyProductFlavorBlock"),
     ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK_EXPECTED("addAndApplyProductFlavorBlockExpected"),

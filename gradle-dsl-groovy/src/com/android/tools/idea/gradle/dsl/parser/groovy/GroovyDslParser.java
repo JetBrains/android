@@ -23,6 +23,7 @@ import static com.android.tools.idea.gradle.dsl.model.notifications.Notification
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.SET_METHOD;
+import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.isDomainObjectConfiguratorMethodName;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.ensureUnquotedText;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.findInjections;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.isBlockElement;
@@ -46,6 +47,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslUnknownElement;
@@ -387,7 +389,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     // Recompute the name from the full expression to handle configuration methods ex: buildTypes.getByName('release') (the qualifying
     // parts have already been dealt with
     if (expression.getExpressionArguments().length == 1) {
-      name = GradleNameElement.from(expression, this);
+      name = GradleNameElement.from(expression.getExpressionArguments()[0], this);
     }
 
     GrClosableBlock closableBlock = null;
@@ -406,6 +408,14 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
 
     GradlePropertiesDslElement propertiesElement = getPropertiesElement(ImmutableList.of(name.name()), dslElement, name);
     if (propertiesElement != null) {
+      if (propertiesElement instanceof GradleDslNamedDomainElement namedDomainElement) {
+        if (namedDomainElement.getMethodName() == null) {
+          String referenceName = referenceExpression.getReferenceName();
+          if (isDomainObjectConfiguratorMethodName(referenceName)) {
+            namedDomainElement.setMethodName(referenceName);
+          }
+        }
+      }
       // If we have a closableBlock, use it as the block's PsiElement; if we don't, use the whole expression as the PsiElement (so that
       // new elements can be added to the parent block after this element) and mark the new PropertiesDslElement as not having braces,
       // and so needing recreation if it is subsequently changed (e.g. by users of the Dsl model APIs).

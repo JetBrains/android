@@ -44,6 +44,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -1129,6 +1130,10 @@ public final class GroovyDslUtil {
       PsiNamedElement namedElement = (PsiNamedElement)oldName;
       namedElement.setName(newName);
       newElement = namedElement;
+    }
+    else if (element instanceof GradleDslNamedDomainElement && ((GradleDslNamedDomainElement)element).getMethodName() != null) {
+      PsiElement psiElement = getPsiElementFactory(element).createLiteralFromValue(newName);
+      newElement = oldName.replace(psiElement);
     }
     else {
       PsiElement psiElement = createNameElement(element, quotePartIfNecessary(newName));
