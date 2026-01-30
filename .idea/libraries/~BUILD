@@ -185,13 +185,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "layoutinspector-skia-proto",
-    jars = ["//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_java_proto.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "ffmpeg",
     jars = ["//prebuilts/tools/common/m2:ffmpeg_files"],
     visibility = ["//visibility:public"],

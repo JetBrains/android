@@ -408,7 +408,6 @@ filegroup(
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
         "//tools/adt/idea/.idea/libraries:kotlin-multiplatform-android-models-proto",
-        "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
         "//tools/adt/idea/.idea/libraries:libadb-server-proto",
         "//tools/adt/idea/.idea/libraries:libadblib-tools-proto",
