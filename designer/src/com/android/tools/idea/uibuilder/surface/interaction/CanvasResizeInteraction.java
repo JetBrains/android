@@ -54,11 +54,11 @@ public class CanvasResizeInteraction implements Interaction {
    * Resizing is capped because layoutlib creates an image of the device's size, which can cause OutOfMemoryError
    * if the dimensions are too large.
    */
-  private static final int MAX_ANDROID_SIZE_DP = 1500;
+  private static final int MAX_ANDROID_SIZE_DP = 3000;
   /**
    * Minimum size (in dp) for resizing.
    */
-  private static final int MIN_ANDROID_SIZE_DP = 10;
+  private static final int MIN_ANDROID_SIZE_DP = 1;
 
   /** The {@link NlDesignSurface} where the interaction happens. */
   @NotNull private final NlDesignSurface myDesignSurface;

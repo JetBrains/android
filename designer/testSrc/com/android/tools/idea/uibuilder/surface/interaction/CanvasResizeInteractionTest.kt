@@ -16,10 +16,13 @@
 package com.android.tools.idea.uibuilder.surface.interaction
 
 import com.android.SdkConstants
+import com.android.resources.Density
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.fixtures.MouseEventBuilder
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.InteractionInformation
+import com.android.tools.idea.common.surface.MouseDraggedEvent
+import com.android.tools.idea.common.surface.MousePressedEvent
 import com.android.tools.idea.common.surface.MouseReleasedEvent
 import com.android.tools.idea.uibuilder.analytics.ResizeTracker
 import com.android.tools.idea.uibuilder.scene.SceneTest
@@ -57,5 +60,43 @@ class CanvasResizeInteractionTest : SceneTest() {
     val mouseEvent = MouseReleasedEvent(MouseEventBuilder(90, 90).build(), InteractionInformation(90, 90, 0))
     canvasResizeInteraction.commit(mouseEvent)
     assertFalse("Resize should not happen if the mouse is not dragged", resizeReported)
+  }
+
+  fun testResizeCappedAtMax() {
+    val configuration = mySceneManager.model.configuration
+    val density = configuration.density
+    val dpi = density.dpiValue
+    val scale = dpi.toDouble() / Density.DEFAULT_DENSITY
+
+    // Current limit is 3000dp
+    val expectedMaxDp = 3000
+    val expectedMaxPx = (expectedMaxDp * scale).toInt()
+
+    // Drag target > 3000dp. e.g. 5000dp
+    val targetDp = 5000
+    val targetPx = (targetDp * scale).toInt()
+
+    val interaction = CanvasResizeInteraction(myScene.designSurface as NlDesignSurface, myScreen.screen, configuration)
+
+    val startX = 0
+    val startY = 0
+    interaction.begin(MousePressedEvent(MouseEventBuilder(startX, startY).build(), InteractionInformation(startX, startY, 0)))
+
+    val dragEvent = MouseDraggedEvent(MouseEventBuilder(targetPx, targetPx).build(), InteractionInformation(startX, startY, 0))
+    interaction.update(dragEvent)
+
+    interaction.commit(dragEvent)
+
+    val device = configuration.device
+    val state = configuration.deviceState
+    val screenSize = device!!.getScreenSize(state!!.orientation)!!
+    val widthPx = screenSize.width
+    val heightPx = screenSize.height
+
+    assertTrue("Width should be capped at $expectedMaxPx but was $widthPx", widthPx <= expectedMaxPx + 1)
+    assertTrue("Width should be close to $expectedMaxPx but was $widthPx", widthPx >= expectedMaxPx - 1)
+
+    assertTrue("Height should be capped at $expectedMaxPx but was $heightPx", heightPx <= expectedMaxPx + 1)
+    assertTrue("Height should be close to $expectedMaxPx but was $heightPx", heightPx >= expectedMaxPx - 1)
   }
 }
