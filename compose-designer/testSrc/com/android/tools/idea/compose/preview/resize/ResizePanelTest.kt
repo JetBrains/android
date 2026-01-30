@@ -565,4 +565,20 @@ class ResizePanelTest {
     changeHeightTextField(heightTextField.value + 10)
     assertTrue(resizePanel.hasBeenResized)
   }
+
+  @Test
+  fun `automotive ultrawide width is correctly set`() = runInEdtAndGet {
+    setupAndShowPanel()
+
+    // Width > 2000 (Automotive Ultrawide is ~2603 dp)
+    val ultrawideDevice =
+      configuration.settings.devices.find { it.id == "automotive_ultrawide" }
+        ?: throw AssertionError("Automotive Ultrawide device not found. Available: ${configuration.settings.devices.map { it.id }}")
+
+    configuration.setDevice(ultrawideDevice, true)
+    @Suppress("DEPRECATION") fakeUi.updateToolbars()
+    fakeUi.layoutAndDispatchEvents()
+
+    assertEquals(2603, widthTextField.value)
+  }
 }

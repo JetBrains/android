@@ -41,7 +41,7 @@ const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
 
 const val MIN_DIMENSION_DP = 1
-const val MAX_DIMENSION_DP = 2000
+const val MAX_DIMENSION_DP = 3000
 
 /** Value to use for the wallpaper attribute when none has been specified. */
 private const val NO_WALLPAPER_SELECTED = -1

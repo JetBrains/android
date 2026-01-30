@@ -406,19 +406,19 @@ class InspectionsTest {
       import $PREVIEW_TOOLING_PACKAGE.Preview
       import $COMPOSABLE_ANNOTATION_FQN
 
-      private const val badWidth = 3000
+      private const val badWidth = 3001
 
-      private const val goodWidth = 2000
+      private const val goodWidth = 3000
 
       @Preview(widthDp = badWidth) // warning
       annotation class BadAnnotation
 
-      @Preview(widthDp = 2000)
-      annotation class GoodAnnotation(val widthDp: Int = 2001) // MultiPreview annotation parameters have no effect
+      @Preview(widthDp = 3000)
+      annotation class GoodAnnotation(val widthDp: Int = 3001) // MultiPreview annotation parameters have no effect
 
       @Composable
       @GoodAnnotation
-      @Preview(name = "Preview 1", heightDp = 2001, widthDp = 2001) // Only one warning
+      @Preview(name = "Preview 1", heightDp = 3001, widthDp = 3001) // Only one warning
       fun Preview1() {
       }
 
@@ -439,8 +439,8 @@ class InspectionsTest {
 
     assertEquals(
       """
-      |7: Preview width and height are limited to be between 1 and 2,000, setting a lower or higher number will not change the preview dimension
-      |15: Preview width and height are limited to be between 1 and 2,000, setting a lower or higher number will not change the preview dimension
+      |7: Preview width and height are limited to be between 1 and 3,000, setting a lower or higher number will not change the preview dimension
+      |15: Preview width and height are limited to be between 1 and 3,000, setting a lower or higher number will not change the preview dimension
       """
         .trimMargin(),
       inspections,
@@ -458,19 +458,19 @@ class InspectionsTest {
       import $PREVIEW_TOOLING_PACKAGE.Preview
       import $COMPOSABLE_ANNOTATION_FQN
 
-      private const val badHeight = 3000
+      private const val badHeight = 3001
 
-      private const val goodHeight = 2000
+      private const val goodHeight = 3000
 
       @Preview(heightDp = badHeight) // warning
       annotation class BadAnnotation
 
-      @Preview(heightDp = 2000)
-      annotation class GoodAnnotation(val heightDp: Int = 2001) // MultiPreview annotation parameters have no effect
+      @Preview(heightDp = 3000)
+      annotation class GoodAnnotation(val heightDp: Int = 3001) // MultiPreview annotation parameters have no effect
 
       @Composable
       @GoodAnnotation
-      @Preview(name = "Preview 1", heightDp = 2001, widthDp = 2001) // Only one warning
+      @Preview(name = "Preview 1", heightDp = 3001, widthDp = 3001) // Only one warning
       fun Preview1() {
       }
 
@@ -491,8 +491,8 @@ class InspectionsTest {
 
     assertEquals(
       """
-      |7: Preview width and height are limited to be between 1 and 2,000, setting a lower or higher number will not change the preview dimension
-      |15: Preview width and height are limited to be between 1 and 2,000, setting a lower or higher number will not change the preview dimension
+      |7: Preview width and height are limited to be between 1 and 3,000, setting a lower or higher number will not change the preview dimension
+      |15: Preview width and height are limited to be between 1 and 3,000, setting a lower or higher number will not change the preview dimension
       """
         .trimMargin(),
       inspections,
@@ -511,7 +511,7 @@ class InspectionsTest {
       import $COMPOSABLE_ANNOTATION_FQN
 
       @Composable
-      @Preview(name = "Preview 1", heightDp = 2001, widthDp = 2001)
+      @Preview(name = "Preview 1", heightDp = 3001, widthDp = 3001)
       fun Preview1() {
       }
     """
@@ -521,10 +521,10 @@ class InspectionsTest {
     val inspections = fixture.doHighlighting(HighlightSeverity.WARNING).sortedByDescending { -it.startOffset }.toTypedArray()
 
     // Verify the height inspection only highlights the height parameter and value, i.e. "heightDp =
-    // 2001"
+    // 3001"
     val heightInspection = inspections[0]
     var highlightLength = heightInspection.actualEndOffset - heightInspection.actualStartOffset
-    assertEquals("heightDp = 2001".length, highlightLength)
+    assertEquals("heightDp = 3001".length, highlightLength)
   }
 
   @Test

@@ -108,7 +108,7 @@ class GlancePreviewElementModelAdapterTest {
           xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools"
           android:layout_width="1234dp"
-          android:layout_height="2000dp"
+          android:layout_height="3000dp"
           android:minWidth="1px"
           android:minHeight="1px"
           tools:composableName="foo" />
@@ -121,7 +121,7 @@ class GlancePreviewElementModelAdapterTest {
           null,
           null,
           "foo",
-          // height cannot be higher than 2000
+          // height cannot be higher than 3000
           PreviewConfiguration.cleanAndGet(width = 1234, height = 5678),
         )
       ),

@@ -213,7 +213,7 @@ class InspectionsTest {
       import $GLANCE_PREVIEW_ANNOTATION_FQN
       import $COMPOSABLE_ANNOTATION_FQ_NAME
 
-      private const val badWidth = 3000
+      private const val badWidth = 3001
 
       private const val goodWidth = 2000
 
@@ -221,11 +221,11 @@ class InspectionsTest {
       annotation class BadAnnotation
 
       @Preview(widthDp = goodWidth)
-      annotation class GoodAnnotation(val widthDp: Int = 2001) // MultiPreview annotation parameters have no effect
+      annotation class GoodAnnotation(val widthDp: Int = 3001) // MultiPreview annotation parameters have no effect
 
       @Composable
       @GoodAnnotation
-      @Preview(heightDp = 2001, widthDp = 2001) // Only one warning
+      @Preview(heightDp = 3001, widthDp = 3001) // Only one warning
       fun Preview1() {
       }
 
@@ -246,8 +246,8 @@ class InspectionsTest {
 
     assertEquals(
       """
-      |7: Preview width and height are limited to be between 1 and 2,000, setting a lower or higher number will not change the preview dimension
-      |15: Preview width and height are limited to be between 1 and 2,000, setting a lower or higher number will not change the preview dimension
+      |7: Preview width and height are limited to be between 1 and 3,000, setting a lower or higher number will not change the preview dimension
+      |15: Preview width and height are limited to be between 1 and 3,000, setting a lower or higher number will not change the preview dimension
       """
         .trimMargin(),
       inspections,
@@ -265,7 +265,7 @@ class InspectionsTest {
       import $GLANCE_PREVIEW_ANNOTATION_FQN
       import $COMPOSABLE_ANNOTATION_FQ_NAME
 
-      private const val badHeight = 3000
+      private const val badHeight = 3001
 
       private const val goodHeight = 2000
 
@@ -273,11 +273,11 @@ class InspectionsTest {
       annotation class BadAnnotation
 
       @Preview(heightDp = goodHeight)
-      annotation class GoodAnnotation(val heightDp: Int = 2001) // MultiPreview annotation parameters have no effect
+      annotation class GoodAnnotation(val heightDp: Int = 3001) // MultiPreview annotation parameters have no effect
 
       @Composable
       @GoodAnnotation
-      @Preview(heightDp = 2001, widthDp = 2001) // Only one warning
+      @Preview(heightDp = 3001, widthDp = 3001) // Only one warning
       fun Preview1() {
       }
 
@@ -298,8 +298,8 @@ class InspectionsTest {
 
     assertEquals(
       """
-      |7: Preview width and height are limited to be between 1 and 2,000, setting a lower or higher number will not change the preview dimension
-      |15: Preview width and height are limited to be between 1 and 2,000, setting a lower or higher number will not change the preview dimension
+      |7: Preview width and height are limited to be between 1 and 3,000, setting a lower or higher number will not change the preview dimension
+      |15: Preview width and height are limited to be between 1 and 3,000, setting a lower or higher number will not change the preview dimension
       """
         .trimMargin(),
       inspections,
