@@ -17,11 +17,13 @@ package com.android.tools.idea.nav.safeargs.kotlin.k2
 
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
+import org.jetbrains.kotlin.analysis.api.KaPlatformInterface
 import org.jetbrains.kotlin.analysis.api.platform.analysisMessageBus
 import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationEvent
 import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
 import org.jetbrains.kotlin.idea.util.toKaModulesForModificationEvents
 
+@OptIn(KaPlatformInterface::class)
 internal fun Module.fireModificationEvent(createEvent: (KaModule) -> KotlinModificationEvent) =
   runWriteAction {
     val publisher = project.analysisMessageBus.syncPublisher(KotlinModificationEvent.TOPIC)

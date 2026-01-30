@@ -61,6 +61,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.kotlin.analysis.api.KaPlatformInterface
 import org.jetbrains.kotlin.analysis.api.platform.declarations.createDeclarationProvider
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.idea.base.facet.platform.platform
@@ -148,6 +149,7 @@ fun StringParameter.validateStringType(
       }
     KOTLIN_FUNCTION -> {
       project ?: return false
+      @OptIn(KaPlatformInterface::class)
       if (KotlinPluginModeProvider.isK2Mode()) {
         val packageFqName = if (packageName != null) FqName(packageName) else FqName.ROOT
         val declarationProvider = project.createDeclarationProvider(searchScope, contextualModule = null)

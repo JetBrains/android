@@ -48,6 +48,7 @@ import com.intellij.util.concurrency.BoundedTaskExecutor
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.analysis.api.KaPlatformInterface
 import org.jetbrains.kotlin.analysis.api.platform.modification.publishModuleOutOfBlockModificationEvent
 import org.jetbrains.kotlin.idea.util.toKaModulesForModificationEvents
 import java.util.concurrent.Future
@@ -142,6 +143,7 @@ class MergedManifestModificationListener(
     }
   }
 
+  @OptIn(KaPlatformInterface::class)
   private fun flushCaches(facet: AndroidFacet) {
     val ktModules = facet.module.getTransitiveResourceDependents().flatMap {
       MergedManifestModificationTracker.getInstance(it).manifestChanged()

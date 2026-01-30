@@ -103,7 +103,7 @@ internal fun checkJetpackCompose(project: Project) {
   // `-Xplugin=.. compose compiler plugin ..` option.
   if (KotlinPluginModeProvider.isK2Mode()) return
 
-  val pluginExtensions = IrGenerationExtension.getInstances(project)
+  val pluginExtensions = project.extensionArea.getExtensionPoint<IrGenerationExtension>(IrGenerationExtension.name).extensions
   var found = false
   for (extension in pluginExtensions) {
     if (extension.javaClass.name == "com.android.tools.compose.ComposePluginIrGenerationExtension") {

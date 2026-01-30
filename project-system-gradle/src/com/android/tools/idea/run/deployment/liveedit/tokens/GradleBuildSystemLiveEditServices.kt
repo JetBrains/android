@@ -36,6 +36,9 @@ import com.intellij.psi.PsiFile
 import java.nio.file.Path
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
+import org.jetbrains.kotlin.cli.extensionsStorage
+import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
@@ -96,6 +99,8 @@ internal class GradleApplicationLiveEditServices(private val module: Module): Ap
   override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
     val module = ktFile.module ?: return CompilerConfiguration.EMPTY
     val compilerConfiguration = CompilerConfiguration().apply<CompilerConfiguration> {
+      @OptIn(ExperimentalCompilerApi::class)
+      extensionsStorage = CompilerPluginRegistrar.ExtensionStorage()
       put(
         CommonConfigurationKeys.MODULE_NAME,
         module.name
