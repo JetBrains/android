@@ -2524,6 +2524,12 @@ public final class StudioFlags {
                 "Output token limit for default chat model",
                 8192);
 
+  public static final Flag<Integer> STUDIOBOT_MAX_AGENT_LLM_CALLS =
+    new IntFlag(STUDIOBOT, "max.agent.llm.calls",
+                "Max LLM calls per agent session",
+                "Maximum number of LLM calls an agent can make in a single run.",
+                500);
+
   public static final Flag<Boolean> STUDIOBOT_GENERATE_TEST_SCENARIOS =
     new BooleanFlag(STUDIOBOT, "generate.test.scenarios",
                     "Enable test scenario generation.",
