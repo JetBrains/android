@@ -266,7 +266,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
               |      > No cached version of my.not.existing.dependency:gradle:1.2.3-dev available for offline mode.
               |
               |Possible solution:
-              | - <a href="disable_offline_mode">Disable offline mode and rerun the build</a>
+              | - <a href="disable_offline_mode(0)">Disable offline mode and rerun the build</a>
               |"""
                 .trimMargin()
             )
@@ -274,8 +274,8 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
           // In offline mode toggle offline mode quickfix is expected.
           expect.that((it as? BuildIssueEvent)?.issue?.quickFixes).hasSize(1)
           expect
-            .that((it as? BuildIssueEvent)?.issue?.quickFixes?.firstOrNull()?.javaClass?.name)
-            .isEqualTo("com.intellij.build.issue.ConfigurableBuildIssue\$QuickFix")
+            .that((it as? BuildIssueEvent)?.issue?.quickFixes?.firstOrNull()?.id)
+            .isEqualTo("disable_offline_mode(0)")
         }
       }
       // TODO (b/355417764): Currently we also generate issue from CachedDependencyNotFoundIssueChecker in this case.
