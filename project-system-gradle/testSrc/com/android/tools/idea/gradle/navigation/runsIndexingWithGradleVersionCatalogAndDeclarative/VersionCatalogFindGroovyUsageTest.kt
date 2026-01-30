@@ -140,6 +140,21 @@ class VersionCatalogFindGroovyUsageTest {
     }
   }
 
+  @Test
+  fun testHasUsagesInInterpolatedString() {
+    testVersionCatalogFindUsagesInSubmodule(
+      """
+      [versions]
+      frag${caret}ment = "1.6.2"
+    """
+        .trimIndent(),
+      " dependencies {\n" + " implementation \"androidx.fragment:fragment:\${libs.versions.fragment.get()}\"\n" + "}",
+    ) {
+      assertThat(it).hasSize(1)
+      assertThat(it.first().file).isInstanceOf(GroovyFileBase::class.java)
+    }
+  }
+
   private fun testVersionCatalogFindUsagesInSubmodule(
     versionCatalogText: String,
     buildGradleText: String,
