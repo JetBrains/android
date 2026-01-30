@@ -71,6 +71,7 @@ gradle.ide.build.analyzer.downloads.analysis=COMPLETE:2022
 gradle.ide.build.analyzer.jetifier.warning=COMPLETE:2021
 gradle.ide.build.injection.device.api.enabled=COMPLETE:2023
 gradle.ide.build.output.downloads.information=COMPLETE:2023
+gradle.ide.execute.gradle.jvm.compatibility.check=COMPLETE:2026
 gradle.ide.gradle.build.runtime.classpath.for.library.screenshot.tests=COMPLETE:2024
 gradle.ide.gradle.build.runtime.classpath.for.library.unit.tests=COMPLETE:2024
 gradle.ide.gradle.multi.variant.additional.artifact.support=COMPLETE:2023
