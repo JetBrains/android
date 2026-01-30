@@ -104,6 +104,10 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
     transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
       Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
@@ -142,6 +146,10 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
     )
     transportService.setCommandHandler(
       Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
     transportService.setCommandHandler(
@@ -297,6 +305,10 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
     transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
       Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
@@ -330,6 +342,10 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
     )
     transportService.setCommandHandler(
       Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
     transportService.setCommandHandler(
@@ -373,6 +389,10 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
     transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
       Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
@@ -413,6 +433,10 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
     transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
       Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
@@ -450,6 +474,10 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
     )
     transportService.setCommandHandler(
       Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
     transportService.setCommandHandler(

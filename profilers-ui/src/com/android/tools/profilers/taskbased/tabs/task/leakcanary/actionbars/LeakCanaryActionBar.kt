@@ -98,7 +98,7 @@ fun RecordingTimer(leakCanaryModel: LeakCanaryModel) {
 fun HeapDumpAndAnalysisStatus(leakCanaryModel: LeakCanaryModel) {
   val objectRetainedCount by leakCanaryModel.objectRetainedCount.collectAsState()
   val analysisProgress by leakCanaryModel.analysisProgress.collectAsState()
-  val requiredRetainedObjectCount = leakCanaryModel.requiredRetainedObjectCount
+  val requiredRetainedObjectCount by leakCanaryModel.retainedObjectThreshold.collectAsState()
 
   if (analysisProgress > 0 || objectRetainedCount >= requiredRetainedObjectCount) {
     Text(LEAKCANARY_ANALYSIS)

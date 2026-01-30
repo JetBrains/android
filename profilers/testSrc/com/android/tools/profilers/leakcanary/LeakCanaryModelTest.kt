@@ -84,6 +84,36 @@ class LeakCanaryModelTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
     transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.START_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(
+        timer,
+        profilers,
+        listOf(
+          "SingleApplicationLeak.txt", // 1 application leak
+          "SingleApplicationLeakAnalyzeCmd.txt", // 1 application leak
+          "MultiApplicationLeak.txt", // 2 application leak with different signature
+          "NoLeak.txt",
+        ),
+        startTime,
+      ),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
       Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
@@ -124,6 +154,10 @@ class LeakCanaryModelTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
     transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
       Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
@@ -156,6 +190,10 @@ class LeakCanaryModelTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
     transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
       Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
@@ -181,6 +219,10 @@ class LeakCanaryModelTest : WithFakeTimer {
     )
     transportService.setCommandHandler(
       Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
     transportService.setCommandHandler(
@@ -211,6 +253,10 @@ class LeakCanaryModelTest : WithFakeTimer {
     )
     transportService.setCommandHandler(
       Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime),
     )
     transportService.setCommandHandler(
@@ -248,6 +294,10 @@ class LeakCanaryModelTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0, isLeakCanaryPresent = true),
     )
     transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
+    transportService.setCommandHandler(
       Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
     )
@@ -267,12 +317,40 @@ class LeakCanaryModelTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0, isLeakCanaryPresent = false),
     )
     transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
+    transportService.setCommandHandler(
       Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
     )
     stage.startListening()
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertFalse(stage.isLeakCanaryPresent.value)
+  }
+
+  @Test
+  fun `checkLeakCanaryThreshold updates state`() {
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.START_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0, retainedObjectThreshold = 10),
+    )
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), 0),
+    )
+
+    stage.startListening()
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertEquals(10, stage.retainedObjectThreshold.value)
   }
 
   // A leaking node is found in the leak trace.
@@ -396,6 +474,7 @@ class FakeLeakCanaryCommandHandler(
   val leaksToSendFiles: List<String>,
   val startTimestamp: Long,
   val isLeakCanaryPresent: Boolean = true,
+  val retainedObjectThreshold: Int = 5,
 ) : CommandHandler(timer) {
   override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
 
@@ -454,6 +533,19 @@ class FakeLeakCanaryCommandHandler(
             .build()
         )
       }
+
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD -> {
+        events.add(
+          Common.Event.newBuilder()
+            .setPid(profilers.session.pid)
+            .setCommandId(command.commandId)
+            .setTimestamp(System.currentTimeMillis())
+            .setKind(Common.Event.Kind.LEAKCANARY_THRESHOLD)
+            .setLeakcanaryThreshold(Common.LeakCanaryThresholdData.newBuilder().setThreshold(retainedObjectThreshold).build())
+            .build()
+        )
+      }
+
       else -> {}
     }
   }

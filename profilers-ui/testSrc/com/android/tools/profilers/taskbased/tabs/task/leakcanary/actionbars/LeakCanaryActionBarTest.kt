@@ -95,6 +95,10 @@ class LeakCanaryActionBarTest : WithFakeTimer {
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTimestamp),
     )
     transportService.setCommandHandler(
+      Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD,
+      FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTimestamp),
+    )
+    transportService.setCommandHandler(
       Commands.Command.CommandType.STOP_LEAKCANARY_TASK,
       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTimestamp),
     )
@@ -130,7 +134,7 @@ class LeakCanaryActionBarTest : WithFakeTimer {
   fun `analysis progress from logcat is displayed`() {
     leakCanaryModel.setIsRecording(true)
     // Set retained object count to meet the requirement to trigger analysis view
-    leakCanaryModel.setObjectRetainedCount(leakCanaryModel.requiredRetainedObjectCount)
+    leakCanaryModel.setObjectRetainedCount(leakCanaryModel.retainedObjectThreshold.value)
     leakCanaryModel.setAnalysisProgress(50)
 
     composeTestRule.setContent { LeakCanaryActionBar(leakCanaryModel = leakCanaryModel) }
@@ -143,7 +147,7 @@ class LeakCanaryActionBarTest : WithFakeTimer {
   @Test
   fun `status is cleared when analysis is complete`() {
     leakCanaryModel.setIsRecording(true)
-    leakCanaryModel.setObjectRetainedCount(leakCanaryModel.requiredRetainedObjectCount)
+    leakCanaryModel.setObjectRetainedCount(leakCanaryModel.retainedObjectThreshold.value)
     leakCanaryModel.setAnalysisProgress(100)
 
     composeTestRule.setContent { LeakCanaryActionBar(leakCanaryModel = leakCanaryModel) }

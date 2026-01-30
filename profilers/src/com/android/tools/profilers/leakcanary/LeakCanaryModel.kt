@@ -65,7 +65,8 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
         }
   }
 
-  val requiredRetainedObjectCount = 5
+  private var _retainedObjectThreshold = MutableStateFlow(5)
+  val retainedObjectThreshold = _retainedObjectThreshold.asStateFlow()
   private val _leaks = MutableStateFlow(listOf<Leak>())
   val leaks = _leaks.asStateFlow()
   private val _selectedLeak = MutableStateFlow<Leak?>(null)
@@ -101,6 +102,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     profilers.updater.register(this)
     setIsRecording(true)
     checkLeakCanaryPresence()
+    checkLeakCanaryThreshold() // TODO(b/460283628): We need to check threshold only when milestone1 flow is selected.
     setObjectRetainedCount(0)
     setAnalysisProgress(0)
     registerLeakCanaryListeners()
@@ -170,13 +172,43 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
         callback = { event ->
           val count = event.leakcanaryObjectCount.count
           setObjectRetainedCount(count)
-          if (count >= requiredRetainedObjectCount) {
+          if (count >= _retainedObjectThreshold.value) {
             forceHeapDump()
           }
           false
         },
       )
     profilers.transportPoller.registerListener(objectCountListener)
+  }
+
+  private fun checkLeakCanaryThreshold() {
+    val command =
+      Commands.Command.newBuilder()
+        .apply {
+          streamId = profilers.session.streamId
+          pid = profilers.session.pid
+          type = Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD
+        }
+        .build()
+
+    profilers.ideServices.poolExecutor.execute {
+      val response = profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
+
+      val listener =
+        TransportEventListener(
+          eventKind = Common.Event.Kind.LEAKCANARY_THRESHOLD,
+          executor = profilers.ideServices.poolExecutor,
+          filter = { it.commandId == response.commandId },
+          streamId = { profilers.session.streamId },
+          processId = { profilers.session.pid },
+          callback = { event ->
+            val threshold = event.leakcanaryThreshold.threshold
+            profilers.ideServices.mainExecutor.execute { _retainedObjectThreshold.value = threshold }
+            true // Unregister listener
+          },
+        )
+      profilers.transportPoller.registerListener(listener)
+    }
   }
 
   private fun checkLeakCanaryPresence() {
